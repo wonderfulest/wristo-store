@@ -1,0 +1,106 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+数据格式为：
+
+{
+    "code": 0,
+    "message": "success",
+    "data": {
+        "products": [
+            {
+                "productName": "测试产品",
+                "productDescription": "这是一个测试产品",
+                "productId": 1,
+                "isBundle": false,
+                "merchantName": "wonderful",
+                "price": 1.99,
+                "imageUrl": "https://example.com/image.png",
+                "licenseValidityDurationInDays": null,
+                "appId": 10001,
+                "allowTipping": null,
+                "bundleContent": null
+            }
+        ],
+        "request": {
+            "appid": 10001,
+            "accounttoken": "1ddb81fbc0f53582020a7589ffd0aedf60b15984",
+            "purchaseCode": "166568"
+        },
+        "detectedLocation": "china"
+    }
+}
+
+
+如果 products 中存在 bundle, 则格式为
+
+{
+    "code": 0,
+    "message": "success",
+    "data": {
+        "products": [
+            {
+                "productName": "测试产品",
+                "productDescription": "这是一个测试产品",
+                "productId": 1,
+                "isBundle": false,
+                "merchantName": "wonderful",
+                "price": 1.99,
+                "imageUrl": "https://example.com/image.png",
+                "licenseValidityDurationInDays": null,
+                "appId": 10001,
+                "allowTipping": null,
+                "bundleContent": null
+            },
+            {
+                "productName": "测试Bundle",
+                "productDescription": "这是一个测试Bundle",
+                "productId": 1,
+                "isBundle": false,
+                "merchantName": "wonderful",
+                "price": 9.99,
+                "imageUrl": "https://example.com/image.png",
+                "licenseValidityDurationInDays": null,
+                "appId": 10001,
+                "allowTipping": null,
+                "bundleContent": null,
+                "products": [
+                    {
+                        "productName": "测试产品",
+                        "productDescription": "这是一个测试产品",
+                        "productId": 1,
+                        "isBundle": false,
+                        "merchantName": "wonderful",
+                        "price": 1.99,
+                        "imageUrl": "https://example.com/image.png",
+                        "licenseValidityDurationInDays": null,
+                        "appId": 10001,
+                        "allowTipping": null,
+                        "bundleContent": null
+                    },
+                    {
+                        "productName": "02测试产品",
+                        "productDescription": "这是02测试产品",
+                        "productId": 1,
+                        "isBundle": false,
+                        "merchantName": "wonderful",
+                        "price": 1.99,
+                        "imageUrl": "https://example.com/image.png",
+                        "licenseValidityDurationInDays": null,
+                        "appId": 10001,
+                        "allowTipping": null,
+                        "bundleContent": null
+                    }
+                ]
+            }
+        ],
+        "request": {
+            "appid": 10001,
+            "accounttoken": "1ddb81fbc0f53582020a7589ffd0aedf60b15984",
+            "purchaseCode": "166568"
+        },
+        "detectedLocation": "china"
+    }
+}
