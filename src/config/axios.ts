@@ -2,15 +2,11 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { BizErrorCode } from '@/constant/errorCode'
 
-export const API_TOKEN = import.meta.env.VITE_API_TOKEN || 'api_IcWhAKwlu6ghDfo1yuCWhFJo0ERCCK0u'
-
-
 const instance = axios.create({
   baseURL: '/api', // 走 vite 代理
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${API_TOKEN}`
   }
 })
 

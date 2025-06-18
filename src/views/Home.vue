@@ -1,34 +1,31 @@
 <template>
-  <div class="home">
+  <div class="home bg-white">
     <!-- 搜索区域 -->
-    <section class="search-section bg-gradient-to-b from-blue-50 to-gray-50 py-12 mb-0 border-b border-gray-200 shadow-sm">
-      <div class="container mx-auto px-4">
-        <div class="flex justify-center items-center">
-          <div class="w-full max-w-2xl">
-            <el-input
-              v-model="searchTerm"
-              placeholder="搜索表盘..."
-              class="search-input"
-              @input="handleSearch"
-            >
-              <template #prefix>
-                <el-icon><Search /></el-icon>
-              </template>
-            </el-input>
-          </div>
+    <section class="search-section search-section-gradient">
+      <div class="search-bar-outer">
+        <div class="search-bar-inner flex items-center">
+          <el-icon class="search-icon"><Search /></el-icon>
+          <el-input
+            v-model="searchTerm"
+            placeholder='Try "Elegant" ...'
+            class="search-bar-input"
+            @input="handleSearch"
+            :border="false"
+          />
+          <el-button class="search-bar-btn" type="primary" round>Search</el-button>
         </div>
       </div>
     </section>
 
     <!-- 搜索结果 -->
     <section v-if="searchResults.length > 0" class="py-16 bg-white">
-      <div class="container mx-auto px-4">
+      <div class="w-full px-4">
         <div class="flex items-center justify-between mb-10">
           <h2 class="text-3xl font-bold">搜索结果</h2>
           <span class="text-gray-500">{{ searchResults.length }} 个商品</span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
-          <div v-for="product in searchResults" :key="product.id" class="flex justify-center">
+          <div v-for="product in searchResults" :key="product.appId" class="flex justify-center">
             <product-card :product="product" />
           </div>
         </div>
@@ -37,17 +34,27 @@
 
     <!-- 新品展示 -->
     <section class="py-16 bg-white">
-      <div class="container mx-auto px-4">
+      <div class="w-full px-4">
         <div class="flex items-center mb-10">
-          <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+          <!-- <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
             <el-icon class="text-blue-600"><Plus /></el-icon>
-          </div>
-          <h2 class="text-3xl font-bold">新品上市</h2>
+          </div> -->
+          <h2 class="text-4xl font-bold">New Arrivals</h2>
         </div>
         <div class="px-4 md:px-0">
           <el-carousel :interval="4000" type="card" height="400px" :autoplay="true">
-            <el-carousel-item v-for="product in newProducts" :key="product.id" class="px-1 flex justify-center">
-              <product-card :product="product" />
+            <el-carousel-item v-for="product in newProducts" :key="product.appId" class="flex flex-col items-center justify-center">
+              <div class="product-circle-img">
+                <img
+                  :src="product.garminImageUrl"
+                  :alt="product.name"
+                  class="circle-img"
+                />
+              </div>
+              <div class="mt-6 text-center">
+                <div class="font-medium text-lg">{{ product.name }}</div>
+                <div class="text-gray-500 text-base mt-1">${{ product.price.toFixed(2) }}</div>
+              </div>
             </el-carousel-item>
           </el-carousel>
         </div>
@@ -55,78 +62,79 @@
     </section>
 
     <!-- 特色区域 -->
-    <section class="py-20 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div class="relative max-w-[1200px] mx-auto px-6 md:px-10 py-16 md:py-20 rounded-3xl shadow-lg overflow-hidden">
-        <!-- 装饰元素 -->
-        <div class="absolute top-0 left-0 w-32 h-32 bg-blue-100 rounded-full opacity-50 -translate-x-1/2 -translate-y-1/2"></div>
-        <div class="absolute bottom-0 right-0 w-40 h-40 bg-purple-100 rounded-full opacity-50 translate-x-1/3 translate-y-1/3"></div>
-        <div class="absolute top-1/4 right-10 w-8 h-8 bg-yellow-300 rounded-full opacity-70"></div>
-        <div class="absolute bottom-1/4 left-10 w-10 h-10 bg-green-200 rounded-full opacity-60"></div>
-        <div class="absolute top-3/4 right-1/4 w-6 h-6 bg-pink-200 rounded-full opacity-70"></div>
-        
-        <div class="relative text-center z-10">
-          <div class="inline-block px-4 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6 transform hover:scale-105 transition-transform">
-            提升您的智能手表体验
+    <section class="feature-section">
+      <div class="feature-bg">
+        <!-- 背景圆形装饰 -->
+        <div class="feature-circle feature-circle-1"></div>
+        <div class="feature-circle feature-circle-2"></div>
+        <div class="feature-circle feature-circle-3"></div>
+        <div class="feature-circle feature-circle-4"></div>
+        <div class="feature-circle feature-circle-5"></div>
+        <div class="feature-circle feature-circle-6"></div>
+        <div class="feature-badge">ELEVATE YOUR GARMIN EXPERIENCE</div>
+        <h2 class="feature-title">Transform Your Watch Into A Masterpiece</h2>
+        <div class="feature-desc">
+          Discover our curated collection of premium watch faces designed exclusively for Garmin devices. Each design balances stunning aesthetics with practical functionality, giving you:
+        </div>
+        <div class="feature-cards">
+          <div class="feature-card">
+            <div class="feature-icon feature-icon-blue"><el-icon><Plus /></el-icon></div>
+            <div class="feature-card-title">Unique Style</div>
+            <div class="feature-card-desc">Express your personality with designs you won't find anywhere else</div>
           </div>
-          <h2 class="text-[36px] md:text-[48px] mb-8 font-bold leading-tight bg-gradient-to-r from-blue-700 to-purple-600 text-transparent bg-clip-text">
-            将您的手表变成艺术品
-          </h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12 text-left">
-            <div class="bg-white p-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300">
-              <div class="flex-shrink-0 bg-blue-100 rounded-full p-3 mb-4 inline-block">
-                <el-icon class="text-blue-600"><Star /></el-icon>
-              </div>
-              <h3 class="font-bold text-lg text-gray-900 mb-2">独特风格</h3>
-              <p class="text-gray-600">展现您的个性，发现独一无二的设计</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300">
-              <div class="flex-shrink-0 bg-green-100 rounded-full p-3 mb-4 inline-block">
-                <el-icon class="text-green-600"><Check /></el-icon>
-              </div>
-              <h3 class="font-bold text-lg text-gray-900 mb-2">健康追踪</h3>
-              <p class="text-gray-600">通过美观易读的显示界面监控您的健康数据</p>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md transform hover:scale-105 transition-all duration-300">
-              <div class="flex-shrink-0 bg-purple-100 rounded-full p-3 mb-4 inline-block">
-                <el-icon class="text-purple-600"><Lightning /></el-icon>
-              </div>
-              <h3 class="font-bold text-lg text-gray-900 mb-2">电池优化</h3>
-              <p class="text-gray-600">优化的设计不会过度消耗手表电池</p>
-            </div>
+          <div class="feature-card">
+            <div class="feature-icon feature-icon-green"><el-icon><Check /></el-icon></div>
+            <div class="feature-card-title">Health Tracking</div>
+            <div class="feature-card-desc">Monitor your vitals with beautiful, easy-to-read displays</div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon feature-icon-purple"><el-icon><Lightning /></el-icon></div>
+            <div class="feature-card-title">Battery Efficient</div>
+            <div class="feature-card-desc">Optimized designs that won't drain your watch battery</div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- 系列展示 -->
-    <section class="py-16 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="flex items-center mb-10">
-          <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
-            <el-icon class="text-indigo-600"><Collection /></el-icon>
+    <section class="series-section">
+      <div class="series-container">
+        <div class="series-header">
+          <div class="series-header-icon">
+            <el-icon class="series-header-icon-inner"><Collection /></el-icon>
           </div>
-          <h2 class="text-3xl font-bold">浏览系列</h2>
+          <h2 class="series-title">Browse by Series</h2>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-0">
-          <div v-for="series in seriesList" :key="series.id" class="flex justify-center">
-            <series-card :series="series" />
+        <div class="series-grid">
+          <div v-for="series in seriesList" :key="series.id" class="series-item">
+            <div class="series-img-wrap">
+              <img :src="series.image" :alt="series.name" class="series-img" />
+            </div>
+            <div class="series-name-row">
+              <span class="series-name">{{ series.name }}</span>
+              <span class="series-arrow">&rarr;</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
     <!-- 热门商品 -->
-    <section class="py-16 bg-white border-t border-gray-100">
-      <div class="container mx-auto px-4">
-        <div class="flex items-center mb-10">
-          <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-4">
-            <span class="text-red-500 text-xl">🔥</span>
+    <section class="hot-section">
+      <div class="hot-container">
+        <div class="hot-header">
+          <div class="hot-header-icon">
+            <span class="hot-header-icon-inner">🔥</span>
           </div>
-          <h2 class="text-3xl font-bold">热门商品</h2>
+          <h2 class="hot-title">Trending Now</h2>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
-          <div v-for="product in hotProducts" :key="product.id" class="flex justify-center">
-            <product-card :product="product" />
+        <div class="hot-grid">
+          <div v-for="product in hotProducts" :key="product.appId" class="hot-item">
+            <div class="hot-img-wrap">
+              <img :src="product.garminImageUrl" :alt="product.name" class="hot-img" />
+            </div>
+            <div class="hot-name">{{ product.name }}</div>
+            <div class="hot-price">${{ product.price.toFixed(2) }}</div>
           </div>
         </div>
       </div>
@@ -142,7 +150,7 @@ import SeriesCard from '@/components/SeriesCard.vue'
 import { useProductStore } from '@/store/product'
 
 interface Product {
-  id: string | number
+  appId: number
   [key: string]: any
 }
 
@@ -177,25 +185,420 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.search-input {
+.search-bar-outer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  height: 50px;
-  border-radius: 25px;
-  padding: 0 20px;
-  font-size: 16px;
-  border: 2px solid #e5e7eb;
-  transition: all 0.3s ease;
+  margin-top: 32px;
+  margin-bottom: 32px;
 }
 
-.search-input:hover,
-.search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.search-bar-inner {
+  background: #fff;
+  border-radius: 999px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  padding: 0 24px 0 20px;
+  width: 40vw;
+  min-width: 320px;
+  max-width: 600px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  color: #b0b7c3;
+  font-size: 26px;
+  margin-right: 12px;
+}
+
+.search-bar-input :deep(.el-input__wrapper) {
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 1.3rem;
+  color: #222;
+  padding: 0;
+}
+
+.search-bar-input :deep(.el-input__inner) {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font-size: 1.3rem;
+  color: #222;
+  padding: 0;
+}
+
+.search-bar-input :deep(.el-input__inner)::placeholder {
+  color: #b0b7c3 !important;
+  opacity: 1;
+}
+
+.search-bar-btn {
+  margin-left: 18px;
+  height: 44px;
+  min-width: 110px;
+  font-size: 1.1rem;
+  border-radius: 999px !important;
+  background: #347cff;
+  border: none;
+  box-shadow: 0 2px 8px 0 rgba(52,124,255,0.08);
 }
 
 :deep(.el-carousel__item) {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  background: transparent;
+  box-shadow: none;
+}
+
+.product-circle-img {
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+}
+.circle-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.search-section-gradient {
+  min-height: 220px;
+  background: linear-gradient(135deg, #eaf3ff 0%, #f5faff 100%);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04);
+}
+
+.feature-section {
+  width: 100%;
+  background: linear-gradient(135deg, #eaf1ff 0%, #f6f7fb 100%);
+  padding: 20px 0;
+  margin: 0;
+}
+.feature-bg {
+  max-width: 1200px;
+  margin: 0 auto;
+  border-radius: 36px;
+  background: rgba(255,255,255,0.55);
+  box-shadow: 0 8px 32px 0 rgba(80, 110, 255, 0.08);
+  padding: 64px 24px 56px 24px;
+  position: relative;
+  margin-top: 48px;
+  margin-bottom: 48px;
+  overflow: hidden;
+}
+.feature-circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.25;
+  z-index: 1;
+  pointer-events: none;
+}
+.feature-circle-1 {
+  width: 160px;
+  height: 160px;
+  left: -60px;
+  top: -60px;
+  background: #bcdcff;
+}
+.feature-circle-2 {
+  width: 100px;
+  height: 100px;
+  right: -40px;
+  top: 40px;
+  background: #e6edfd;
+}
+.feature-circle-3 {
+  width: 80px;
+  height: 80px;
+  left: 60px;
+  bottom: -30px;
+  background: #e6f9ed;
+}
+.feature-circle-4 {
+  width: 120px;
+  height: 120px;
+  right: 80px;
+  bottom: -50px;
+  background: #f3eafd;
+}
+.feature-circle-5 {
+  width: 70px;
+  height: 70px;
+  left: 32%;
+  top: 58%;
+  background: #e6edfd;
+}
+.feature-circle-6 {
+  width: 90px;
+  height: 90px;
+  right: 28%;
+  top: 38%;
+  background: #f3eafd;
+}
+.feature-badge {
+  display: inline-block;
+  background: #e6edfd;
+  color: #4a6cf7;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 22px;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+}
+.feature-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: #4a3aff;
+  text-align: center;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+}
+.feature-desc {
+  font-size: 1.25rem;
+  color: #444;
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto 44px auto;
+  line-height: 1.7;
+}
+.feature-cards {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 36px;
+  margin-top: 0;
+  flex-wrap: nowrap;
+  width: 70%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.feature-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px 0 rgba(80, 110, 255, 0.10);
+  padding: 24px 20px 32px 20px;
+  min-width: 180px;
+  max-width: 220px;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  margin-bottom: 18px;
+}
+.feature-icon-blue {
+  background: #e6edfd;
+  color: #4a6cf7;
+}
+.feature-icon-green {
+  background: #e6f9ed;
+  color: #34c759;
+}
+.feature-icon-purple {
+  background: #f3eafd;
+  color: #a259ff;
+}
+.feature-card-title {
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 8px;
+}
+.feature-card-desc {
+  font-size: 1.05rem;
+  color: #444;
+  line-height: 1.6;
+  text-align: left;
+}
+.series-section {
+  padding: 64px 0;
+  background: #fff;
+}
+.series-container {
+  width: 100%;
+  padding: 0 16px;
+}
+.series-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.series-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ede9fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+.series-header-icon-inner {
+  color: #a78bfa;
+  font-size: 24px;
+}
+.series-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #222;
+}
+.series-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 36px 24px;
+  justify-items: center;
+  align-items: start;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.series-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 210px;
+}
+.series-img-wrap {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f7f8fa;
+  box-shadow: 0 4px 24px 0 rgba(80, 110, 255, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.series-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+.series-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  gap: 8px;
+}
+.series-name {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #222;
+}
+.series-arrow {
+  font-size: 1.3rem;
+  color: #b0b7c3;
+  margin-left: 2px;
+  font-weight: 400;
+}
+.hot-section {
+  padding: 64px 0;
+  background: #fff;
+  border-top: 2px solid #f3f4f6;
+}
+.hot-container {
+  width: 100%;
+  padding: 0 16px;
+}
+.hot-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40px;
+}
+.hot-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #ffedd5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+.hot-header-icon-inner {
+  color: #fb923c;
+  font-size: 24px;
+}
+.hot-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #222;
+}
+.hot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px 24px;
+  justify-items: center;
+  align-items: start;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.hot-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 320px;
+}
+.hot-img-wrap {
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f7f8fa;
+  box-shadow: 0 4px 24px 0 rgba(80, 110, 255, 0.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hot-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+.hot-name {
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: #222;
+  margin-top: 22px;
+  text-align: center;
+}
+.hot-price {
+  font-size: 1.1rem;
+  color: #888;
+  margin-top: 6px;
+  text-align: center;
 }
 </style> 

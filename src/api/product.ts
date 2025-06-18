@@ -50,7 +50,7 @@ export const getNewProducts = (): Promise<Response<Product[]>> => {
 
 // 获取系列列表
 export const getSeries = (): Promise<Response<Series[]>> => {
-  return instance.get('/public/categories')
+  return instance.get('/public/categories/all')
 }
 
 // 获取热门商品
