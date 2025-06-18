@@ -21,14 +21,12 @@
         </li>
       </ul>
     </div>
-    <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import Logo from '@/components/Logo.vue'
-import Footer from '@/components/Footer.vue'
 
 const email = ref('')
 const loading = ref(false)

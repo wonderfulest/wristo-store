@@ -21,7 +21,6 @@
       <button class="btn outline">Already Purchased</button>
       <button class="btn" :disabled="code.length !== 6 || loading" @click="handleContinue">Continue</button>
     </div>
-    <Footer />
   </div>
 </template>
 

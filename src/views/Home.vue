@@ -42,7 +42,7 @@
           <h2 class="new-title">New Arrivals</h2>
         </div>
         <div class="new-carousel-wrap">
-          <el-carousel :interval="3000" type="card" height="400px" :autoplay="true">
+          <el-carousel :interval="2000" type="card" height="400px" :autoplay="true">
             <el-carousel-item v-for="product in newProducts" :key="product.appId" class="flex flex-col items-center justify-center" @click="goToProduct(product)">
               <div class="product-circle-img">
                 <img

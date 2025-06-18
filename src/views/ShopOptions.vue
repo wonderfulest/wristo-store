@@ -38,7 +38,6 @@
         </div>
       </template>
     </div>
-    <Footer />
   </div>
 </template>
 
@@ -46,7 +45,6 @@
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useRouter } from 'vue-router'
 import { computed } from 'vue'
-import Footer from '@/components/Footer.vue'
 import Logo from '@/components/Logo.vue'
 
 interface Product {

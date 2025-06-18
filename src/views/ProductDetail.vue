@@ -70,7 +70,8 @@ const handleDownload = () => {
 }
 
 const handleUnlock = () => {
-  window.open('https://wristo.io/code', '_blank')
+  // window.open('https://wristo.io/code', '_blank')
+  window.open('/code', '_blank')
 }
 
 onMounted(async () => {

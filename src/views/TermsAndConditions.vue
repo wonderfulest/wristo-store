@@ -119,7 +119,6 @@
       <p><strong>Address:</strong> Harju maakond, Tallinn, Kesklinna linnaosa, Ahtri tn 12, 15551, Estonia</p>
       <p><strong>E-mail:</strong> <a href="mailto:support@wristo.io">support@wristo.io</a></p>
     </div>
-    <Footer />
   </div>
 </template>
 

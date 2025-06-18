@@ -1,7 +1,16 @@
 import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
-  { path: '/', redirect: '/code' },
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('@/views/Home.vue')
+  },
+  {
+    path: '/product/:id',
+    name: 'product-detail',
+    component: () => import('@/views/ProductDetail.vue')
+  },
   { 
     path: '/code', 
     name: 'CodeInput', 
