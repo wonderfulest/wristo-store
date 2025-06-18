@@ -23,7 +23,7 @@ export interface Product {
   isDeleted: number
   download: number
   purchase: number
-  heroFile: string | null
+  heroFile: { url: string, name?: string } | null
   backgroundFile: string | null
 }
 
@@ -56,4 +56,14 @@ export const getSeries = (): Promise<Response<Series[]>> => {
 // 获取热门商品
 export const getHotProducts = (): Promise<Response<Product[]>> => {
   return instance.get('/public/products/hot')
+}
+
+// 获取商品详情
+export const getProductDetail = (appId: string): Promise<Response<Product>> => {
+  return instance.get(`/public/products/app/${appId}`)
+}
+
+// 获取相关商品
+export const getRelatedProducts = (appId: string): Promise<Response<Product[]>> => {
+  return instance.get(`/public/products/related/${appId}`)
 }

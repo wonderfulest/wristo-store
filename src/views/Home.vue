@@ -33,20 +33,20 @@
     </section>
 
     <!-- 新品展示 -->
-    <section class="py-16 bg-white">
-      <div class="w-full px-4">
-        <div class="flex items-center mb-10">
-          <!-- <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
-            <el-icon class="text-blue-600"><Plus /></el-icon>
-          </div> -->
-          <h2 class="text-4xl font-bold">New Arrivals</h2>
+    <section class="new-section">
+      <div class="new-container">
+        <div class="new-header">
+          <div class="new-header-icon">
+            <el-icon class="new-header-icon-inner"><Plus /></el-icon>
+          </div>
+          <h2 class="new-title">New Arrivals</h2>
         </div>
-        <div class="px-4 md:px-0">
-          <el-carousel :interval="4000" type="card" height="400px" :autoplay="true">
-            <el-carousel-item v-for="product in newProducts" :key="product.appId" class="flex flex-col items-center justify-center">
+        <div class="new-carousel-wrap">
+          <el-carousel :interval="3000" type="card" height="400px" :autoplay="true">
+            <el-carousel-item v-for="product in newProducts" :key="product.appId" class="flex flex-col items-center justify-center" @click="goToProduct(product)">
               <div class="product-circle-img">
                 <img
-                  :src="product.garminImageUrl"
+                  :src="product.heroFile?.url || product.garminImageUrl"
                   :alt="product.name"
                   class="circle-img"
                 />
@@ -131,7 +131,7 @@
         <div class="hot-grid">
           <div v-for="product in hotProducts" :key="product.appId" class="hot-item">
             <div class="hot-img-wrap">
-              <img :src="product.garminImageUrl" :alt="product.name" class="hot-img" />
+              <img :src="product.heroFile?.url" :alt="product.name" class="hot-img" />
             </div>
             <div class="hot-name">{{ product.name }}</div>
             <div class="hot-price">${{ product.price.toFixed(2) }}</div>
@@ -148,6 +148,7 @@ import { Search, Plus, Star, Check, Lightning, Collection, TrendCharts } from '@
 import ProductCard from '@/components/ProductCard.vue'
 import SeriesCard from '@/components/SeriesCard.vue'
 import { useProductStore } from '@/store/product'
+import { useRouter } from 'vue-router'
 
 interface Product {
   appId: number
@@ -165,6 +166,7 @@ const searchResults = ref<Product[]>([])
 const newProducts = ref<Product[]>([])
 const seriesList = ref<Series[]>([])
 const hotProducts = ref<Product[]>([])
+const router = useRouter()
 
 const handleSearch = async () => {
   if (searchTerm.value.length > 0) {
@@ -182,6 +184,10 @@ onMounted(async () => {
   // 获取热门商品
   hotProducts.value = await productStore.getHotProducts()
 })
+
+function goToProduct(product: Product) {
+  router.push({ name: 'product-detail', params: { id: product.appId } })
+}
 </script>
 
 <style scoped>
@@ -448,6 +454,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   margin-bottom: 40px;
+  justify-content: center;
 }
 .series-header-icon {
   width: 40px;
@@ -534,6 +541,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   margin-bottom: 40px;
+  justify-content: center;
 }
 .hot-header-icon {
   width: 40px;
@@ -600,5 +608,41 @@ onMounted(async () => {
   color: #888;
   margin-top: 6px;
   text-align: center;
+}
+.new-section {
+  padding: 32px 0;
+  background: #fff;
+}
+.new-container {
+  width: 80%;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+.new-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.new-header-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #dbeafe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+.new-header-icon-inner {
+  color: #2563eb;
+  font-size: 24px;
+}
+.new-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #222;
+}
+.new-carousel-wrap {
+  padding: 0 16px;
 }
 </style> 

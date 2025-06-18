@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { searchProducts, getNewProducts, getSeries, getHotProducts, type Product, type Series } from '@/api/product'
+import { searchProducts, getNewProducts, getSeries, getHotProducts, getProductDetail, getRelatedProducts, type Product, type Series } from '@/api/product'
 
 interface State {
   loading: boolean
@@ -74,11 +74,11 @@ export const useProductStore = defineStore('product', {
     },
 
     // 获取商品详情
-    async getProductDetail(id: string): Promise<Product | null> {
+    async getProductDetail(appId: string): Promise<Product | null> {
       try {
         this.loading = true
-        const response = await axios.get(`/api/products/${id}`)
-        return response.data.data
+        const response = await getProductDetail(appId)
+        return response.data
       } catch (error) {
         this.error = error instanceof Error ? error : new Error('Unknown error')
         return null
@@ -91,8 +91,8 @@ export const useProductStore = defineStore('product', {
     async getRelatedProducts(id: string): Promise<Product[]> {
       try {
         this.loading = true
-        const response = await axios.get(`/api/products/${id}/related`)
-        return response.data.data
+        const response = await getRelatedProducts(id)
+        return response.data
       } catch (error) {
         this.error = error instanceof Error ? error : new Error('Unknown error')
         return []
