@@ -6,8 +6,18 @@
       </div>
       <nav class="nav-area">
         <router-link to="/" class="nav-link">Home</router-link>
-        <router-link to="/sale" class="nav-link">Sale</router-link>
-        <router-link to="/categories" class="nav-link">Categories</router-link>
+        <el-dropdown @command="handleSelectSeries" trigger="hover">
+          <span class="nav-link dropdown-trigger">
+            Categories <el-icon style="margin-left: 4px;"><arrow-down /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="series in seriesList" :key="series.id" :command="series.slug">
+                {{ series.name }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
         <router-link to="/faq" class="nav-link">FAQ</router-link>
       </nav>
     </div>
@@ -15,6 +25,27 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useProductStore } from '@/store/product'
+import { useRouter } from 'vue-router'
+import { ArrowDown } from '@element-plus/icons-vue'
+import type { Series } from '@/api/product'
+
+const productStore = useProductStore()
+const seriesList = ref<Series[]>([])
+const router = useRouter()
+
+const loadSeries = async () => {
+  seriesList.value = await productStore.getSeries()
+}
+
+const handleSelectSeries = (slug: string) => {
+  router.push(`/categories/${slug}`)
+}
+
+onMounted(() => {
+  loadSeries()
+})
 </script>
 
 <style scoped>
@@ -55,5 +86,10 @@
 }
 .nav-link:hover {
   color: #347cff;
+}
+.dropdown-trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
 }
 </style> 

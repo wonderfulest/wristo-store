@@ -129,7 +129,7 @@
           <h2 class="hot-title">Trending Now</h2>
         </div>
         <div class="hot-grid">
-          <div v-for="product in hotProducts" :key="product.appId" class="hot-item">
+          <div v-for="product in hotProducts" :key="product.appId" class="hot-item" @click="goToProduct(product)">
             <div class="hot-img-wrap">
               <img :src="product.heroFile?.url" :alt="product.name" class="hot-img" />
             </div>
@@ -180,7 +180,7 @@ onMounted(async () => {
   // 获取新品
   newProducts.value = await productStore.getNewProducts()
   // 获取系列
-  seriesList.value = await productStore.getSeries()
+  seriesList.value = await productStore.getHotSeries()
   // 获取热门商品
   hotProducts.value = await productStore.getHotProducts()
 })

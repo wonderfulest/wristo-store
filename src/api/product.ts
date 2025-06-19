@@ -36,6 +36,15 @@ export interface Series {
   sort: number
 }
 
+// 通用分页返回类型
+export interface PageResult<T> {
+  pageNum: number
+  pageSize: number
+  total: number
+  pages: number
+  list: T[]
+}
+
 // 搜索商品
 export const searchProducts = (keyword: string): Promise<Response<Product[]>> => {
   return instance.get('/products/search', {
@@ -46,6 +55,11 @@ export const searchProducts = (keyword: string): Promise<Response<Product[]>> =>
 // 获取新品
 export const getNewProducts = (): Promise<Response<Product[]>> => {
   return instance.get('/public/products/new')
+}
+
+// 获取系列列表
+export const getHotSeries = (): Promise<Response<Series[]>> => {
+  return instance.get('/public/categories/hot?limit=8')
 }
 
 // 获取系列列表
@@ -66,4 +80,11 @@ export const getProductDetail = (appId: string): Promise<Response<Product>> => {
 // 获取相关商品
 export const getRelatedProducts = (appId: string): Promise<Response<Product[]>> => {
   return instance.get(`/public/products/related/${appId}`)
+}
+
+// 通过 slug 获取系列下商品（分页）
+export const getProductsByCategory = (slug: string, pageNum = 1, pageSize = 30): Promise<Response<PageResult<Product>>> => {
+  return instance.get('/public/products/page/category', {
+    params: { slug, pageNum, pageSize, orderBy: 'download:desc' }
+  })
 }

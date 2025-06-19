@@ -65,6 +65,11 @@ const routes: RouteRecordRaw[] = [
     name: 'PrivacyPolicy',
     component: () => import('@/views/PrivacyPolicy.vue')
   },
+  {
+    path: '/categories/:slug',
+    name: 'CategoryDetail',
+    component: () => import('@/views/Categories.vue')
+  },
 ]
 
 export default routes 

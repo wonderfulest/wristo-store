@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
-import { searchProducts, getNewProducts, getSeries, getHotProducts, getProductDetail, getRelatedProducts, type Product, type Series } from '@/api/product'
+import { searchProducts, getNewProducts, getSeries, 
+  getHotProducts, getProductDetail, getRelatedProducts, getHotSeries, 
+  type Product, type Series } from '@/api/product'
 
 interface State {
   loading: boolean
@@ -8,6 +10,7 @@ interface State {
   newProducts: Product[]
   seriesList: Series[]
   hotProducts: Product[]
+  hotSeries: Series[]
 }
 
 export const useProductStore = defineStore('product', {
@@ -17,7 +20,8 @@ export const useProductStore = defineStore('product', {
     searchResults: [],
     newProducts: [],
     seriesList: [],
-    hotProducts: []
+    hotProducts: [],
+    hotSeries: []
   }),
 
   actions: {
@@ -43,6 +47,19 @@ export const useProductStore = defineStore('product', {
         return this.newProducts
       } catch (error) {
         console.error('获取新品失败:', error)
+        return []
+      }
+    },
+
+    async getHotSeries() {
+      try {
+        const response = await getHotSeries()
+        if (response.code === 0) {
+          this.hotSeries = response.data
+        }
+        return this.hotSeries
+      } catch (error) {
+        console.error('获取热门系列失败:', error)
         return []
       }
     },
@@ -99,6 +116,8 @@ export const useProductStore = defineStore('product', {
       } finally {
         this.loading = false
       }
-    }
+    },
+
+ 
   }
 }) 
