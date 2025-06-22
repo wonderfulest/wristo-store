@@ -18,7 +18,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <router-link to="/faq" class="nav-link">FAQ</router-link>
+        <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
       </nav>
     </div>
   </header>
@@ -69,8 +69,8 @@ onMounted(() => {
 .logo-area .logo-text {
   font-size: 2rem;
   font-weight: bold;
-  color: #347cff;
-  letter-spacing: 2px;
+  color: #000;
+  letter-spacing: 6px;
   text-decoration: none;
 }
 .nav-area {

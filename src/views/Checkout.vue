@@ -1,6 +1,6 @@
 <template>
     <div class="checkout">
-        <Logo />
+        <!-- <Logo /> -->
         <h2 class="title">Secure Checkout</h2>
         <div class="checkout-main">
             <div class="checkout-left">
@@ -8,27 +8,21 @@
                 <input v-model="email" class="input" placeholder="" />
                 <div class="input-desc">Only used for sending receipt.</div>
                 <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
+                
                 <div class="pay-method-title">Payment Method</div>
                 <div class="pay-method-note">
-                    Note: Paying with Credit/Debit cards has a $0.30 processing fee.
-                    <!-- Apple Pay, Google Pay or  -->
+                    Secure payment powered by Paddle
                 </div>
-                <div class="pay-methods">
-                    <label class="pay-radio">
-                        <input type="radio" v-model="payMethod" value="paypal" />
-                        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png"
-                            style="height: 24px;vertical-align: middle;margin-right: 4px;" />
-                        <span style="font-weight:bold;color:#253b80;">PayPal</span>
-                    </label>
-                    <label class="pay-radio">
-                        <input type="radio" v-model="payMethod" value="card" />
-                        <span style="font-weight:bold;">Credit/Debit Card</span>
-                        <span v-if="payMethod === 'card'" style="color: #666; margin-left: 8px;">+$0.30 processing
-                            fee</span>
-                    </label>
-                </div>
-                <div id="paypal-button-container" style="margin-top:24px;"></div>
-                <!-- <button class="purchase-btn" @click="onPurchase">Continue with Purchase</button> -->
+               
+                <button 
+                    class="purchase-btn" 
+                    @click="() => handlePayment()"
+                    :disabled="loading"
+                >
+                    <span v-if="loading" class="loading-spinner"></span>
+                    {{ loading ? 'Processing...' : 'Proceed to Checkout' }}
+                </button>
+                
                 <div id="result-message" style="margin-top:16px;color:#e63946;"></div>
             </div>
             <div class="checkout-right">
@@ -36,14 +30,10 @@
                     <span>{{ product?.productName || 'Product' }}</span>
                     <span>${{ product?.price || '0.00' }}</span>
                 </div>
-                <div v-if="payMethod === 'card'" class="summary-row">
-                    <span>Processing Fee</span>
-                    <span>$0.30</span>
-                </div>
                 <hr />
                 <div class="summary-row total">
                     <span>Total</span>
-                    <span>${{ priceTotal.toFixed(2) }}</span>
+                    <span>${{ product?.price || '0.00' }}</span>
                 </div>
             </div>
         </div>
@@ -53,16 +43,14 @@
 <script setup lang="ts">
 import { ref, onBeforeMount, onMounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
-import { createPaypalOrder, capturePaypalOrder } from '@/api/pay'
-import { BizErrorCode } from '@/constant/errorCode'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import Logo from '@/components/Logo.vue'
-import Footer from '@/components/Footer.vue'
+import type { PaddleCheckoutCompletedEvent } from '@/types'
 
 declare global {
   interface Window {
-    paypal?: any
+    Paddle?: any
   }
 }
 
@@ -70,21 +58,18 @@ const router = useRouter()
 const store = useShopOptionsStore()
 const product = computed(() => store.selectedProduct)
 
+const request = computed(() => store.data?.request)
 const email = ref('')
-const payMethod = ref('paypal')
+const loading = ref(false)
 const emailError = ref('')
+const maxQuantity = ref(1)
+const userSelectedQuantity = ref(1);
 
-const priceTotal = computed(() => {
-    if (!product.value?.price) return 0
-    if (payMethod.value === 'card') {
-        return Number(product.value.price) + 0.30
-    }
-    return Number(product.value.price)
-})
+// Paddle 配置
+const PADDLE_CLIENT_TOKEN = import.meta.env.VITE_PADDLE_CLIENT_TOKEN || 'test_4b257319dff941c8459510c962c'
 
-const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID
-
-const request = computed(() => store.data.request)
+const PADDLE_PRICE_ITEM = import.meta.env.VITE_PADDLE_PRICE_ITEM || 'pri_01jyajjjaw2wp1xd872tr5r885'
+const PADDLE_PRICE_WHOLE = import.meta.env.VITE_PADDLE_PRICE_WHOLE || 'pri_01jyafqgtrk6jg228s54n9kkx4'
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -96,71 +81,141 @@ onBeforeMount(() => {
         router.push('/')
         return
     }
-    email.value = store.data.email || ''
-    payMethod.value = store.data.payMethod || 'paypal'
 })
 
 onMounted(() => {
-    if (!(window as any).paypal) {
-        const script = document.createElement('script')
-        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`
-        script.onload = loadPaypal
-        document.body.appendChild(script)
-    } else {
-        loadPaypal()
-    }
+    loadPaddle()
 })
 
-function loadPaypal() {
-    if (!(window as any).paypal) return
-    (window as any).paypal.Buttons({
-        style: {
-            shape: "rect",
-            layout: "vertical",
-            color: "gold",
-            label: "paypal",
-        },
-        async createOrder(data: any, actions: any) {
-            if (!email.value) {
-                emailError.value = 'We need your email to send receipt.'
-                throw new Error(emailError.value)
-            }
-            if (!validateEmail(email.value)) {
-                emailError.value = 'Please enter a valid email address'
-                throw new Error(emailError.value)
-            }
-            emailError.value = ''
-            console.log('fundingSource', data)
-            const paymentSource = data.paymentSource
-            payMethod.value = data.paymentSource
-            // const  console.log('用户选择的支付方式:', data.fundingSource); // 'paypal' 或 'card'
-            console.log('create order', data, actions, request.value)
-            // 这里可以传递 product 信息
-            const orderData = await createPaypalOrder({
-                ...request.value,
-                paymentSource,
-                email: email.value,
-                price: priceTotal.value,
+function loadPaddle() {
+    if (typeof window !== "undefined" && !window.Paddle) {
+        const script = document.createElement("script")
+        script.src = "https://cdn.paddle.com/paddle/v2/paddle.js"
+        script.async = true
+        script.onload = () => {
+            window.Paddle.Environment.set("sandbox")
+            window.Paddle.Initialize({ 
+                token: PADDLE_CLIENT_TOKEN,
+                eventCallback: function(data: any) {
+                    console.log('Paddle event:', data)
+                    if (data.name === 'checkout.completed') {
+                        const eventData = data as PaddleCheckoutCompletedEvent;
+                        
+                        // 现在你可以安全地访问 eventData.data 中的所有属性了
+                        console.log(eventData.data.transaction_id);
+                        console.log(eventData.data.customer.email);
+                        
+                        // 支付成功后的逻辑
+                        loading.value = false
+                        console.log('Payment completed successfully:', data)
+                        
+                        // 同步给后端
+                        const orderData = {
+                            transaction_id: eventData.data.transaction_id,
+                            customerEmail: eventData.data.customer.email,
+                        }
+
+                        // 保存订单信息到store
+                        store.setOrder({
+                            referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
+                            productName: product.value?.productName || 'Product',
+                            amount: product.value?.price || 0,
+                            paymentSource: 'paddle',
+                            paddleOrder: eventData.data
+
+                        })
+                        
+                        // 强制跳转到成功页面，覆盖Paddle的默认行为
+                        // setTimeout(() => {
+                        //     window.location.href = '/payment/success'
+                        // }, 1000)
+                    }
+                    if (data.name === 'checkout.closed') {
+                        loading.value = false
+                        console.log('Checkout closed')
+                    }
+                    if (data.name === 'checkout.error') {
+                        loading.value = false
+                        console.error('Checkout error:', data)
+                        ElMessageBox.alert('Payment failed. Please try again.', 'Error')
+                    }
+                    if (data.name === 'checkout.updated') {
+                        console.log('Checkout updated:', data)
+                    }
+                    if (data.name === 'checkout.items.updated') {
+                        const items = data.data.items || [];
+                        const hasInvalidQuantity = items.some((item: any) => item.quantity > maxQuantity.value);
+
+                        if (hasInvalidQuantity) {
+                            if (window.Paddle && window.Paddle.Checkout) {
+                                // 由于无法直接更新已打开的结账窗口，
+                                // 我们将关闭它，然后以正确的数量重新打开。
+                                window.Paddle.Checkout.close();
+
+                                // 告知用户数量已被重置
+                                ElMessageBox.alert('You can only purchase one item at a time. The quantity will be reset to 1.', 'Quantity Limit')
+                                  .finally(() => {
+                                      // 重新打开结账窗口，此时将使用默认数量 1
+                                      handlePayment(true);
+                                  });
+                            }
+                        }
+                    }
+                },
             })
-            console.log('create order', orderData)
-            if (orderData.code !== BizErrorCode.SUCCESS) {
-                ElMessageBox.alert(orderData.message || 'Order create failed', 'Error')
-                throw new Error(orderData.message || 'Order create failed')
-            }
-            return orderData.data.id
-        },
-        async onApprove(data: any, actions: any) {
-            console.log('onApprove', data, actions)
-            const orderData = await capturePaypalOrder(data.orderID)
-            console.log('capture order', orderData)
-            if (orderData.code !== BizErrorCode.SUCCESS) {
-                ElMessageBox.alert(orderData.message || 'Order create failed', 'Error')
-                throw new Error(orderData.message || 'Order create failed')
-            }
-            store.order = orderData.data
-            router.push('/shop/success')
         }
-    }).render('#paypal-button-container')
+        document.body.appendChild(script)
+    } else {
+        console.log('Paddle already loaded')
+    }
+}
+
+const handlePayment = async (isRetry = false) => {
+    if (!isRetry) {
+        if (!email.value) {
+            emailError.value = 'We need your email to send receipt.'
+            return
+        }
+        if (!validateEmail(email.value)) {
+            emailError.value = 'Please enter a valid email address'
+            return
+        }
+        if (userSelectedQuantity.value > maxQuantity.value) {
+            ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')
+            return
+        }
+        emailError.value = ''
+        loading.value = true
+    }
+    
+    if (typeof window !== "undefined" && window.Paddle) {
+        window.Paddle.Checkout.open({
+            settings: {
+                displayMode: 'overlay',
+            },
+            items: [
+                {
+                    priceId: product.value?.isBundle ? PADDLE_PRICE_WHOLE : PADDLE_PRICE_ITEM,
+                    quantity: userSelectedQuantity.value,
+                },
+            ],
+            customer: { email: email.value },
+            customData: {
+                code: request?.value?.purchaseCode,
+                accessToken: request?.value?.accounttoken,
+                appId: product.value?.appId,
+                productName: product.value?.productName,
+                productPrice: product.value?.price,
+                productIsBundle: product.value?.isBundle,
+                productImage: product.value?.imageUrl,
+                isBundle: product.value?.isBundle,
+                email: email.value,
+            },
+        })
+    } else {
+        ElMessageBox.alert('Paddle 加载失败，请刷新页面重试', 'Error')
+        loading.value = false
+    }
 }
 </script>
 
@@ -247,37 +302,51 @@ function loadPaypal() {
 .pay-method-note {
     color: #444;
     font-size: 0.98rem;
-    margin-bottom: 12px;
-}
-
-.pay-methods {
     margin-bottom: 24px;
-}
-
-.pay-radio {
-    display: flex;
-    align-items: center;
-    font-size: 1.1rem;
-    margin-bottom: 12px;
-    gap: 8px;
 }
 
 .purchase-btn {
     width: 100%;
-    background: #000;
+    background: #2d6a4f;
     color: #fff;
     font-size: 1.2rem;
     font-weight: bold;
     padding: 18px 0;
-    border-radius: 32px;
+    border-radius: 12px;
     border: none;
     margin-top: 24px;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
 }
 
-.purchase-btn:hover {
-    background: #374151;
+.purchase-btn:hover:not(:disabled) {
+    background: #40916c;
+    transform: translateY(-2px);
+}
+
+.purchase-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .checkout-right .summary-row {
@@ -292,22 +361,25 @@ function loadPaypal() {
     font-size: 1.2rem;
 }
 
-footer {
-    margin-top: 48px;
-    color: #888;
-    font-size: 0.98rem;
-    text-align: center;
-}
-
-footer a {
-    color: #888;
-    text-decoration: underline;
-    margin: 0 4px;
-}
-
 .input-error-text {
   color: #e63946;
   margin-top: 4px;
   font-size: 0.98rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .checkout-main {
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .checkout-right {
+        border-left: none;
+        border-top: 2px solid #e5e7eb;
+        padding-left: 0;
+        padding-top: 24px;
+        margin-top: 0;
+    }
 }
 </style>

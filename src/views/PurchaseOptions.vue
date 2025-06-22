@@ -1,0 +1,450 @@
+<template>
+  <div class="purchase-options">
+    <Logo />
+    <h2 class="title">Purchase Options</h2>
+    <p class="desc">Choose your preferred option:</p>
+    
+    <div class="options-container">
+      <!-- Bundle 选项 -->
+      <div v-if="bundles.length > 0" class="option-card bundle-card">
+        <div class="card-header">
+          <h3 class="card-title">Bundle Package</h3>
+          <div class="price-info">
+            <span class="price">${{ bundlePrice }}</span>
+            <span class="original-price" v-if="bundleOriginalPrice">${{ bundleOriginalPrice }}</span>
+          </div>
+        </div>
+        
+        <div class="bundle-images-container">
+          <div class="bundle-images-scroll" ref="bundleImagesScroll">
+            <div 
+              v-for="product in bundleProducts" 
+              :key="product.appId" 
+              class="bundle-image-item"
+              @click="selectBundleProduct(product)"
+            >
+              <img :src="product.garminImageUrl" :alt="product.name" />
+              <div class="product-name">{{ product.name }}</div>
+            </div>
+          </div>
+          <div class="scroll-indicator">
+            <span class="scroll-text">← Scroll to view all products →</span>
+          </div>
+        </div>
+        
+        <div class="bundle-info">
+          <div class="bundle-name">{{ firstBundle?.bundleName }}</div>
+          <div class="bundle-desc">{{ firstBundle?.bundleDesc }}</div>
+          <div class="product-count">{{ bundleProducts.length }} products included</div>
+        </div>
+        
+        <button class="buy-btn bundle-btn" @click="handleBuyBundle">
+          Buy Bundle for ${{ bundlePrice }}
+        </button>
+      </div>
+      
+      <!-- Product 选项 -->
+      <div v-if="product" class="option-card product-card">
+        <div class="card-header">
+          <h3 class="card-title">Single Product</h3>
+          <div class="price-info">
+            <span class="price">${{ product.price }}</span>
+          </div>
+        </div>
+        
+        <div class="product-image">
+          <img :src="product.garminImageUrl" :alt="product.name" />
+        </div>
+        
+        <div class="product-info">
+          <div class="product-name">{{ product.name }}</div>
+          <div class="product-id">ID: {{ product.designId }}</div>
+        </div>
+        
+        <button class="buy-btn product-btn" @click="handleBuyProduct">
+          Buy for ${{ product.price }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useShopOptionsStore } from '@/store/shopOptions'
+import Logo from '@/components/Logo.vue'
+import type { Product, Bundle } from '@/types'
+
+const router = useRouter()
+const store = useShopOptionsStore()
+const bundleImagesScroll = ref<HTMLElement>()
+
+// 从store获取数据
+const product = computed(() => store.data?.product)
+const bundles = computed(() => store.data?.bundles || [])
+const firstBundle = computed(() => bundles.value[0])
+
+// Bundle相关计算属性
+const bundleProducts = computed(() => firstBundle.value?.products || [])
+const bundlePrice = computed(() => firstBundle.value?.price || 0)
+const bundleOriginalPrice = computed(() => {
+  if (bundleProducts.value.length === 0) return 0
+  return bundleProducts.value.reduce((sum, p) => sum + p.price, 0)
+})
+
+// 处理购买Bundle
+const handleBuyBundle = () => {
+  if (firstBundle.value) {
+    store.setSelectedProduct({
+      productName: firstBundle.value.bundleName,
+      productDescription: firstBundle.value.bundleDesc,
+      productId: firstBundle.value.bundleId,
+      isBundle: true,
+      merchantName: 'Bundle Package',
+      price: bundlePrice.value,
+      imageUrl: bundleProducts.value[0]?.garminImageUrl || '',
+      licenseValidityDurationInDays: null,
+      appId: firstBundle.value.bundleId,
+      allowTipping: null,
+      bundleContent: `${bundleProducts.value.length} products included`,
+      products: bundleProducts.value.map(p => ({
+        productName: p.name,
+        productDescription: '',
+        productId: p.appId,
+        isBundle: false,
+        merchantName: '',
+        price: p.price,
+        imageUrl: p.garminImageUrl,
+        licenseValidityDurationInDays: null,
+        appId: p.appId,
+        allowTipping: null,
+        bundleContent: null
+      }))
+    })
+    router.push({ name: 'Checkout' })
+  }
+}
+
+// 处理购买单个产品
+const handleBuyProduct = () => {
+  if (product.value) {
+    store.setSelectedProduct({
+      productName: product.value.name,
+      productDescription: '',
+      productId: product.value.appId,
+      isBundle: false,
+      merchantName: '',
+      price: product.value.price,
+      imageUrl: product.value.garminImageUrl,
+      licenseValidityDurationInDays: null,
+      appId: product.value.appId,
+      allowTipping: null,
+      bundleContent: null
+    })
+    router.push({ name: 'Checkout' })
+  }
+}
+
+// 选择Bundle中的产品（用于预览）
+const selectBundleProduct = (selectedProduct: Product) => {
+  console.log('Selected bundle product:', selectedProduct)
+}
+
+onMounted(() => {
+  // 检查是否有数据
+  if (!store.data) {
+    router.push('/code')
+  }
+})
+</script>
+
+<style scoped>
+.purchase-options {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px 0 16px;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.desc {
+  color: #666;
+  margin-bottom: 2.5rem;
+  font-size: 1.1rem;
+}
+
+.options-container {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.option-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 32px 24px;
+  width: 480px;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.option-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.card-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.price-info {
+  text-align: right;
+}
+
+.price {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #2d6a4f;
+}
+
+.original-price {
+  font-size: 1.2rem;
+  color: #999;
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+
+/* Bundle 卡片样式 */
+.bundle-images-container {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.bundle-images-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bundle-images-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.bundle-images-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.bundle-images-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.bundle-images-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.bundle-image-item {
+  flex-shrink: 0;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+  min-width: 120px;
+}
+
+.bundle-image-item:hover {
+  transform: scale(1.05);
+}
+
+.bundle-image-item img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #eee;
+  background: #fafafa;
+  margin-bottom: 8px;
+}
+
+.bundle-image-item .product-name {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.scroll-indicator {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.scroll-text {
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+}
+
+.bundle-info {
+  flex: 1;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.bundle-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.bundle-desc {
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.product-count {
+  color: #2d6a4f;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Product 卡片样式 */
+.product-image {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.product-image img {
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid #eee;
+  background: #fafafa;
+}
+
+.product-info {
+  flex: 1;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.product-info .product-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.product-id {
+  color: #999;
+  font-size: 0.9rem;
+  font-family: monospace;
+}
+
+/* 按钮样式 */
+.buy-btn {
+  background: #2d6a4f;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: auto;
+}
+
+.buy-btn:hover {
+  background: #40916c;
+  transform: translateY(-2px);
+}
+
+.buy-btn:active {
+  transform: translateY(0);
+}
+
+.bundle-btn {
+  background: linear-gradient(135deg, #2d6a4f, #40916c);
+}
+
+.product-btn {
+  background: linear-gradient(135deg, #2d6a4f, #40916c);
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .options-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .option-card {
+    width: 100%;
+    max-width: 480px;
+  }
+}
+
+@media (max-width: 768px) {
+  .purchase-options {
+    padding: 24px 12px 0 12px;
+  }
+  
+  .option-card {
+    padding: 24px 16px;
+    min-height: 500px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  
+  .bundle-images-scroll {
+    gap: 8px;
+  }
+  
+  .bundle-image-item {
+    min-width: 100px;
+  }
+  
+  .bundle-image-item img {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .product-image img {
+    width: 150px;
+    height: 150px;
+  }
+}
+</style> 

@@ -1,6 +1,6 @@
 <template>
     <div class="success">
-        <Logo />
+        <!-- <Logo /> -->
         <div class="success-content">
             <div class="success-icon">✓</div>
             <h2 class="success-title">Payment Successful</h2>
@@ -8,19 +8,19 @@
             <div class="order-info">
                 <div class="info-row">
                     <span>Order ID:</span>
-                    <span>{{ referenceId }}</span>
+                    <span>{{ referenceId || 'N/A' }}</span>
                 </div>
                 <div class="info-row">
                     <span>Product:</span>
-                    <span>{{ productName }}</span>
+                    <span>{{ productName || 'N/A' }}</span>
                 </div>
                 <div class="info-row">
                     <span>Amount:</span>
-                    <span>${{ amount }}</span>
+                    <span>${{ amount || '0.00' }}</span>
                 </div>
                 <div class="info-row">
                     <span>Payment Method:</span>
-                    <span>{{ paymentSource === 'paypal' ? 'PayPal' : 'Credit Card' }}</span>
+                    <span>Paddle</span>
                 </div>
             </div>
             <div class="action-buttons">
@@ -31,38 +31,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
-import Logo from '@/components/Logo.vue'
+// import Logo from '@/components/Logo.vue'
 
 const router = useRouter()
 const store = useShopOptionsStore()
 const order = computed(() => store.order)
 const referenceId = computed(() => order.value?.referenceId)
 const productName = computed(() => order.value?.productName)
+const amount = computed(() => order.value?.amount)
 
-const paymentSource = computed(() => order.value?.paymentSource)
-const paypalOrder = computed(() => order.value?.paypalOrder)
-const amount = computed(() => {
-    // 检查 paypalOrder 是否存在
-    if (!paypalOrder.value) {
-        return order.value?.amount
+onMounted(() => {
+    console.log('Success page mounted, order data:', order.value)
+    
+    // 如果没有订单数据，重定向到首页
+    if (!order.value) {
+        console.warn('No order data found, redirecting to home')
+        router.push('/')
     }
-
-    // 检查 purchase_units 是否存在
-    if (!paypalOrder.value.purchase_units?.[0]) {
-        return order.value?.amount
-    }
-
-    // 检查 payments 和 captures 是否存在
-    const capture = paypalOrder.value.purchase_units[0].payments?.captures?.[0]
-    if (!capture) {
-        return order.value?.amount
-    }
-
-    // 返回 PayPal 捕获的金额或订单金额
-    return capture.amount?.value || order.value?.amount
 })
 
 function goHome() {
@@ -153,18 +141,19 @@ function goHome() {
 }
 
 .home-btn {
-    background: #000;
+    background: #2d6a4f;
     color: #fff;
     font-size: 1.1rem;
     font-weight: bold;
     padding: 12px 32px;
-    border-radius: 32px;
+    border-radius: 12px;
     border: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s;
 }
 
 .home-btn:hover {
-    background: #374151;
+    background: #40916c;
+    transform: translateY(-2px);
 }
 </style> 

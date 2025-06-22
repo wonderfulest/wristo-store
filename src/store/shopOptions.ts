@@ -1,19 +1,20 @@
 import { defineStore } from 'pinia'
+import type { PurchaseData, ShopProduct, BaseResponse } from '@/types'
 
 export const useShopOptionsStore = defineStore('shopOptions', {
   state: () => ({
-    data: null as any,
-    selectedProduct: null as any,
-    order: null as any
+    data: null as PurchaseData | null,
+    selectedProduct: null as ShopProduct | null,
+    order: null as BaseResponse['data'] | null
   }),
   actions: {
-    setData(data: any) {
+    setData(data: PurchaseData) {
       this.data = data
     },
-    setSelectedProduct(product: any) {
+    setSelectedProduct(product: ShopProduct) {
       this.selectedProduct = product
     },
-    setOrder(order: any) {
+    setOrder(order: BaseResponse['data']) {
       this.order = order
     },
     reset() {

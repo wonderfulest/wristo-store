@@ -1,21 +1,14 @@
 import instance from '@/config/axios'
+import type { PurchaseResponse, BaseResponse } from '@/types'
 
-// 定义返回数据类型
-interface Response {
-  code: number
-  message: string
-  data: any
-}
-
-export const purchaseByCode = (code: string): Promise<Response> => {
+export const purchaseByCode = (code: string): Promise<PurchaseResponse> => {
   return instance.post('/trials/v1/purchase', { code })
 }
 
-
-export const createPaypalOrder = (request: any): Promise<Response> => {
+export const createPaypalOrder = (request: any): Promise<BaseResponse> => {
   return instance.post('/paypal/orders', request)
 }
 
-export const capturePaypalOrder = (orderId: string): Promise<Response> => {
+export const capturePaypalOrder = (orderId: string): Promise<BaseResponse> => {
   return instance.post(`/paypal/orders/${orderId}/capture`)
 }

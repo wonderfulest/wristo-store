@@ -17,17 +17,17 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/CodeInput.vue') 
   },
   {
-    path: '/shop/options',
-    name: 'ShopOptions',
-    component: () => import('@/views/ShopOptions.vue'),
+    path: '/purchase-options',
+    name: 'PurchaseOptions',
+    component: () => import('@/views/PurchaseOptions.vue'),
   },
   {
-    path: '/shop/checkout',
+    path: '/checkout',
     name: 'Checkout',
     component: () => import('@/views/Checkout.vue')
   },
   {
-    path: '/shop/success',
+    path: '/payment/success',
     name: 'Success',
     component: () => import('@/views/Success.vue')
   },

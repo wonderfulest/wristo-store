@@ -11,7 +11,7 @@
       <a href="/terms-and-conditions">Terms of Use</a> |
       <a href="/privacy-policy">Privacy Policy</a> |
       <a href="/contact">Contact</a> |
-      <a href="/faq">FAQ</a>
+      <!-- <a href="/faq">FAQ</a> -->
     </div>
     <transition name="footer-expand">
       <div v-if="isExpanded" class="footer-detail">
@@ -36,7 +36,7 @@
           <a href="/terms-and-conditions">Terms of Use</a> |
           <a href="/privacy-policy">Privacy Policy</a> |
           <a href="/contact">Contact</a> |
-          <a href="/faq">FAQ</a>
+          <!-- <a href="/faq">FAQ</a> -->
         </div>
       </div>
     </transition>

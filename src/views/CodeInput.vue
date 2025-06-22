@@ -49,7 +49,8 @@ const handleContinue = async () => {
       error.value = 'Cannot find code. If you are sure you typed it correctly, it might have been expired. Please check our FAQ on how to do this.'
     } else {
       store.setData(res.data)
-      router.push({ name: 'ShopOptions' })
+      // 跳转到购买选项页面
+      router.push({ name: 'PurchaseOptions' })
     }
   } catch (e) {
     error.value = 'Network error, please try again later.'
