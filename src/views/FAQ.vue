@@ -11,10 +11,10 @@
     </div>
     <div class="faq-cards">
       <button
-        v-for="(item, idx) in cardQuestions"
+        v-for="(item) in cardQuestions"
         :key="item.key"
         class="faq-card"
-        @click="onCardClick(idx, item)"
+        @click="onCardClick(item)"
         type="button"
       >
         <span class="faq-card-icon" v-html="item.icon" />
@@ -23,9 +23,9 @@
       </button>
     </div>
     <div class="faq-list">
-      <div v-for="([cat, qs], catIdx) in filteredQuestionsByCategory" :key="cat" class="faq-category-block">
+      <div v-for="([cat, qs]) in filteredQuestionsByCategory" :key="cat" class="faq-category-block">
         <h2 class="faq-category-header">{{ cat }}</h2>
-        <div v-for="(item, idx) in qs" :key="item.q" class="faq-item" :ref="el => setQuestionRef(globalIndex(cat, item), el)">
+        <div v-for="item in qs" :key="item.q" class="faq-item" :ref="el => setQuestionRef(globalIndex(cat, item), el as HTMLElement)">
           <button
             class="faq-question"
             :class="{ open: openIndex === globalIndex(cat, item) }"
@@ -59,6 +59,15 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
+
+type Question = {
+  q: string;
+  a: string;
+};
+
+type QuestionsByCategory = {
+  [category: string]: Question[];
+};
 
 const cardQuestions = [
   {
@@ -96,7 +105,7 @@ const cardQuestions = [
 ]
 
 // 合并 a.js 的 questionsByCategory
-const questionsByCategory = {
+const questionsByCategory: QuestionsByCategory = {
 	"Installation & Purchase": [
 		{
 			q: "How do I install and try out the watch face I like?",
@@ -276,7 +285,7 @@ const allQuestions = computed(() => {
 
 const search = ref('')
 const openIndex = ref<number|null>(null)
-const questionRefs = ref<HTMLElement[]>([])
+const questionRefs = ref<Record<number, HTMLElement | null>>({})
 
 const filteredQuestionsByCategory = computed(() => {
   if (!search.value.trim()) return Object.entries(questionsByCategory)
@@ -295,21 +304,28 @@ const filteredQuestionsByCategory = computed(() => {
 function globalIndex(cat: string, item: any) {
   return allQuestions.value.findIndex(q => q.q === item.q && q.category === cat)
 }
-function setQuestionRef(idx: number, el: HTMLElement | null) {
-  if (el) questionRefs.value[idx] = el
+function setQuestionRef(index: number, el: HTMLElement | null) {
+  if (el) {
+    questionRefs.value[index] = el
+  }
 }
-function toggleOpen(idx: number) {
-  openIndex.value = openIndex.value === idx ? null : idx
+function toggleOpen(index: number) {
+  openIndex.value = openIndex.value === index ? null : index
 }
-function onCardClick(cardIdx: number, item: any) {
-  if (item.key === 'need-refund') {
-    window.open('/refund', '_blank')
-  } else {
-    const qIdx = allQuestions.value.findIndex(q => q.q === item.q && q.category === item.category)
-    openIndex.value = qIdx
+function onCardClick(item: any) {
+  search.value = item.q
+  // find the question in questionsByCategory
+  const flatQuestions = Object.values(questionsByCategory).flat()
+  const question = flatQuestions.find(q => q.q === item.q)
+  if (question) {
+    const cat = Object.keys(questionsByCategory).find(c => questionsByCategory[c].includes(question))!
+    const index = globalIndex(cat, question)
+    openIndex.value = index
     nextTick(() => {
-      const el = questionRefs.value[qIdx]
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      const el = questionRefs.value[index]
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
     })
   }
 }

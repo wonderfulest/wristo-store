@@ -31,7 +31,6 @@ import { purchaseByCode } from '@/api/pay'
 import { BizErrorCode } from '@/constant/errorCode'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import Logo from '@/components/Logo.vue'
-import Footer from '@/components/Footer.vue'
 
 const code = ref('')
 const error = ref('')

@@ -144,9 +144,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Search, Plus, Star, Check, Lightning, Collection, TrendCharts } from '@element-plus/icons-vue'
+import { Search, Plus, Check, Lightning, Collection } from '@element-plus/icons-vue'
 import ProductCard from '@/components/ProductCard.vue'
-import SeriesCard from '@/components/SeriesCard.vue'
 import { useProductStore } from '@/store/product'
 import { useRouter } from 'vue-router'
 

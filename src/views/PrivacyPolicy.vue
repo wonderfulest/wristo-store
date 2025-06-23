@@ -66,7 +66,6 @@
 
 <script setup lang="ts">
 import Logo from '@/components/Logo.vue'
-import Footer from '@/components/Footer.vue'
 </script>
 
 <style scoped>

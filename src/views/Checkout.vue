@@ -13,7 +13,6 @@
                 <div class="pay-method-note">
                     Secure payment powered by Paddle
                 </div>
-               
                 <button 
                     class="purchase-btn" 
                     @click="() => handlePayment()"
@@ -45,7 +44,7 @@ import { ref, onBeforeMount, onMounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import Logo from '@/components/Logo.vue'
+// import Logo from '@/components/Logo.vue'
 import type { PaddleCheckoutCompletedEvent } from '@/types'
 
 declare global {
