@@ -74,7 +74,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import Logo from '@/components/Logo.vue'
-import type { Product, Bundle } from '@/types'
+import type { Product } from '@/types'
 
 const router = useRouter()
 const store = useShopOptionsStore()

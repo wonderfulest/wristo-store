@@ -109,10 +109,10 @@ function loadPaddle() {
                         console.log('Payment completed successfully:', data)
                         
                         // 同步给后端
-                        const orderData = {
-                            transaction_id: eventData.data.transaction_id,
-                            customerEmail: eventData.data.customer.email,
-                        }
+                        // const orderData = {
+                        //     transaction_id: eventData.data.transaction_id,
+                        //     customerEmail: eventData.data.customer.email,
+                        // }
 
                         // 保存订单信息到store
                         store.setOrder({
