@@ -25,6 +25,7 @@ export interface Product {
   purchase: number
   heroFile: { url: string, name?: string } | null
   backgroundFile: string | null
+  paddleProductId: string | null
 }
 
 // 定义系列类型
