@@ -4,8 +4,8 @@
       <!-- 左侧大圆形图片 -->
       <div class="product-image-wrap">
         <img
-          v-if="product?.heroFile?.url"
-          :src="product.heroFile.url"
+          v-if="product?.heroFile?.url || product?.garminImageUrl"
+          :src="product?.heroFile?.url || product?.garminImageUrl"
           :alt="product.name"
           class="product-image"
         />
