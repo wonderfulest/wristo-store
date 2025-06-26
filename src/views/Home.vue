@@ -148,23 +148,14 @@ import { Search, Plus, Check, Lightning, Collection } from '@element-plus/icons-
 import ProductCard from '@/components/ProductCard.vue'
 import { useProductStore } from '@/store/product'
 import { useRouter } from 'vue-router'
-
-interface Product {
-  appId: number
-  [key: string]: any
-}
-
-interface Series {
-  id: string | number
-  [key: string]: any
-}
+import type { ProductBaseVO, Series } from '@/types'
 
 const productStore = useProductStore()
 const searchTerm = ref('')
-const searchResults = ref<Product[]>([])
-const newProducts = ref<Product[]>([])
+const searchResults = ref<ProductBaseVO[]>([])
+const newProducts = ref<ProductBaseVO[]>([])
 const seriesList = ref<Series[]>([])
-const hotProducts = ref<Product[]>([])
+const hotProducts = ref<ProductBaseVO[]>([])
 const router = useRouter()
 
 const handleSearch = async () => {
@@ -184,7 +175,7 @@ onMounted(async () => {
   hotProducts.value = await productStore.getHotProducts()
 })
 
-function goToProduct(product: Product) {
+function goToProduct(product: ProductBaseVO) {
   router.push({ name: 'product-detail', params: { id: product.appId } })
 }
 </script>

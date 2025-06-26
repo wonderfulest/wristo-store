@@ -50,12 +50,12 @@ import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
-import type { Product } from '@/api/product'
+import type { ProductBaseVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 
 const route = useRoute()
 const productStore = useProductStore()
-const product = ref<Product | null>(null)
+const product = ref<ProductBaseVO | null>(null)
 
 // const DownloadSvg = `<svg width=\"22\" height=\"22\" viewBox=\"0 0 22 22\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11 2V16M11 16L6 11M11 16L16 11\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"3\" y=\"18\" width=\"16\" height=\"2\" rx=\"1\" fill=\"white\"/></svg>`
 

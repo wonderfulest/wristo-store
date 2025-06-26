@@ -5,20 +5,22 @@
     <p class="desc">Choose your preferred option:</p>
     
     <div class="options-container">
-      <!-- Bundle 选项 -->
-      <div v-if="bundles.length > 0" class="option-card bundle-card">
+      <!-- 多个 Bundle 选项 -->
+      <div v-for="bundle in bundles" :key="bundle.bundleId" class="option-card bundle-card">
         <div class="card-header">
-          <h3 class="card-title">Bundle Package</h3>
+          <h3 class="card-title">{{ bundle.bundleName }}</h3>
           <div class="price-info">
-            <span class="price">${{ bundlePrice }}</span>
-            <span class="original-price" v-if="bundleOriginalPrice">${{ bundleOriginalPrice }}</span>
+            <span class="price">${{ bundle.price }}</span>
+            <span class="original-price" v-if="bundle.products && bundle.products.length > 0 && bundle.products.reduce((sum, p) => sum + p.price, 0) > bundle.price">
+              ${{ bundle.products.reduce((sum, p) => sum + p.price, 0) }}
+            </span>
           </div>
         </div>
         
         <div class="bundle-images-container">
-          <div class="bundle-images-scroll" ref="bundleImagesScroll">
+          <div class="bundle-images-scroll">
             <div 
-              v-for="product in bundleProducts" 
+              v-for="product in bundle.products" 
               :key="product.appId" 
               class="bundle-image-item"
               @click="selectBundleProduct(product)"
@@ -33,13 +35,13 @@
         </div>
         
         <div class="bundle-info">
-          <div class="bundle-name">{{ firstBundle?.bundleName }}</div>
-          <div class="bundle-desc">{{ firstBundle?.bundleDesc }}</div>
-          <div class="product-count">{{ bundleProducts.length }} products included</div>
+          <div class="bundle-name">{{ bundle.bundleName }}</div>
+          <div class="bundle-desc">{{ bundle.bundleDesc }}</div>
+          <div class="product-count">{{ bundle.products.length }} products included</div>
         </div>
         
-        <button class="buy-btn bundle-btn" @click="handleBuyBundle">
-          Buy Bundle for ${{ bundlePrice }}
+        <button class="buy-btn bundle-btn" @click="handleBuyBundle(bundle)">
+          Buy Bundle for ${{ bundle.price }}
         </button>
       </div>
       
@@ -74,41 +76,33 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import Logo from '@/components/Logo.vue'
-import type { Product } from '@/types'
+import type { PurchaseData, ProductVO, BundleItem } from '@/types'
 
 const router = useRouter()
 const store = useShopOptionsStore()
-const bundleImagesScroll = ref<HTMLElement>()
 
-// 从store获取数据
-const product = computed(() => store.data?.product)
-const bundles = computed(() => store.data?.bundles || [])
-const firstBundle = computed(() => bundles.value[0])
+// 直接使用 PurchaseData 类型
+const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
 
-// Bundle相关计算属性
-const bundleProducts = computed(() => firstBundle.value?.products || [])
-const bundlePrice = computed(() => firstBundle.value?.price || 0)
-const bundleOriginalPrice = computed(() => {
-  if (bundleProducts.value.length === 0) return 0
-  return bundleProducts.value.reduce((sum, p) => sum + p.price, 0)
-})
+const product = computed(() => purchaseData.value?.product)
+const bundles = computed(() => purchaseData.value?.bundles || [])
 
-// 处理购买Bundle
-const handleBuyBundle = () => {
-  if (firstBundle.value) {
+// 处理购买Bundle，传入 bundle
+const handleBuyBundle = (bundle: BundleItem) => {
+  if (bundle) {
     store.setSelectedProduct({
-      productName: firstBundle.value.bundleName,
-      productDescription: firstBundle.value.bundleDesc,
-      productId: firstBundle.value.bundleId,
+      productName: bundle.bundleName,
+      productDescription: bundle.bundleDesc,
+      productId: bundle.bundleId,
       isBundle: true,
-      merchantName: 'Bundle Package',
-      price: bundlePrice.value,
-      imageUrl: bundleProducts.value[0]?.garminImageUrl || '',
+      merchantName: '',
+      price: bundle.price,
+      imageUrl: bundle.products[0]?.garminImageUrl || '',
       licenseValidityDurationInDays: null,
-      appId: firstBundle.value.bundleId,
+      appId: bundle.bundleId,
       allowTipping: null,
-      bundleContent: `${bundleProducts.value.length} products included`,
-      products: bundleProducts.value.map(p => ({
+      bundleContent: `${bundle.products.length} products included`,
+      products: bundle.products.map(p => ({
         productName: p.name,
         productDescription: '',
         productId: p.appId,
@@ -128,6 +122,7 @@ const handleBuyBundle = () => {
 
 // 处理购买单个产品
 const handleBuyProduct = () => {
+  console.log('handleBuyProduct', product.value)
   if (product.value) {
     store.setSelectedProduct({
       productName: product.value.name,
@@ -147,13 +142,13 @@ const handleBuyProduct = () => {
 }
 
 // 选择Bundle中的产品（用于预览）
-const selectBundleProduct = (selectedProduct: Product) => {
+const selectBundleProduct = (selectedProduct: ProductVO) => {
   console.log('Selected bundle product:', selectedProduct)
 }
 
 onMounted(() => {
   // 检查是否有数据
-  if (!store.data) {
+  if (!purchaseData.value) {
     router.push('/code')
   }
 })
@@ -163,7 +158,7 @@ onMounted(() => {
 .purchase-options {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 32px 16px 0 16px;
+  padding: 32px 16px 48px;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
 }
@@ -192,8 +187,8 @@ onMounted(() => {
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 32px 24px;
-  width: 480px;
-  min-height: 600px;
+  width: 400px;
+  /* min-height: 600px; */
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;

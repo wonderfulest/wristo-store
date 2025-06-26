@@ -1,14 +1,14 @@
 import instance from '@/config/axios'
-import type { PurchaseResponse, BaseResponse } from '@/types'
+import type { PurchaseResponse, Response } from '@/types'
 
 export const purchaseByCode = (code: string): Promise<PurchaseResponse> => {
-  return instance.post('/trials/v1/purchase', { code })
+  return instance.post('/public/trials/v1/purchase', { code })
 }
 
-export const createPaypalOrder = (request: any): Promise<BaseResponse> => {
-  return instance.post('/paypal/orders', request)
+export const createPaypalOrder = (request: any): Promise<Response<any>> => {
+  return instance.post('/public/paypal/orders', request)
 }
 
-export const capturePaypalOrder = (orderId: string): Promise<BaseResponse> => {
-  return instance.post(`/paypal/orders/${orderId}/capture`)
+export const capturePaypalOrder = (orderId: string): Promise<Response<any>> => {
+  return instance.post(`/public/paypal/orders/${orderId}/capture`)
 }

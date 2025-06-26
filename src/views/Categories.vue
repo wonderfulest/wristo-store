@@ -23,13 +23,14 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
-import { getProductsByCategory, type Series, type Product } from '@/api/product'
+import { getProductsByCategory, type Series } from '@/api/product'
+import type { ProductBaseVO } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const series = ref<Series | null>(null)
-const products = ref<Product[]>([])
+const products = ref<ProductBaseVO[]>([])
 
 const fetchSeriesAndProducts = async () => {
   const slug = route.params.slug as string
@@ -47,7 +48,7 @@ const fetchSeriesAndProducts = async () => {
   }
 }
 
-const goToProduct = (product: Product) => {
+const goToProduct = (product: ProductBaseVO) => {
   router.push({ name: 'product-detail', params: { id: product.appId } })
 }
 

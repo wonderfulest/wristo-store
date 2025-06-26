@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { searchProducts, getNewProducts, getSeries, 
   getHotProducts, getProductDetail, getRelatedProducts, getHotSeries, 
-  type Product, type Series } from '@/api/product'
+  type ProductBaseVO, type Series } from '@/api/product'
 
 interface State {
   loading: boolean
   error: Error | null
-  searchResults: Product[]
-  newProducts: Product[]
+  searchResults: ProductBaseVO[]
+  newProducts: ProductBaseVO[]
   seriesList: Series[]
-  hotProducts: Product[]
+  hotProducts: ProductBaseVO[]
   hotSeries: Series[]
 }
 
@@ -91,7 +91,7 @@ export const useProductStore = defineStore('product', {
     },
 
     // 获取商品详情
-    async getProductDetail(appId: string): Promise<Product | null> {
+    async getProductDetail(appId: string): Promise<ProductBaseVO | null> {
       try {
         this.loading = true
         const response = await getProductDetail(appId)
@@ -105,7 +105,7 @@ export const useProductStore = defineStore('product', {
     },
 
     // 获取相关商品
-    async getRelatedProducts(id: string): Promise<Product[]> {
+    async getRelatedProducts(id: string): Promise<ProductBaseVO[]> {
       try {
         this.loading = true
         const response = await getRelatedProducts(id)
@@ -117,7 +117,5 @@ export const useProductStore = defineStore('product', {
         this.loading = false
       }
     },
-
- 
   }
 }) 
