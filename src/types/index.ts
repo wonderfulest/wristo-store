@@ -96,22 +96,7 @@ export interface PurchaseResponse extends Response<PurchaseData> {
   data: PurchaseData
 }
 
-// 商店选项产品类型 (用于商店选项页面)
-export interface ShopProduct {
-  productName: string
-  productDescription: string
-  productId: number
-  isBundle: boolean
-  merchantName: string
-  price: number
-  imageUrl: string
-  appId: number
-  bundleContent: string | null
-  products?: ShopProduct[]
-}
-
 // --- Paddle Checkout Completed Event Types ---
-
 export interface PaddleCustomData {
   app_id: number;
   product_name: string;
@@ -200,28 +185,21 @@ export interface PaddleCheckoutCompletedEvent {
   data: PaddleCheckoutCompletedData;
 }
 
-// 产品信息
-export interface ProductDetailItem {
-  appId: number;
-  name: string;
-  price: number;
-  designId: string;
-  garminImageUrl: string;
-  garminStoreUrl: string;
-  heroFile: string | null;
-}
+
 
 // 套餐信息
 export interface BundleItem {
   bundleId: number;
   userId: number;
+  paddleProductId: string;
+  paddlePriceId: string;
   bundleName: string;
   bundleDesc: string;
   price: number;
   isActive: number;
   createdAt: string;
   updatedAt: string;
-  products: ProductDetailItem[];
+  products: ProductVO[];
 }
 
 // 请求信息
@@ -236,7 +214,7 @@ export interface ProductDetailResponse {
   code: number;
   msg: string;
   data: {
-    product: ProductDetailItem;
+    product: ProductVO;
     bundles: BundleItem[];
     request: ProductDetailRequest;
   };

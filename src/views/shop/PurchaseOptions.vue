@@ -23,7 +23,7 @@
               v-for="product in bundle.products" 
               :key="product.appId" 
               class="bundle-image-item"
-              @click="selectBundleProduct(product)"
+              @click="selectBundleProduct(product as ProductVO)"
             >
               <img :src="product.garminImageUrl" :alt="product.name" />
               <div class="product-name">{{ product.name }}</div>
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import Logo from '@/components/Logo.vue'
@@ -90,58 +90,33 @@ const bundles = computed(() => purchaseData.value?.bundles || [])
 // 处理购买Bundle，传入 bundle
 const handleBuyBundle = (bundle: BundleItem) => {
   if (bundle) {
-    store.setSelectedProduct({
-      productName: bundle.bundleName,
-      productDescription: bundle.bundleDesc,
-      productId: bundle.bundleId,
-      isBundle: true,
-      merchantName: '',
+    const bundleForStore = {
+      bundleId: bundle.bundleId,
+      userId: bundle.userId,
+      paddleProductId: bundle.paddleProductId,
+      paddlePriceId: bundle.paddlePriceId,
+      bundleName: bundle.bundleName,
+      bundleDesc: bundle.bundleDesc,
       price: bundle.price,
-      imageUrl: bundle.products[0]?.garminImageUrl || '',
-      licenseValidityDurationInDays: null,
-      appId: bundle.bundleId,
-      allowTipping: null,
-      bundleContent: `${bundle.products.length} products included`,
-      products: bundle.products.map(p => ({
-        productName: p.name,
-        productDescription: '',
-        productId: p.appId,
-        isBundle: false,
-        merchantName: '',
-        price: p.price,
-        imageUrl: p.garminImageUrl,
-        licenseValidityDurationInDays: null,
-        appId: p.appId,
-        allowTipping: null,
-        bundleContent: null
-      }))
-    })
+      isActive: bundle.isActive,
+      createdAt: bundle.createdAt,
+      updatedAt: bundle.updatedAt,
+      products: bundle.products
+    }
+    store.setSelectedProduct(bundleForStore)
     router.push({ name: 'Checkout' })
   }
 }
 
 // 处理购买单个产品
 const handleBuyProduct = () => {
-  console.log('handleBuyProduct', product.value)
   if (product.value) {
-    store.setSelectedProduct({
-      productName: product.value.name,
-      productDescription: '',
-      productId: product.value.appId,
-      isBundle: false,
-      merchantName: '',
-      price: product.value.price,
-      imageUrl: product.value.garminImageUrl,
-      licenseValidityDurationInDays: null,
-      appId: product.value.appId,
-      allowTipping: null,
-      bundleContent: null
-    })
+    store.setSelectedProduct(product.value as ProductVO)
     router.push({ name: 'Checkout' })
   }
 }
 
-// 选择Bundle中的产品（用于预览）
+// 选择Bundle中的产品（仅用于预览）
 const selectBundleProduct = (selectedProduct: ProductVO) => {
   console.log('Selected bundle product:', selectedProduct)
 }

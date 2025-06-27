@@ -14,22 +14,22 @@ const routes: RouteRecordRaw[] = [
   { 
     path: '/code', 
     name: 'CodeInput', 
-    component: () => import('@/views/CodeInput.vue') 
+    component: () => import('@/views/shop/CodeInput.vue') 
   },
   {
     path: '/purchase-options',
     name: 'PurchaseOptions',
-    component: () => import('@/views/PurchaseOptions.vue'),
+    component: () => import('@/views/shop/PurchaseOptions.vue'),
   },
   {
     path: '/checkout',
     name: 'Checkout',
-    component: () => import('@/views/Checkout.vue')
+    component: () => import('@/views/shop/Checkout.vue')
   },
   {
     path: '/payment/success',
     name: 'Success',
-    component: () => import('@/views/Success.vue')
+    component: () => import('@/views/shop/Success.vue')
   },
   {
     path: '/contact/:productId',
@@ -48,7 +48,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/already-purchased',
     name: 'AlreadyPurchased',
-    component: () => import('@/views/AlreadyPurchased.vue')
+    component: () => import('@/views/shop/AlreadyPurchased.vue')
   },
   {
     path: '/lookup',
