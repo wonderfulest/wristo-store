@@ -141,11 +141,6 @@ function loadPaddle() {
                         // Sync to backend
                         const orderData: PurchaseCallbackRequest = {
                             transaction_id: eventData.data.transaction_id,
-                            customerEmail: eventData.data.customer.email,
-                            accounttoken: request?.value?.accounttoken,
-                            code: request?.value?.purchaseCode,
-                            appid: isBundle.value ? (product.value as Bundle).bundleId : request?.value?.appid,
-                            isBundle: isBundle.value,
                         }
                         console.log('orderData', orderData)
                         
@@ -230,6 +225,11 @@ const handlePayment = async (isRetry = false) => {
             ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')
             return
         }
+        if (!request.value.accounttoken) {
+            ElMessageBox.alert('Please enter your code first', 'Error')
+            router.push('/code')
+            return
+        }
         emailError.value = ''
         loading.value = true
     }
@@ -250,10 +250,7 @@ const handlePayment = async (isRetry = false) => {
                 code: request?.value?.purchaseCode,
                 accessToken: request?.value?.accounttoken,
                 appId: (product.value as ProductVO).appId,
-                productName: isBundle.value ? (product.value as Bundle).bundleName : (product.value as ProductVO).name,
-                productPrice: product.value?.price,
-                productIsBundle: isBundle.value,
-                productImage: isBundle.value ? ((product.value as Bundle).products[0]?.garminImageUrl || '') : (product.value as ProductVO).garminImageUrl,
+                bundleId: isBundle.value ? (product.value as Bundle).bundleId : '',
                 isBundle: isBundle.value,
                 email: email.value,
             },

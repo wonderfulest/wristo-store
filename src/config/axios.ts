@@ -4,7 +4,7 @@ import { BizErrorCode } from '@/constant/errorCode'
 
 const instance = axios.create({
   baseURL: '/api', // 走 vite 代理
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   }

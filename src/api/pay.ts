@@ -16,11 +16,6 @@ export const capturePaypalOrder = (orderId: string): Promise<Response<any>> => {
 // 购买成功回调接口
 export interface PurchaseCallbackRequest {
   transaction_id: string
-  customerEmail: string
-  accounttoken: string
-  code: string
-  appid: number
-  isBundle: boolean
 }
 
 export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<Response<any>> => {
