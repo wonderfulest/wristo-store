@@ -23,8 +23,8 @@
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
-import { getProductsByCategory, type Series } from '@/api/product'
-import type { ProductBaseVO } from '@/types'
+import { getProductsByCategory } from '@/api/product'
+import type { ProductBaseVO, Series } from '@/types'
 
 const route = useRoute()
 const router = useRouter()

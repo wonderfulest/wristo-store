@@ -29,7 +29,7 @@ import { ref, onMounted } from 'vue'
 import { useProductStore } from '@/store/product'
 import { useRouter } from 'vue-router'
 import { ArrowDown } from '@element-plus/icons-vue'
-import type { Series } from '@/api/product'
+import type { Series } from '@/types'
 
 const productStore = useProductStore()
 const seriesList = ref<Series[]>([])

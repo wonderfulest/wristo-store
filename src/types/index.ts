@@ -13,6 +13,7 @@ export interface PageResult<T> {
   pages: number
   list: T[]
 }
+
 // 定义系列类型
 export interface Series {
   id: number
@@ -31,7 +32,16 @@ export interface ProductBaseVO {
   designId: string
   garminImageUrl: string
   garminStoreUrl: string
-  heroFile: string | null
+  heroFile: HeroFile | null
+}
+
+// 产品封面图片类型
+export interface HeroFile {
+  id: number
+  name: string
+  url: string
+  previewUrl: string | null
+  provider: string
 }
 
 // Bundle类型
@@ -69,7 +79,7 @@ export interface ProductVO {
   isDeleted: number
   download: number
   purchase: number
-  heroFile: string | null
+  heroFile: HeroFile | null
   backgroundFile: string | null
   categories: any // 可根据实际类型调整
   packageStatus: number

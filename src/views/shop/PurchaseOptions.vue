@@ -40,7 +40,7 @@
           <div class="product-count">{{ bundle.products.length }} products included</div>
         </div>
         
-        <button class="buy-btn bundle-btn" @click="handleBuyBundle(bundle)">
+        <button class="buy-btn bundle-btn" @click="handleBuyBundle(bundle as BundleItem)">
           Buy Bundle for ${{ bundle.price }}
         </button>
       </div>

@@ -108,7 +108,7 @@
         <div class="series-grid">
           <div v-for="series in seriesList" :key="series.id" class="series-item">
             <div class="series-img-wrap">
-              <img :src="series.image" :alt="series.name" class="series-img" />
+              <img :src="series.image || ''" :alt="series.name" class="series-img" />
             </div>
             <div class="series-name-row">
               <span class="series-name">{{ series.name }}</span>
