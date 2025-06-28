@@ -181,6 +181,12 @@ function goToProduct(product: ProductBaseVO) {
 </script>
 
 <style scoped>
+.home {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 .search-bar-outer {
   display: flex;
   justify-content: center;
@@ -297,6 +303,8 @@ function goToProduct(product: ProductBaseVO) {
   margin-top: 48px;
   margin-bottom: 48px;
   overflow: hidden;
+  width: calc(100% - 32px);
+  box-sizing: border-box;
 }
 .feature-circle {
   position: absolute;
@@ -380,10 +388,13 @@ function goToProduct(product: ProductBaseVO) {
   align-items: stretch;
   gap: 36px;
   margin-top: 0;
-  flex-wrap: nowrap;
-  width: 70%;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 .feature-card {
   background: #fff;
@@ -439,6 +450,8 @@ function goToProduct(product: ProductBaseVO) {
 .series-container {
   width: 100%;
   padding: 0 16px;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 .series-header {
   display: flex;
@@ -467,14 +480,15 @@ function goToProduct(product: ProductBaseVO) {
 }
 .series-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 36px 24px;
   justify-items: center;
   align-items: start;
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 .series-item {
   display: flex;
@@ -526,6 +540,12 @@ function goToProduct(product: ProductBaseVO) {
 .hot-container {
   width: 100%;
   padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
 }
 .hot-header {
   display: flex;
@@ -554,13 +574,17 @@ function goToProduct(product: ProductBaseVO) {
 }
 .hot-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 48px 24px;
   justify-items: center;
   align-items: start;
   width: 100%;
   max-width: 900px;
   margin: 0 auto;
+  justify-content: center;
+  place-items: center;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 .hot-item {
   display: flex;
