@@ -48,7 +48,7 @@
       <!-- Product 选项 -->
       <div v-if="product" class="option-card product-card">
         <div class="card-header">
-          <h3 class="card-title">Single Product</h3>
+          <h3 class="card-title">{{ product.name }}</h3>
           <div class="price-info">
             <span class="price">${{ product.price }}</span>
           </div>
@@ -59,8 +59,9 @@
         </div>
         
         <div class="product-info">
-          <div class="product-name">{{ product.name }}</div>
+          <!-- <div class="product-name">{{ product.name }}</div> -->
           <div class="product-id">ID: {{ product.designId }}</div>
+          <div class="product-desc">{{ product.description }}</div>
         </div>
         
         <button class="buy-btn product-btn" @click="handleBuyProduct">
@@ -84,7 +85,7 @@ const store = useShopOptionsStore()
 // 直接使用 PurchaseData 类型
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
 
-const product = computed(() => purchaseData.value?.product)
+const product = computed(() => purchaseData.value?.product as ProductVO)
 const bundles = computed(() => purchaseData.value?.bundles || [])
 
 // 处理购买Bundle，传入 bundle

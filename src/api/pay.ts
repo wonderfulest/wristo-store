@@ -12,3 +12,17 @@ export const createPaypalOrder = (request: any): Promise<Response<any>> => {
 export const capturePaypalOrder = (orderId: string): Promise<Response<any>> => {
   return instance.post(`/public/paypal/orders/${orderId}/capture`)
 }
+
+// 购买成功回调接口
+export interface PurchaseCallbackRequest {
+  transaction_id: string
+  customerEmail: string
+  accounttoken: string
+  code: string
+  appid: number
+  isBundle: boolean
+}
+
+export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<Response<any>> => {
+  return instance.post('/public/trials/v1/purchase/callback', data)
+}

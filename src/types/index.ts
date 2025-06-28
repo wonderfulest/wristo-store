@@ -49,7 +49,6 @@ export interface Bundle {
   products: ProductBaseVO[]
 }
 
-
 // 购买时返回的商品类型
 export interface ProductVO {
   appId: number
@@ -78,7 +77,7 @@ export interface ProductVO {
 
 
 // 请求信息类型
-export interface RequestInfo {
+export interface PurchaseRequest {
   appid: number
   accounttoken: string
   purchaseCode: string
@@ -88,7 +87,7 @@ export interface RequestInfo {
 export interface PurchaseData {
   product: ProductBaseVO
   bundles: Bundle[]
-  request: RequestInfo
+  request: PurchaseRequest
 }
 
 // 购买接口响应类型

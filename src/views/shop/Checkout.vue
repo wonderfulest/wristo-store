@@ -77,7 +77,8 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 // import Logo from '@/components/Logo.vue'
-import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO } from '@/types'
+import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest } from '@/types'
+import { purchaseCallback, type PurchaseCallbackRequest } from '@/api/pay'
 
 declare global {
   interface Window {
@@ -89,7 +90,7 @@ const router = useRouter()
 const store = useShopOptionsStore()
 const product = computed(() => store.selectedProduct as Bundle | ProductVO)
 
-const request = computed(() => store.data?.request)
+const request = computed(() => store.data?.request as PurchaseRequest)
 const email = ref('')
 const loading = ref(false)
 const emailError = ref('')
@@ -124,7 +125,7 @@ function loadPaddle() {
             window.Paddle.Environment.set("sandbox")
             window.Paddle.Initialize({ 
                 token: PADDLE_CLIENT_TOKEN,
-                eventCallback: function(data: any) {
+                eventCallback: async function(data: any) {
                     console.log('Paddle event:', data)
                     if (data.name === 'checkout.completed') {
                         const eventData = data as PaddleCheckoutCompletedEvent;
@@ -138,24 +139,42 @@ function loadPaddle() {
                         console.log('Payment completed successfully:', data)
                         
                         // Sync to backend
-                        // const orderData = {
-                        //     transaction_id: eventData.data.transaction_id,
-                        //     customerEmail: eventData.data.customer.email,
-                        // }
-
-                        // Save order info to store
-                        store.setOrder({
-                            referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
-                            productName: isBundle.value ? (product.value as Bundle).bundleName : (product.value as ProductBaseVO).name,
-                            amount: product.value?.price || 0,
-                            paymentSource: 'paddle',
-                            paddleOrder: eventData.data
-                        })
+                        const orderData: PurchaseCallbackRequest = {
+                            transaction_id: eventData.data.transaction_id,
+                            customerEmail: eventData.data.customer.email,
+                            accounttoken: request?.value?.accounttoken,
+                            code: request?.value?.purchaseCode,
+                            appid: isBundle.value ? (product.value as Bundle).bundleId : request?.value?.appid,
+                            isBundle: isBundle.value,
+                        }
+                        console.log('orderData', orderData)
                         
-                        // Force redirect to success page, override Paddle default
-                        // setTimeout(() => {
-                        //     window.location.href = '/payment/success'
-                        // }, 1000)
+                        try {
+                            const callbackResponse = await purchaseCallback(orderData)
+                            console.log('Purchase callback response:', callbackResponse)
+                            
+                            if (callbackResponse.code !== 0) {
+                                console.error('Purchase callback failed:', callbackResponse.msg)
+                                ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Warning')
+                            } else {
+                                // Save order info to store
+                                store.setOrder({
+                                    referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
+                                    productName: isBundle.value ? (product.value as Bundle).bundleName : (product.value as ProductBaseVO).name,
+                                    amount: product.value?.price || 0,
+                                    paymentSource: 'paddle',
+                                    paddleOrder: eventData.data
+                                })
+                                
+                                // Force redirect to success page, override Paddle default
+                                setTimeout(() => {
+                                    window.location.href = '/payment/success'
+                                }, 1000)
+                            }
+                        } catch (error) {
+                            console.error('Purchase callback error:', error)
+                            ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Error')
+                        }
                     }
                     if (data.name === 'checkout.closed') {
                         loading.value = false
