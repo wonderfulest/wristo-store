@@ -26,7 +26,7 @@ export const getSeries = (): Promise<Response<Series[]>> => {
 
 // 获取热门商品
 export const getHotProducts = (): Promise<Response<ProductBaseVO[]>> => {
-  return instance.get('/public/products/hot')
+  return instance.get('/public/products/hot?limit=20')
 }
 
 // 获取商品详情

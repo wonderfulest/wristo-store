@@ -24,7 +24,7 @@
           <h2 class="text-3xl font-bold">搜索结果</h2>
           <span class="text-gray-500">{{ searchResults.length }} 个商品</span>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 px-4 md:px-0">
           <div v-for="product in searchResults" :key="product.appId" class="flex justify-center">
             <product-card :product="product" />
           </div>
@@ -140,6 +140,7 @@
       </div>
     </section>
   </div>
+  <Newsletter />
 </template>
 
 <script setup lang="ts">
@@ -149,6 +150,7 @@ import ProductCard from '@/components/ProductCard.vue'
 import { useProductStore } from '@/store/product'
 import { useRouter } from 'vue-router'
 import type { ProductBaseVO, Series } from '@/types'
+import Newsletter from '@/components/Newsletter.vue'
 
 const productStore = useProductStore()
 const searchTerm = ref('')
@@ -574,12 +576,12 @@ function goToProduct(product: ProductBaseVO) {
 }
 .hot-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 48px 24px;
   justify-items: center;
   align-items: start;
   width: 100%;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   justify-content: center;
   place-items: center;

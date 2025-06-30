@@ -70,6 +70,16 @@ const routes: RouteRecordRaw[] = [
     name: 'CategoryDetail',
     component: () => import('@/views/Categories.vue')
   },
+  {
+    path: '/newsletter',
+    name: 'Newsletter',
+    component: () => import('@/components/Newsletter.vue')
+  },
+  {
+    path: '/bundle-products',
+    name: 'BundleProducts',
+    component: () => import('@/views/BundledProducts.vue')
+  },
 ]
 
 export default routes 
