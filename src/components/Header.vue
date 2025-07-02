@@ -32,8 +32,8 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="info">User Info</el-dropdown-item>
-                <el-dropdown-item command="orders">Order History</el-dropdown-item>
-                <el-dropdown-item command="cart">Cart</el-dropdown-item>
+                <!-- <el-dropdown-item command="orders">Order History</el-dropdown-item> -->
+                <!-- <el-dropdown-item command="cart">Cart</el-dropdown-item> -->
                 <el-dropdown-item command="logout">Logout</el-dropdown-item>
               </el-dropdown-menu>
             </template>
