@@ -7,6 +7,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Home.vue')
   },
   {
+    path: '/auth/callback',
+    name: 'auth-callback',
+    component: () => import('@/views/AuthCallback.vue')
+  },
+  {
     path: '/product/:id',
     name: 'product-detail',
     component: () => import('@/views/ProductDetail.vue')
@@ -79,6 +84,11 @@ const routes: RouteRecordRaw[] = [
     path: '/bundle-products',
     name: 'BundleProducts',
     component: () => import('@/views/BundledProducts.vue')
+  },
+  {
+    path: '/user/profile',
+    name: 'UserProfile',
+    component: () => import('@/views/user-center/UserProfile.vue')
   },
 ]
 

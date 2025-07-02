@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { searchProducts, getNewProducts, getSeries, 
   getHotProducts, getProductDetail, getRelatedProducts, getHotSeries, 
 } from '@/api/product'
-import type { ProductBaseVO, ProductVO, Series } from '@/types'
+import type { ApiResponse, ProductBaseVO, ProductVO, Series } from '@/types'
 
 interface State {
   loading: boolean
@@ -28,9 +28,9 @@ export const useProductStore = defineStore('product', {
   actions: {
     async searchProducts(keyword: string) {
       try {
-        const response = await searchProducts(keyword)
+        const response: ApiResponse<ProductBaseVO[]> = await searchProducts(keyword)
         if (response.code === 0) {
-          this.searchResults = response.data
+          this.searchResults = response.data || []
         }
         return this.searchResults
       } catch (error) {
@@ -41,9 +41,9 @@ export const useProductStore = defineStore('product', {
 
     async getNewProducts() {
       try {
-        const response = await getNewProducts()
+        const response: ApiResponse<ProductBaseVO[]> = await getNewProducts()
         if (response.code === 0) {
-          this.newProducts = response.data
+          this.newProducts = response.data || []
         }
         return this.newProducts
       } catch (error) {
@@ -56,7 +56,7 @@ export const useProductStore = defineStore('product', {
       try {
         const response = await getHotSeries()
         if (response.code === 0) {
-          this.hotSeries = response.data
+          this.hotSeries = response.data || []
         }
         return this.hotSeries
       } catch (error) {
@@ -69,7 +69,7 @@ export const useProductStore = defineStore('product', {
       try {
         const response = await getSeries()
         if (response.code === 0) {
-          this.seriesList = response.data
+          this.seriesList = response.data || []
         }
         return this.seriesList
       } catch (error) {
@@ -80,9 +80,9 @@ export const useProductStore = defineStore('product', {
 
     async getHotProducts() {
       try {
-        const response = await getHotProducts()
+        const response: ApiResponse<ProductBaseVO[]> = await getHotProducts()
         if (response.code === 0) {
-          this.hotProducts = response.data
+          this.hotProducts = response.data || []
         }
         return this.hotProducts
       } catch (error) {
@@ -109,8 +109,8 @@ export const useProductStore = defineStore('product', {
     async getRelatedProducts(id: string): Promise<ProductBaseVO[]> {
       try {
         this.loading = true
-        const response = await getRelatedProducts(id)
-        return response.data
+        const response: ApiResponse<ProductBaseVO[]> = await getRelatedProducts(id)
+        return response.data || []
       } catch (error) {
         this.error = error instanceof Error ? error : new Error('Unknown error')
         return []

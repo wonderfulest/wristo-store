@@ -1,9 +1,29 @@
-// 基础响应类型
-export interface Response<T> {
+export interface ApiResponse<T> {
   code: number
   msg: string
-  data: T
+  data?: T
+} 
+
+export interface UserInfo {
+  id: number
+  username: string
+  nickname: string | null
+  email: string
+  phone: string | null
+  avatar: string | null
+  status: string | null
+  createdAt: string
+  updatedAt: string
+  lastLoginTime: string | null
+  lastLoginIp: string | null
+  isDeleted: string
 }
+
+export interface LoginResponseData {
+  token: string
+  userInfo: UserInfo
+}
+
 
 // 通用分页返回类型
 export interface PageResult<T> {
@@ -101,7 +121,7 @@ export interface PurchaseData {
 }
 
 // 购买接口响应类型
-export interface PurchaseResponse extends Response<PurchaseData> {
+export interface PurchaseResponse extends ApiResponse<PurchaseData> {
   data: PurchaseData
 }
 

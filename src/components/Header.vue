@@ -25,30 +25,42 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
       </nav>
-      <!-- <div class="user-area">
+      <div class="user-area">
         <template v-if="isLoggedIn">
-          <img :src="userAvatar" class="user-avatar" alt="用户头像" />
+          <el-dropdown @command="handleUserMenuCommand" trigger="click">
+            <img :src="userAvatar" class="user-avatar" alt="user avatar" />
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="info">User Info</el-dropdown-item>
+                <el-dropdown-item command="orders">Order History</el-dropdown-item>
+                <el-dropdown-item command="cart">Cart</el-dropdown-item>
+                <el-dropdown-item command="logout">Logout</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
         <template v-else>
-          <button class="login-btn" @click="goToLogin">登录/注册</button>
+          <button class="login-btn" @click="goToLogin">Login</button>
         </template>
-      </div> -->
+      </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useProductStore } from "@/store/product";
 import { useRouter } from "vue-router";
 import { ArrowDown } from "@element-plus/icons-vue";
 import type { Series } from "@/types";
+import { useUserStore } from '@/store/user'
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
 const router = useRouter();
+const userStore = useUserStore();
 const isLoggedIn = ref(false);
-const userAvatar = ref("https://via.placeholder.com/32"); // 默认头像
+const userAvatar = ref('https://via.placeholder.com/32');
 
 const loadSeries = async () => {
   seriesList.value = await productStore.getSeries();
@@ -58,20 +70,38 @@ const handleSelectSeries = (slug: string) => {
   router.push(`/categories/${slug}`);
 };
 
-const checkLogin = () => {
-  // 这里可以根据实际项目判断登录状态
-  // 例如：isLoggedIn.value = Boolean(localStorage.getItem('token'))
-  isLoggedIn.value = false; // 默认未登录
+const updateUserInfo = () => {
+  isLoggedIn.value = !!userStore.userInfo;
+  userAvatar.value = userStore.userInfo?.avatar || 'https://via.placeholder.com/32';
 };
 
 const goToLogin = () => {
-  router.push("/login");
+  const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
+  const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+  window.location.href = `${ssoBaseUrl}?redirect_uri=${encodeURIComponent(redirectUri)}`
 };
+
+
+const handleUserMenuCommand = (command: string) => {
+  if (command === 'info') {
+    router.push('/user/profile')
+  } else if (command === 'orders') {
+    router.push('/user/orders')
+  } else if (command === 'cart') {
+    router.push('/user/cart')
+  } else if (command === 'logout') {
+    userStore.logout()
+    router.push('/')
+  }
+}
 
 onMounted(() => {
   loadSeries();
-  checkLogin();
+  updateUserInfo();
 });
+
+// 监听 userInfo 变化
+watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
 </script>
 
 <style scoped>
