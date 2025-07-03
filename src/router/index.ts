@@ -13,7 +13,7 @@ router.beforeEach((to, _, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
   const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
-  const ssoLoginUrl = `${ssoBaseUrl}?redirect_uri=${encodeURIComponent(redirectUri)}`
+  const ssoLoginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
 
   if (requiresAuth && !userStore.userInfo) {
     window.location.href = ssoLoginUrl
