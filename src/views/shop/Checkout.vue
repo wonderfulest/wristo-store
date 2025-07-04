@@ -122,7 +122,8 @@ function loadPaddle() {
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js"
         script.async = true
         script.onload = () => {
-            window.Paddle.Environment.set("sandbox")
+            // window.Paddle.Environment.set("sandbox")
+            window.Paddle.Environment.set("production")
             window.Paddle.Initialize({ 
                 token: PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
