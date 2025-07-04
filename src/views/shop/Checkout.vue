@@ -124,7 +124,7 @@ function loadPaddle() {
         script.onload = () => {
             // window.Paddle.Environment.set("sandbox")
             window.Paddle.Initialize({ 
-                environment: "production",
+                // environment: "production",
                 // seller: 233865, // The option parameter 'seller' or 'token' must have a value but not both.
                 token: PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
