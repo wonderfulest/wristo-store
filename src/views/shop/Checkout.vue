@@ -123,9 +123,9 @@ function loadPaddle() {
         script.async = true
         script.onload = () => {
             // window.Paddle.Environment.set("sandbox")
-            window.Paddle.Environment.set("production")
-            window.Paddle.Setup({ vendor: 233865 });
             window.Paddle.Initialize({ 
+                environment: "production",
+                seller: 233865,
                 token: PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
                     console.log('Paddle event:', data)
