@@ -124,6 +124,7 @@ function loadPaddle() {
         script.onload = () => {
             // window.Paddle.Environment.set("sandbox")
             window.Paddle.Environment.set("production")
+            window.Paddle.Setup({ vendor: 233865 });
             window.Paddle.Initialize({ 
                 token: PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
