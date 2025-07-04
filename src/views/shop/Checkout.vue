@@ -125,33 +125,24 @@ function loadPaddle() {
             // window.Paddle.Environment.set("sandbox")
             window.Paddle.Initialize({ 
                 environment: "production",
-                seller: 233865,
+                // seller: 233865, // The option parameter 'seller' or 'token' must have a value but not both.
                 token: PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
                     console.log('Paddle event:', data)
                     if (data.name === 'checkout.completed') {
                         const eventData = data as PaddleCheckoutCompletedEvent;
                         
-                        // Now you can safely access all properties in eventData.data
-                        console.log(eventData.data.transaction_id);
-                        console.log(eventData.data.customer.email);
-                        
-                        // Payment success logic
                         loading.value = false
-                        console.log('Payment completed successfully:', data)
                         
                         // Sync to backend
                         const orderData: PurchaseCallbackRequest = {
                             transaction_id: eventData.data.transaction_id,
                         }
-                        console.log('orderData', orderData)
                         
                         try {
                             const callbackResponse = await purchaseCallback(orderData)
-                            console.log('Purchase callback response:', callbackResponse)
                             
                             if (callbackResponse.code !== 0) {
-                                console.error('Purchase callback failed:', callbackResponse.msg)
                                 ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Warning')
                             } else {
                                 // Save order info to store
@@ -169,21 +160,17 @@ function loadPaddle() {
                                 }, 1000)
                             }
                         } catch (error) {
-                            console.error('Purchase callback error:', error)
                             ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Error')
                         }
                     }
                     if (data.name === 'checkout.closed') {
                         loading.value = false
-                        console.log('Checkout closed')
                     }
                     if (data.name === 'checkout.error') {
                         loading.value = false
-                        console.error('Checkout error:', data)
                         ElMessageBox.alert('Payment failed. Please try again.', 'Error')
                     }
                     if (data.name === 'checkout.updated') {
-                        console.log('Checkout updated:', data)
                     }
                     if (data.name === 'checkout.items.updated') {
                         const items = data.data.items || [];
