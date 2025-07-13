@@ -131,7 +131,7 @@
         <div class="hot-grid">
           <div v-for="product in hotProducts" :key="product.appId" class="hot-item" @click="goToProduct(product)">
             <div class="hot-img-wrap">
-              <img :src="product.heroFile?.url" :alt="product.name" class="hot-img" />
+              <img :src="product.garminImageUrl" :alt="product.name" class="hot-img" />
             </div>
             <div class="hot-name">{{ product.name }}</div>
             <div class="hot-price">${{ product.price.toFixed(2) }}</div>
