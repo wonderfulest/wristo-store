@@ -70,11 +70,13 @@ const handleDownload = () => {
 }
 
 const handleUnlock = () => {
-  if (product.value && product.value?.paddleProductId) { // 如果paddleProductId存在，则跳转到code页面
-    window.open(`/code`, '_blank')
-  } else {
-    window.open(`https://kzl.io/code`, '_blank')
-  }
+  console.log(product.value)
+  window.open(`/code`, '_blank')
+  // if (product.value && product.value?.paddleProductId) { // 如果paddleProductId存在，则跳转到code页面
+  //   window.open(`/code`, '_blank')
+  // } else {
+  //   window.open(`https://kzl.io/code`, '_blank')
+  // }
 }
 
 onMounted(async () => {
