@@ -1,6 +1,6 @@
 <template>
   <div class="purchase-options">
-    <Logo />
+    <!-- <Logo /> -->
     <h2 class="title">Purchase Options</h2>
     <p class="desc">Choose your preferred option:</p>
     
