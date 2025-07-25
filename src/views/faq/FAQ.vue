@@ -54,11 +54,13 @@
         <a href="mailto:support@wristo.io">support@wristo.io</a>
       </p>
     </div>
+    <router-view />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 
 type Question = {
   q: string;
@@ -71,6 +73,14 @@ type QuestionsByCategory = {
 
 const cardQuestions = [
   {
+    key: 'activate-trial',
+    icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" stroke="#1db954" stroke-width="2.5" fill="none"/><rect x="16" y="10" width="8" height="12" rx="4" fill="none"/><line x1="20" y1="20" x2="20" y2="14" stroke="#1db954" stroke-width="2.5"/><circle cx="20" cy="26" r="1.5" fill="#1db954"/></svg>`,
+    title: `Activate trial?`,
+    desc: 'Need help with the checkout process?',
+    q: 'How do I complete my purchase?',
+    category: 'Installation & Purchase',
+  },
+  {
     key: 'already-paid',
     icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><text x="10" y="30" font-size="28" font-weight="bold">$</text></svg>`,
     title: 'Already Paid?',
@@ -78,14 +88,14 @@ const cardQuestions = [
     q: 'I already paid! Why am I charged a second time?',
     category: 'Installation & Purchase',
   },
-  {
-    key: 'not-getting-code',
-    icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" stroke="#1db954" stroke-width="2.5" fill="none"/><rect x="16" y="10" width="8" height="12" rx="4" fill="none"/><line x1="20" y1="20" x2="20" y2="14" stroke="#1db954" stroke-width="2.5"/><circle cx="20" cy="26" r="1.5" fill="#1db954"/></svg>`,
-    title: 'Not Getting Code?',
-    desc: 'Is your smart watch not showing a code?',
-    q: 'How do I input the Code to unlock the trial?',
-    category: 'Installation & Purchase',
-  },
+  // {
+  //   key: 'not-getting-code',
+  //   icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" stroke="#1db954" stroke-width="2.5" fill="none"/><rect x="16" y="10" width="8" height="12" rx="4" fill="none"/><line x1="20" y1="20" x2="20" y2="14" stroke="#1db954" stroke-width="2.5"/><circle cx="20" cy="26" r="1.5" fill="#1db954"/></svg>`,
+  //   title: 'Not Getting Code?',
+  //   desc: 'Is your smart watch not showing a code?',
+  //   q: 'How do I input the Code to unlock the trial?',
+  //   category: 'Installation & Purchase',
+  // },
   {
     key: 'need-refund',
     icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><path d="M30 20a10 10 0 1 1-10-10" stroke="#1db954" stroke-width="2.5" fill="none"/><polyline points="30,20 30,10 20,10" stroke="#1db954" stroke-width="2.5" fill="none"/></svg>`,
@@ -312,7 +322,12 @@ function setQuestionRef(index: number, el: HTMLElement | null) {
 function toggleOpen(index: number) {
   openIndex.value = openIndex.value === index ? null : index
 }
+const router = useRouter()
 function onCardClick(item: any) {
+  if (item.key === 'activate-trial') {
+    router.push({ name: 'CheckoutHelp' })
+    return
+  }
   search.value = item.q
   // find the question in questionsByCategory
   const flatQuestions = Object.values(questionsByCategory).flat()

@@ -23,7 +23,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
+        <router-link to="/faq" class="nav-link">FAQ</router-link>
       </nav>
       <div class="user-area">
         <template v-if="isLoggedIn">

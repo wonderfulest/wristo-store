@@ -1,6 +1,5 @@
 <template>
   <div class="already-purchased-page">
-    <Logo />
     <h1 class="title">Find My Purchase History</h1>
     <p class="desc">Please enter the email address you used when purchasing. We will help you find all your past orders.</p>
     <form class="lookup-form" @submit.prevent="handleLookup">
@@ -18,15 +17,11 @@
         </li>
       </ul>
     </div>
-    <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Logo from '@/components/Logo.vue'
-import Footer from '@/components/Footer.vue'
-
 const email = ref('')
 const loading = ref(false)
 const error = ref('')
@@ -62,7 +57,6 @@ async function handleLookup() {
   padding: 40px 24px 0 24px;
   font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
   color: #222;
-  background: #fff;
   min-height: 100vh;
 }
 .title {
