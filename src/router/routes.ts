@@ -98,6 +98,11 @@ const routes: RouteRecordRaw[] = [
     name: 'UserProfile',
     component: () => import('@/views/user-center/UserProfile.vue')
   },
+  {
+    path: '/user/purchase-records',
+    name: 'PurchaseRecords',
+    component: () => import('@/views/user-center/PurchaseRecords.vue')
+  },
 ]
 
 export default routes 

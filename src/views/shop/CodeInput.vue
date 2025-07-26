@@ -7,7 +7,7 @@
     </p>
     <div class="input-group">
       <label for="code" class="input-label">Code</label>
-      <input id="code" v-model="code" maxlength="6" placeholder="000000" class="code-input" />
+      <input id="code" v-model="code" maxlength="6" placeholder="000000" class="code-input" @input="clearError" />
       <div class="input-desc">The code shown on your smartwatch.</div>
     </div>
     <div v-if="error" style="color: #e63946; margin-bottom: 8px; text-align: left;">
@@ -19,7 +19,7 @@
     </div>
     <div class="button-group">
       <button class="btn outline">Already Purchased</button>
-      <button class="btn" :disabled="code.length !== 6 || loading" @click="handleContinue">Continue</button>
+      <button class="btn" :disabled="loading" @click="handleContinue">Continue</button>
     </div>
   </div>
 </template>
@@ -39,7 +39,10 @@ const router = useRouter()
 const store = useShopOptionsStore()
 
 const handleContinue = async () => {
-  if (code.value.length !== 6) return
+  if (code.value.length !== 6) {
+    error.value = 'Please enter a 6-digit code.'
+    return
+  }
   error.value = ''
   loading.value = true
   try {
@@ -55,6 +58,12 @@ const handleContinue = async () => {
     error.value = 'Network error, please try again later.'
   } finally {
     loading.value = false
+  }
+}
+
+const clearError = () => {
+  if (error.value) {
+    error.value = ''
   }
 }
 </script>

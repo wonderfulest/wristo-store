@@ -32,6 +32,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="info">User Info</el-dropdown-item>
+                <el-dropdown-item command="purchase-records">Purchase Records</el-dropdown-item>
                 <!-- <el-dropdown-item command="orders">Order History</el-dropdown-item> -->
                 <!-- <el-dropdown-item command="cart">Cart</el-dropdown-item> -->
                 <el-dropdown-item command="logout">Logout</el-dropdown-item>
@@ -52,7 +53,7 @@ import { ref, onMounted, watch } from "vue";
 import { useProductStore } from "@/store/product";
 import { useRouter } from "vue-router";
 import { ArrowDown } from "@element-plus/icons-vue";
-import type { Series } from "@/types";
+import type { Series } from "@/types/product";
 import { useUserStore } from '@/store/user'
 
 const productStore = useProductStore();
@@ -85,6 +86,8 @@ const goToLogin = () => {
 const handleUserMenuCommand = (command: string) => {
   if (command === 'info') {
     router.push('/user/profile')
+  } else if (command === 'purchase-records') {
+    router.push('/user/purchase-records')
   } else if (command === 'orders') {
     router.push('/user/orders')
   } else if (command === 'cart') {

@@ -1,52 +1,59 @@
 <template>
   <div class="already-purchased-page">
     <h1 class="title">Find My Purchase History</h1>
-    <p class="desc">Please enter the email address you used when purchasing. We will help you find all your past orders.</p>
+    <p class="desc">Please enter the email address you used when purchasing. We will send your purchase records to your email.</p>
+    <div class="tip-box">
+      <div class="tip-icon">💡</div>
+      <div class="tip-content">
+        <strong>Pro Tip:</strong> Register with your purchase email in the top-right corner to view your purchase records directly without email lookup.
+      </div>
+    </div>
     <form class="lookup-form" @submit.prevent="handleLookup">
       <input v-model="email" type="email" placeholder="Enter your email" class="email-input" required />
-      <button class="lookup-btn" :disabled="loading">Lookup</button>
+      <button class="lookup-btn" :disabled="loading">
+        <span v-if="loading">Sending...</span>
+        <span v-else>Send to Email</span>
+      </button>
     </form>
     <div v-if="error" class="error">{{ error }}</div>
-    <div v-if="orders.length" class="orders-list">
-      <h2>Order History</h2>
-      <ul>
-        <li v-for="(order, idx) in orders" :key="idx">
-          <div>Product: {{ order.productName }}</div>
-          <div>Amount: ${{ order.amount }}</div>
-          <div>Purchase Date: {{ order.date }}</div>
-        </li>
-      </ul>
+    <div v-if="success" class="success">
+      <div class="success-icon">✅</div>
+      <div class="success-text">Purchase records have been sent to your email!</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { getPurchaseRecordsByEmail } from '@/api/pay'
+import { ElMessage } from 'element-plus'
+
 const email = ref('')
 const loading = ref(false)
 const error = ref('')
-const orders = ref<any[]>([])
+const success = ref(false)
 
 async function handleLookup() {
   error.value = ''
-  orders.value = []
+  success.value = false
   if (!email.value.trim()) {
     error.value = 'Please enter your email address'
     return
   }
   loading.value = true
-  // 这里应调用后端接口查找订单，演示用假数据
-  setTimeout(() => {
-    loading.value = false
-    if (email.value === 'test@example.com') {
-      orders.value = [
-        { productName: 'WristoIo Pro', amount: '3.99', date: '2024-06-01' },
-        { productName: 'WristoIo Bundle', amount: '9.99', date: '2024-05-15' },
-      ]
+  try {
+    const res = await getPurchaseRecordsByEmail(email.value)
+    if (res.code === 0 && res.data === true) {
+      success.value = true
+      ElMessage.success('Purchase records have been sent to your email!')
     } else {
-      error.value = 'No related orders found. Please check if the email is correct.'
+      error.value = res.msg || 'No purchase records found for this email.'
     }
-  }, 1200)
+  } catch (e) {
+    error.value = 'Network error, please try again later.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -68,8 +75,27 @@ async function handleLookup() {
 .desc {
   color: #666;
   font-size: 1.1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   text-align: center;
+}
+.tip-box {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+  border: 1px solid #0ea5e9;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tip-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+.tip-content {
+  color: #0c4a6e;
+  font-size: 0.95rem;
+  line-height: 1.5;
 }
 .lookup-form {
   display: flex;
@@ -103,29 +129,28 @@ async function handleLookup() {
   color: #e63946;
   margin-bottom: 1.2rem;
   text-align: center;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 12px;
 }
-.orders-list {
-  background: #f8f9fa;
-  border-radius: 12px;
-  padding: 22px 24px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px #0001;
+.success {
+  color: #059669;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
-.orders-list h2 {
-  font-size: 1.15rem;
-  color: #2d6a4f;
-  margin-bottom: 8px;
+.success-icon {
+  font-size: 1.2rem;
 }
-.orders-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.orders-list li {
-  padding: 12px 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-.orders-list li:last-child {
-  border-bottom: none;
+.success-text {
+  font-weight: 600;
 }
 </style> 
