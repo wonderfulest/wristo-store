@@ -1,41 +1,20 @@
 <template>
   <div class="product-card" @click="handleClick">
-    <div class="relative group">
-      <!-- 商品图片 -->
-      <div class="aspect-square w-full overflow-hidden rounded-lg bg-gray-100">
-        <el-image
-          :src="product?.heroFile?.url"
-          :alt="product?.name"
-          fit="cover"
-          class="h-full w-full object-cover object-center group-hover:opacity-75"
-        />
-      </div>
-
-      <!-- 商品信息 -->
-      <div class="mt-4 flex justify-between">
-        <div>
-          <h3 class="text-sm text-gray-700">
-            <a :href="product?.garminStoreUrl" target="_blank">
-              <span aria-hidden="true" class="absolute inset-0" />
-              {{ product?.name }}
-            </a>
-          </h3>
-          <p class="mt-1 text-sm text-gray-500">{{ product?.description }}</p>
-        </div>
-        <p class="text-sm font-medium text-gray-900">¥{{ product?.price }}</p>
-      </div>
-
-      <!-- 下载量 -->
-      <div class="mt-2 flex items-center text-sm text-gray-500">
-        <el-icon class="mr-1"><Download /></el-icon>
-        <span>{{ formatDownloadCount(product?.download) }}</span>
-      </div>
+    <div class="product-img-wrap">
+      <img 
+        :src="product?.heroFile?.url || product?.garminImageUrl" 
+        :alt="product?.name" 
+        class="product-img" 
+      />
+    </div>
+    <div class="product-info">
+      <div class="product-name">{{ product?.name }}</div>
+      <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Download } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 const props = defineProps<{
@@ -44,23 +23,94 @@ const props = defineProps<{
 
 const router = useRouter()
 
-const formatDownloadCount = (count: number) => {
-  if (count >= 1000000) {
-    return `${(count / 1000000).toFixed(1)}M`
-  }
-  if (count >= 1000) {
-    return `${(count / 1000).toFixed(1)}K`
-  }
-  return count
-}
-
 const handleClick = () => {
-  router.push(`/product/${props.product.id}`)
+  if (props.product?.appId) {
+    router.push({ name: 'product-detail', params: { id: props.product.appId } })
+  }
 }
 </script>
 
 <style scoped>
 .product-card {
-  @apply cursor-pointer transition-all duration-300 hover:transform hover:scale-105;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.product-img-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #f8f8f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.product-img {
+  max-width: 80%;
+  max-height: 80%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  margin: 0 auto;
+}
+
+.product-card:hover .product-img {
+  transform: scale(1.05);
+}
+
+.product-info {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 1.2em;
+  line-height: 1.4;
+  letter-spacing: -0.3px;
+}
+
+.product-price {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #86868b;
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .product-name {
+    font-size: 0.95rem;
+  }
+  
+  .product-price {
+    font-size: 1rem;
+  }
 }
 </style> 

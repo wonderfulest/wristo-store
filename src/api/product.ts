@@ -4,7 +4,7 @@ import type { ProductBaseVO, Series, PageResult, ApiResponse } from '@/types'
 
 // 搜索商品
 export const searchProducts = (keyword: string): Promise<ApiResponse<ProductBaseVO[]>> => {
-  return instance.get('/products/search', {
+  return instance.get('/public/products/search', {
     params: { keyword }
   })
 }

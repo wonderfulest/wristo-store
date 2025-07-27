@@ -5,15 +5,13 @@
       <h1 class="category-title">{{ series.name }}</h1>
     </div>
     <div v-if="products.length > 0" class="product-list">
-      <div v-for="product in products" :key="product.appId" class="product-card" @click="goToProduct(product)">
-        <div class="product-img-wrap">
-          <img :src="product.heroFile?.url || product.garminImageUrl" :alt="product.name" class="product-img" />
-        </div>
-        <div class="product-info">
-          <div class="product-name">{{ product.name }}</div>
-          <div class="product-price">${{ product.price.toFixed(2) }}</div>
-        </div>
-      </div>
+      <product-card
+        v-for="product in products"
+        :key="product.appId"
+        :product="product"
+        class="product-item"
+        @click="goToProduct(product)"
+      />
     </div>
     <div v-else class="empty-tip">No products found in this series.</div>
   </div>
@@ -25,6 +23,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
 import { getProductsByCategory } from '@/api/product'
 import type { ApiResponse, PageResult, ProductBaseVO, Series } from '@/types'
+import ProductCard from '@/components/ProductCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -65,8 +64,9 @@ watch(() => route.params.slug, () => {
 .category-detail-page {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 16px 64px 16px;
+  padding: 40px 20px;
 }
+
 .category-header {
   display: flex;
   align-items: center;
@@ -85,59 +85,48 @@ watch(() => route.params.slug, () => {
   font-weight: bold;
   color: #222;
 }
+
 .product-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px;
+  padding: 20px 0;
 }
-.product-card {
-  background: #fff;
-  border-radius: 32px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
-  padding: 32px 16px 24px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  transition: box-shadow 0.2s;
+
+.product-item {
+  transition: transform 0.3s ease;
 }
-.product-card:hover {
-  box-shadow: 0 4px 24px 0 rgba(52,124,255,0.12);
+
+.product-item:hover {
+  transform: translateY(-5px);
 }
-.product-img-wrap {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-bottom: 18px;
-  background: #f4f6fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.product-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.product-info {
-  text-align: center;
-}
-.product-name {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 6px;
-  color: #222;
-}
-.product-price {
-  color: #347cff;
-  font-size: 1rem;
-  font-weight: bold;
-}
+
 .empty-tip {
   text-align: center;
-  color: #aaa;
   font-size: 1.2rem;
-  margin-top: 64px;
+  color: #666;
+  padding: 60px 20px;
 }
-</style> 
+
+@media (max-width: 768px) {
+  .product-list {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .category-title {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-list {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .category-title {
+    font-size: 1.75rem;
+  }
+}
+</style>
