@@ -25,7 +25,7 @@
     <div class="faq-list">
       <div v-for="([cat, qs]) in filteredQuestionsByCategory" :key="cat" class="faq-category-block">
         <h2 class="faq-category-header">{{ cat }}</h2>
-        <div v-for="(item, idx) in (showMoreMap[cat] ? qs : qs.slice(0, 3))" :key="item.q" class="faq-item" :ref="el => setQuestionRef(globalIndex(cat, item), el as HTMLElement)">
+        <div v-for="(item, _) in (showMoreMap[cat] ? qs : qs.slice(0, 3))" :key="item.q" class="faq-item" :ref="el => setQuestionRef(globalIndex(cat, item), el as HTMLElement)">
           <button
             class="faq-question"
             :class="{ open: isOpen(globalIndex(cat, item)) }"
@@ -98,7 +98,6 @@ function setQuestionRef(index: number, el: HTMLElement | null) {
 onMounted(() => {
   // 每个分类下第一个问题默认展开
   const indices: number[] = []
-  let offset = 0
   const allQ = allQuestions.value
   let catIdx = 0
   for (const [cat, qs] of Object.entries(questionsByCategory)) {
@@ -143,12 +142,6 @@ function onCardClick(item: any) {
       }
     })
   }
-}
-
-function handleContactSend(message: string, email?: string) {
-  // 这里可集成实际的消息发送逻辑
-  // 消息发送成功后会由 ContactForm 组件内部显示成功提示
-  console.log('Message sent:', { message, email })
 }
 </script>
 
