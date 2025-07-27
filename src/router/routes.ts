@@ -37,17 +37,9 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/shop/Success.vue')
   },
   {
-    path: '/contact/:productId',
-    name: 'Contact',
-    component: () => import('@/views/Contact.vue')
-  },
-  {
     path: '/faq',
     name: 'FAQ',
     component: () => import('@/views/faq/FAQ.vue'),
-    children: [
-      
-    ]
   },
   {
     path: '/faq/checkout',
@@ -56,17 +48,18 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/unlock',
-    redirect: '/already-purchased'
+    name: 'Unlock',
+    component: () => import('@/views/Unlock.vue')
+  },
+  {
+    path: '/contact',
+    name: 'Contact',
+    component: () => import('@/views/Contact.vue')
   },
   {
     path: '/already-purchased',
     name: 'AlreadyPurchased',
     component: () => import('@/views/shop/AlreadyPurchased.vue')
-  },
-  {
-    path: '/lookup',
-    name: 'Lookup',
-    component: () => import('@/views/Lookup.vue')
   },
   {
     path: '/terms-and-conditions',

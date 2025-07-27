@@ -11,7 +11,7 @@
       <a href="/terms-and-conditions">Terms of Use</a> |
       <a href="/privacy-policy">Privacy Policy</a> |
       <a href="/contact">Contact</a> |
-      <!-- <a href="/faq">FAQ</a> -->
+      <a href="/faq">FAQ</a>
     </div>
     <transition name="footer-expand">
       <div v-if="isExpanded" class="footer-detail">
@@ -28,15 +28,15 @@
           <strong>Privacy Policy:</strong>
           <a href="/privacy-policy" target="_blank">View Details</a>
         </div>
-        <div class="footer-detail-block">
+        <!-- <div class="footer-detail-block">
           <strong>Contact us on SLACK:</strong>
           <a href="https://join.slack.com/t/wristo/shared_invite/zt-37oujfc82-w6vpl_hzGNYYmsmN5vNOzg" target="_blank">Join Slack Channel</a>
-        </div>
+        </div> -->
         <div class="footer-detail-links">
           <a href="/terms-and-conditions">Terms of Use</a> |
           <a href="/privacy-policy">Privacy Policy</a> |
           <a href="/contact">Contact</a> |
-          <!-- <a href="/faq">FAQ</a> -->
+          <a href="/faq">FAQ</a>
         </div>
       </div>
     </transition>
@@ -64,8 +64,18 @@ function collapse() {
   text-align: center;
   cursor: pointer;
   outline: none;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
   position: relative;
+  min-height: 24px; /* 最小高度 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.footer.expanded {
+  background: #000;
+  transition: all 0.3s ease;
 }
 .footer-main {
   color: #ccc;
@@ -87,7 +97,9 @@ function collapse() {
   font-size: 1.05rem;
   line-height: 1.7;
   animation: fadeIn 0.3s;
-  padding-bottom: 8px;
+  padding: 16px 0;
+  background: #000;
+  width: 100%;
 }
 .footer-detail-title {
   font-weight: bold;

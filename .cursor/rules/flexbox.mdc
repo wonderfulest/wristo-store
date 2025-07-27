@@ -1,0 +1,70 @@
+使用 Flexbox 实现一屏高度布局
+💡 核心思路：
+最外层容器高度设为 100vh（视口高度）。
+
+使用 display: flex 和 flex-direction: column。
+
+header 和 footer 设置固定高度。
+
+container 设置为 flex: 1 自动填充剩余空间。
+
+✅ 示例代码（适用于纯 HTML + CSS）：
+html
+复制
+编辑
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>一屏高度布局</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      height: 100%;
+    }
+    .page {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      height: 60px;
+      background-color: #333;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+    }
+    main {
+      flex: 1;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    footer {
+      height: 40px;
+      background-color: #222;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>Header 区域</header>
+    <main>Container 内容区域</main>
+    <footer>Footer 区域</footer>
+  </div>
+</body>
+</html>
+📦 整体结构说明：
+.page 高度是视口高度 100vh，用来承载整个布局。
+
+header 和 footer 高度固定。
+
+main 自动撑满中间剩余空间，确保整页正好填满一屏，无滚动条。

@@ -11,7 +11,7 @@ export const searchProducts = (keyword: string): Promise<ApiResponse<ProductBase
 
 // 获取新品
 export const getNewProducts = (): Promise<ApiResponse<ProductBaseVO[]>> => {
-  return instance.get('/public/products/new')
+  return instance.get('/public/products/new?limit=16')
 }
 
 // 获取系列列表

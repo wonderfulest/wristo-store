@@ -1,173 +1,243 @@
 <template>
-  <div class="contact-faq">
-    <Logo />
-    <h2 class="title">Product Support & Contact</h2>
-    <p class="desc">Have questions about <span class="product-name">{{ productName }}</span>? We are here to help:</p>
-    <div class="faq-list">
-      <div class="faq-item" v-for="(item, idx) in faqs" :key="idx">
-        <h3 class="faq-q">{{ item.q }}</h3>
-        <div class="faq-a" v-html="item.a"></div>
+  <div class="contact-page">
+    <div class="contact-container">
+      <div class="contact-header">
+        <h1 class="contact-title">Contact Us</h1>
+        <p class="contact-subtitle">
+          Have questions or need support? We're here to help you get the most out of your experience.
+        </p>
+      </div>
+      
+      <div class="contact-content">
+        <div class="contact-info">
+          <div class="info-card">
+            <div class="info-header">
+              <div class="info-icon">📧</div>
+              <h3>Email Support</h3>
+            </div>
+            <p>Get in touch with our support team for technical assistance and general inquiries.</p>
+            <a href="mailto:support@wristo.io" class="info-link">support@wristo.io</a>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-header">
+              <div class="info-icon">⏰</div>
+              <h3>Response Time</h3>
+            </div>
+            <p>We typically respond within 24 hours during business days. For urgent issues, please include "URGENT" in your subject line.</p>
+          </div>
+          
+          <div class="info-card">
+            <div class="info-header">
+              <div class="info-icon">📋</div>
+              <h3>Before Contacting</h3>
+            </div>
+            <p>Check our <router-link to="/faq" class="info-link">FAQ page</router-link> for quick answers to common questions. You might find the solution you need right away!</p>
+          </div>
+        </div>
+        
+        <div class="contact-form-section">
+          <ContactForm @send="handleContactSend" />
+        </div>
       </div>
     </div>
-    <div class="contact-block">
-      <h3>Need more help?</h3>
-      <p>Please contact us via the following methods:</p>
-      <ul>
-        <li>Email: <a :href="`mailto:support@wristo.io?subject=Product Inquiry: ${productName}`">support@wristo.io</a></li>
-        <li>Or leave a message below, we will reply as soon as possible.</li>
-      </ul>
-      <textarea placeholder="Please enter your question or feedback..." v-model="message"></textarea>
-      <button class="send-btn" @click="sendMessage">Send</button>
-    </div>
-    <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import Footer from '@/components/Footer.vue'
-import Logo from '@/components/Logo.vue'
+import ContactForm from '@/components/ContactForm.vue'
 
-const route = useRoute()
-const productId = computed(() => route.params.productId)
-// 实际项目可根据 productId 获取产品名，这里演示用
-const productName = computed(() => `Product #${productId.value}`)
-
-const faqs = [
-  {
-    q: 'I have already purchased, why am I being charged again?',
-    a: 'In some cases, the system may not recognize your previous purchase (such as after reinstalling the app/watch face). You can unlock for free via <a href="https://kzl.io/unlock" target="_blank">this page</a>.',
-  },
-  {
-    q: 'How do I get my purchase code?',
-    a: 'No special purchase code is needed. Just install the watch face/app on your device and follow the instructions. If you need to unlock again, visit <a href="https://kzl.io/unlock" target="_blank">this page</a>.',
-  },
-  {
-    q: 'Is this a one-time payment or a subscription?',
-    a: 'All watch faces/apps are one-time payments for lifetime use.',
-  },
-  {
-    q: 'How can I find my past purchases?',
-    a: 'You can view all your purchase records on the <a href="https://kiezelpay.com/lookup" target="_blank">purchase history lookup</a> page.',
-  },
-  {
-    q: 'I bought a bundle, how do I install other watch faces/apps?',
-    a: 'After purchase, you will receive an email with download links for all items, or you can check via <a href="https://kiezelpay.com/lookup" target="_blank">this page</a>.',
-  },
-  {
-    q: 'What if I cannot unlock or cannot find my purchase record?',
-    a: 'Please make sure your email is correct, or contact us using the information at the bottom of the page.',
-  },
-]
-
-const message = ref('')
-function sendMessage() {
-  if (!message.value.trim()) {
-    alert('Please enter your question or feedback')
-    return
-  }
+function handleContactSend(message: string, email?: string) {
   // 这里可集成实际的消息发送逻辑
-  alert('Received! We will reply as soon as possible!')
-  message.value = ''
+  console.log('Contact form submitted:', { message, email })
 }
 </script>
 
 <style scoped>
-.contact-faq {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 32px 16px 0 16px;
-  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  color: #fff;
-  background: #111;
+.contact-page {
   min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px 0;
 }
-.logo {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: #fff;
+
+.contact-container {
+  max-width: 1200px;
+  margin: 0 auto;
 }
-.logo span {
-  color: #6fcf97;
+
+.contact-header {
+  text-align: center;
+  margin-bottom: 60px;
 }
-.title {
+
+.contact-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #1d1d1f;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.contact-subtitle {
+  font-size: 1.2rem;
+  color: #86868b;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.contact-content {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.info-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.info-icon {
   font-size: 1.6rem;
-  margin-bottom: 0.5rem;
-  color: #fff;
+  display: block;
+  flex-shrink: 0;
 }
-.desc {
-  color: #bbb;
-  margin-bottom: 2rem;
+
+.info-content {
+  display: flex;
+  flex-direction: column;
 }
-.product-name {
-  color: #6fcf97;
-  font-weight: bold;
-}
-.faq-list {
-  margin-bottom: 2.5rem;
-}
-.faq-item {
-  margin-bottom: 1.8rem;
-  background: #181818;
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: 0 2px 12px #0002;
-}
-.faq-q {
+
+.info-content h3 {
   font-size: 1.1rem;
-  color: #6fcf97;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.info-content p {
+  color: #86868b;
+  font-size: 0.9rem;
+  line-height: 1.4;
   margin-bottom: 8px;
 }
-.faq-a {
-  color: #eee;
-  font-size: 1rem;
-}
-.contact-block {
-  background: #181818;
-  border-radius: 12px;
-  padding: 20px 20px 24px 20px;
-  margin-bottom: 2.5rem;
-  box-shadow: 0 2px 12px #0002;
-}
-.contact-block h3 {
-  color: #6fcf97;
-  margin-bottom: 8px;
-}
-.contact-block ul {
-  margin: 0 0 10px 0;
-  padding-left: 18px;
-  color: #eee;
-}
-.contact-block textarea {
-  width: 100%;
-  min-height: 70px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  padding: 10px;
-  margin: 10px 0 12px 0;
-  font-size: 1rem;
-  background: #222;
-  color: #fff;
-  resize: vertical;
-}
-.send-btn {
-  background: #2d6a4f;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  padding: 10px 28px;
-  font-size: 1.1rem;
+
+.info-link {
+  color: #007aff;
+  text-decoration: none;
   font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
 }
-.send-btn:hover {
-  background: #40916c;
+
+.info-link:hover {
+  color: #0056b3;
 }
-a {
-  color: #6fcf97;
-  text-decoration: underline;
+
+.contact-form-section {
+  position: sticky;
+  top: 40px;
 }
-</style> 
+
+@media (max-width: 1024px) {
+  .contact-content {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .contact-form-section {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-page {
+    padding: 20px 16px;
+  }
+  
+  .contact-title {
+    font-size: 2rem;
+  }
+  
+  .contact-subtitle {
+    font-size: 1.1rem;
+  }
+  
+  .info-card {
+    padding: 16px;
+  }
+  
+  .info-icon {
+    font-size: 1.4rem;
+  }
+  
+  .info-content h3 {
+    font-size: 1rem;
+  }
+  
+  .info-content p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact-header {
+    margin-bottom: 40px;
+  }
+  
+  .contact-title {
+    font-size: 1.8rem;
+  }
+  
+  .contact-subtitle {
+    font-size: 1rem;
+  }
+  
+  .contact-content {
+    gap: 32px;
+  }
+  
+  .info-card {
+    padding: 14px;
+  }
+  
+  .info-icon {
+    font-size: 1.2rem;
+  }
+  
+  .info-content h3 {
+    font-size: 0.95rem;
+  }
+  
+  .info-content p {
+    font-size: 0.8rem;
+  }
+}
+</style>

@@ -15,7 +15,7 @@ import Footer from './Footer.vue'
 
 <style scoped>
 .layout-root {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: #f7f8fa;
@@ -25,7 +25,7 @@ import Footer from './Footer.vue'
   box-sizing: border-box;
 }
 .layout-main {
-  flex: 1 1 auto;
+  flex: 1;
   width: 100%;
   min-height: 0;
   max-width: 100%;

@@ -153,6 +153,7 @@ import Logo from '@/components/Logo.vue'
   font-size: 0.98rem;
   color: #888;
   margin-bottom: 8px;
+  padding: 0 20px;
 }
 .terms-breadcrumb {
   color: #888;

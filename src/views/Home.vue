@@ -42,18 +42,34 @@
           <h2 class="new-title">New Arrivals</h2>
         </div>
         <div class="new-carousel-wrap">
-          <el-carousel :interval="2000" type="card" height="400px" :autoplay="true">
-            <el-carousel-item v-for="product in newProducts" :key="product.appId" class="flex flex-col items-center justify-center" @click="goToProduct(product)">
-              <div class="product-circle-img">
+          <el-carousel 
+            :interval="2000" 
+            type="card" 
+            height="420px"
+            :autoplay="true"
+            :loop="true"
+            :pause-on-hover="true"
+            :initial-index="0"
+            indicator-position="outside"
+            class="custom-carousel"
+          >
+            <el-carousel-item 
+              v-for="product in newProducts" 
+              :key="product.appId" 
+              class="flex flex-col items-center justify-center carousel-item"
+              @click="goToProduct(product)"
+            >
+              <div class="product-circle-img transform transition-transform duration-300 hover:scale-105">
                 <img
                   :src="product.heroFile?.url || product.garminImageUrl"
                   :alt="product.name"
                   class="circle-img"
+                  loading="lazy"
                 />
               </div>
-              <div class="mt-6 text-center">
-                <div class="font-medium text-lg">{{ product.name }}</div>
-                <div class="text-gray-500 text-base mt-1">${{ product.price.toFixed(2) }}</div>
+              <div class="mt-6 text-center p-4">
+                <div class="font-medium text-lg text-gray-800">{{ product.name }}</div>
+                <div class="text-primary-500 font-semibold text-base mt-1">${{ product.price.toFixed(2) }}</div>
               </div>
             </el-carousel-item>
           </el-carousel>
