@@ -127,6 +127,10 @@ function onCardClick(item: any) {
     router.push({ name: 'CheckoutHelp' })
     return
   }
+  if (item.key === 'uninstall-guide') {
+    router.push({ name: 'UninstallGuide' })
+    return
+  }
   search.value = item.q
   // find the question in questionsByCategory
   const flatQuestions = Object.values(questionsByCategory).flat()

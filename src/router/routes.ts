@@ -2,6 +2,11 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
+    path: '/uninstall-guide',
+    name: 'UninstallGuide',
+    component: () => import('@/views/UninstallGuide.vue')
+  },
+  {
     path: '/',
     name: 'home',
     component: () => import('@/views/Home.vue')

@@ -19,6 +19,14 @@ export interface CardQuestion {
 // FAQ 卡片数据
 export const cardQuestions: CardQuestion[] = [
   {
+    key: 'uninstall-guide',
+    icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><path d="M12,12 L28,28 M28,12 L12,28" stroke="#1db954" stroke-width="2.5" stroke-linecap="round"/><circle cx="20" cy="20" r="15" stroke="#1db954" stroke-width="2.5" fill="none"/></svg>`,
+    title: 'Uninstall Guide',
+    desc: 'Step-by-step instructions to remove watch faces',
+    q: 'How do I uninstall a watch face?',
+    category: 'Installation & Purchase',
+  },
+  {
     key: 'activate-trial',
     icon: `<svg width="40" height="40" fill="none" stroke="#1db954" stroke-width="2.5" viewBox="0 0 40 40"><circle cx="20" cy="20" r="15" stroke="#1db954" stroke-width="2.5" fill="none"/><rect x="16" y="10" width="8" height="12" rx="4" fill="none"/><line x1="20" y1="20" x2="20" y2="14" stroke="#1db954" stroke-width="2.5"/><circle cx="20" cy="26" r="1.5" fill="#1db954"/></svg>`,
     title: `Activate trial?`,

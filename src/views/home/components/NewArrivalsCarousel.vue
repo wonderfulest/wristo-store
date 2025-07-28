@@ -9,12 +9,13 @@
       </div>
       <div class="new-carousel-wrap">
         <el-carousel 
+          ref="carouselRef"
           :interval="2000" 
           type="card" 
           height="420px"
           :autoplay="true"
           :loop="true"
-          :pause-on-hover="true"
+          :pause-on-hover="false"
           :initial-index="0"
           indicator-position="outside"
           class="custom-carousel"
@@ -45,8 +46,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import type { ProductBaseVO } from '@/types';
+
+const carouselRef = ref();
+
+onMounted(() => {
+  // Ensure carousel starts automatically
+  if (carouselRef.value) {
+    carouselRef.value.setActiveItem(0);
+  }
+});
 
 defineProps<{
   newProducts: ProductBaseVO[];
