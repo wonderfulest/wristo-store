@@ -1,26 +1,42 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from './routes'
 import { useUserStore } from '@/store/user'
+import { createPageGuard } from '@/utils/guards'
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(_, __, savedPosition) {
+    // Scroll to top when navigating to a new route
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  }
 })
 
-// 路由守卫
-router.beforeEach((to, _, next) => {
-  const userStore = useUserStore()
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
-  const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
-  const ssoLoginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
+// Global navigation guard
+const pageGuard = createPageGuard()
 
-  if (requiresAuth && !userStore.userInfo) {
-    window.location.href = ssoLoginUrl
-    return
-  } else {
+// Route guards
+router.beforeEach((to, from, next) => {
+  // Handle page title and meta tags
+  pageGuard(to, from, () => {
+    // Handle authentication
+    const userStore = useUserStore()
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+    const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
+    const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+    const ssoLoginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
+
+    if (requiresAuth && !userStore.userInfo) {
+      window.location.href = ssoLoginUrl
+      return
+    }
+    
     next()
-  }
+  })
 })
 
 

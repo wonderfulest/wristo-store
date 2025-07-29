@@ -92,6 +92,15 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/BundledProducts.vue')
   },
   {
+    path: '/subscription',
+    name: 'Subscription',
+    component: () => import('@/views/SubscriptionView.vue'),
+    meta: {
+      title: 'Premium Subscription - Unlock All Watch Faces',
+      description: 'Get unlimited access to all premium watch faces with a single purchase. One-time payment, lifetime access.'
+    }
+  },
+  {
     path: '/user/profile',
     name: 'UserProfile',
     component: () => import('@/views/user-center/UserProfile.vue')

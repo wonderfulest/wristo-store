@@ -1,9 +1,12 @@
 export interface PaddleCustomData {
-  app_id: number;
-  product_name: string;
-  product_image: string;
-  product_price: number;
-  product_is_bundle: boolean;
+  app_id?: number;
+  product_name?: string;
+  product_image?: string;
+  product_price?: number;
+  product_is_bundle?: boolean;
+  duration_days?: number;
+  plan_code?: string;
+  plan_name?: string;
 }
 
 export interface PaddleAddress {
@@ -84,4 +87,60 @@ export interface PaddleCheckoutCompletedData {
 export interface PaddleCheckoutCompletedEvent {
   name: 'checkout.completed';
   data: PaddleCheckoutCompletedData;
-} 
+}
+
+// 新增 Paddle 类型定义
+export interface BillingCycle {
+  frequency: number;
+  interval: string;
+}
+
+export interface TrialPeriod {
+  frequency: number;
+  interval: string;
+}
+
+export interface UnitPrice {
+  amount: string;
+  currency_code: string;
+}
+
+export interface Quantity {
+  minimum: number;
+  maximum: number;
+}
+
+export interface UnitPriceOverride {
+  country_codes: string[];
+  unit_price: UnitPrice;
+}
+
+export interface PaddleProductData {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  taxCategory: string;
+  imageUrl: string | null;
+  customData: PaddleCustomData;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  importMeta: any | null;
+}
+
+export interface PaddlePriceData {
+  id: string;
+  productId: string;
+  description: string;
+  type: string;
+  name: string | null;
+  billingCycle: BillingCycle | null;
+  trialPeriod: TrialPeriod | null;
+  taxMode: string;
+  unitPrice: UnitPrice;
+  unitPriceOverrides: UnitPriceOverride[];
+  quantity: Quantity;
+  status: string;
+  customData: PaddleCustomData;
+}
