@@ -146,8 +146,8 @@ const paymentMethods: PaymentMethod[] = [
 
 // 计算属性：显示的计划标题
 const planTitle = computed(() => {
-  if (props.selectedPlan?.paddleProduct?.name) {
-    return props.selectedPlan.paddleProduct.name;
+  if (props.selectedPlan?.name) {
+    return props.selectedPlan.name;
   }
   return props.selectedPlan?.name || 'Premium Subscription';
 });
@@ -180,12 +180,12 @@ const displayDiscountPercentage = computed(() => {
 
 // 计算属性：获取 Paddle 产品 ID
 const paddleProductId = computed(() => {
-  return props.selectedPlan?.paddleProduct?.id || '';
+  return props.selectedPlan?.paddleProductId || '';
 });
 
 // 计算属性：获取 Paddle 价格 ID
 const paddlePriceId = computed(() => {
-  return props.selectedPlan?.paddlePrice?.id || '';
+  return props.selectedPlan?.paddlePriceId || '';
 });
 
 const selectPaymentMethod = (methodId: string) => {

@@ -1,6 +1,5 @@
 <template>
     <div class="checkout">
-        <!-- <Logo /> -->
         <h2 class="title">Secure Checkout</h2>
         <div class="checkout-main">
             <div class="checkout-left">
@@ -76,7 +75,6 @@ import { ref, onBeforeMount, onMounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-// import Logo from '@/components/Logo.vue'
 import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest } from '@/types'
 import { purchaseCallback, type PurchaseCallbackRequest } from '@/api/pay'
 
@@ -96,9 +94,6 @@ const loading = ref(false)
 const emailError = ref('')
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
-
-// Paddle config
-const PADDLE_CLIENT_TOKEN = import.meta.env.VITE_PADDLE_CLIENT_TOKEN || 'test_4b257319dff941c8459510c962c'
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -120,13 +115,13 @@ function loadPaddle() {
     if (typeof window !== "undefined" && !window.Paddle) {
         const script = document.createElement("script")
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js"
+        console.log('import.meta.env.VITE_PADDLE_ENVIRONMENT', import.meta.env.VITE_PADDLE_ENVIRONMENT)
+        console.log('import.meta.env.VITE_PADDLE_CLIENT_TOKEN', import.meta.env.VITE_PADDLE_CLIENT_TOKEN)
         script.async = true
         script.onload = () => {
-            // window.Paddle.Environment.set("sandbox")
+            window.Paddle.Environment.set(import.meta.env.VITE_PADDLE_ENVIRONMENT)
             window.Paddle.Initialize({ 
-                // environment: "production",
-                // seller: 233865, // The option parameter 'seller' or 'token' must have a value but not both.
-                token: PADDLE_CLIENT_TOKEN,
+                token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
                     console.log('Paddle event:', data)
                     if (data.name === 'checkout.completed') {

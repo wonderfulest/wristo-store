@@ -36,9 +36,10 @@
             <div 
               v-for="plan in subscriptionPlans" 
               :key="plan.id"
-              :class="['plan-card', { active: selectedPlan?.id === plan.id }]"
+              :class="['plan-card', { active: selectedPlan?.id === plan.id }, getPlanClass(plan)]"
               @click="selectedPlan = plan"
             >
+              <div v-if="getPlanType(plan) === 'lifetime'" class="recommended-badge">RECOMMENDED</div>
               <div class="plan-header">
                 <h3 class="plan-name">{{ plan.name }}</h3>
                 <span v-if="plan.durationDays === -1" class="plan-duration">Lifetime</span>
@@ -53,12 +54,19 @@
                 </span>
               </div>
               
+              <div class="plan-benefits">
+                <div v-for="(benefit, index) in getPlanBenefits(plan)" :key="index" class="plan-benefit-item">
+                  <el-icon class="check-icon"><Check /></el-icon>
+                  <span>{{ benefit }}</span>
+                </div>
+              </div>
+              
               <el-button 
                 type="primary" 
-                class="select-plan-button"
+                :class="['select-plan-button', getPlanButtonClass(plan)]"
                 @click.stop="handleSubscribe(plan)"
               >
-                Select Plan
+                {{ getPlanType(plan) === 'lifetime' ? 'Get Lifetime Access' : 'Select Plan' }}
               </el-button>
             </div>
           </div>
@@ -111,7 +119,8 @@ import {
   BellFilled,
   Headset,
   Refresh,
-  Key
+  Key,
+  Check
 } from '@element-plus/icons-vue';
 
 // Components
@@ -131,6 +140,69 @@ const subscriptionPlans = ref<SubscriptionPlan[]>([]);
 const selectedPlan = ref<SubscriptionPlan | null>(null);
 const loadError = ref<string>('');
 
+// 订阅计划权益字典
+const planBenefits = {
+  monthly: [
+    'Access to 2000+ premium watch faces',
+    'Ad-free experience',
+    'Basic customer support'
+  ],
+  yearly: [
+    'Access to 2000+ premium watch faces',
+    'Get new watch faces monthly',
+    'Ad-free experience',
+    'Standard customer support'
+  ],
+  lifetime: [
+    'Access to 2000+ premium watch faces',
+    'Get all future watch faces automatically',
+    'Ad-free experience',
+    'Early access to new features',
+    'Priority customer support'
+  ]
+};
+
+// 订阅计划样式字典
+const planStyles = {
+  monthly: {
+    class: 'plan-monthly',
+    buttonClass: 'button-monthly'
+  },
+  yearly: {
+    class: 'plan-yearly',
+    buttonClass: 'button-yearly'
+  },
+  lifetime: {
+    class: 'plan-lifetime',
+    buttonClass: 'button-lifetime'
+  }
+};
+
+// 获取计划类型
+const getPlanType = (plan: SubscriptionPlan): 'monthly' | 'yearly' | 'lifetime' => {
+  if (plan.durationDays === -1) return 'lifetime';
+  if (plan.durationDays >= 365) return 'yearly';
+  return 'monthly';
+};
+
+// 获取计划样式类
+const getPlanClass = (plan: SubscriptionPlan): string => {
+  const type = getPlanType(plan);
+  return planStyles[type].class;
+};
+
+// 获取计划按钮样式类
+const getPlanButtonClass = (plan: SubscriptionPlan): string => {
+  const type = getPlanType(plan);
+  return planStyles[type].buttonClass;
+};
+
+// 获取计划权益
+const getPlanBenefits = (plan: SubscriptionPlan): string[] => {
+  const type = getPlanType(plan);
+  return planBenefits[type];
+};
+
 // Check if the viewport is mobile
 const checkIfMobile = () => {
   isMobile.value = window.innerWidth < 768;
@@ -146,17 +218,17 @@ const loadSubscriptionPlans = async () => {
     if (response.code === 0 && response.data) {
       subscriptionPlans.value = response.data;
       
-      // 默认选择第一个计划（如果有）
+      // 默认选中终身访问计划
       if (subscriptionPlans.value.length > 0) {
-        selectedPlan.value = subscriptionPlans.value[0];
+        const lifetimePlan = subscriptionPlans.value.find(plan => plan.durationDays === -1);
+        selectedPlan.value = lifetimePlan || subscriptionPlans.value[0];
       }
-    } else {
-      loadError.value = response.msg || 'Failed to load subscription plans';
     }
+    
+    isLoading.value = false;
   } catch (error) {
-    console.error('Error loading subscription plans:', error);
-    loadError.value = 'Failed to load subscription plans. Please try again later.';
-  } finally {
+    console.error('Failed to load subscription plans:', error);
+    loadError.value = 'Failed to load subscription plans. Please try again.';
     isLoading.value = false;
   }
 };
@@ -431,31 +503,93 @@ const handleSubscriptionCancel = () => {
 
 .plans-wrapper {
   display: flex;
-  flex-wrap: wrap;
   gap: 24px;
+  margin: 32px 0;
+  flex-wrap: nowrap;
   justify-content: center;
-  margin: 0 auto;
-  max-width: 1000px;
 }
 
 .plan-card {
-  background: white;
+  background-color: #fff;
   border-radius: 12px;
   padding: 24px;
-  min-width: 280px;
-  flex: 1;
-  max-width: 320px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
   cursor: pointer;
+  border: 2px solid transparent;
   position: relative;
   overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .plan-card.active {
-  border-color: #0071e3;
-  box-shadow: 0 8px 24px rgba(0, 113, 227, 0.15);
-  transform: translateY(-4px);
+  border-color: #4f46e5;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
+}
+
+.plan-monthly {
+  background: linear-gradient(to bottom right, #ffffff, #f5f5f5);
+  border: 2px solid #e0e0e0;
+}
+
+.plan-monthly:hover {
+  border-color: #d0d0d0;
+}
+
+.plan-monthly.active {
+  border-color: #6366f1;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+}
+
+.plan-yearly {
+  background: linear-gradient(to bottom right, #ffffff, #f0f7ff);
+  border: 2px solid #d4e6f9;
+}
+
+.plan-yearly:hover {
+  border-color: #b8d4f5;
+}
+
+.plan-yearly.active {
+  border-color: #4f46e5;
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15);
+}
+
+.plan-lifetime {
+  background: linear-gradient(to bottom right, #ffffff, #f0f9ff);
+  border: 2px solid #e6f7ff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.plan-lifetime:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.plan-lifetime.active {
+  border-color: #1890ff;
+  box-shadow: 0 8px 24px rgba(24, 144, 255, 0.2);
+}
+
+.recommended-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #1890ff;
+  color: white;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom-right-radius: 8px;
 }
 
 .plan-card.active::before {
@@ -536,6 +670,7 @@ const handleSubscriptionCancel = () => {
 }
 
 .select-plan-button {
+  margin-top: 16px;
   width: 100%;
   background: #0071e3;
   color: white;
@@ -549,6 +684,53 @@ const handleSubscriptionCancel = () => {
 .select-plan-button:hover {
   background: #0077ed;
   transform: translateY(-1px);
+}
+
+.button-monthly {
+  background-color: #6366f1;
+}
+
+.button-monthly:hover {
+  background-color: #5258e4;
+}
+
+.button-yearly {
+  background-color: #3b82f6;
+}
+
+.button-yearly:hover {
+  background-color: #2563eb;
+}
+
+.button-lifetime {
+  background-color: #1890ff;
+  font-weight: 600;
+}
+
+.button-lifetime:hover {
+  background-color: #0c7ad9;
+}
+
+.plan-benefits {
+  margin: 16px 0;
+  padding: 0;
+  flex-grow: 1;
+  min-height: 150px;
+}
+
+.plan-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.plan-benefit-item .check-icon {
+  color: #10b981;
+  margin-right: 8px;
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {

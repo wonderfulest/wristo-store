@@ -1,6 +1,5 @@
 import instance from '@/config/axios'
 import type { ApiResponse } from '@/types'
-import type { PaddleProductData, PaddlePriceData } from '@/types/paddle'
 
 /**
  * 订阅计划类型
@@ -19,13 +18,13 @@ export interface SubscriptionPlan {
   isDeleted: number;
   isActive: number;
   version: number;
-  paddleProduct: PaddleProductData | null;
-  paddlePrice: PaddlePriceData | null;
+  paddleProductId: string;
+  paddlePriceId: string;
 }
 
 /**
  * 获取所有有效的订阅计划
  */
 export const getActivePlans = (): Promise<ApiResponse<SubscriptionPlan[]>> => {
-  return instance.get('/api/public/subscription/plans/active')
+  return instance.get('/public/subscription/plans/active')
 }
