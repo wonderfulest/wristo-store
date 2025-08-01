@@ -231,9 +231,11 @@ const handlePayment = async (isRetry = false) => {
             ],
             customer: { email: email.value },
             customData: {
+                isSubscription: false,
+                source: 'shop_code',
                 code: request?.value?.purchaseCode,
                 accessToken: request?.value?.accounttoken,
-                appId: (product.value as ProductVO).appId,
+                appId: request?.value?.appid,
                 bundleId: isBundle.value ? (product.value as Bundle).bundleId : '',
                 isBundle: isBundle.value,
                 email: email.value,

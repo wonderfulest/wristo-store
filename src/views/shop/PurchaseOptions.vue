@@ -103,7 +103,7 @@
             
             <button 
               :class="['subscription-btn', getPlanButtonClass(plan)]"
-              @click.stop="handleBuySubscription"
+              @click.stop="() => { selectSubscriptionPlan(plan); handleBuySubscription(); }"
             >
               {{ plan.durationDays === -1 ? 'Get Lifetime Access' : 'Subscribe Now' }}
             </button>

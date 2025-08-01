@@ -93,7 +93,7 @@ import { ref, onBeforeMount, onMounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import type { PaddleCheckoutCompletedEvent } from '@/types'
+import type { PaddleCheckoutCompletedEvent, PurchaseRequest } from '@/types'
 import { purchaseCallback, type PurchaseCallbackRequest } from '@/api/pay'
 import type { SubscriptionPlan } from '@/api/subscription'
 
@@ -106,10 +106,13 @@ declare global {
 const router = useRouter()
 const store = useShopOptionsStore()
 const subscription = computed(() => store.selectedSubscription as SubscriptionPlan)
+const request = computed(() => store.data?.request as PurchaseRequest)
 
 const email = ref('')
 const loading = ref(false)
 const emailError = ref('')
+const maxQuantity = ref(1)
+const userSelectedQuantity = ref(1);
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -163,12 +166,16 @@ function loadPaddle() {
                             if (callbackResponse.code !== 0) {
                                 ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Warning')
                             } else {
+                                // 获取回调响应数据
+                                const responseData = callbackResponse.data;
+                                
                                 // Save order info to store
                                 store.setOrder({
-                                    referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
-                                    productName: subscription.value.name,
-                                    amount: subscription.value.discountPrice || subscription.value.originalPrice,
+                                    referenceId: responseData?.txnId || eventData.data.id || `PADDLE_${Date.now()}`,
+                                    productName: responseData?.productName || subscription.value.name,
+                                    amount: responseData?.grandTotal ? parseFloat(responseData?.grandTotal) : subscription.value.discountPrice || subscription.value.originalPrice,
                                     paymentSource: 'paddle',
+                                    currencyCode: responseData?.currencyCode || 'USD',
                                     paddleOrder: eventData.data
                                 })
                                 
@@ -188,6 +195,25 @@ function loadPaddle() {
                         loading.value = false
                         ElMessageBox.alert('Payment failed. Please try again.', 'Error')
                     }
+                    if (data.name === 'checkout.items.updated') {
+                        const items = data.data.items || [];
+                        const hasInvalidQuantity = items.some((item: any) => item.quantity > maxQuantity.value);
+
+                        if (hasInvalidQuantity) {
+                            if (window.Paddle && window.Paddle.Checkout) {
+                                // Since we can't directly update the open checkout window,
+                                // we will close it and reopen with the correct quantity.
+                                window.Paddle.Checkout.close();
+
+                                // Notify user that quantity has been reset
+                                ElMessageBox.alert('You can only purchase one item at a time. The quantity will be reset to 1.', 'Quantity Limit')
+                                  .finally(() => {
+                                      // Reopen checkout window with default quantity 1
+                                      handlePayment(true);
+                                  });
+                            }
+                        }
+                    }
                 },
             })
         }
@@ -197,7 +223,13 @@ function loadPaddle() {
     }
 }
 
-const handlePayment = async () => {
+const handlePayment = async (isRetry = false) => {
+    if (!isRetry) {
+        if (userSelectedQuantity.value > maxQuantity.value) {
+            ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')
+            return
+        }
+    }
     if (!email.value) {
         emailError.value = 'We need your email to send receipt.'
         return
@@ -219,14 +251,19 @@ const handlePayment = async () => {
             items: [
                 {
                     priceId: subscription.value.paddlePriceId,
-                    quantity: 1,
+                    quantity: userSelectedQuantity.value,
                 },
             ],
             customer: { email: email.value },
             customData: {
+                isSubscription: true,
+                source: 'shop_code',
                 planId: subscription.value.id,
                 planCode: subscription.value.planCode,
                 email: email.value,
+                accessToken: request?.value?.accounttoken,
+                appId: request?.value?.appid,
+                code: request?.value?.purchaseCode,
             },
         })
     } else {

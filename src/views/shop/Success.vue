@@ -1,6 +1,5 @@
 <template>
     <div class="success">
-        <!-- <Logo /> -->
         <div class="success-content">
             <div class="success-icon">✓</div>
             <h2 class="success-title">Payment Successful</h2>

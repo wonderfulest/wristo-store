@@ -20,10 +20,19 @@ export interface PurchaseCallbackRequest {
   transaction_id: string
 }
 
-export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<ApiResponse<any>> => {
+// 购买成功回调响应
+export interface PurchaseSuccessResponseVO {
+  txnId: string;
+  productName: string;
+  grandTotal: string;
+  currencyCode: string;
+}
+
+// 购买成功回调接口
+export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<ApiResponse<PurchaseSuccessResponseVO>> => {
   return instance.post('/public/trials/v1/purchase/callback', data)
 }
- 
+
 // 获取用户购买记录列表
 export const getPurchaseRecords = (): Promise<ApiResponse<PurchaseRecord[]>> => {
   return instance.get('/purchase-records/list/bytoken?populate=user,product')
