@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { BizErrorCode } from '@/constant/errorCode'
 import { useUserStore } from '@/store/user'
+import type { ApiResponse } from '@/types'
 
 const instance = axios.create({
   baseURL: '/api', // 走 vite 代理
@@ -14,31 +15,55 @@ const instance = axios.create({
 // 请求拦截器
 instance.interceptors.request.use(config => {
   const userStore = useUserStore()
-  if (userStore.token) {
-    config.headers.Authorization = `Bearer ${userStore.token}`
+  const token = userStore.token
+  console.log('请求拦截器 - Token:', token)
+  console.log('请求URL:', config.url)
+  console.log('请求方法:', config.method)
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+    console.log('设置Authorization头:', `Bearer ${token}`)
+  } else {
+    console.log('Token为空，未设置Authorization头')
   }
   return config
 })
 
+const ErrorCodesWithoutMessage: number[] = [
+  BizErrorCode.INVALID_PAYMENT_CODE,
+  BizErrorCode.ALREADY_PAID,
+]
 // 响应拦截器
 instance.interceptors.response.use(
-  response => {
-    // 统一处理 code
-    if (response.data.code == BizErrorCode.SUCCESS) {
-      return response.data
+  (response) => {
+    const res: ApiResponse<any> = response.data
+    if (res.code === BizErrorCode.SUCCESS) {
+      // 当成功返回时，返回 ApiResponse.data
+      return res.data
+    } else {
+      if (!ErrorCodesWithoutMessage.includes(res.code)) {
+        ElMessage.error(res.msg || '请求失败')
+      }
+      // 当存在异常时，返回 ApiResponse
+      return Promise.reject(res)
     }
-    if (response.data.code == BizErrorCode.SYSTEM_ERROR) { // 系统未知异常，进行弹框提示；其他业务异常，直接返回 data，在业务中处理
-      ElMessage.error(response.data.message || '请求失败')
-      // 直接 reject，业务代码不用再判断 code
-      return Promise.reject(response.data)
-    }
-    // code === 0，直接返回 data
-    return response.data
   },
   error => {
-    ElMessage.error('网络错误，请稍后重试')
+    console.log('响应拦截器错误:', error.response?.status, error.response?.data)
+    console.log('错误对象:', error)
+    if (error.response?.status === 403) {
+      console.log('403错误，重定向到登录页面')
+      ElMessage.error('登录已过期，请重新登录')
+      setTimeout(() => {
+        const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
+        const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+        window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`  
+      }, 3000)
+    } else {
+      ElMessage.error('网络错误，请稍后重试')
+    }
     return Promise.reject(error)
   }
 )
+
 
 export default instance

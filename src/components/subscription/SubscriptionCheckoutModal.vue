@@ -9,6 +9,9 @@
     :close-on-press-escape="!isMobile"
     class="subscription-modal"
   >
+    <div v-if="isSubscriptionActive" class="active-badge">
+      <el-icon><Check /></el-icon> Activated
+    </div>
     <div class="modal-content">
       <div class="subscription-summary">
         <h3 class="summary-title">{{ planTitle }}</h3>
@@ -90,6 +93,7 @@
 import { ref, computed } from 'vue';
 import { Check, Lock } from '@element-plus/icons-vue';
 import { ElButton, ElCheckbox, ElDialog, ElIcon } from 'element-plus';
+import { useUserStore } from '@/store/user';
 
 interface PaymentMethod {
   id: string;
@@ -120,6 +124,8 @@ const props = withDefaults(defineProps<Props>(), {
   discountPrice: 9.99
 });
 
+const userStore = useUserStore();
+
 const visible = computed({
   get: () => props.modelValue,
   set: (value) => emit('update:modelValue', value)
@@ -128,6 +134,16 @@ const visible = computed({
 const selectedMethod = ref('paddle');
 const agreedToTerms = ref(false);
 const isProcessing = ref(false);
+
+// 检查用户是否已经订阅
+const isSubscriptionActive = computed(() => {
+  console.log('userStore.userInfo isSubscriptionActive', userStore.userInfo?.subscription?.planCode)
+  console.log('props.selectedPlan?.planCode', props.selectedPlan?.planCode)
+  // 检查用户信息中是否存在订阅信息
+  return !!userStore.userInfo?.subscription && 
+         // 检查当前选择的计划代码是否与用户已订阅的计划代码匹配
+         props.selectedPlan?.planCode == userStore.userInfo?.subscription?.planCode;
+});
 
 const benefits = [
   'Access to 2000+ premium watch faces',
@@ -461,6 +477,26 @@ const closeModal = () => {
 @keyframes rotate {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.active-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background-color: #10b981;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+}
+
+.active-badge .el-icon {
+  font-size: 14px;
 }
 
 /* Responsive adjustments */

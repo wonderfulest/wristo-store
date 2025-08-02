@@ -75,8 +75,9 @@ import { ref, onBeforeMount, onMounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest } from '@/types'
-import { purchaseCallback, type PurchaseCallbackRequest } from '@/api/pay'
+import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest, ApiResponse } from '@/types'
+import { checkPurchase, purchaseCallback } from '@/api/pay'
+import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest } from '@/types/purchase-check'
 
 declare global {
   interface Window {
@@ -129,12 +130,13 @@ function loadPaddle() {
                         
                         loading.value = false
                         
-                        // Sync to backend
+                        // 同步到后端
                         const orderData: PurchaseCallbackRequest = {
                             transaction_id: eventData.data.transaction_id,
                         }
                         
                         try {
+                            // 同步到后端
                             const callbackResponse = await purchaseCallback(orderData)
                             
                             if (callbackResponse.code !== 0) {
@@ -196,6 +198,27 @@ function loadPaddle() {
 }
 
 const handlePayment = async (isRetry = false) => {
+    // 根据邮箱 + part_number 校验购买过的权益
+    const checkPurchaseRequest: CheckPurchaseRequest = {
+        email: email.value,
+        appId: request.value.appid,
+        accountToken: request.value.accounttoken,
+        isSubscription: false,
+    }
+    const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
+    console.log('checkPurchaseResponse', checkPurchaseResponse)
+    if (checkPurchaseResponse.isPurchase) {
+        // 存储购买和订阅信息到 store 中
+        if (checkPurchaseResponse.subscription) {
+            store.setSubscriptionInfo(checkPurchaseResponse.subscription);
+        }
+        if (checkPurchaseResponse.purchase) {
+            store.setPurchaseInfo(checkPurchaseResponse.purchase);
+        }
+        // 跳转到自动解锁页面
+        router.push({ name: 'AutoUnlock' });
+        return;
+    }
     if (!isRetry) {
         if (!email.value) {
             emailError.value = 'We need your email to send receipt.'

@@ -1,3 +1,12 @@
+export interface UserSubscription {
+  name: string
+  planCode: string
+  partNumber: string | null
+  startTime: string
+  endTime: string
+  isGift: boolean
+}
+
 export interface UserInfo {
   id: number
   username: string
@@ -11,6 +20,9 @@ export interface UserInfo {
   lastLoginTime: string | null
   lastLoginIp: string | null
   isDeleted: string
+  subscription?: UserSubscription
+  activatedApps?: number[]
+  roles?: Array<{id: number, roleName: string, roleCode: string, description: string, status: number}>
 }
 
 export interface UserBaseVO {

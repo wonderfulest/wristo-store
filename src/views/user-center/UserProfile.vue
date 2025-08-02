@@ -43,7 +43,7 @@
         <div class="form-item">
           <span class="form-icon"><svg width="22" height="22" fill="none"><circle cx="11" cy="11" r="11" fill="#f3e9fa"/><path d="M6.5 9.5l4.5 3 4.5-3" stroke="#a259c9" stroke-width="1.2"/></svg></span>
           <div class="form-content">
-            <label>Email Id</label>
+            <label>Email</label>
             <el-input v-model="form.email" placeholder="Enter Email" class="form-input" v-if="editMode" />
             <span v-else>{{ userInfo?.email }}</span>
           </div>

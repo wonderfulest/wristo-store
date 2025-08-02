@@ -47,6 +47,21 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/shop/Success.vue')
   },
   {
+    path: '/auto-unlock',
+    name: 'AutoUnlock',
+    component: () => import('@/views/shop/AutoUnlock.vue')
+  },
+  {
+    path: '/subscription-management',
+    name: 'SubscriptionManagement',
+    component: () => import('@/views/SubscriptionManagement.vue')
+  },
+  {
+    path: '/subscription-cancel',
+    name: 'SubscriptionCancel',
+    component: () => import('@/views/SubscriptionCancel.vue')
+  },
+  {
     path: '/faq',
     name: 'FAQ',
     component: () => import('@/views/faq/FAQ.vue'),

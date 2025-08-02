@@ -28,10 +28,8 @@ export const useProductStore = defineStore('product', {
   actions: {
     async searchProducts(keyword: string) {
       try {
-        const response: ApiResponse<ProductBaseVO[]> = await searchProducts(keyword)
-        if (response.code === 0) {
-          this.searchResults = response.data || []
-        }
+        const response: ProductBaseVO[] = await searchProducts(keyword)
+        this.searchResults = response || []
         return this.searchResults
       } catch (error) {
         console.error('搜索商品失败:', error)
@@ -41,10 +39,8 @@ export const useProductStore = defineStore('product', {
 
     async getNewProducts() {
       try {
-        const response: ApiResponse<ProductBaseVO[]> = await getNewProducts()
-        if (response.code === 0) {
-          this.newProducts = response.data || []
-        }
+        const response: ProductBaseVO[] = await getNewProducts()
+        this.newProducts = response || []
         return this.newProducts
       } catch (error) {
         console.error('获取新品失败:', error)
@@ -54,10 +50,8 @@ export const useProductStore = defineStore('product', {
 
     async getHotSeries() {
       try {
-        const response = await getHotSeries()
-        if (response.code === 0) {
-          this.hotSeries = response.data || []
-        }
+        const response: Series[] = await getHotSeries()
+        this.hotSeries = response || []
         return this.hotSeries
       } catch (error) {
         console.error('获取热门系列失败:', error)
@@ -67,10 +61,8 @@ export const useProductStore = defineStore('product', {
 
     async getSeries() {
       try {
-        const response = await getSeries()
-        if (response.code === 0) {
-          this.seriesList = response.data || []
-        }
+        const response: Series[] = await getSeries()
+        this.seriesList = response || []
         return this.seriesList
       } catch (error) {
         console.error('获取系列失败:', error)
@@ -80,10 +72,8 @@ export const useProductStore = defineStore('product', {
 
     async getHotProducts() {
       try {
-        const response: ApiResponse<ProductBaseVO[]> = await getHotProducts()
-        if (response.code === 0) {
-          this.hotProducts = response.data || []
-        }
+        const response: ProductBaseVO[] = await getHotProducts()
+        this.hotProducts = response || []
         return this.hotProducts
       } catch (error) {
         console.error('获取热门商品失败:', error)
@@ -92,14 +82,14 @@ export const useProductStore = defineStore('product', {
     },
 
     // 获取商品详情
-    async getProductDetail(appId: string): Promise<ProductVO | null> {
+    async getProductDetail(appId: string): Promise<ProductBaseVO> {
       try {
         this.loading = true
         const response = await getProductDetail(appId)
-        return response.data as ProductVO
+        return response
       } catch (error) {
         this.error = error instanceof Error ? error : new Error('Unknown error')
-        return null
+        return {} as ProductVO
       } finally {
         this.loading = false
       }
@@ -109,8 +99,8 @@ export const useProductStore = defineStore('product', {
     async getRelatedProducts(id: string): Promise<ProductBaseVO[]> {
       try {
         this.loading = true
-        const response: ApiResponse<ProductBaseVO[]> = await getRelatedProducts(id)
-        return response.data || []
+        const response: ProductBaseVO[] = await getRelatedProducts(id)
+        return response || []
       } catch (error) {
         this.error = error instanceof Error ? error : new Error('Unknown error')
         return []

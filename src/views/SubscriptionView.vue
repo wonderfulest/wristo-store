@@ -1,75 +1,32 @@
 <template>
   <div class="subscription-view">
     <div class="subscription-container">
-      <div class="subscription-content">
+      <div class="hero-content">
         <h1 class="page-title">Unlock Premium Access</h1>
         <p class="page-subtitle">Get unlimited access to all premium watch faces and features</p>
         
-        <!-- 加载中状态 -->
-        <div v-if="isLoading" class="loading-container">
-          <div class="loading-icon">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-              <path fill="currentColor" d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8z" opacity=".5"/>
-              <path fill="currentColor" d="M20 12h2A10 10 0 0 0 12 2v2a8 8 0 0 1 8 8z">
-                <animateTransform attributeName="transform" dur="1s" from="0 12 12" repeatCount="indefinite" to="360 12 12" type="rotate"/>
-              </path>
-            </svg>
+        <!-- 当前订阅状态 -->
+        <div v-if="hasActiveSubscription" class="current-subscription-banner">
+          <div class="banner-content">
+            <el-icon class="success-icon"><Check /></el-icon>
+            <div class="subscription-info">
+              <h3>You have an active subscription</h3>
+              <p>{{ userStore.userInfo?.subscription?.name }} - Expires {{ formatDate(userStore.userInfo?.subscription?.endTime) }}</p>
+            </div>
+            <el-button type="primary" @click="router.push('/subscription-management')">
+              Manage Subscription
+            </el-button>
           </div>
-          <p>Loading subscription plans...</p>
-        </div>
-        
-        <!-- 错误状态 -->
-        <div v-else-if="loadError" class="no-plans-container">
-          <p>{{ loadError }}</p>
-          <el-button type="primary" @click="loadSubscriptionPlans">Try Again</el-button>
-        </div>
-        
-        <!-- 没有计划状态 -->
-        <div v-else-if="subscriptionPlans.length === 0" class="no-plans-container">
-          <p>No subscription plans available at the moment.</p>
-          <el-button type="primary" @click="loadSubscriptionPlans">Refresh</el-button>
         </div>
         
         <!-- 订阅计划选择 -->
-        <div v-else class="subscription-plans-container">
-          <div class="plans-wrapper">
-            <div 
-              v-for="plan in subscriptionPlans" 
-              :key="plan.id"
-              :class="['plan-card', { active: selectedPlan?.id === plan.id }, getPlanClass(plan)]"
-              @click="selectedPlan = plan"
-            >
-              <div v-if="getPlanType(plan) === 'lifetime'" class="recommended-badge">RECOMMENDED</div>
-              <div class="plan-header">
-                <h3 class="plan-name">{{ plan.name }}</h3>
-                <span v-if="plan.durationDays === -1" class="plan-duration">Lifetime</span>
-                <span v-else class="plan-duration">{{ plan.durationDays }} days</span>
-              </div>
-              
-              <div class="plan-pricing">
-                <span v-if="plan.originalPrice !== plan.discountPrice" class="original-price">${{ plan.originalPrice.toFixed(2) }}</span>
-                <span class="current-price">${{ plan.discountPrice.toFixed(2) }}</span>
-                <span v-if="plan.originalPrice !== plan.discountPrice" class="discount-badge">
-                  {{ Math.round(((plan.originalPrice - plan.discountPrice) / plan.originalPrice) * 100) }}% OFF
-                </span>
-              </div>
-              
-              <div class="plan-benefits">
-                <div v-for="(benefit, index) in getPlanBenefits(plan)" :key="index" class="plan-benefit-item">
-                  <el-icon class="check-icon"><Check /></el-icon>
-                  <span>{{ benefit }}</span>
-                </div>
-              </div>
-              
-              <el-button 
-                type="primary" 
-                :class="['select-plan-button', getPlanButtonClass(plan)]"
-                @click.stop="handleSubscribe(plan)"
-              >
-                {{ getPlanType(plan) === 'lifetime' ? 'Get Lifetime Access' : 'Select Plan' }}
-              </el-button>
-            </div>
-          </div>
+        <div class="subscription-plans-container">
+          <SubscriptionPlans 
+            :show-title="false"
+            :current-plan-code="currentSubscriptionPlanCode"
+            @plan-selected="handlePlanSelected"
+            @subscribe="handleSubscribe"
+          />
         </div>
         
         <div class="feature-grid">
@@ -125,120 +82,59 @@ import {
 
 // Components
 import SubscriptionCheckoutModal from '@/components/subscription/SubscriptionCheckoutModal.vue';
+import SubscriptionPlans from '@/components/SubscriptionPlans.vue';
 
 // API
-import { getActivePlans, type SubscriptionPlan } from '@/api/subscription';
+import type { SubscriptionPlan } from '@/api/subscription';
+import { useUserStore } from '@/store/user';
 
 const route = useRoute();
 const router = useRouter();
+const userStore = useUserStore();
+
 // State
 const showCheckoutModal = ref(false);
 const activeFaqs = ref(['0']);
 const isMobile = ref(window.innerWidth < 768);
-const isLoading = ref(false);
-const subscriptionPlans = ref<SubscriptionPlan[]>([]);
 const selectedPlan = ref<SubscriptionPlan | null>(null);
-const loadError = ref<string>('');
 
-// 订阅计划权益字典
-const planBenefits = {
-  monthly: [
-    'Access to 2000+ premium watch faces',
-    'Ad-free experience',
-    'Basic customer support'
-  ],
-  yearly: [
-    'Access to 2000+ premium watch faces',
-    'Get new watch faces monthly',
-    'Ad-free experience',
-    'Standard customer support'
-  ],
-  lifetime: [
-    'Access to 2000+ premium watch faces',
-    'Get all future watch faces automatically',
-    'Ad-free experience',
-    'Early access to new features',
-    'Priority customer support'
-  ]
+// 检查用户是否有有效订阅
+const hasActiveSubscription = computed(() => {
+  if (!userStore.userInfo?.subscription) return false;
+  const endTime = new Date(userStore.userInfo.subscription.endTime);
+  const now = new Date();
+  return endTime > now;
+});
+
+// 获取当前用户的订阅计划代码
+const currentSubscriptionPlanCode = computed(() => {
+  return userStore.userInfo?.subscription?.planCode || null;
+});
+
+// 格式化日期
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return 'N/A';
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 };
 
-// 订阅计划样式字典
-const planStyles = {
-  monthly: {
-    class: 'plan-monthly',
-    buttonClass: 'button-monthly'
-  },
-  yearly: {
-    class: 'plan-yearly',
-    buttonClass: 'button-yearly'
-  },
-  lifetime: {
-    class: 'plan-lifetime',
-    buttonClass: 'button-lifetime'
-  }
-};
 
-// 获取计划类型
-const getPlanType = (plan: SubscriptionPlan): 'monthly' | 'yearly' | 'lifetime' => {
-  if (plan.durationDays === -1) return 'lifetime';
-  if (plan.durationDays >= 365) return 'yearly';
-  return 'monthly';
-};
 
-// 获取计划样式类
-const getPlanClass = (plan: SubscriptionPlan): string => {
-  const type = getPlanType(plan);
-  return planStyles[type].class;
-};
 
-// 获取计划按钮样式类
-const getPlanButtonClass = (plan: SubscriptionPlan): string => {
-  const type = getPlanType(plan);
-  return planStyles[type].buttonClass;
-};
-
-// 获取计划权益
-const getPlanBenefits = (plan: SubscriptionPlan): string[] => {
-  const type = getPlanType(plan);
-  return planBenefits[type];
-};
 
 // Check if the viewport is mobile
 const checkIfMobile = () => {
   isMobile.value = window.innerWidth < 768;
 };
 
-// 加载有效的订阅计划
-const loadSubscriptionPlans = async () => {
-  isLoading.value = true;
-  loadError.value = '';
-  
-  try {
-    const response = await getActivePlans();
-    if (response.code === 0 && response.data) {
-      subscriptionPlans.value = response.data;
-      
-      // 默认选中终身访问计划
-      if (subscriptionPlans.value.length > 0) {
-        const lifetimePlan = subscriptionPlans.value.find(plan => plan.durationDays === -1);
-        selectedPlan.value = lifetimePlan || subscriptionPlans.value[0];
-      }
-    }
-    
-    isLoading.value = false;
-  } catch (error) {
-    console.error('Failed to load subscription plans:', error);
-    loadError.value = 'Failed to load subscription plans. Please try again.';
-    isLoading.value = false;
-  }
-};
+
 
 // Check for mobile on mount and add/remove event listener
 onMounted(() => {
   window.addEventListener('resize', checkIfMobile);
-  
-  // 加载订阅计划
-  loadSubscriptionPlans();
   
   // Check for subscription parameter in URL
   if (route.query.subscribe === 'true') {
@@ -308,6 +204,11 @@ const faqs = [
   }
 ];
 
+// Handle plan selection
+const handlePlanSelected = (plan: SubscriptionPlan) => {
+  selectedPlan.value = plan;
+};
+
 // Handle subscribe button click
 const handleSubscribe = (plan?: SubscriptionPlan) => {
   if (plan) {
@@ -356,12 +257,48 @@ const handleSubscriptionCancel = () => {
 }
 
 .page-subtitle {
-  font-size: 18px;
+  font-size: 20px;
   color: #86868b;
-  text-align: center;
-  max-width: 600px;
-  margin: 0 auto 40px;
-  line-height: 1.5;
+  margin-bottom: 48px;
+  line-height: 1.4;
+}
+
+.current-subscription-banner {
+  background: linear-gradient(135deg, #30d158 0%, #28a745 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 30px rgba(48, 209, 88, 0.2);
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: white;
+}
+
+.success-icon {
+  font-size: 2rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.subscription-info {
+  flex: 1;
+}
+
+.subscription-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: white;
+}
+
+.subscription-info p {
+  font-size: 0.9rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .subscription-card-wrapper {
@@ -453,6 +390,20 @@ const handleSubscriptionCancel = () => {
   
   .section-title {
     font-size: 24px;
+  }
+  
+  .banner-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .subscription-info h3 {
+    font-size: 1.1rem;
+  }
+  
+  .subscription-info p {
+    font-size: 0.85rem;
   }
 }
 

@@ -25,6 +25,7 @@
         </el-dropdown>
         <router-link to="/subscription" class="nav-link">Premium</router-link>
         <router-link to="/faq" class="nav-link">FAQ</router-link>
+        <router-link to="/code" class="nav-link">Code</router-link>
       </nav>
       <div class="user-area">
         <template v-if="isLoggedIn">
@@ -35,6 +36,10 @@
           >
             Upgrade to Premium
           </router-link>
+          <!-- <div v-else class="subscription-badge">
+            <span class="badge-text">{{ subscriptionPlanName }}</span>
+            <span class="badge-days">{{ remainingDays }} days left</span>
+          </div> -->
           <el-dropdown @command="handleUserMenuCommand" trigger="click">
             <div class="user-avatar-container">
               <img :src="userAvatar" class="user-avatar" alt="user avatar" />
@@ -106,12 +111,34 @@ const updateUserInfo = () => {
 };
 
 // Check if user has an active subscription
-// This is a temporary implementation until we have proper subscription status from the backend
 const isSubscribed = computed(() => {
-  // TODO: Replace with actual subscription check from user store
-  // For now, we'll check if the user has a premium role or subscription
-  return userStore.userInfo?.roles?.includes('premium') || false;
-});
+  if (!userStore.userInfo?.subscription) return false
+  
+  const subscription = userStore.userInfo.subscription
+  const now = new Date()
+  const endTime = new Date(subscription.endTime)
+  
+  // Check if subscription is still active
+  return endTime > now
+})
+
+// Get subscription plan name for display
+const subscriptionPlanName = computed(() => {
+  return userStore.userInfo?.subscription?.name || 'Premium'
+})
+
+// Get remaining days
+const remainingDays = computed(() => {
+  if (!userStore.userInfo?.subscription) return 0
+  
+  const subscription = userStore.userInfo.subscription
+  const now = new Date()
+  const endTime = new Date(subscription.endTime)
+  const diffTime = endTime.getTime() - now.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  
+  return Math.max(0, diffDays)
+})
 
 const handleUserMenuCommand = (command: string) => {
   switch (command) {
@@ -205,7 +232,39 @@ watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
 .user-area {
   display: flex;
   align-items: center;
+  gap: 16px;
   margin-left: 24px;
+}
+
+.subscription-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #30d158, #28c946);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(48, 209, 88, 0.3);
+  transition: all 0.2s ease;
+}
+
+.subscription-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(48, 209, 88, 0.4);
+}
+
+.badge-text {
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.badge-days {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
 }
 .user-avatar-container {
   position: relative;

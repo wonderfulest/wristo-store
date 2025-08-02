@@ -1,6 +1,5 @@
 import type { ProductBaseVO, Bundle } from './product'
 import type { UserBaseVO } from './user'
-import type { ApiResponse } from './api'
 
 export interface PurchaseRequest {
   appid: number
@@ -46,14 +45,3 @@ export interface PurchaseRecord {
   user: UserBaseVO
   product: ProductBaseVO
 }
-
-export interface PurchaseRecordsResponse {
-  code: number
-  msg: string
-  data: PurchaseRecord[]
-}
-
-// 购买接口响应类型
-export interface PurchaseResponse extends ApiResponse<PurchaseData> {
-  data: PurchaseData
-} 

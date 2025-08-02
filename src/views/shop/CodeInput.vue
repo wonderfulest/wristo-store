@@ -31,6 +31,7 @@ import { purchaseByCode } from '@/api/pay'
 import { BizErrorCode } from '@/constant/errorCode'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import Logo from '@/components/Logo.vue'
+import type { PurchaseData } from '@/types/purchase'
 
 const code = ref('')
 const error = ref('')
@@ -46,16 +47,21 @@ const handleContinue = async () => {
   error.value = ''
   loading.value = true
   try {
-    const res = await purchaseByCode(code.value)
-    if (res.code == BizErrorCode.INVALID_PAYMENT_CODE) { // 无效的支付码
-      error.value = 'Cannot find code. If you are sure you typed it correctly, it might have been expired. Please check our FAQ on how to do this.'
+    const purchaseData: PurchaseData = await purchaseByCode(code.value)
+    store.setData(purchaseData)
+    // 跳转到购买选项页面
+    router.push({ name: 'PurchaseOptions' })
+  } catch (e: unknown) {
+    if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
+      if (e.code == BizErrorCode.INVALID_PAYMENT_CODE) { // 无效的支付码
+        error.value = 'Cannot find code. If you are sure you typed it correctly, it might have been expired. Please check our FAQ on how to do this.'
+      } else {
+        error.value = e.msg
+      }
     } else {
-      store.setData(res.data)
-      // 跳转到购买选项页面
-      router.push({ name: 'PurchaseOptions' })
+      error.value = 'Network error, please try again later.'
     }
-  } catch (e) {
-    error.value = 'Network error, please try again later.'
+  
   } finally {
     loading.value = false
   }

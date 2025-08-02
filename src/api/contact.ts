@@ -1,16 +1,14 @@
 import instance from '@/config/axios'
-import type { ApiResponse } from '@/types'
 import type { MessageCreateDTO } from '@/types/contact'
 
-
-export const joinNewsletter = (email: string): Promise<ApiResponse<any>> => {
+export const joinNewsletter = (email: string): Promise<boolean> => {
   return instance.get('/public/newsletter/subscribe', { params: { email } })
 }
 
-export const unsubscribeNewsletter = (email: string): Promise<ApiResponse<any>> => {
+export const unsubscribeNewsletter = (email: string): Promise<boolean> => {
   return instance.get('/public/newsletter/unsubscribe', { params: { email } })
 }
 
-export const sendContactMessage = (data: MessageCreateDTO): Promise<ApiResponse<any>> => {
+export const sendContactMessage = (data: MessageCreateDTO): Promise<boolean> => {
   return instance.post('/public/contact-us/send-message', data)
 }

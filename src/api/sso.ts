@@ -1,5 +1,4 @@
 import instance from '@/config/axios'
-import type { ApiResponse } from '@/types'
 
 export interface SsoTokenRequestDto {
   code: string
@@ -16,6 +15,6 @@ export interface SsoTokenResponseData {
   idToken: string
 }
 
-export const fetchSsoToken = (data: SsoTokenRequestDto): Promise<ApiResponse<SsoTokenResponseData>> => {
+export const fetchSsoToken = (data: SsoTokenRequestDto): Promise<SsoTokenResponseData> => {
   return instance.post('/public/sso/token', data)
 }

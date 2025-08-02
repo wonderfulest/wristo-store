@@ -35,80 +35,11 @@
       <!-- 订阅盒子 -->
       <div class="box-container subscription-box">
         <h3 class="box-title">Subscription Plans</h3>
-        
-        <div v-if="isLoadingPlans" class="loading-container">
-          <div class="loading-spinner"></div>
-          <p>Loading subscription plans...</p>
-        </div>
-        
-        <div v-else-if="loadError" class="error-container">
-          <p class="error-message">{{ loadError }}</p>
-          <button class="retry-btn" @click="loadSubscriptionPlans">Retry</button>
-        </div>
-        
-        <div v-else-if="subscriptionPlans.length === 0" class="no-plans-container">
-          <p>No subscription plans available at the moment.</p>
-        </div>
-        
-        <div v-else class="subscription-cards-container">
-          <div 
-            v-for="plan in subscriptionPlans" 
-            :key="plan.id"
-            :class="['subscription-card', getPlanClass(plan), { active: selectedPlan && selectedPlan.id === plan.id }]"
-            @click="selectSubscriptionPlan(plan)"
-          >
-            <!-- 推荐标签 -->
-            <div class="recommended-badge" v-if="plan.durationDays === -1">RECOMMENDED</div>
-            
-            <div class="card-header">
-              <h3 class="card-title">
-                {{ plan.durationDays === -1 ? 'Lifetime' : (plan.durationDays >= 365 ? 'Annual' : 'Monthly') }} Plan
-              </h3>
-              <div class="price-info">
-                <span class="price">${{ plan.discountPrice || plan.originalPrice }}</span>
-                <span class="original-price" v-if="plan.discountPrice && plan.discountPrice < plan.originalPrice">
-                  ${{ plan.originalPrice }}
-                </span>
-                <span class="price-period" v-if="plan.durationDays > 0">
-                  {{ plan.durationDays >= 365 ? '/year' : '/month' }}
-                </span>
-              </div>
-            </div>
-            
-            <div class="plan-benefits">
-              <ul>
-                <li v-if="plan.durationDays === -1">
-                  <span class="check-icon">✓</span> Access to 2000+ premium watch faces
-                </li>
-                <li v-else>
-                  <span class="check-icon">✓</span> Access to 2000+ premium watch faces
-                </li>
-                <li>
-                  <span class="check-icon">✓</span> 
-                  {{ plan.durationDays === -1 ? 'Get all future watch faces automatically' : 'Get new watch faces monthly' }}
-                </li>
-                <li>
-                  <span class="check-icon">✓</span> Ad-free experience
-                </li>
-                <li v-if="plan.durationDays === -1">
-                  <span class="check-icon">✓</span> Early access to new features
-                </li>
-                <li>
-                  <span class="check-icon">✓</span> 
-                  {{ plan.durationDays === -1 ? 'Priority customer support' : 
-                     (plan.durationDays >= 365 ? 'Standard customer support' : 'Basic customer support') }}
-                </li>
-              </ul>
-            </div>
-            
-            <button 
-              :class="['subscription-btn', getPlanButtonClass(plan)]"
-              @click.stop="() => { selectSubscriptionPlan(plan); handleBuySubscription(); }"
-            >
-              {{ plan.durationDays === -1 ? 'Get Lifetime Access' : 'Subscribe Now' }}
-            </button>
-          </div>
-        </div>
+        <SubscriptionPlans 
+          :show-title="false"
+          @plan-selected="selectSubscriptionPlan"
+          @subscribe="handleBuySubscription"
+        />
       </div>
     </div>
   </div>
@@ -120,17 +51,14 @@ import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 // import Logo from '@/components/Logo.vue'
 import type { PurchaseData, ProductVO } from '@/types'
-import { getActivePlans } from '@/api/subscription'
 import type { SubscriptionPlan } from '@/api/subscription'
+import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 
 const router = useRouter()
 const store = useShopOptionsStore()
 
 // 订阅计划相关
-const subscriptionPlans = ref<SubscriptionPlan[]>([])
 const selectedPlan = ref<SubscriptionPlan | null>(null)
-const isLoadingPlans = ref(false)
-const loadError = ref('')
 
 // 直接使用 PurchaseData 类型
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
@@ -139,7 +67,6 @@ const product = computed(() => purchaseData.value?.product as ProductVO)
 
 // 判断产品是否被选中
 const isProductSelected = computed(() => {
-  console.log(222, product.value, store.selectedProduct, selectedPlan.value)
   // 确保产品存在且已被选中（而不是订阅被选中）
   if (!product.value || !store.selectedProduct || selectedPlan.value) return false;
   
@@ -177,54 +104,9 @@ const handleBuySubscription = () => {
   }
 };
 
-// 加载有效的订阅计划
-const loadSubscriptionPlans = async () => {
-  isLoadingPlans.value = true;
-  loadError.value = '';
-  
-  try {
-    const response = await getActivePlans();
-    if (response.code === 0 && response.data) {
-      subscriptionPlans.value = response.data;
-      
-      // 默认选中终身访问计划
-      if (subscriptionPlans.value.length > 0) {
-        const lifetimePlan = subscriptionPlans.value.find(plan => plan.durationDays === -1);
-        selectedPlan.value = lifetimePlan || subscriptionPlans.value[0];
-      }
-    }
-    
-    isLoadingPlans.value = false;
-  } catch (error) {
-    console.error('Failed to load subscription plans:', error);
-    loadError.value = 'Failed to load subscription plans. Please try again.';
-    isLoadingPlans.value = false;
-  }
-};
-
 // 处理订阅计划选择
 const selectSubscriptionPlan = (plan: SubscriptionPlan) => {
   selectedPlan.value = plan;
-};
-
-
-// 获取计划类型
-const getPlanType = (plan: SubscriptionPlan): 'monthly' | 'yearly' | 'lifetime' => {
-  if (plan.durationDays === -1) return 'lifetime';
-  if (plan.durationDays >= 365) return 'yearly';
-  return 'monthly';
-};
-
-// 获取计划样式类
-const getPlanClass = (plan: SubscriptionPlan): string => {
-  const type = getPlanType(plan);
-  return `plan-${type}`;
-};
-
-// 获取计划按钮样式类
-const getPlanButtonClass = (plan: SubscriptionPlan): string => {
-  const type = getPlanType(plan);
-  return `button-${type}`;
 };
 
 onMounted(() => {
@@ -232,9 +114,6 @@ onMounted(() => {
   if (!purchaseData.value) {
     router.push('/code');
   }
-  
-  // 加载订阅计划
-  loadSubscriptionPlans();
 })
 </script>
 
@@ -266,6 +145,7 @@ onMounted(() => {
   gap: 0;
   justify-content: center;
   align-items: stretch;
+  min-height: 600px;
 }
 
 .box-container {
@@ -321,24 +201,25 @@ onMounted(() => {
 }
 
 .option-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  padding: 32px 24px;
+  background: transparent;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
-  border: 2px solid transparent;
+  border: 2px solid #e9ecef;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .option-card:hover {
-  transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
 .option-card.active {
   border-color: #2d6a4f;
+  box-shadow: 0 8px 30px rgba(45, 106, 79, 0.3);
 }
 
 .card-header {
@@ -508,27 +389,24 @@ onMounted(() => {
 
 /* 按钮样式 */
 .buy-btn {
-  background: #2d6a4f; /* 单品按钮颜色 */
-  color: #fff;
+  background-color: #2d6a4f;
+  color: white;
   border: none;
-  border-radius: 20px;
-  padding: 14px;
-  font-size: 16px;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   margin-top: auto;
   width: 100%;
   margin-top: 24px;
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
 }
 
 .buy-btn:hover {
-  background: #40916c;
-  transform: translateY(-2px);
-}
-
-.buy-btn:active {
-  transform: translateY(0);
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.4);
 }
 
 /* 统一按钮样式 */

@@ -117,12 +117,7 @@ const tableRowClass = () => 'table-row'
 
 onMounted(async () => {
   try {
-    const res = await getPurchaseRecords()
-    if (res.code === 0 && res.data) {
-      records.value = res.data
-    } else {
-      ElMessage.error(res.msg || 'Failed to load purchase records')
-    }
+    records.value = await getPurchaseRecords()
   } catch (e) {
     ElMessage.error('Network error, please try again later.')
   }

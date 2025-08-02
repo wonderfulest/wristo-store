@@ -94,8 +94,10 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import type { PaddleCheckoutCompletedEvent, PurchaseRequest } from '@/types'
-import { purchaseCallback, type PurchaseCallbackRequest } from '@/api/pay'
+import { purchaseCallback } from '@/api/pay'
 import type { SubscriptionPlan } from '@/api/subscription'
+import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest, PurchaseSuccessResponseVO } from '@/types/purchase-check'
+import { checkPurchase } from '@/api/pay'
 
 declare global {
   interface Window {
@@ -161,29 +163,22 @@ function loadPaddle() {
                         }
                         
                         try {
-                            const callbackResponse = await purchaseCallback(orderData)
+                            const purchaseResponse: PurchaseSuccessResponseVO = await purchaseCallback(orderData)
+                      
+                            // Save order info to store
+                            store.setOrder({
+                                referenceId: purchaseResponse?.txnId || eventData.data.id || `PADDLE_${Date.now()}`,
+                                productName: purchaseResponse?.productName || subscription.value.name,
+                                amount: purchaseResponse?.grandTotal ? parseFloat(purchaseResponse?.grandTotal) : subscription.value.discountPrice || subscription.value.originalPrice,
+                                paymentSource: 'paddle',
+                                currencyCode: purchaseResponse?.currencyCode || 'USD',
+                                paddleOrder: eventData.data
+                            })
                             
-                            if (callbackResponse.code !== 0) {
-                                ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Warning')
-                            } else {
-                                // 获取回调响应数据
-                                const responseData = callbackResponse.data;
-                                
-                                // Save order info to store
-                                store.setOrder({
-                                    referenceId: responseData?.txnId || eventData.data.id || `PADDLE_${Date.now()}`,
-                                    productName: responseData?.productName || subscription.value.name,
-                                    amount: responseData?.grandTotal ? parseFloat(responseData?.grandTotal) : subscription.value.discountPrice || subscription.value.originalPrice,
-                                    paymentSource: 'paddle',
-                                    currencyCode: responseData?.currencyCode || 'USD',
-                                    paddleOrder: eventData.data
-                                })
-                                
-                                // Force redirect to success page, override Paddle default
-                                setTimeout(() => {
-                                    window.location.href = '/payment/success'
-                                }, 1000)
-                            }
+                            // Force redirect to success page, override Paddle default
+                            setTimeout(() => {
+                                window.location.href = '/payment/success'
+                            }, 1000)
                         } catch (error) {
                             ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Error')
                         }
@@ -224,6 +219,24 @@ function loadPaddle() {
 }
 
 const handlePayment = async (isRetry = false) => {
+    // 根据邮箱 + part_number 校验购买过的权益
+    const checkPurchaseRequest: CheckPurchaseRequest = {
+        email: email.value,
+        appId: request.value.appid,
+        accountToken: request.value.accounttoken,
+        isSubscription: true,
+    }
+    const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
+    console.log('checkPurchaseResponse', checkPurchaseResponse)
+    if (checkPurchaseResponse.isPurchase) {
+        // 存储购买和订阅信息到 store 中
+        if (checkPurchaseResponse.subscription) {
+            store.setSubscriptionInfo(checkPurchaseResponse.subscription);
+        }
+        // 跳转到自动解锁页面
+        router.push({ name: 'AutoUnlock' });
+        return;
+    }
     if (!isRetry) {
         if (userSelectedQuantity.value > maxQuantity.value) {
             ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')

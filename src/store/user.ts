@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
-import { logout as logoutApi, updateUserInfo as updateUserInfoApi } from '@/api/auth'
-import { type UserInfo } from '@/types'
+import { logout as logoutApi, updateUserInfo as updateUserInfoApi, getUserInfo as getUserInfoApi } from '@/api/auth'
+import { type UserInfo, type UserSubscription } from '@/types'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -22,13 +22,25 @@ export const useUserStore = defineStore('user', {
     setUserInfo(userInfo: UserInfo) {
       this.userInfo = userInfo
     },
-    async updateUserInfo(payload: { username: string, nickname: string, avatar: string }) {
-      const res = await updateUserInfoApi(payload)
-      if (res.code === 0 && this.userInfo) {
-        this.userInfo.username = payload.username
-        this.userInfo.nickname = payload.nickname
-        this.userInfo.avatar = payload.avatar
+    setSubscriptionInfo(subscription: UserSubscription | undefined) {
+      if (this.userInfo) {
+        this.userInfo.subscription = subscription
       }
+    },
+    async getUserInfo() {
+      try {
+        const userInfo = await getUserInfoApi()
+        this.userInfo = userInfo
+        return userInfo
+      } catch (e) {
+        console.error('获取用户信息失败', e)
+        return null
+      }
+    },
+    async updateUserInfo(payload: { username: string, nickname: string, avatar: string }) {
+      const res: boolean = await updateUserInfoApi(payload)
+      // 更新成功后重新获取用户信息
+      await this.getUserInfo()
       return res
     }
   },
