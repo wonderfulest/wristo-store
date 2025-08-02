@@ -35,3 +35,8 @@ export const getPurchaseRecordsByEmail = (email: string): Promise<boolean> => {
 export const checkPurchase = (request: CheckPurchaseRequest): Promise<CheckPurchaseResponse> => {
   return instance.post('/public/trials/v1/check-purchase', request)
 }
+
+// 激活已购买的产品（使用购买邮箱和智能手表代码）
+export const activatePurchase = (email: string, smartwatchCode: string): Promise<CheckPurchaseResponse> => {
+  return instance.post('/public/trials/v1/activate-purchase', { email, code: smartwatchCode })
+}

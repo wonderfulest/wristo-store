@@ -95,12 +95,15 @@ const handleBuyProduct = () => {
 }
 
 // 处理订阅计划购买
-const handleBuySubscription = () => {
-  if (selectedPlan.value) {
-    console.log('selectedPlan.value', selectedPlan.value)
-    // 设置选中的订阅计划
-    store.setSelectedSubscription(selectedPlan.value);
-    router.push({ name: 'CheckoutSubscription' });
+const handleBuySubscription = (plan: SubscriptionPlan) => {
+  if (plan) {
+    console.log('selectedPlan.value', plan)
+    selectedPlan.value = plan
+    setTimeout(() => {
+      // 设置选中的订阅计划
+      store.setSelectedSubscription(plan);
+      router.push({ name: 'CheckoutSubscription' });
+    }, 200);
   }
 };
 

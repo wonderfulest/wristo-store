@@ -2,31 +2,54 @@
   <div class="already-purchased-page">
     <div class="content-container">
       <div class="header-section">
-        <h1 class="title">Find My Purchase History</h1>
-        <p class="desc">Enter your email address to receive your purchase records.</p>
+        <h1 class="title">Activate Your Purchase</h1>
+        <p class="desc">Enter your purchase email and the code shown on your smartwatch to unlock your products.</p>
       </div>
       
       <div class="tip-card">
-        <div class="tip-icon">💡</div>
+        <div class="tip-icon">⌚</div>
         <div class="tip-content">
-          <strong>Pro Tip:</strong> Register with your purchase email to view records directly.
+          <strong>Code:</strong> The 6-digit code will appear on your smartwatch after installing a clockface or app.
         </div>
       </div>
       
-      <form class="lookup-form" @submit.prevent="handleLookup">
+      <form class="activation-form" @submit.prevent="handleActivation">
         <div class="input-group">
+          <label class="input-label">Purchase Email</label>
           <input 
             v-model="email" 
             type="email" 
-            placeholder="Enter your email address" 
+            placeholder="Enter your purchase email address" 
             class="email-input" 
             required 
             @input="clearMessages"
           />
         </div>
-        <button class="lookup-btn" :disabled="loading">
-          <span v-if="loading">Sending...</span>
-          <span v-else>Send to Email</span>
+        
+        <div class="input-group">
+          <label class="input-label">Code</label>
+          <input 
+            v-model="activationCode" 
+            type="text" 
+            maxlength="6" 
+            placeholder="000000" 
+            class="code-input" 
+            required 
+            @input="clearMessages"
+          />
+          <div class="input-desc">
+            The code shown on your smartwatch
+            <br>
+            <span class="help-inline">
+              Not seeing your code? 
+              <button type="button" class="help-link-inline" @click="handleResendCode">Learn more</button>
+            </span>
+          </div>
+        </div>
+        
+        <button class="activation-btn" :disabled="loading || !isFormValid">
+          <span v-if="loading">Activating...</span>
+          <span v-else>Activate Purchase</span>
         </button>
       </form>
       
@@ -37,48 +60,89 @@
       
       <div v-if="success" class="message success-message">
         <div class="message-icon">✅</div>
-        <div class="message-text">Purchase records have been sent to your email!</div>
+        <div class="message-text">{{ successMessage }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { getPurchaseRecordsByEmail } from '@/api/pay'
+import { ref, computed } from 'vue'
+import { activatePurchase } from '@/api/pay'
 import { ElMessage } from 'element-plus'
+import type { CheckPurchaseResponse } from '@/types/purchase-check'
 
 const email = ref('')
+const activationCode = ref('')
 const loading = ref(false)
 const error = ref('')
 const success = ref(false)
+const successMessage = ref('')
+
+const isFormValid = computed(() => {
+  return email.value.trim() && activationCode.value.length === 6
+})
 
 function clearMessages() {
   error.value = ''
   success.value = false
 }
 
-async function handleLookup() {
+async function handleActivation() {
   error.value = ''
   success.value = false
+  
   if (!email.value.trim()) {
     error.value = 'Please enter your email address'
     return
   }
+  
+  if (activationCode.value.length !== 6) {
+    error.value = 'Please enter a valid 6-digit smartwatch code'
+    return
+  }
+  
   loading.value = true
   try {
-    const res = await getPurchaseRecordsByEmail(email.value)
-    if (res.code === 0 && res.data === true) {
+    const purchaseResult: CheckPurchaseResponse = await activatePurchase(email.value, activationCode.value)
+    if (purchaseResult && purchaseResult.isPurchase) {
       success.value = true
-      ElMessage.success('Purchase records have been sent to your email!')
+      
+      // 根据返回值判断激活类型
+      if (purchaseResult.subscription) {
+        // 通过订阅计划激活
+        const subscriptionName = purchaseResult.subscription.name || 'Subscription Plan'
+        successMessage.value = `Your purchase has been successfully activated through ${subscriptionName}!`
+        ElMessage.success(`Activated via ${subscriptionName}!`)
+      } else if (purchaseResult.purchase) {
+        // 通过产品购买激活
+        successMessage.value = 'Your purchase has been successfully activated through product purchase!'
+        ElMessage.success('Activated via product purchase!')
+      } else {
+        // 默认激活成功消息
+        successMessage.value = 'Your purchase has been successfully activated!'
+        ElMessage.success('Purchase activated successfully!')
+      }
     } else {
-      error.value = res.msg || 'No purchase records found for this email.'
+      error.value = 'Failed to activate purchase. Please check your email and code. If you have already activated, please go to the home page.'
     }
-  } catch (e) {
-    error.value = 'Network error, please try again later.'
+  } catch (e: any) {
+    if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
+      error.value = e.msg
+    } else {
+      error.value = 'Network error, please try again later.'
+    }
   } finally {
     loading.value = false
   }
+}
+
+function handleResendCode() {
+  // Show help information about smartwatch codes
+  ElMessage.info({
+    message: 'After installing the clock face or app, there will be a short trial period. Once the trial ends, a 6-digit code will appear on your smartwatch screen for activation. If no code appears, it means the watch face has been automatically unlocked—feel free to continue using it.',
+    duration: 8000
+  })
 }
 </script>
 
@@ -98,18 +162,20 @@ async function handleLookup() {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 40px;
   width: 480px;
-  height: 480px;
+  min-height: 500px;
+  max-height: 90vh;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+  overflow-y: auto;
 }
 
 .header-section {
   text-align: center;
-  height: 120px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: 8px;
 }
 
 .title {
@@ -131,11 +197,11 @@ async function handleLookup() {
   background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
   border: 1px solid #0ea5e9;
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px;
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  height: 60px;
+  gap: 12px;
+  min-height: 50px;
 }
 
 .tip-icon {
@@ -150,42 +216,90 @@ async function handleLookup() {
   margin: 0;
 }
 
-.lookup-form {
+.activation-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: 120px;
-  justify-content: center;
+  flex: 1;
 }
 
 .input-group {
   position: relative;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.email-input {
-  width: 90%;
+.input-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin-bottom: 4px;
+}
+
+.email-input,
+.code-input {
+  width: 100%;
   padding: 16px 20px;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-align: center;
   border: 2px solid #d2d2d7;
   border-radius: 12px;
   background: #fff;
   color: #1d1d1f;
   transition: all 0.3s ease;
   outline: none;
+  box-sizing: border-box;
 }
 
-.email-input:focus {
+.email-input:focus,
+.code-input:focus {
   border-color: #007aff;
   box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
 }
 
-.email-input::placeholder {
+.email-input::placeholder,
+.code-input::placeholder {
   color: #86868b;
 }
 
-.lookup-btn {
+.code-input {
+  letter-spacing: 4px;
+}
+
+.input-desc {
+  font-size: 0.85rem;
+  color: #86868b;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.help-inline {
+  font-size: 0.8rem;
+  color: #86868b;
+  margin-top: 6px;
+  display: inline-block;
+}
+
+.help-link-inline {
+  background: none;
+  border: none;
+  color: #007aff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+  padding: 0;
+  margin-left: 2px;
+}
+
+.help-link-inline:hover {
+  color: #0056cc;
+}
+
+.activation-btn {
   background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
   color: #fff;
   border: none;
@@ -197,15 +311,16 @@ async function handleLookup() {
   transition: all 0.3s ease;
   letter-spacing: 0.5px;
   width: 100%;
-  margin: 0 auto;
+  margin-top: auto;
+  margin-bottom: 16px;
 }
 
-.lookup-btn:hover:not(:disabled) {
+.activation-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
 }
 
-.lookup-btn:disabled {
+.activation-btn:disabled {
   background: #d2d2d7;
   cursor: not-allowed;
   transform: none;
@@ -249,25 +364,19 @@ async function handleLookup() {
 @media (max-width: 480px) {
   .content-container {
     padding: 32px 24px;
-    gap: 20px;
+    gap: 16px;
     width: 90%;
-    height: 500px;
-  }
-  
-  .header-section {
-    height: 100px;
+    min-height: 400px;
+    max-height: 95vh;
   }
   
   .tip-card {
-    height: 100px;
+    min-height: auto;
+    padding: 12px;
   }
   
-  .lookup-form {
-    height: 100px;
-  }
-  
-  .message {
-    height: 60px;
+  .activation-form {
+    gap: 12px;
   }
   
   .title {
@@ -278,12 +387,13 @@ async function handleLookup() {
     font-size: 1rem;
   }
   
-  .email-input {
+  .email-input,
+  .code-input {
     padding: 14px 16px;
-    font-size: 1rem;
+    font-size: 1.3rem;
   }
   
-  .lookup-btn {
+  .activation-btn {
     padding: 14px 20px;
     font-size: 1rem;
   }

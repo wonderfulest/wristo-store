@@ -6,16 +6,65 @@
         <p class="page-subtitle">Get unlimited access to all premium watch faces and features</p>
         
         <!-- 当前订阅状态 -->
-        <div v-if="hasActiveSubscription" class="current-subscription-banner">
+        <div v-if="hasActiveSubscription" class="current-subscription-banner" :class="{
+          'status-active': subscriptionStatus?.isActive,
+          'status-canceled': subscriptionStatus?.isCanceled || subscriptionStatus?.hasScheduledCancel,
+          'status-paused': subscriptionStatus?.isPaused || subscriptionStatus?.hasScheduledPause
+        }">
           <div class="banner-content">
-            <el-icon class="success-icon"><Check /></el-icon>
+            <el-icon class="status-icon">
+              <Check v-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange" />
+              <Timer v-else />
+            </el-icon>
             <div class="subscription-info">
-              <h3>You have an active subscription</h3>
-              <p>{{ userStore.userInfo?.subscription?.name }} - Expires {{ formatDate(userStore.userInfo?.subscription?.endTime) }}</p>
+              <!-- 活跃状态且无计划更改 -->
+              <h3 v-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange">You have an active subscription</h3>
+              
+              <!-- 活跃状态但有计划暂停 -->
+              <h3 v-else-if="subscriptionStatus?.isActive && subscriptionStatus?.hasScheduledPause">Your subscription will pause next billing cycle</h3>
+              
+              <!-- 活跃状态但有计划取消 -->
+              <h3 v-else-if="subscriptionStatus?.isActive && subscriptionStatus?.hasScheduledCancel">Your subscription will not renew next billing cycle</h3>
+              
+              <!-- 已暂停状态 -->
+              <h3 v-else-if="subscriptionStatus?.isPaused">Your subscription is paused</h3>
+              
+              <!-- 已取消状态 -->
+              <h3 v-else-if="subscriptionStatus?.isCanceled">Your subscription is canceled</h3>
+              
+              <!-- 默认 -->
+              <h3 v-else>You have a subscription</h3>
+              
+              <!-- 订阅详情 -->
+              <p v-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange">
+                {{ userStore.userInfo?.subscription?.name }} - Expires {{ formatDate(userStore.userInfo?.subscription?.endTime) }}
+              </p>
+              <p v-else-if="subscriptionStatus?.hasScheduledPause">
+                {{ userStore.userInfo?.subscription?.name }} - Will pause on {{ formatDate(subscriptionStatus?.scheduledChange?.effectiveAt) }}
+              </p>
+              <p v-else-if="subscriptionStatus?.hasScheduledCancel">
+                {{ userStore.userInfo?.subscription?.name }} - Will expire on {{ formatDate(userStore.userInfo?.subscription?.endTime) }}. No further charges will be made.
+              </p>
+              <p v-else-if="subscriptionStatus?.isPaused">
+                {{ userStore.userInfo?.subscription?.name }} - Paused since {{ formatDate(userStore.userInfo?.subscription?.paddleSubscriptionData?.pausedAt || undefined) }}
+              </p>
+              <p v-else>
+                {{ userStore.userInfo?.subscription?.name }} - Expires {{ formatDate(userStore.userInfo?.subscription?.endTime) }}
+              </p>
             </div>
-            <el-button type="primary" @click="router.push('/subscription-management')">
-              Manage Subscription
-            </el-button>
+            
+            <!-- 按钮区域 -->
+            <div class="action-buttons">
+              <!-- 显示续订按钮（暂停或有计划更改时） -->
+              <el-button v-if="subscriptionStatus?.shouldShowRenew" type="primary" @click="handleRenewSubscription">
+                Renew Subscription
+              </el-button>
+              
+              <!-- 显示退订按钮（活跃且无计划更改时） -->
+              <el-button v-if="subscriptionStatus?.shouldShowCancel" type="primary" @click="router.push('/subscription-cancel')">
+                Manage Subscription
+              </el-button>
+            </div>
           </div>
         </div>
         
@@ -69,7 +118,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElCollapse, ElCollapseItem } from 'element-plus';
+import { ElCollapse, ElCollapseItem, ElMessage } from 'element-plus';
 import { 
   Timer,
   Download,
@@ -86,6 +135,7 @@ import SubscriptionPlans from '@/components/SubscriptionPlans.vue';
 
 // API
 import type { SubscriptionPlan } from '@/api/subscription';
+import { getSubscriptionDetails } from '@/api/subscription';
 import { useUserStore } from '@/store/user';
 
 const route = useRoute();
@@ -104,6 +154,49 @@ const hasActiveSubscription = computed(() => {
   const endTime = new Date(userStore.userInfo.subscription.endTime);
   const now = new Date();
   return endTime > now;
+});
+
+// 获取订阅状态信息
+const subscriptionStatus = computed(() => {
+  const subscription = userStore.userInfo?.subscription;
+  if (!subscription) return null;
+  
+  const paddleData = subscription.paddleSubscriptionData;
+  const endTime = new Date(subscription.endTime);
+  const now = new Date();
+  const isExpired = endTime <= now;
+  
+  // 使用 Paddle 数据中的状态
+  const paddleStatus = paddleData?.status; // 'active', 'paused', 'canceled'
+  const scheduledChange = paddleData?.scheduledChange;
+  
+  // 判断是否有计划中的更改
+  const hasScheduledPause = scheduledChange?.action === 'pause';
+  const hasScheduledCancel = scheduledChange?.action === 'cancel';
+  
+  // 判断实际状态
+  const isActive = paddleStatus === 'active' && !isExpired;
+  const isPaused = paddleStatus === 'paused';
+  const isCanceled = paddleStatus === 'canceled';
+  
+  // 判断是否显示续订入口（暂停或有计划更改时）
+  const shouldShowRenew = isPaused || hasScheduledPause || hasScheduledCancel;
+  // 判断是否显示退订入口（活跃且无计划更改时）
+  const shouldShowCancel = isActive && !scheduledChange;
+  
+  return {
+    paddleStatus,
+    scheduledChange,
+    isExpired,
+    endTime,
+    isActive,
+    isPaused,
+    isCanceled,
+    hasScheduledPause,
+    hasScheduledCancel,
+    shouldShowRenew,
+    shouldShowCancel
+  };
 });
 
 // 获取当前用户的订阅计划代码
@@ -125,15 +218,27 @@ const formatDate = (dateString?: string): string => {
 
 
 
+// 加载订阅详情
+const loadSubscriptionDetails = async () => {
+  try {
+    if (userStore.userInfo?.subscription) {
+      const subscriptionDetails = await getSubscriptionDetails();
+      // 更新用户store中的订阅信息
+      userStore.setSubscriptionInfo(subscriptionDetails);
+    }
+  } catch (error) {
+    console.error('Failed to load subscription details:', error);
+  }
+};
+
 // Check if the viewport is mobile
 const checkIfMobile = () => {
   isMobile.value = window.innerWidth < 768;
 };
 
-
-
 // Check for mobile on mount and add/remove event listener
 onMounted(() => {
+  loadSubscriptionDetails();
   window.addEventListener('resize', checkIfMobile);
   
   // Check for subscription parameter in URL
@@ -230,6 +335,23 @@ const handleSubscriptionCancel = () => {
   // Any cleanup or additional logic can go here
 };
 
+// Handle renew subscription
+const handleRenewSubscription = async () => {
+  try {
+    // 调用续订API
+    const { resumeSubscription } = await import('@/api/subscription');
+    await resumeSubscription();
+    
+    // 重新加载订阅详情
+    await loadSubscriptionDetails();
+    
+    ElMessage.success('Subscription renewed successfully!');
+  } catch (error) {
+    console.error('Failed to renew subscription:', error);
+    ElMessage.error('Failed to renew subscription. Please try again.');
+  }
+};
+
 
 </script>
 
@@ -264,11 +386,34 @@ const handleSubscriptionCancel = () => {
 }
 
 .current-subscription-banner {
-  background: linear-gradient(135deg, #30d158 0%, #28a745 100%);
   border-radius: 16px;
   padding: 1.5rem;
   margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+/* 激活状态 */
+.current-subscription-banner.status-active {
+  background: linear-gradient(135deg, #30d158 0%, #28a745 100%);
   box-shadow: 0 8px 30px rgba(48, 209, 88, 0.2);
+}
+
+/* 取消状态 */
+.current-subscription-banner.status-canceled {
+  background: linear-gradient(135deg, #ff9500 0%, #ff8c00 100%);
+  box-shadow: 0 8px 30px rgba(255, 149, 0, 0.2);
+}
+
+/* 暂停状态 */
+.current-subscription-banner.status-paused {
+  background: linear-gradient(135deg, #007aff 0%, #0056b3 100%);
+  box-shadow: 0 8px 30px rgba(0, 122, 255, 0.2);
+}
+
+/* 默认状态 */
+.current-subscription-banner:not(.status-active):not(.status-canceled):not(.status-paused) {
+  background: linear-gradient(135deg, #8e8e93 0%, #6d6d70 100%);
+  box-shadow: 0 8px 30px rgba(142, 142, 147, 0.2);
 }
 
 .banner-content {
@@ -278,7 +423,7 @@ const handleSubscriptionCancel = () => {
   color: white;
 }
 
-.success-icon {
+.status-icon {
   font-size: 2rem;
   color: white;
   flex-shrink: 0;
@@ -299,6 +444,26 @@ const handleSubscriptionCancel = () => {
   font-size: 0.9rem;
   margin: 0;
   color: rgba(255, 255, 255, 0.9);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.action-buttons .el-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.action-buttons .el-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 .subscription-card-wrapper {

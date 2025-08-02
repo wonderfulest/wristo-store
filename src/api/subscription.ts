@@ -1,4 +1,5 @@
 import instance from '@/config/axios'
+import type { Subscription } from '@/types/user'
 
 /**
  * 订阅计划类型
@@ -29,22 +30,24 @@ export const getActivePlans = (): Promise<SubscriptionPlan[]> => {
 }
 
 /**
- * 暂停订阅
+ * 获取当前用户的订阅详情
  */
-export const pauseSubscription = (): Promise<boolean> => {
-  return instance.post('/subscription/pause')
+export const getSubscriptionDetails = (): Promise<Subscription> => {
+  return instance.get('/v1/user/subscriptions/details?populate=paddle')
 }
 
 /**
- * 取消订阅
+ * 暂停订阅
  */
-export const cancelSubscription = (): Promise<boolean> => {
-  return instance.post('/subscription/cancel')
+export const pauseSubscription = (remark: string): Promise<Subscription> => {
+  return instance.post('/v1/user/subscriptions/pause-with-reason?populate=paddle', {
+    remark
+  })
 }
 
 /**
  * 恢复订阅
  */
-export const resumeSubscription = (): Promise<boolean> => {
-  return instance.post('/subscription/resume')
+export const resumeSubscription = (): Promise<Subscription> => {
+  return instance.post('/v1/user/subscriptions/resume?populate=paddle')
 }

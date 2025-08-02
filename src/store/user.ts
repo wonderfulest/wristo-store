@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { logout as logoutApi, updateUserInfo as updateUserInfoApi, getUserInfo as getUserInfoApi } from '@/api/auth'
-import { type UserInfo, type UserSubscription } from '@/types'
+import { type UserInfo, type Subscription } from '@/types'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
@@ -22,7 +22,7 @@ export const useUserStore = defineStore('user', {
     setUserInfo(userInfo: UserInfo) {
       this.userInfo = userInfo
     },
-    setSubscriptionInfo(subscription: UserSubscription | undefined) {
+    setSubscriptionInfo(subscription: Subscription | undefined) {
       if (this.userInfo) {
         this.userInfo.subscription = subscription
       }

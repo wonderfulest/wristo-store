@@ -1,10 +1,5 @@
 <template>
-  <!-- <div class="logo">
-    <span class="logo-bold">Wristo<span class="logo-green">Io</span></span>
-    <slot />
-  </div> -->
-  <div>
-  <img src="/logo.svg"/></div>
+  <img src="/logo.svg" alt="logo"  class="logo"/>
 </template>
 
 <script setup lang="ts">
@@ -15,9 +10,9 @@
 .logo {
   font-size: 2.2rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
   color: #191919;
   text-align: center;
+  height: 120px;
 }
 .logo-bold {
   font-weight: 700;

@@ -9,8 +9,18 @@
         <!-- 当前订阅信息 -->
         <div class="current-plan-info">
           <p class="plan-description">
-            You're currently on the <strong>{{ subscriptionPlanName }}</strong> 
-            <span v-if="monthlyPrice">({{ formatPrice(monthlyPrice) }} per month)</span>
+            You're currently on the <strong>{{ subscriptionPlanName }}</strong>
+            <span v-if="currentPrice && userStore.userInfo?.subscription">
+              <template v-if="userStore.userInfo.subscription.planCode === 'yearly' || userStore.userInfo.subscription.planCode === 'annual'">
+                ({{ formatPrice(currentPrice) }} per year, {{ formatPrice(monthlyPrice || 0) }} per month)
+              </template>
+              <template v-else-if="userStore.userInfo.subscription.planCode === 'monthly'">
+                ({{ formatPrice(currentPrice) }} per month)
+              </template>
+              <template v-else>
+                ({{ formatPrice(currentPrice) }})
+              </template>
+            </span>
             which will be canceled at the end of your billing period on 
             <strong>{{ formatDate(userStore.userInfo?.subscription?.endTime) }}</strong>. 
             You will be reverted back to the Free tier once the plan expires.
@@ -85,7 +95,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElButton, ElInput, ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/store/user'
-import { cancelSubscription } from '@/api/subscription'
+import { pauseSubscription } from '@/api/subscription'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -112,22 +122,44 @@ const subscriptionPlanName = computed(() => {
   return userStore.userInfo?.subscription?.name || 'Pro plan'
 })
 
+// 获取当前订阅价格
+const currentPrice = computed(() => {
+  const subscription = userStore.userInfo?.subscription
+  if (!subscription) return null
+  
+  // 优先使用折扣价格，如果没有则使用原价
+  return subscription.discountPrice || subscription.originalPrice
+})
+
+// 获取货币代码
+const currencyCode = computed(() => {
+  return userStore.userInfo?.subscription?.currencyCode || 'USD'
+})
+
+// 计算月度价格（如果是年付计划）
 const monthlyPrice = computed(() => {
-  // 这里可以根据订阅计划代码返回相应的价格
-  const planCode = userStore.userInfo?.subscription?.planCode
-  switch (planCode) {
-    case 'monthly':
-      return 15
-    case 'yearly':
-      return 12 // 年付按月计算
-    default:
-      return null
+  const subscription = userStore.userInfo?.subscription
+  if (!subscription || !currentPrice.value) return null
+  
+  const planCode = subscription.planCode
+  if (planCode === 'yearly' || planCode === 'annual') {
+    // 年付计划按月计算
+    return Math.round((currentPrice.value / 12) * 100) / 100
+  } else {
+    // 月付计划直接返回价格
+    return currentPrice.value
   }
 })
 
 // 格式化价格
 const formatPrice = (price: number): string => {
-  return `$${price}`
+  const currency = currencyCode.value
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(price)
 }
 
 // 格式化日期
@@ -167,7 +199,7 @@ const handleCancelSubscription = async () => {
       cancelLoading.value = true
       try {
         // 发送取消请求，包含取消原因
-        await cancelSubscription()
+        await pauseSubscription(selectedReason.value)
         
         // 可以在这里发送反馈数据到后端
         const feedbackData = {
@@ -182,7 +214,7 @@ const handleCancelSubscription = async () => {
         await userStore.getUserInfo()
         
         // 跳转回订阅管理页面
-        router.push('/subscription-management')
+        router.push('/subscription')
       } catch (error) {
         console.error('Failed to cancel subscription:', error)
         ElMessage.error('Failed to cancel subscription. Please try again.')
@@ -201,22 +233,25 @@ const handleCancelSubscription = async () => {
 .subscription-cancel {
   min-height: 100vh;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 2rem 0;
+  padding: 1.5rem 0;
+  display: flex;
+  align-items: center;
 }
 
 .container {
-  max-width: 700px;
+  max-width: 1000px;
+  width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 2rem;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .page-title {
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   font-weight: 700;
   color: #1d1d1f;
   margin: 0;
@@ -226,11 +261,11 @@ const handleCancelSubscription = async () => {
   background: white;
   border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  padding: 2.5rem;
+  padding: 2rem;
 }
 
 .current-plan-info {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .plan-description {
@@ -254,43 +289,43 @@ const handleCancelSubscription = async () => {
 }
 
 .feedback-section {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .feedback-title {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: #1d1d1f;
   margin-bottom: 0.5rem;
 }
 
 .feedback-subtitle {
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: #666;
   line-height: 1.5;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .reason-selection h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #1d1d1f;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .reason-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .reason-option {
   display: flex;
   align-items: center;
-  padding: 1rem;
+  padding: 0.75rem;
   border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #fafafa;
@@ -325,7 +360,7 @@ const handleCancelSubscription = async () => {
   display: flex;
   gap: 1rem;
   justify-content: center;
-  padding-top: 2rem;
+  padding-top: 1.5rem;
   border-top: 1px solid #e5e7eb;
 }
 
@@ -341,10 +376,15 @@ const handleCancelSubscription = async () => {
 @media (max-width: 768px) {
   .subscription-cancel {
     padding: 1rem 0;
+    align-items: flex-start;
+  }
+  
+  .container {
+    padding: 0 1rem;
   }
   
   .page-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
   }
   
   .cancel-card {
@@ -357,6 +397,7 @@ const handleCancelSubscription = async () => {
   
   .action-buttons {
     flex-direction: column;
+    padding-top: 1rem;
   }
   
   .action-buttons .el-button {
