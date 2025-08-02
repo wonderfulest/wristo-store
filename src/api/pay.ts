@@ -40,3 +40,8 @@ export const checkPurchase = (request: CheckPurchaseRequest): Promise<CheckPurch
 export const activatePurchase = (email: string, smartwatchCode: string): Promise<CheckPurchaseResponse> => {
   return instance.post('/public/trials/v1/activate-purchase', { email, code: smartwatchCode })
 }
+
+// 根据用户token和代码检查购买状态
+export const checkPurchaseByToken = (code: string): Promise<CheckPurchaseResponse> => {
+  return instance.post('/trials/check-purchase', { code })
+}

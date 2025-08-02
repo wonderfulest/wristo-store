@@ -64,10 +64,61 @@
             </div>
             
             <div class="checkout-right">
-                <label class="input-label">Email for receipt</label>
-                <input v-model="email" class="input" placeholder="" />
-                <div class="input-desc">Only used for sending receipt.</div>
-                <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
+                <div class="email-input-container">
+                    <label class="input-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <input 
+                            v-model="email" 
+                            class="input" 
+                            placeholder="Enter your email address" 
+                            @input="handleEmailInput"
+                            @blur="validateEmailField" 
+                        />
+                        <div v-if="isEmailConfirmed" class="email-success-icon">✓</div>
+                    </div>
+                    <div class="input-desc">
+                        <strong>⚠️ Please use a real email address!</strong>
+                    </div>
+                    
+                    <div class="email-tips">
+                        <div class="tips-header">
+                            <div class="tips-icon">💡</div>
+                            <span class="tips-title">Tips</span>
+                        </div>
+                        <div class="tips-content">
+                            <div class="tips-subtitle">This email will be used for:</div>
+                            <div class="tips-list">
+                                <div class="tip-item">
+                                    <div class="tip-icon">📧</div>
+                                    <span>Receiving activation emails</span>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">⚙️</div>
+                                    <span>Managing your subscription</span>
+                                </div>
+                                <div class="tip-item">
+                                    <div class="tip-icon">👤</div>
+                                    <span>Account registration <span class="tip-highlight">(highly recommended after purchase)</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
+                </div>
+                
+                <div v-if="showConfirmEmail && !isEmailConfirmed" class="email-confirm-container">
+                    <label class="input-label">Confirm Email Address</label>
+                    <input 
+                        v-model="confirmEmail" 
+                        class="input" 
+                        placeholder="Re-enter your email address" 
+                        @input="handleConfirmEmailInput"
+                        @blur="validateEmailMatch"
+                        @paste.prevent
+                    />
+                    <div class="input-desc">Please confirm your email address to ensure accuracy.</div>
+                    <div v-if="confirmEmailError" class="input-error-text">{{ confirmEmailError }}</div>
+                </div>
                 
                 <div class="pay-method-title">Payment Method</div>
                 <div class="pay-method-note">
@@ -111,13 +162,86 @@ const subscription = computed(() => store.selectedSubscription as SubscriptionPl
 const request = computed(() => store.data?.request as PurchaseRequest)
 
 const email = ref('')
+const confirmEmail = ref('')
 const loading = ref(false)
 const emailError = ref('')
+const confirmEmailError = ref('')
+const showConfirmEmail = ref(false)
+const isEmailConfirmed = ref(false)
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function validateEmailField() {
+  emailError.value = ''
+  if (!email.value.trim()) {
+    emailError.value = 'Email address is required'
+    return false
+  }
+  if (!validateEmail(email.value)) {
+    emailError.value = 'Please enter a valid email address'
+    return false
+  }
+  return true
+}
+
+function validateEmailMatch() {
+  confirmEmailError.value = ''
+  if (!confirmEmail.value.trim()) {
+    confirmEmailError.value = 'Please confirm your email address'
+    return false
+  }
+  if (email.value !== confirmEmail.value) {
+    confirmEmailError.value = 'Email addresses do not match'
+    return false
+  }
+  return true
+}
+
+function validateAllEmails() {
+  const isEmailValid = validateEmailField()
+  
+  // 如果邮箱已经确认，直接返回成功
+  if (isEmailConfirmed.value) {
+    return isEmailValid
+  }
+  
+  // 如果显示了确认输入框，需要验证匹配
+  if (showConfirmEmail.value) {
+    const isConfirmValid = validateEmailMatch()
+    return isEmailValid && isConfirmValid
+  }
+  
+  return isEmailValid
+}
+
+function handleEmailInput() {
+  emailError.value = ''
+  isEmailConfirmed.value = false
+  
+  // 如果邮箱不为空且格式正确，显示确认输入框
+  if (email.value.trim() && validateEmail(email.value)) {
+    showConfirmEmail.value = true
+  } else {
+    showConfirmEmail.value = false
+    confirmEmail.value = ''
+    confirmEmailError.value = ''
+  }
+}
+
+function handleConfirmEmailInput() {
+  confirmEmailError.value = ''
+  
+  // 检查两次输入是否一致
+  if (confirmEmail.value && email.value === confirmEmail.value) {
+    isEmailConfirmed.value = true
+    showConfirmEmail.value = false
+  } else {
+    isEmailConfirmed.value = false
+  }
 }
 
 // 获取计划类型
@@ -219,6 +343,11 @@ function loadPaddle() {
 }
 
 const handlePayment = async (isRetry = false) => {
+    // 验证邮箱
+    if (!validateAllEmails()) {
+        return
+    }
+    
     // 根据邮箱 + part_number 校验购买过的权益
     const checkPurchaseRequest: CheckPurchaseRequest = {
         email: email.value,
@@ -288,6 +417,7 @@ const handlePayment = async (isRetry = false) => {
 
 <style scoped>
 .checkout {
+    text-align: left;
     max-width: 900px;
     margin: 0 auto;
     padding: 32px 16px 0 16px;
@@ -384,6 +514,162 @@ const handlePayment = async (isRetry = false) => {
     color: #6b7280;
     font-size: 0.98rem;
     margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.email-tips {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tips-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tips-icon {
+    font-size: 1.1rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+.tips-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #1e293b;
+    letter-spacing: 0.025em;
+}
+
+.tips-content {
+    color: #475569;
+}
+
+.tips-subtitle {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 10px;
+}
+
+.tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    color: #475569;
+    padding: 4px 0;
+}
+
+.tip-item .tip-icon {
+    font-size: 1rem;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+    box-shadow: none;
+}
+
+.tip-highlight {
+    color: #3b82f6;
+    font-weight: 600;
+    background: rgba(59, 130, 246, 0.1);
+    padding: 2px 6px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.input-desc strong {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+.highlight-text {
+    color: #2563eb;
+    font-weight: 700;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.email-input-container {
+    margin-bottom: 20px;
+}
+
+.email-confirm-container {
+    margin-bottom: 20px;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.email-success-icon {
+    position: absolute;
+    right: 12px;
+    color: #10b981;
+    font-size: 1.2rem;
+    font-weight: bold;
+    background: #ecfdf5;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #10b981;
+    animation: checkmark 0.3s ease-out;
+}
+
+@keyframes checkmark {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .input-error-text {

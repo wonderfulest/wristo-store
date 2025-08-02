@@ -62,6 +62,9 @@ interface Props {
   variant?: 'default' | 'minimal';
   productCount?: number;
   totalValue?: number;
+  plan?: {
+    durationDays: number;
+  } | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -72,7 +75,8 @@ const props = withDefaults(defineProps<Props>(), {
   showNote: true,
   variant: 'default',
   productCount: 0,
-  totalValue: 0
+  totalValue: 0,
+  plan: null
 });
 
 const userStore = useUserStore();
@@ -108,14 +112,33 @@ const handleSubscribe = () => {
   // Emit event to parent to show checkout modal
   emit('show-checkout');};
 
-// Features list
-const features = [
-  'Access to 2000+ premium watch faces',
-  'Get all future watch faces automatically',
-  'Ad-free experience',
-  'Early access to new features',
-  'Priority customer support'
-];
+// Features list - computed based on plan
+const features = computed(() => {
+  const durationDays = props.plan?.durationDays;
+  
+  const baseFeatures = [
+    durationDays === -1 
+      ? 'Full access to all watch faces forever'
+      : durationDays && durationDays >= 365
+        ? 'Full access to all watch faces for 1 year'
+        : 'Full access to all watch faces for 1 month',
+    durationDays === -1 
+      ? 'Get all future watch faces automatically' 
+      : 'Get new watch faces monthly',
+    'Ad-free experience'
+  ];
+  
+  if (durationDays === -1) {
+    baseFeatures.push('Early access to new features');
+    baseFeatures.push('Priority customer support');
+  } else if (durationDays && durationDays >= 365) {
+    baseFeatures.push('Standard customer support');
+  } else {
+    baseFeatures.push('Basic customer support');
+  }
+  
+  return baseFeatures;
+});
 </script>
 
 <style scoped>

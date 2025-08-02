@@ -214,6 +214,7 @@ onMounted(() => {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  margin-top: 1rem;
 }
 
 .option-card:hover {

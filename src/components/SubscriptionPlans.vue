@@ -47,11 +47,10 @@
         
         <div class="plan-benefits">
           <ul>
-            <li v-if="plan.durationDays === -1">
-              <span class="check-icon">✓</span> Access to 2000+ premium watch faces
-            </li>
-            <li v-else>
-              <span class="check-icon">✓</span> Access to 2000+ premium watch faces
+            <li>
+              <span class="check-icon">✓</span> 
+              {{ plan.durationDays === -1 ? 'Full access to all watch faces forever' : 
+                 (plan.durationDays >= 365 ? 'Full access to all watch faces for 1 year' : 'Full access to all watch faces for 1 month') }}
             </li>
             <li>
               <span class="check-icon">✓</span> 
@@ -74,6 +73,7 @@
         <button 
           :class="['subscription-btn', getPlanButtonClass(plan)]"
           @click.stop="handleSubscribe(plan)"
+          :disabled="hasCurrentSubscription"
         >
           {{ plan.durationDays === -1 ? 'Get Lifetime Access' : 'Subscribe Now' }}
         </button>

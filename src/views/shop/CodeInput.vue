@@ -26,7 +26,7 @@
             placeholder="000000" 
             class="code-input" 
             required 
-            @input="clearError"
+            @input="clearMessages"
           />
           <div class="input-desc">
             The code shown on your smartwatch
@@ -43,6 +43,11 @@
           <div class="message-text">{{ error }}</div>
         </div>
         
+        <div v-if="success" class="message success-message">
+          <div class="message-icon">✅</div>
+          <div class="message-text">{{ success }}</div>
+        </div>
+        
         <div class="button-group">
           <button type="button" class="btn outline" @click="handleAlreadyPurchased">Already Purchased</button>
           <button type="submit" class="btn" :disabled="loading">{{ loading ? 'Loading...' : 'Continue' }}</button>
@@ -53,19 +58,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { purchaseByCode } from '@/api/pay'
+import { purchaseByCode, checkPurchaseByToken } from '@/api/pay'
 import { useShopOptionsStore } from '@/store/shopOptions'
+import { useUserStore } from '@/store/user'
 import Logo from '@/components/Logo.vue'
 import { ElMessage } from 'element-plus'
 import type { PurchaseData } from '@/types/purchase'
+import type { CheckPurchaseResponse } from '@/types/purchase-check'
 
 const code = ref('')
 const error = ref('')
+const success = ref('')
 const loading = ref(false)
 const router = useRouter()
 const store = useShopOptionsStore()
+const userStore = useUserStore()
+
+// 检查用户是否已登录
+const isLoggedIn = computed(() => !!userStore.userInfo)
+
+// 处理自动解锁逻辑
+const handleAutoUnlock = (purchaseResult: CheckPurchaseResponse) => {
+  if (purchaseResult.subscription) {
+    // 通过订阅计划激活
+    const subscriptionName = purchaseResult.subscription.name || 'Subscription Plan'
+    success.value = `Your purchase has been successfully activated through ${subscriptionName}!`
+  } else if (purchaseResult.purchase) {
+    // 通过产品购买激活
+    success.value = 'Your purchase has been successfully activated through product purchase!'
+  } else {
+    // 默认激活成功消息
+    success.value = 'Your purchase has been successfully activated!'
+  }
+}
 
 const handleContinue = async () => {
   if (code.value.length !== 6) {
@@ -73,11 +100,28 @@ const handleContinue = async () => {
     return
   }
   error.value = ''
+  success.value = ''
   loading.value = true
+  
   try {
+    // 如果用户已登录，先检查购买状态
+    if (isLoggedIn.value) {
+      try {
+        const purchaseResult: CheckPurchaseResponse = await checkPurchaseByToken(code.value)
+        if (purchaseResult && purchaseResult.isPurchase) {
+          // 已购买，自动解锁
+          handleAutoUnlock(purchaseResult)
+          return
+        }
+      } catch (purchaseCheckError) {
+        // 购买检查失败，继续正常流程
+        console.log('Purchase check failed, continuing with normal flow:', purchaseCheckError)
+      }
+    }
+    
+    // 正常流程：获取产品信息并跳转到购买页面
     const purchaseData: PurchaseData = await purchaseByCode(code.value)
     store.setData(purchaseData)
-    // 跳转到购买选项页面
     router.push({ name: 'PurchaseOptions' })
   } catch (e: unknown) {
     if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
@@ -90,9 +134,12 @@ const handleContinue = async () => {
   }
 }
 
-const clearError = () => {
+const clearMessages = () => {
   if (error.value) {
     error.value = ''
+  }
+  if (success.value) {
+    success.value = ''
   }
 }
 
@@ -321,6 +368,12 @@ const handleLearnMore = () => {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border: 1px solid #fecaca;
   color: #dc2626;
+}
+
+.success-message {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
 }
 
 @media (max-width: 480px) {

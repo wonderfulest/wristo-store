@@ -67,11 +67,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { activatePurchase } from '@/api/pay'
 import { ElMessage } from 'element-plus'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
+import { useUserStore } from '@/store/user'
 
+const userStore = useUserStore()
 const email = ref('')
 const activationCode = ref('')
 const loading = ref(false)
@@ -87,6 +89,13 @@ function clearMessages() {
   error.value = ''
   success.value = false
 }
+
+// 如果用户已登录，自动填入用户邮箱
+onMounted(() => {
+  if (userStore.userInfo && userStore.userInfo.email) {
+    email.value = userStore.userInfo.email
+  }
+})
 
 async function handleActivation() {
   error.value = ''

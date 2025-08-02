@@ -231,9 +231,8 @@ const handleCancelSubscription = async () => {
 
 <style scoped>
 .subscription-cancel {
-  min-height: 100vh;
+  height: 100%;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  padding: 1.5rem 0;
   display: flex;
   align-items: center;
 }
