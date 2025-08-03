@@ -22,7 +22,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
 import { getProductsByCategory } from '@/api/product'
-import type { ApiResponse, PageResult, ProductBaseVO, Series } from '@/types'
+import type { PageResult, ProductBaseVO, Series } from '@/types'
 import ProductCard from '@/components/ProductCard.vue'
 
 const route = useRoute()
@@ -38,10 +38,8 @@ const fetchSeriesAndProducts = async () => {
   series.value = allSeries.find((s: Series) => s.slug === slug) || null
   // 获取该系列下的商品
   if (series.value) {
-    const response: ApiResponse<PageResult<ProductBaseVO>> = await getProductsByCategory(slug)
-    if (response.code === 0) {
-      products.value = response.data?.list || []
-    }
+    const response: PageResult<ProductBaseVO> = await getProductsByCategory(slug)
+    products.value = response.list || []
   } else {
     products.value = []
   }

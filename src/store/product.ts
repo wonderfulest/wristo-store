@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { searchProducts, getNewProducts, getSeries, 
   getHotProducts, getProductDetail, getRelatedProducts, getHotSeries, 
 } from '@/api/product'
-import type { ApiResponse, ProductBaseVO, ProductVO, Series } from '@/types'
+import type { ProductBaseVO, ProductVO, Series } from '@/types'
 
 interface State {
   loading: boolean

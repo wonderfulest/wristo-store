@@ -122,24 +122,6 @@ const isSubscribed = computed(() => {
   return endTime > now
 })
 
-// Get subscription plan name for display
-const subscriptionPlanName = computed(() => {
-  return userStore.userInfo?.subscription?.name || 'Premium'
-})
-
-// Get remaining days
-const remainingDays = computed(() => {
-  if (!userStore.userInfo?.subscription) return 0
-  
-  const subscription = userStore.userInfo.subscription
-  const now = new Date()
-  const endTime = new Date(subscription.endTime)
-  const diffTime = endTime.getTime() - now.getTime()
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  
-  return Math.max(0, diffDays)
-})
-
 const handleUserMenuCommand = (command: string) => {
   switch (command) {
     case 'info':

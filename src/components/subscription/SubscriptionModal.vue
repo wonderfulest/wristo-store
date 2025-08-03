@@ -24,7 +24,7 @@
       
       <div class="features-grid">
         <div v-for="(feature, index) in features" :key="index" class="feature-item">
-          <el-icon class="feature-icon"><component :is="feature.icon" /></el-icon>
+          <div class="feature-icon">{{ feature.icon }}</div>
           <div class="feature-text">
             <h4 class="feature-title">{{ feature.title }}</h4>
             <p class="feature-description">{{ feature.description }}</p>
@@ -59,8 +59,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Close, Lock, Check, Star, Download, Zap, Clock, Shield } from 'lucide-vue-next';
-import { useDisplay } from 'vuetify';
+import { Close, Lock } from '@element-plus/icons-vue';
 import SubscriptionCard from './SubscriptionCard.vue';
 import SubscriptionCheckoutModal from './SubscriptionCheckoutModal.vue';
 
@@ -77,7 +76,6 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'success', 'cancel']);
 
-const { mobile } = useDisplay();
 const isMobile = ref(false);
 const showCheckoutModal = ref(false);
 const isAnimating = ref(false);
@@ -85,22 +83,22 @@ const isAnimating = ref(false);
 // Features list for the modal
 const features = [
   {
-    icon: 'Check',
+    icon: '✓',
     title: 'All Watch Faces',
     description: 'Unlock access to our entire library of premium watch faces.'
   },
   {
-    icon: 'Download',
+    icon: '⬇',
     title: 'Instant Access',
     description: 'Download and use your new watch faces immediately.'
   },
   {
-    icon: 'Zap',
+    icon: '⚡',
     title: 'Future Updates',
     description: 'Get all new watch faces and updates at no extra cost.'
   },
   {
-    icon: 'Shield',
+    icon: '🛡',
     title: 'Secure Payment',
     description: 'Your payment information is always protected.'
   }

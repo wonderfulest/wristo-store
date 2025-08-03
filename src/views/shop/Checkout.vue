@@ -75,7 +75,7 @@ import { ref, onBeforeMount, onMounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest, ApiResponse } from '@/types'
+import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest } from '@/types'
 import { checkPurchase, purchaseCallback } from '@/api/pay'
 import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest } from '@/types/purchase-check'
 
@@ -137,25 +137,21 @@ function loadPaddle() {
                         
                         try {
                             // 同步到后端
-                            const callbackResponse = await purchaseCallback(orderData)
+                            await purchaseCallback(orderData)
+                         
+                            // Save order info to store
+                            store.setOrder({
+                                referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
+                                productName: isBundle.value ? (product.value as Bundle).bundleName : (product.value as ProductBaseVO).name,
+                                amount: product.value?.price || 0,
+                                paymentSource: 'paddle',
+                                paddleOrder: eventData.data
+                            })
                             
-                            if (callbackResponse.code !== 0) {
-                                ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Warning')
-                            } else {
-                                // Save order info to store
-                                store.setOrder({
-                                    referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
-                                    productName: isBundle.value ? (product.value as Bundle).bundleName : (product.value as ProductBaseVO).name,
-                                    amount: product.value?.price || 0,
-                                    paymentSource: 'paddle',
-                                    paddleOrder: eventData.data
-                                })
-                                
-                                // Force redirect to success page, override Paddle default
-                                setTimeout(() => {
-                                    window.location.href = '/payment/success'
-                                }, 1000)
-                            }
+                            // Force redirect to success page, override Paddle default
+                            setTimeout(() => {
+                                window.location.href = '/payment/success'
+                            }, 1000)
                         } catch (error) {
                             ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Error')
                         }
