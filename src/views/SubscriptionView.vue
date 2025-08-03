@@ -105,20 +105,19 @@
     </div>
     
     <!-- Checkout Modal -->
-    <SubscriptionCheckoutModal 
+    <!-- <SubscriptionCheckoutModal 
       v-model="showCheckoutModal"
       :is-mobile="isMobile"
       :selected-plan="selectedPlan"
       @success="handleSubscriptionSuccess"
       @cancel="handleSubscriptionCancel"
-    />
+    /> -->
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { ElCollapse, ElCollapseItem, ElMessage } from 'element-plus';
+import { ElCollapse, ElCollapseItem, ElMessage, ElMessageBox } from 'element-plus';
 import { 
   Timer,
   Download,
@@ -130,20 +129,21 @@ import {
 } from '@element-plus/icons-vue';
 
 // Components
-import SubscriptionCheckoutModal from '@/components/subscription/SubscriptionCheckoutModal.vue';
+// import SubscriptionCheckoutModal from '@/components/subscription/SubscriptionCheckoutModal.vue';
 import SubscriptionPlans from '@/components/SubscriptionPlans.vue';
 
 // API
 import type { SubscriptionPlan } from '@/api/subscription';
 import { getSubscriptionDetails } from '@/api/subscription';
 import { useUserStore } from '@/store/user';
+import { useShopOptionsStore } from '@/store/shopOptions';
+const store = useShopOptionsStore()
+import router from '@/router';
 
-const route = useRoute();
-const router = useRouter();
 const userStore = useUserStore();
 
 // State
-const showCheckoutModal = ref(false);
+// const showCheckoutModal = ref(false);
 const activeFaqs = ref(['0']);
 const isMobile = ref(window.innerWidth < 768);
 const selectedPlan = ref<SubscriptionPlan | null>(null);
@@ -215,9 +215,6 @@ const formatDate = (dateString?: string): string => {
 };
 
 
-
-
-
 // 加载订阅详情
 const loadSubscriptionDetails = async () => {
   try {
@@ -242,9 +239,9 @@ onMounted(() => {
   window.addEventListener('resize', checkIfMobile);
   
   // Check for subscription parameter in URL
-  if (route.query.subscribe === 'true') {
-    showCheckoutModal.value = true;
-  }
+  // if (route.query.subscribe === 'true') {
+    // showCheckoutModal.value = true;
+  // }
 });
 
 onUnmounted(() => {
@@ -315,24 +312,29 @@ const handlePlanSelected = (plan: SubscriptionPlan) => {
 };
 
 // Handle subscribe button click
-const handleSubscribe = (plan?: SubscriptionPlan) => {
+const handleSubscribe = async (plan?: SubscriptionPlan) => {
   if (plan) {
     selectedPlan.value = plan;
+    
+    // 显示设备绑定提示
+    try {
+      await ElMessageBox.confirm(
+        'To complete your subscription, you will need to bind your device using the 6-digit code displayed on your smartwatch after installing a clockface or app.',
+        'Device Binding Required',
+        {
+          confirmButtonText: 'Continue',
+          cancelButtonText: 'Cancel',
+          type: 'info',
+          customClass: 'device-binding-dialog'
+        }
+      );
+      // 用户确认后继续
+      store.setSelectedSubscription(plan);
+      router.push({ name: 'CodeInput' });
+    } catch {
+      // 用户取消，不执行任何操作
+    }
   }
-  showCheckoutModal.value = true;
-};
-
-// Handle successful subscription
-const handleSubscriptionSuccess = () => {
-  showCheckoutModal.value = false;
-  // Redirect to success page or show success message
-  router.push({ name: 'subscription-success' });
-};
-
-// Handle subscription cancellation
-const handleSubscriptionCancel = () => {
-  showCheckoutModal.value = false;
-  // Any cleanup or additional logic can go here
 };
 
 // Handle renew subscription
@@ -351,7 +353,6 @@ const handleRenewSubscription = async () => {
     ElMessage.error('Failed to renew subscription. Please try again.');
   }
 };
-
 
 </script>
 

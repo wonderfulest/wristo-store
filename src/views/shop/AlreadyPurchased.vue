@@ -133,7 +133,7 @@ async function handleActivation() {
         ElMessage.success('Purchase activated successfully!')
       }
     } else {
-      error.value = 'Failed to activate purchase. Please check your email and code. If you have already activated, please go to the home page.'
+      error.value = 'Failed to activate purchase. No purchase record found for the provided email.';
     }
   } catch (e: any) {
     if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {

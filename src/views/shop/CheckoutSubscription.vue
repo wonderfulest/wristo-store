@@ -351,8 +351,8 @@ const handlePayment = async (isRetry = false) => {
     // 根据邮箱 + part_number 校验购买过的权益
     const checkPurchaseRequest: CheckPurchaseRequest = {
         email: email.value,
-        appId: request.value.appid,
-        accountToken: request.value.accounttoken,
+        appId: request?.value?.appid,
+        accountToken: request?.value?.accounttoken,
         isSubscription: true,
     }
     const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
