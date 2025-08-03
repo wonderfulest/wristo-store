@@ -37,7 +37,7 @@
       <div class="box-container subscription-box">
         <div class="box-header">
           <h3 class="box-title">Subscription Plans</h3>
-          <p class="lifetime-benefits">🔓 Permanently unlock the product on the left</p>
+          <p class="lifetime-benefits">🔓 <strong>Subscribe to unlock ALL products & Permanently unlock the Single: {{ product.name }}!</strong></p>
         </div>
         <SubscriptionPlans
           :show-title="false"
@@ -188,6 +188,15 @@ onMounted(() => {
   margin: 0;
   font-weight: 400;
   line-height: 1.4;
+}
+
+.lifetime-benefits strong {
+  color: #007aff;
+  font-weight: 600;
+  background: linear-gradient(135deg, #e8f4fd 0%, #dbeafe 100%);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
 }
 
 .product-box {
