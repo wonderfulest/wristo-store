@@ -7,8 +7,10 @@
     <div class="cards-container">
       <!-- 单品盒子 -->
       <div class="box-container product-box">
-        <h3 class="box-title">Single Product</h3>
-        
+        <div class="box-header">
+          <h3 class="box-title">Single Product</h3>
+          <p class="lifetime-benefits">🔒 Lifetime access to this item only</p>
+        </div>
         <div v-if="product" :class="['option-card', { active: isProductSelected }]" @click="selectProduct">
           <div class="card-header">
             <h3 class="card-title">{{ product.name }}</h3>
@@ -22,7 +24,6 @@
           </div>
           
           <div class="product-info">
-            <div class="product-id">ID: {{ product.designId }}</div>
             <div class="product-desc">{{ product.description }}</div>
           </div>
           
@@ -34,8 +35,11 @@
       
       <!-- 订阅盒子 -->
       <div class="box-container subscription-box">
-        <h3 class="box-title">Subscription Plans</h3>
-        <SubscriptionPlans 
+        <div class="box-header">
+          <h3 class="box-title">Subscription Plans</h3>
+          <p class="lifetime-benefits">🔓 Permanently unlock the product on the left</p>
+        </div>
+        <SubscriptionPlans
           :show-title="false"
           @plan-selected="selectSubscriptionPlan"
           @subscribe="handleBuySubscription"
@@ -166,12 +170,24 @@ onMounted(() => {
   padding: 0 30px 0 30px;
 }
 
+.box-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
 .box-title {
   font-size: 1.5rem;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   color: #1d1d1f;
-  text-align: center;
   font-weight: 600;
+}
+
+.lifetime-benefits {
+  font-size: 0.9rem;
+  color: #86868b;
+  margin: 0;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .product-box {

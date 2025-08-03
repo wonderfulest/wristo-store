@@ -56,6 +56,7 @@
               <span class="check-icon">✓</span> 
               {{ plan.durationDays === -1 ? 'Get all future watch faces automatically' : 'Get new watch faces monthly' }}
             </li>
+          
             <li>
               <span class="check-icon">✓</span> Ad-free experience
             </li>
@@ -194,6 +195,7 @@ onMounted(() => {
 <style scoped>
 .subscription-plans-component {
   width: 100%;
+  text-align: left;
 }
 
 .plans-title {
@@ -277,7 +279,6 @@ onMounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  height: 100%;
 }
 
 .subscription-card:hover {
