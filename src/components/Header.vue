@@ -23,7 +23,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <router-link to="/subscription" class="nav-link">Premium</router-link>
+        <!-- <router-link to="/subscription" class="nav-link">Premium</router-link> -->
         <router-link to="/faq" class="nav-link">FAQ</router-link>
         <router-link to="/code" class="nav-link">Code</router-link>
       </nav>
@@ -51,10 +51,10 @@
                   <el-icon><User /></el-icon>
                   <span>User Info</span>
                 </el-dropdown-item>
-                <el-dropdown-item command="subscription">
+                <!-- <el-dropdown-item command="subscription">
                   <el-icon><Star /></el-icon>
                   <span>Subscription</span>
-                </el-dropdown-item>
+                </el-dropdown-item> -->
                 <el-dropdown-item command="purchase-records">
                   <el-icon><Document /></el-icon>
                   <span>Purchase Records</span>
@@ -86,7 +86,7 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useProductStore } from '@/store/product';
 import { useRouter } from 'vue-router';
-import { ArrowDown, User, Document, SwitchButton, Star } from '@element-plus/icons-vue';
+import { ArrowDown, User, Document, SwitchButton } from '@element-plus/icons-vue';
 import type { Series } from '@/types/product';
 import { useUserStore } from '@/store/user';
 

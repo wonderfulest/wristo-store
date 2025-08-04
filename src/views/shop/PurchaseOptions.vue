@@ -9,7 +9,7 @@
       <div class="box-container product-box">
         <div class="box-header">
           <h3 class="box-title">Single Product</h3>
-          <p class="lifetime-benefits">🔒 Lifetime access to this item only</p>
+          <p class="lifetime-benefits">🔒 Lifetime access</p>
         </div>
         <div v-if="product" :class="['option-card', { active: isProductSelected }]" @click="selectProduct">
           <div class="card-header">
@@ -34,7 +34,7 @@
       </div>
       
       <!-- 订阅盒子 -->
-      <div class="box-container subscription-box">
+      <!-- <div class="box-container subscription-box">
         <div class="box-header">
           <h3 class="box-title">Subscription Plans</h3>
           <p class="lifetime-benefits">🔓 <strong>Subscribe to unlock ALL products & Permanently unlock the Single: {{ product.name }}!</strong></p>
@@ -44,7 +44,7 @@
           @plan-selected="selectSubscriptionPlan"
           @subscribe="handleBuySubscription"
         />
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
@@ -56,7 +56,7 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 // import Logo from '@/components/Logo.vue'
 import type { PurchaseData, ProductVO } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
-import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
+// import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 
 const router = useRouter()
 const store = useShopOptionsStore()
@@ -98,23 +98,23 @@ const handleBuyProduct = () => {
   }
 }
 
-// 处理订阅计划购买
-const handleBuySubscription = (plan: SubscriptionPlan) => {
-  if (plan) {
-    console.log('selectedPlan.value', plan)
-    selectedPlan.value = plan
-    setTimeout(() => {
-      // 设置选中的订阅计划
-      store.setSelectedSubscription(plan);
-      router.push({ name: 'CheckoutSubscription' });
-    }, 200);
-  }
-};
+// // 处理订阅计划购买
+// const handleBuySubscription = (plan: SubscriptionPlan) => {
+//   if (plan) {
+//     console.log('selectedPlan.value', plan)
+//     selectedPlan.value = plan
+//     setTimeout(() => {
+//       // 设置选中的订阅计划
+//       store.setSelectedSubscription(plan);
+//       router.push({ name: 'CheckoutSubscription' });
+//     }, 200);
+//   }
+// };
 
-// 处理订阅计划选择
-const selectSubscriptionPlan = (plan: SubscriptionPlan) => {
-  selectedPlan.value = plan;
-};
+// // 处理订阅计划选择
+// const selectSubscriptionPlan = (plan: SubscriptionPlan) => {
+//   selectedPlan.value = plan;
+// };
 
 onMounted(() => {
   // 检查是否有数据
@@ -210,7 +210,7 @@ onMounted(() => {
 }
 
 /* 分割线 */
-.product-box::after {
+/* .product-box::after {
   content: '';
   position: absolute;
   right: 0;
@@ -219,7 +219,7 @@ onMounted(() => {
   width: 1px;
   background-color: #e5e5e5;
   margin-right: -0.5px;
-}
+} */
 
 .subscription-cards-container {
   display: flex;
