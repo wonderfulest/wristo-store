@@ -140,7 +140,6 @@ watch(() => userInfo, (val) => {
 .profile-gradient-bg {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #a259c9 0%, #6a82fb 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -203,7 +202,6 @@ watch(() => userInfo, (val) => {
 .profile-nickname {
   font-size: 2.6rem;
   font-weight: 700;
-  color: #fff;
   letter-spacing: 0.01em;
 }
 .profile-edit-btn {

@@ -6,6 +6,11 @@ export interface HeroFile {
   provider: string
 }
 
+export interface PaymentVO {
+  paddleProductId: string
+  paddlePriceId: string
+}
+
 export interface ProductBaseVO {
   appId: number
   name: string
@@ -20,8 +25,6 @@ export interface ProductVO {
   appId: number
   designId: string
   userId: number
-  paddleProductId: string
-  paddlePriceId: string
   name: string
   description: string
   price: number
@@ -39,6 +42,14 @@ export interface ProductVO {
   backgroundFile: string | null
   categories: any
   packageStatus: number
+  payment: PaymentVO
+}
+
+export interface UserBaseVO {
+  id: number
+  username: string
+  nickname?: string
+  avatar?: string
 }
 
 export interface Bundle {
@@ -53,6 +64,7 @@ export interface Bundle {
   createdAt: string
   updatedAt: string
   products: ProductBaseVO[]
+  user?: UserBaseVO
 }
 
 export interface BundleItem {

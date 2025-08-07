@@ -21,6 +21,11 @@ const routes: RouteRecordRaw[] = [
     name: 'product-detail',
     component: () => import('@/views/ProductDetail.vue')
   },
+  {
+    path: '/bundle/:id',
+    name: 'bundle-detail',
+    component: () => import('@/views/BundleDetail.vue')
+  },
   { 
     path: '/code', 
     name: 'CodeInput', 
@@ -85,6 +90,11 @@ const routes: RouteRecordRaw[] = [
     path: '/already-purchased',
     name: 'AlreadyPurchased',
     component: () => import('@/views/shop/AlreadyPurchased.vue')
+  },
+  {
+    path: '/purchases-history',
+    name: 'PurchasesHistory',
+    component: () => import('@/views/PurchasesHistory.vue')
   },
   {
     path: '/terms-and-conditions',

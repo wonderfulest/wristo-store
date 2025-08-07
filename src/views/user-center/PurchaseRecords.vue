@@ -1,102 +1,206 @@
 <template>
   <div class="purchase-records-page">
-    <h2>Purchase Records</h2>
-    <div class="records-container">
-      <el-table
-        v-if="records.length"
-        :data="records"
-        class="modern-table"
-        header-cell-class-name="table-header"
-        cell-class-name="table-cell"
-        :row-class-name="tableRowClass"
-        :border="false"
-        :stripe="false"
-      >
-        <el-table-column prop="createdAt" label="Date" width="160" align="center">
-          <template #default="scope">
-            <div class="date-cell">
-              <div class="date-main">{{ formatDate(scope.row.createdAt) }}</div>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="product.garminImageUrl" label="Image" width="70" align="center">
-          <template #default="scope">
-            <img :src="scope.row.product.garminImageUrl" alt="product" class="product-img" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="product.name" label="Product Name" min-width="140" align="left">
-          <template #default="scope">
-            <span class="product-name">{{ scope.row.product.name }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="App Store" width="130" align="center">
-          <template #default="scope">
-            <a 
-              v-if="scope.row.product.garminStoreUrl" 
-              :href="scope.row.product.garminStoreUrl" 
-              target="_blank" 
-              class="link-btn garmin-link"
-            >
-              <el-icon><Link /></el-icon>
-              App Store
-            </a>
-          </template>
-        </el-table-column>
-        <el-table-column label="Website" width="110" align="center">
-          <template #default="scope">
-            <a 
-              v-if="scope.row.product.designId" 
-              :href="`https://wristo.io/product/${scope.row.product.appId}`" 
-              target="_blank" 
-              class="link-btn site-link"
-            >
-              <el-icon><Link /></el-icon>
-              Website
-            </a>
-          </template>
-        </el-table-column>
-        <el-table-column prop="total" label="Amount" width="120" align="right">
-          <template #default="scope">
-            <div class="amount-cell">
-              <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
-              <span class="amount-currency">{{ scope.row.currencyCode }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="statusDesc" label="Status" width="120" align="center">
-          <template #default="scope">
-            <div :class="['status-badge', getStatusClass(scope.row.status)]">
-              {{ scope.row.statusDesc }}
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="transactionId" label="Transaction" min-width="200" align="left">
-          <template #default="scope">
-            <div class="transaction-cell">
-              <div class="transaction-id">{{ scope.row.transactionId }}</div>
-              <div class="transaction-meta">
-                <span class="payment-method">{{ scope.row.paymentMethod }}</span>
-                <span class="country-code">{{ scope.row.countryCode }}</span>
-              </div>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-empty v-else description="No purchase records found." class="empty-state">
+    <h2>Purchases</h2>
+    
+    <div v-if="records.length > 0">
+      <!-- Bundle 购买记录 -->
+      <div v-if="bundleRecords.length > 0" class="records-section">
+        <h3 class="section-title">Bundle Purchases</h3>
+        <div class="records-container">
+          <el-table
+            :data="bundleRecords"
+            class="modern-table"
+            header-cell-class-name="table-header"
+            cell-class-name="table-cell"
+            :row-class-name="tableRowClass"
+            :border="false"
+            :stripe="false"
+          >
+            <el-table-column prop="createdAt" label="Date" width="200" align="center">
+              <template #default="scope">
+                <div class="date-cell">
+                  <div class="date-main">{{ formatDate(scope.row.createdAt) }}</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="bundle.bundleName" label="Bundle Name" min-width="100" align="left">
+              <template #default="scope">
+                <span class="product-name">{{ scope.row.bundle?.bundleName || 'Bundle' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="Website" width="360" align="center">
+              <template #default="scope">
+                <a 
+                  v-if="scope.row.bundle?.bundleId" 
+                  :href="`https://wristo.io/bundle/${scope.row.bundle.bundleId}`" 
+                  target="_blank" 
+                  class="link-btn site-link"
+                >
+                  <el-icon><Link /></el-icon>
+                  Show
+                </a>
+              </template>
+            </el-table-column>
+            <el-table-column prop="total" label="Amount" width="120" align="right">
+              <template #default="scope">
+                <div class="amount-cell">
+                  <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
+                  <span class="amount-currency">{{ scope.row.currencyCode }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="statusDesc" label="Status" width="120" align="center">
+              <template #default="scope">
+                <div :class="['status-badge', getStatusClass(scope.row.status)]">
+                  {{ scope.row.statusDesc }}
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="transactionId" label="Transaction" min-width="200" align="left">
+              <template #default="scope">
+                <div class="transaction-cell">
+                  <div class="transaction-id">{{ scope.row.transactionId }}</div>
+                  <div class="transaction-meta">
+                    <span class="payment-method">{{ scope.row.paymentMethod }}</span>
+                    <span class="country-code">{{ scope.row.countryCode }}</span>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+
+      <!-- Product 购买记录 -->
+      <div v-if="productRecords.length > 0" class="records-section">
+        <h3 class="section-title">Product Purchases</h3>
+        <div class="records-container">
+          <el-table
+            :data="productRecords"
+            class="modern-table"
+            header-cell-class-name="table-header"
+            cell-class-name="table-cell"
+            :row-class-name="tableRowClass"
+            :border="false"
+            :stripe="false"
+          >
+            <el-table-column prop="createdAt" label="Date" width="200" align="center">
+              <template #default="scope">
+                <div class="date-cell">
+                  <div class="date-main">{{ formatDate(scope.row.createdAt) }}</div>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="product.garminImageUrl" label="Image" width="70" align="center">
+              <template #default="scope">
+                <img :src="scope.row.product?.garminImageUrl" alt="product" class="product-img" />
+              </template>
+            </el-table-column>
+            <el-table-column prop="product.name" label="Product Name" min-width="140" align="left">
+              <template #default="scope">
+                <span class="product-name">{{ scope.row.product?.name || 'Product' }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="App Store" width="130" align="center">
+              <template #default="scope">
+                <a 
+                  v-if="scope.row.product?.garminStoreUrl" 
+                  :href="scope.row.product.garminStoreUrl" 
+                  target="_blank" 
+                  class="link-btn garmin-link"
+                >
+                  <el-icon><Link /></el-icon>
+                  App Store
+                </a>
+              </template>
+            </el-table-column>
+            <el-table-column label="Website" width="110" align="center">
+              <template #default="scope">
+                <a 
+                  v-if="scope.row.product?.designId" 
+                  :href="`https://wristo.io/product/${scope.row.product.appId}`" 
+                  target="_blank" 
+                  class="link-btn site-link"
+                >
+                  <el-icon><Link /></el-icon>
+                  Website
+                </a>
+              </template>
+            </el-table-column>
+            <el-table-column prop="total" label="Amount" width="120" align="right">
+              <template #default="scope">
+                <div class="amount-cell">
+                  <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
+                  <span class="amount-currency">{{ scope.row.currencyCode }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="statusDesc" label="Status" width="120" align="center">
+              <template #default="scope">
+                <div :class="['status-badge', getStatusClass(scope.row.status)]">
+                  {{ scope.row.statusDesc }}
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column prop="transactionId" label="Transaction" min-width="200" align="left">
+              <template #default="scope">
+                <div class="transaction-cell">
+                  <div class="transaction-id">{{ scope.row.transactionId }}</div>
+                  <div class="transaction-meta">
+                    <span class="payment-method">{{ scope.row.paymentMethod }}</span>
+                    <span class="country-code">{{ scope.row.countryCode }}</span>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 空状态 -->
+    <div v-else class="empty-state-container">
+      <el-empty description="No purchase records found." class="empty-state">
         <el-icon class="empty-icon"><Document /></el-icon>
       </el-empty>
+    </div>
+    
+    <!-- 提示信息 -->
+    <div class="action-box">
+      <strong>Tip:</strong> We recommend you 
+      <a href="https://sso.wristo.io/login?client=store&redirect_uri=https%3A%2F%2Fwristo.io%2Fauth%2Fcallback" 
+         target="_blank" 
+         class="tip-link">
+        create an account
+      </a> 
+      to easily access your subscription and purchase records anytime.
+    </div>
+    
+    <!-- 页脚 -->
+    <div class="footer">
+      If you have any questions, please contact 
+      <a href="mailto:support@wristo.io" class="contact-link">support@wristo.io</a>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { getPurchaseRecords } from '@/api/pay'
 import type { PurchaseRecord } from '@/types'
 import { ElMessage } from 'element-plus'
 import { Link, Document } from '@element-plus/icons-vue'
 
 const records = ref<PurchaseRecord[]>([])
+
+// 分离Bundle和Product记录
+const bundleRecords = computed(() => {
+  return records.value.filter(record => record.isBundle)
+})
+
+const productRecords = computed(() => {
+  return records.value.filter(record => !record.isBundle)
+})
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr)
@@ -129,6 +233,10 @@ onMounted(async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 32px 16px;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  color: #222;
+  background: #f6f8fa;
+  min-height: 100vh;
 }
 
 h2 {
@@ -137,6 +245,17 @@ h2 {
   margin-bottom: 32px;
   color: #1a202c;
   text-align: center;
+}
+
+.records-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 24px 0 16px 0;
+  color: #374151;
 }
 
 .records-container {
@@ -289,6 +408,13 @@ h2 {
   border-radius: 4px;
   font-weight: 500;
 }
+.empty-state-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
 .empty-state {
   padding: 64px 32px;
 }
@@ -296,6 +422,41 @@ h2 {
   font-size: 4rem;
   color: #d1d5db;
   margin-bottom: 16px;
+}
+
+.action-box {
+  margin: 24px 0;
+  padding: 18px 24px;
+  background: #f8f9fa;
+  border-left: 4px solid #222;
+  border-radius: 8px;
+  color: #333;
+}
+
+.tip-link {
+  color: #007bff;
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.tip-link:hover {
+  color: #0056b3;
+}
+
+.footer {
+  margin-top: 32px;
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.contact-link {
+  color: #007bff;
+  text-decoration: underline;
+}
+
+.contact-link:hover {
+  color: #0056b3;
 }
 @media (max-width: 768px) {
   .purchase-records-page {

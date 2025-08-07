@@ -12,10 +12,9 @@
                         </div>
                     </div>
                     <div class="bundle-images-container">
-                        <div class="bundle-images-scroll">
+                        <div class="bundle-images-scroll" ref="bundleScrollContainer">
                             <div v-for="p in (product as Bundle).products" :key="p.appId" class="bundle-image-item">
                                 <img :src="p.garminImageUrl" :alt="p.name" />
-                                <div class="product-name">{{ p.name }}</div>
                             </div>
                         </div>
                         <div class="scroll-indicator">
@@ -24,7 +23,7 @@
                     </div>
                     <div class="bundle-info">
                         <div class="bundle-name">{{ (product as Bundle).bundleName }}</div>
-                        <div class="bundle-desc">{{ (product as Bundle).bundleDesc }}</div>
+                        <div class="bundle-desc" v-html="formatDescription((product as Bundle).bundleDesc)"></div>
                         <div class="product-count">Total {{ (product as Bundle).products.length }} apps</div>
                     </div>
                 </template>
@@ -71,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, onMounted, computed } from 'vue'
+import { ref, onBeforeMount, onMounted, onUnmounted, computed } from 'vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -143,7 +142,7 @@ function loadPaddle() {
                             store.setOrder({
                                 referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
                                 productName: isBundle.value ? (product.value as Bundle).bundleName : (product.value as ProductBaseVO).name,
-                                amount: product.value?.price || 0,
+                                amount: product.value?.price,
                                 paymentSource: 'paddle',
                                 paddleOrder: eventData.data
                             })
@@ -244,7 +243,7 @@ const handlePayment = async (isRetry = false) => {
             },
             items: [
                 {
-                    priceId: (product.value as any).paddlePriceId,
+                    priceId: (product.value as ProductVO).payment?.paddlePriceId || (product.value as Bundle)?.paddlePriceId,
                     quantity: userSelectedQuantity.value,
                 },
             ],
@@ -269,6 +268,57 @@ const handlePayment = async (isRetry = false) => {
 const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
 })
+
+// 格式化描述，支持换行
+const formatDescription = (description: string) => {
+  if (!description) return ''
+  return description.replace(/\n/g, '<br>')
+}
+
+// Bundle图片自动滚动功能
+const bundleScrollContainer = ref<HTMLElement | null>(null)
+let autoScrollInterval: number | null = null
+
+const startAutoScroll = () => {
+  if (!bundleScrollContainer.value || !isBundle.value) return
+  
+  autoScrollInterval = window.setInterval(() => {
+    if (bundleScrollContainer.value) {
+      const container = bundleScrollContainer.value
+      const scrollWidth = container.scrollWidth
+      const clientWidth = container.clientWidth
+      const currentScroll = container.scrollLeft
+      
+      // 如果滚动到末尾，回到开始
+      if (currentScroll >= scrollWidth - clientWidth) {
+        container.scrollLeft = 0
+      } else {
+        container.scrollLeft += 1
+      }
+    }
+  }, 30) // 每30ms滚动1px
+}
+
+const stopAutoScroll = () => {
+  if (autoScrollInterval) {
+    clearInterval(autoScrollInterval)
+    autoScrollInterval = null
+  }
+}
+
+// 启动自动滚动
+if (isBundle.value) {
+  onMounted(() => {
+    // 延迟启动自动滚动，确保DOM已渲染
+    setTimeout(() => {
+      startAutoScroll()
+    }, 1000)
+  })
+  
+  onUnmounted(() => {
+    stopAutoScroll()
+  })
+}
 </script>
 
 <style scoped>
@@ -439,7 +489,7 @@ const isBundle = computed(() => {
 }
 .bundle-images-scroll {
     display: flex;
-    gap: 12px;
+    gap: 6px;
     overflow-x: auto;
     padding: 8px 0;
     scroll-behavior: smooth;
@@ -464,14 +514,14 @@ const isBundle = computed(() => {
     text-align: center;
     cursor: pointer;
     transition: transform 0.2s;
-    min-width: 120px;
+    min-width: 80px;
 }
 .bundle-image-item img {
     width: 80px;
     height: 80px;
     border-radius: 12px;
     object-fit: cover;
-    border: 2px solid #eee;
+    /* border: 2px solid #eee; */
     background: #fafafa;
     margin-bottom: 8px;
 }

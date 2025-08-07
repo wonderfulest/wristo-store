@@ -23,12 +23,12 @@ export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<Purchas
 
 // 获取用户购买记录列表
 export const getPurchaseRecords = (): Promise<PurchaseRecord[]> => {
-  return instance.get('/purchase-records/list/bytoken?populate=user,product')
+  return instance.get('/purchase/list/bytoken?populate=user,product')
 }
 
 // 根据邮箱查询购买记录列表
 export const getPurchaseRecordsByEmail = (email: string): Promise<boolean> => {
-  return instance.get(`/public/purchase-records/list/byemail?email=${encodeURIComponent(email)}`)
+  return instance.get(`/public/purchase/list/byemail?email=${encodeURIComponent(email)}`)
 }
 
 // 根据邮箱 + part_number 校验购买过的权益

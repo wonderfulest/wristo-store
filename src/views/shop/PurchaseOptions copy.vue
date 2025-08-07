@@ -5,37 +5,95 @@
     <p class="desc">✨ Unlock More Watch Faces – Pick Your Plan Today!</p>
     
     <div class="cards-container">
-      <!-- 单品卡片 -->
-      <PurchaseCard
-        v-if="product"
-        type="product"
-        :title="product.name"
-        :description="product.description"
-        :image-url="product.garminImageUrl"
-        :original-price="productOriginalPrice"
-        :current-price="productCurrentPrice"
-        :discount="productDiscount"
-        :is-selected="isProductSelected"
-        :button-text="`Buy for $${productCurrentPrice.toFixed(2)}`"
-        @select="selectProduct"
-        @buy="handleBuyProduct"
-      />
-      <!-- 套餐卡片 -->
-      <PurchaseCard
-        v-if="bundle"
-        type="bundle"
-        :title="bundle.bundleName"
-        :description="bundle.bundleDesc"
-        :bundle-items="bundleItems"
-        :original-price="bundleOriginalPrice"
-        :current-price="bundleCurrentPrice"
-        :discount="bundleDiscount"
-        :is-selected="isBundleSelected"
-        :button-text="`Buy Bundle for $${bundleCurrentPrice.toFixed(2)}`"
-        @select="selectBundle"
-        @buy="handleBuyBundle"
-      />
-    
+      <!-- 单品盒子 -->
+      <div class="box-container product-box">
+        <div v-if="product" :class="['option-card', { active: isProductSelected }]" @click="selectProduct">
+          <!-- 折扣标签 -->
+          <div v-if="productDiscount > 0" class="discount-badge">
+            {{ productDiscount }}% Off
+          </div>
+          
+          <!-- Lifetime License 标签 -->
+          <div class="lifetime-badge">
+            Lifetime License
+          </div>
+          
+          <div class="card-header">
+            <h3 class="card-title">{{ product.name }}</h3>
+            <div class="price-info">
+              <div v-if="productOriginalPrice > productCurrentPrice" class="price-container">
+                <span class="original-price">${{ productOriginalPrice.toFixed(2) }}</span>
+                <span class="price">${{ productCurrentPrice.toFixed(2) }}</span>
+              </div>
+              <div v-else class="price-container">
+                <span class="price">${{ product.price }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="product-image">
+            <img :src="product.garminImageUrl" :alt="product.name" />
+          </div>
+          
+          <div class="product-info">
+            <div class="product-desc" v-html="formatDescription(product.description)"></div>
+          </div>
+          
+          <button class="buy-btn product-btn" @click="handleBuyProduct">
+            Buy for ${{ productCurrentPrice.toFixed(2) }}
+          </button>
+        </div>
+      </div>
+      <!-- 套餐 -->
+      <div class="box-container bundle-box">
+        <div v-if="bundle" :class="['option-card', { active: isBundleSelected }]" @click="selectBundle">
+          <!-- 折扣标签 -->
+          <div v-if="bundleDiscount > 0" class="discount-badge">
+            {{ bundleDiscount }}% Off
+          </div>
+          
+          <!-- Lifetime License 标签 -->
+          <div class="lifetime-badge">
+            Lifetime License
+          </div>
+          
+          <div class="card-header">
+            <h3 class="card-title">{{ bundle.bundleName }}</h3>
+            <div class="price-info">
+              <div v-if="bundleOriginalPrice > bundleCurrentPrice" class="price-container">
+                <span class="original-price">${{ bundleOriginalPrice.toFixed(2) }}</span>
+                <span class="price">${{ bundleCurrentPrice.toFixed(2) }}</span>
+              </div>
+              <div v-else class="price-container">
+                <span class="price">${{ bundle.price }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="bundle-images-container">
+            <div class="bundle-images-scroll">
+              <div v-for="p in bundle.products" :key="p.appId" class="bundle-image-item">
+                <img :src="p.garminImageUrl" :alt="p.name" />
+                <div class="product-name">{{ p.name }}</div>
+              </div>
+            </div>
+            <div class="scroll-indicator">
+              <span class="scroll-text">← Scroll to view all products →</span>
+            </div>
+          </div>
+          
+          <div class="bundle-info">
+            <div class="bundle-name">{{ bundle.bundleName }}</div>
+            <div class="bundle-desc" v-html="formatDescription(bundle.bundleDesc)"></div>
+            <div class="product-count">Total {{ bundle.products.length }} apps</div>
+          </div>
+          
+          <button class="buy-btn bundle-btn" @click="handleBuyBundle">
+            Buy Bundle for ${{ bundleCurrentPrice.toFixed(2) }}
+          </button>
+        </div>
+      </div>
+      
       <!-- 订阅盒子 -->
       <!-- <div class="box-container subscription-box">
         <div class="box-header">
@@ -56,9 +114,10 @@
 import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
-import PurchaseCard from '@/components/PurchaseCard.vue'
+// import Logo from '@/components/Logo.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
+// import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 
 const router = useRouter()
 const store = useShopOptionsStore()
@@ -106,15 +165,11 @@ const bundleDiscount = computed(() => {
   return Math.round(((bundleOriginalPrice.value - bundleCurrentPrice.value) / bundleOriginalPrice.value) * 100)
 })
 
-// 套餐项目数据
-const bundleItems = computed(() => {
-  if (!bundle.value?.products) return []
-  return bundle.value.products.map(p => ({
-    id: String(p.appId),
-    name: p.name,
-    imageUrl: p.garminImageUrl
-  }))
-})
+// 格式化描述，支持换行
+const formatDescription = (description: string) => {
+  if (!description) return ''
+  return description.replace(/\n/g, '<br>')
+}
 
 // 判断产品是否被选中
 const isProductSelected = computed(() => {
@@ -225,16 +280,10 @@ onMounted(() => {
   display: flex;
   max-width: 1400px;
   margin: 0 auto;
-  gap: 24px;
+  gap: 0;
   justify-content: center;
   align-items: stretch;
   min-height: 600px;
-}
-
-/* 统一卡片宽度 */
-.cards-container > * {
-  flex: 0 0 360px;
-  width: 360px;
 }
 
 .box-container {
@@ -319,7 +368,278 @@ onMounted(() => {
   width: 100%;
 }
 
-/* 卡片容器样式保留用于布局 */
+.option-card {
+  background: transparent;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #e9ecef;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+/* 折扣标签样式 */
+.discount-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(135deg, #ff3b30, #ff6b6b);
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-bottom-right-radius: 12px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
+}
+
+/* Lifetime License 标签样式 */
+.lifetime-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: linear-gradient(135deg, #ffcc02, #ffb000);
+  color: #1d1d1f;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-bottom-left-radius: 12px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(255, 204, 2, 0.3);
+}
+
+.option-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.option-card.active {
+  border-color: #2d6a4f;
+  box-shadow: 0 8px 30px rgba(45, 106, 79, 0.3);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.card-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.price-info {
+  text-align: right;
+}
+
+.price-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.price {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #2d6a4f;
+}
+
+.original-price {
+  font-size: 1.2rem;
+  color: #999;
+  text-decoration: line-through;
+  order: -1;
+}
+
+/* Bundle 卡片样式 */
+.bundle-images-container {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.bundle-images-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 8px 0;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bundle-images-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.bundle-images-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.bundle-images-scroll::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.bundle-images-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.bundle-image-item {
+  flex-shrink: 0;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+  min-width: 120px;
+}
+
+.bundle-image-item:hover {
+  transform: scale(1.05);
+}
+
+.bundle-image-item img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #eee;
+  background: #fafafa;
+  margin-bottom: 8px;
+}
+
+.bundle-image-item .product-name {
+  font-size: 0.9rem;
+  color: #666;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.scroll-indicator {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.scroll-text {
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+}
+
+.bundle-info {
+  flex: 1;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.bundle-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.bundle-desc {
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.product-count {
+  color: #2d6a4f;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Product 卡片样式 */
+.product-image {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.product-image img {
+  width: 200px;
+  height: 200px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid #eee;
+  background: #fafafa;
+}
+
+.product-info {
+  flex: 1;
+  text-align: left;
+  margin-bottom: 24px;
+}
+
+.product-desc {
+  color: #666;
+  margin-bottom: 16px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+.product-features,
+.bundle-features {
+  margin-top: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.feature-item span {
+  margin-left: 8px;
+  flex: 1;
+}
+
+.product-info .product-name {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.product-id {
+  color: #999;
+  font-size: 0.9rem;
+  font-family: monospace;
+}
+
+/* 按钮样式 */
+.buy-btn {
+  background-color: #2d6a4f;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: auto;
+  width: 100%;
+  margin-top: 24px;
+  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
+}
+
+.buy-btn:hover {
+  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.4);
+}
 
 /* 统一按钮样式 */
 

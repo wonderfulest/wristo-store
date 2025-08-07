@@ -69,8 +69,8 @@ const userStore = useUserStore()
 const order = computed(() => store.order)
 const referenceId = computed(() => order.value?.referenceId)
 const productName = computed(() => order.value?.productName)
-const amount = computed(() => order.value?.amount)
-const currencyCode = computed(() => order.value?.currencyCode || 'USD')
+const amount = computed(() => order.value?.paddleOrder?.totals?.total)
+const currencyCode = computed(() => order.value?.paddleOrder?.currency_code)
 
 // 检查用户登录状态
 const isLoggedIn = computed(() => {
@@ -79,7 +79,7 @@ const isLoggedIn = computed(() => {
 
 const formatAmount = (amount: string | number) => {
     if (!amount) return '0.00'
-    const numAmount = Number(amount) / 100.0
+    const numAmount = Number(amount)
     return numAmount.toFixed(2)
 }
 

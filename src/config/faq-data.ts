@@ -97,7 +97,8 @@ export const questionsByCategory: QuestionsByCategory = {
     {
       q: "How can I find my purchase history?",
       a:
-        "You can look up your complete purchase history at <a href=\"https://wristo.io/already-purchased\" target=\"_blank\" rel=\"noopener noreferrer\"><strong><u>https://wristo.io/already-purchased</u></strong></a>.",
+        "You can look up your complete purchase history at <a href=\"https://wristo.io/purchases-history\" target=\"_blank\" rel=\"noopener noreferrer\"><strong><u>https://wristo.io/purchases-history</u></strong></a>. " +
+        "If you have a registered account, you can also view your purchase history directly by clicking on your profile in the top right corner and selecting 'Purchases'.",
     },
     {
       q: "I already paid! Why am I charged a second time?",

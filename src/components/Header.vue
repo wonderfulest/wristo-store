@@ -29,13 +29,13 @@
       </nav>
       <div class="user-area">
         <template v-if="isLoggedIn">
-          <router-link 
+          <!-- <router-link 
             v-if="!isSubscribed" 
             to="/subscription" 
             class="upgrade-btn"
           >
             Upgrade to Premium
-          </router-link>
+          </router-link> -->
           <!-- <div v-else class="subscription-badge">
             <span class="badge-text">{{ subscriptionPlanName }}</span>
             <span class="badge-days">{{ remainingDays }} days left</span>
@@ -57,7 +57,7 @@
                 </el-dropdown-item> -->
                 <el-dropdown-item command="purchase-records">
                   <el-icon><Document /></el-icon>
-                  <span>Purchase Records</span>
+                  <span>Purchases</span>
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
