@@ -32,6 +32,43 @@
           </button>
         </div>
       </div>
+      <!-- 套餐 -->
+      <div class="box-container bundle-box">
+        <div class="box-header">
+          <h3 class="box-title">Bundle</h3>
+          <p class="lifetime-benefits">🔒 Lifetime access</p>
+        </div>
+        <div v-if="bundle" :class="['option-card', { active: isBundleSelected }]" @click="selectBundle">
+          <div class="card-header">
+            <h3 class="card-title">{{ bundle.bundleName }}</h3>
+            <div class="price-info">
+              <span class="price">${{ bundle.price }}</span>
+            </div>
+          </div>
+          
+          <div class="bundle-images-container">
+            <div class="bundle-images-scroll">
+              <div v-for="p in bundle.products" :key="p.appId" class="bundle-image-item">
+                <img :src="p.garminImageUrl" :alt="p.name" />
+                <div class="product-name">{{ p.name }}</div>
+              </div>
+            </div>
+            <div class="scroll-indicator">
+              <span class="scroll-text">← Scroll to view all products →</span>
+            </div>
+          </div>
+          
+          <div class="bundle-info">
+            <div class="bundle-name">{{ bundle.bundleName }}</div>
+            <div class="bundle-desc">{{ bundle.bundleDesc }}</div>
+            <div class="product-count">Total {{ bundle.products.length }} apps</div>
+          </div>
+          
+          <button class="buy-btn bundle-btn" @click="handleBuyBundle">
+            Buy Bundle for ${{ bundle.price }}
+          </button>
+        </div>
+      </div>
       
       <!-- 订阅盒子 -->
       <!-- <div class="box-container subscription-box">
@@ -54,7 +91,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 // import Logo from '@/components/Logo.vue'
-import type { PurchaseData, ProductVO } from '@/types'
+import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
 // import SubscriptionPlans from '@/components/SubscriptionPlans.vue'
 
@@ -68,6 +105,7 @@ const selectedPlan = ref<SubscriptionPlan | null>(null)
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
 
 const product = computed(() => purchaseData.value?.product as ProductVO)
+const bundle = computed(() => purchaseData.value?.bundles?.[0] as Bundle)
 
 // 判断产品是否被选中
 const isProductSelected = computed(() => {
@@ -82,6 +120,19 @@ const isProductSelected = computed(() => {
   return false;
 });
 
+// 判断套餐是否被选中
+const isBundleSelected = computed(() => {
+  // 确保套餐存在且已被选中（而不是订阅被选中）
+  if (!bundle.value || !store.selectedProduct || selectedPlan.value) return false;
+  
+  // 如果是Bundle类型，比较bundleId
+  if ('bundleId' in store.selectedProduct && 'bundleId' in bundle.value) {
+    return store.selectedProduct.bundleId === bundle.value.bundleId;
+  }
+  
+  return false;
+});
+
 // 选择单个产品
 const selectProduct = () => {
   if (product.value) {
@@ -90,10 +141,26 @@ const selectProduct = () => {
   }
 };
 
+// 选择套餐
+const selectBundle = () => {
+  if (bundle.value) {
+    store.setSelectedProduct(bundle.value as Bundle);
+    selectedPlan.value = null;
+  }
+};
+
 // 处理购买单个产品
 const handleBuyProduct = () => {
   if (product.value) {
     store.setSelectedProduct(product.value as ProductVO)
+    router.push({ name: 'Checkout' })
+  }
+}
+
+// 处理购买套餐
+const handleBuyBundle = () => {
+  if (bundle.value) {
+    store.setSelectedProduct(bundle.value as Bundle)
     router.push({ name: 'Checkout' })
   }
 }
@@ -166,6 +233,10 @@ onMounted(() => {
   padding: 0 30px 0 30px;
 }
 
+.bundle-box {
+  padding: 0 30px 0 30px;
+}
+
 .subscription-box {
   padding: 0 30px 0 30px;
 }
@@ -200,6 +271,11 @@ onMounted(() => {
 }
 
 .product-box {
+  flex: 0 0 calc(25% - 1px);
+  position: relative;
+}
+
+.bundle-box {
   flex: 0 0 calc(25% - 1px);
   position: relative;
 }
@@ -447,7 +523,7 @@ onMounted(() => {
     align-items: center;
   }
   
-  .product-box, .subscription-box {
+  .product-box, .bundle-box, .subscription-box {
     flex: 1 1 100%;
     width: 100%;
     max-width: 800px;
