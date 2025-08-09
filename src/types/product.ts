@@ -1,3 +1,5 @@
+import type { UserBaseVO } from "./user";
+
 export interface HeroFile {
   id: number
   name: string
@@ -43,13 +45,6 @@ export interface ProductVO {
   categories: any
   packageStatus: number
   payment: PaymentVO
-}
-
-export interface UserBaseVO {
-  id: number
-  username: string
-  nickname?: string
-  avatar?: string
 }
 
 export interface Bundle {

@@ -1,5 +1,5 @@
 export * from './api'
 export * from './user'
-export * from './product'
 export * from './purchase'
 export * from './paddle' 
+export * from './product'
