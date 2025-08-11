@@ -29,6 +29,13 @@ export const getHotProducts = (): Promise<ProductBaseVO[]> => {
   return instance.get('/public/products/hot?limit=20')
 }
 
+// 获取热门商品（分页）
+export const getHotProductsPaged = (pageNum = 1, pageSize = 24): Promise<PageResult<ProductBaseVO>> => {
+  return instance.get('/public/products/hot/page', {
+    params: { pageNum, pageSize, orderBy: 'download:desc' }
+  })
+}
+
 // 获取商品详情
 export const getProductDetail = (appId: string): Promise<ProductBaseVO> => {
   return instance.get(`/public/products/app/${appId}`)
