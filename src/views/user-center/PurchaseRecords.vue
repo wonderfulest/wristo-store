@@ -30,15 +30,14 @@
             </el-table-column>
             <el-table-column label="Website" width="360" align="center">
               <template #default="scope">
-                <a 
+                <button 
                   v-if="scope.row.bundle?.bundleId" 
-                  :href="`https://wristo.io/bundle/${scope.row.bundle.bundleId}`" 
-                  target="_blank" 
+                  @click="navigateToBundle(scope.row.bundle.bundleId)"
                   class="link-btn site-link"
                 >
                   <el-icon><Link /></el-icon>
-                  Show
-                </a>
+                  Bundle Link
+                </button>
               </template>
             </el-table-column>
             <el-table-column prop="total" label="Amount" width="120" align="right">
@@ -116,15 +115,14 @@
             </el-table-column>
             <el-table-column label="Website" width="110" align="center">
               <template #default="scope">
-                <a 
+                <button 
                   v-if="scope.row.product?.designId" 
-                  :href="`https://wristo.io/product/${scope.row.product.appId}`" 
-                  target="_blank" 
+                  @click="navigateToProduct(scope.row.product.appId)"
                   class="link-btn site-link"
                 >
                   <el-icon><Link /></el-icon>
-                  Website
-                </a>
+                  App Link
+                </button>
               </template>
             </el-table-column>
             <el-table-column prop="total" label="Amount" width="120" align="right">
@@ -186,12 +184,24 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getPurchaseRecords } from '@/api/pay'
 import type { PurchaseRecord } from '@/types'
 import { ElMessage } from 'element-plus'
 import { Link, Document } from '@element-plus/icons-vue'
 
+const router = useRouter()
 const records = ref<PurchaseRecord[]>([])
+
+// 导航到 bundle 页面
+const navigateToBundle = (bundleId: string) => {
+  router.push(`/bundle/${bundleId}`)
+}
+
+// 导航到 product 页面
+const navigateToProduct = (productId: string) => {
+  router.push(`/product/${productId}`)
+}
 
 // 分离Bundle和Product记录
 const bundleRecords = computed(() => {
