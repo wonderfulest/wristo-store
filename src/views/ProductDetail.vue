@@ -39,6 +39,9 @@
           <button class="product-btn product-btn-unlock" @click="handleUnlock">
             Unlock Trial <span class="iconfont icon-lock" style="margin-left:10px;font-size:1.2em;">🔒</span>
           </button>
+          <button class="product-btn product-btn-already-purchased" @click="handleAlreadyPurchased">
+            Already Purchased
+          </button>
         </div>
       </div>
     </div>
@@ -77,6 +80,10 @@ const handleUnlock = () => {
   // } else {
   //   window.open(`https://kzl.io/code`, '_blank')
   // }
+}
+
+const handleAlreadyPurchased = () => {
+  window.open('/already-purchased', '_blank')
 }
 
 onMounted(async () => {
@@ -190,6 +197,28 @@ onMounted(async () => {
 .product-btn-unlock:hover {
   background: #222;
   box-shadow: 0 6px 24px 0 rgba(0,0,0,0.16);
+}
+
+.product-btn-already-purchased {
+  background: #fff;
+  color: #111;
+  border: 2px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
+  height: 56px;
+  width: 340px;
+  max-width: 100%;
+  margin-bottom: 0;
+  margin-top: 12px;
+  border-radius: 999px;
+  transition: all 0.2s;
+}
+
+.product-btn-already-purchased:hover {
+  background: #f8f9fa;
+  border-color: #d1d5db;
+  box-shadow: 0 4px 18px 0 rgba(0,0,0,0.08);
 }
 .product-section-title {
   font-size: 1.15rem;
