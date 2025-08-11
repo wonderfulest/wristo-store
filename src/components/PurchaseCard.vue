@@ -14,8 +14,10 @@
       <h3 class="card-title">{{ title }}</h3>
       <div class="price-info">
         <div v-if="originalPrice > currentPrice" class="price-container">
-          <span class="original-price">${{ originalPrice.toFixed(2) }}</span>
-          <span class="price">${{ currentPrice.toFixed(2) }}</span>
+          <div class="price-group">
+            <span class="original-price">${{ originalPrice.toFixed(2) }}</span>
+            <span class="price">${{ currentPrice.toFixed(2) }}</span>
+          </div>
         </div>
         <div v-else class="price-container">
           <span class="price">${{ currentPrice.toFixed(2) }}</span>
@@ -204,13 +206,14 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  margin-top: 24px;
+  margin-bottom: 12px;
   padding-bottom: 16px;
   border-bottom: 1px solid #eee;
 }
 
 .card-title {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 700;
   color: #333;
   margin: 0;
@@ -222,9 +225,13 @@ onUnmounted(() => {
 
 .price-container {
   display: flex;
+  align-items: baseline;
+}
+
+.price-group {
+  display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 4px;
 }
 
 .price {

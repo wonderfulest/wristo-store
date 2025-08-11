@@ -75,8 +75,7 @@ const bundle = computed(() => purchaseData.value?.bundles?.[0] as Bundle)
 // 价格计算 - 产品
 const productOriginalPrice = computed(() => {
   if (!product.value) return 0
-  // 假设原价是当前价格的10倍（90%折扣）
-  return parseFloat(String(product.value.price)) * 10
+  return parseFloat(String(product.value.price))
 })
 
 const productCurrentPrice = computed(() => {
@@ -92,8 +91,11 @@ const productDiscount = computed(() => {
 // 价格计算 - 套餐
 const bundleOriginalPrice = computed(() => {
   if (!bundle.value) return 0
-  // 假设原价是当前价格的10倍（90%折扣）
-  return parseFloat(String(bundle.value.price)) * 10
+  let bundlePrice = 0
+  for (const product of bundle.value.products) {
+    bundlePrice += parseFloat(String(product.price))
+  }
+  return bundlePrice
 })
 
 const bundleCurrentPrice = computed(() => {
