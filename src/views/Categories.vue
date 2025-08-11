@@ -20,13 +20,6 @@
       <p class="loading-text">Loading more apps...</p>
     </div>
     
-    <!-- Load more button -->
-    <div v-if="hasMore && !loading" class="load-more-container">
-      <button class="load-more-btn" @click="loadMore">
-        Load More Apps
-      </button>
-    </div>
-    
     <!-- No more data tip -->
     <div v-if="!hasMore && products.length > 0" class="no-more-tip">
       <p>You've reached the end! 🎉</p>
@@ -119,18 +112,40 @@ const handleScroll = () => {
   
   // 防抖处理，100ms后执行
   scrollTimeout = window.setTimeout(() => {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-    const windowHeight = window.innerHeight
-    const documentHeight = document.documentElement.scrollHeight
+    // 兼容不同浏览器的滚动位置获取方式
+    const scrollTop = Math.max(
+      window.pageYOffset,
+      document.documentElement.scrollTop,
+      document.body.scrollTop
+    )
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight
+    const documentHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.documentElement.offsetHeight,
+      document.body.scrollHeight,
+      document.body.offsetHeight
+    )
     
     // 计算滚动进度
     const scrollProgress = (scrollTop + windowHeight) / documentHeight
+    const remainingHeight = documentHeight - (scrollTop + windowHeight)
     
-    // 当滚动到80%时触发加载，或者距离底部200px时触发
-    const shouldLoad = scrollProgress >= 0.8 || (scrollTop + windowHeight >= documentHeight - 200)
+    // 调试信息
+    console.log('Scroll debug:', {
+      scrollTop,
+      windowHeight,
+      documentHeight,
+      scrollProgress: Math.round(scrollProgress * 100) + '%',
+      remainingHeight: remainingHeight + 'px',
+      loading: loading.value,
+      hasMore: hasMore.value
+    })
+    
+    // 更宽松的触发条件：滚动到60%时触发加载，或者距离底部400px时触发
+    const shouldLoad = scrollProgress >= 0.6 || remainingHeight <= 400
     
     if (shouldLoad && !loading.value && hasMore.value) {
-      console.log('Triggering load more:', { scrollProgress, scrollTop, windowHeight, documentHeight })
+      console.log('🚀 Auto loading more apps triggered!')
       loadMore()
     }
   }, 100)
@@ -142,8 +157,41 @@ const goToProduct = (product: ProductBaseVO) => {
 
 onMounted(() => {
   fetchSeriesAndProducts()
-  // 添加滚动监听
-  window.addEventListener('scroll', handleScroll)
+  // 添加多种滚动监听，确保兼容性
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  document.addEventListener('scroll', handleScroll, { passive: true })
+  
+  // 添加触摸滚动监听（移动端）
+  window.addEventListener('touchmove', handleScroll, { passive: true })
+  
+  // 定期检查是否需要加载更多（备用方案）
+  const checkInterval = setInterval(() => {
+    if (!loading.value && hasMore.value) {
+      const scrollTop = Math.max(
+        window.pageYOffset,
+        document.documentElement.scrollTop,
+        document.body.scrollTop
+      )
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight
+      const documentHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.documentElement.offsetHeight,
+        document.body.scrollHeight,
+        document.body.offsetHeight
+      )
+      
+      const scrollProgress = (scrollTop + windowHeight) / documentHeight
+      const remainingHeight = documentHeight - (scrollTop + windowHeight)
+      
+      if (scrollProgress >= 0.6 || remainingHeight <= 400) {
+        console.log('🔄 Interval check triggered loading')
+        loadMore()
+      }
+    }
+  }, 2000) // 每2秒检查一次
+  
+  // 保存定时器引用以便清理
+  ;(window as any).scrollCheckInterval = checkInterval
 })
 
 watch(() => route.params.slug, () => {
@@ -152,11 +200,21 @@ watch(() => route.params.slug, () => {
 
 // 清理滚动监听
 onBeforeUnmount(() => {
+  // 清理所有滚动监听器
   window.removeEventListener('scroll', handleScroll)
-  // 清理定时器
+  document.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('touchmove', handleScroll)
+  
+  // 清理防抖定时器
   if (scrollTimeout) {
     clearTimeout(scrollTimeout)
     scrollTimeout = null
+  }
+  
+  // 清理定期检查定时器
+  if ((window as any).scrollCheckInterval) {
+    clearInterval((window as any).scrollCheckInterval)
+    ;(window as any).scrollCheckInterval = null
   }
 })
 </script>
@@ -238,34 +296,7 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 
-/* Load more button */
-.load-more-container {
-  display: flex;
-  justify-content: center;
-  padding: 40px 20px;
-}
 
-.load-more-btn {
-  background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  padding: 16px 32px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-}
-
-.load-more-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 122, 255, 0.4);
-}
-
-.load-more-btn:active {
-  transform: translateY(0);
-}
 
 /* No more data tip */
 .no-more-tip {
@@ -290,11 +321,6 @@ onBeforeUnmount(() => {
     font-size: 2rem;
   }
   
-  .load-more-btn {
-    padding: 14px 28px;
-    font-size: 0.95rem;
-  }
-  
   .loading-container {
     padding: 30px 20px;
   }
@@ -308,13 +334,6 @@ onBeforeUnmount(() => {
   
   .category-title {
     font-size: 1.75rem;
-  }
-  
-  .load-more-btn {
-    padding: 12px 24px;
-    font-size: 0.9rem;
-    width: 100%;
-    max-width: 280px;
   }
   
   .loading-container {
