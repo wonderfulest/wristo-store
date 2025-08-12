@@ -206,7 +206,7 @@ onMounted(() => {
 <style scoped>
 .purchase-options {
   max-width: 1400px;
-  margin: 0 auto;
+  margin: 0px auto 40px;
   padding: 32px 16px 48px;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
@@ -356,7 +356,7 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .purchase-options {
-    padding: 24px 12px 0 12px;
+    padding: 24px 12px 80px 12px;
   }
   
   .box-container {
@@ -389,7 +389,7 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .purchase-options {
-    padding: 16px 8px;
+    padding: 16px 8px 100px 8px;
   }
   
   .title {
@@ -737,7 +737,7 @@ onMounted(() => {
   }
   
   .purchase-options {
-    padding: 24px 12px 36px;
+    padding: 24px 12px 60px;
   }
   
   .title {

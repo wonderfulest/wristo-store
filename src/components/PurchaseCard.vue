@@ -31,14 +31,17 @@
         <img :src="imageUrl" :alt="title" />
       </div>
       <div v-else-if="type === 'bundle'" class="bundle-images">
-        <div class="bundle-images-scroll" ref="scrollContainer">
+        <div class="bundle-images-scroll" ref="scrollContainer" :class="{ 'mobile-scroll': isMobile }">
           <div v-for="item in bundleItems" :key="item.id" class="bundle-image-item">
             <img :src="item.imageUrl" :alt="item.name" />
             <!-- <div class="item-name">{{ item.name }}</div> -->
           </div>
         </div>
-        <div class="scroll-indicator">
+        <div class="scroll-indicator" v-if="!isMobile">
           <span class="scroll-text">← Scroll to view all products →</span>
+        </div>
+        <div class="scroll-indicator" v-else>
+          <span class="scroll-text">👆 Swipe to view all products</span>
         </div>
       </div>
     </div>
@@ -104,13 +107,23 @@ const handleBuy = (event: Event) => {
   emit('buy')
 }
 
-// 自动滚动功能
+// 自动滚动功能 - 移动端优化
 const scrollContainer = ref<HTMLElement | null>(null)
 let autoScrollInterval: number | null = null
 let scrollDirection = 1 // 1为向右，-1为向左
+let isMobile = false
+
+// 检测是否为移动设备
+const detectMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+         window.innerWidth <= 768
+}
 
 const startAutoScroll = () => {
   if (!scrollContainer.value || props.type !== 'bundle') return
+  
+  // 移动端禁用自动滚动，避免与手势冲突
+  if (isMobile) return
   
   autoScrollInterval = window.setInterval(() => {
     if (scrollContainer.value) {
@@ -136,7 +149,7 @@ const startAutoScroll = () => {
         }
       }
     }
-  }, 30) // 每30ms滚动1px
+  }, 50) // 增加间隔到50ms，减少CPU占用
 }
 
 const stopAutoScroll = () => {
@@ -146,14 +159,43 @@ const stopAutoScroll = () => {
   }
 }
 
+// 移动端触摸事件处理
+const handleTouchStart = () => {
+  stopAutoScroll()
+}
+
+const handleTouchEnd = () => {
+  if (!isMobile && props.type === 'bundle') {
+    setTimeout(() => {
+      startAutoScroll()
+    }, 2000) // 2秒后重新开始自动滚动
+  }
+}
+
 onMounted(() => {
+  isMobile = detectMobile()
+  
   if (props.type === 'bundle') {
-    startAutoScroll()
+    if (!isMobile) {
+      startAutoScroll()
+    }
+    
+    // 为移动端添加触摸事件监听
+    if (scrollContainer.value && isMobile) {
+      scrollContainer.value.addEventListener('touchstart', handleTouchStart, { passive: true })
+      scrollContainer.value.addEventListener('touchend', handleTouchEnd, { passive: true })
+    }
   }
 })
 
 onUnmounted(() => {
   stopAutoScroll()
+  
+  // 清理事件监听器
+  if (scrollContainer.value && isMobile) {
+    scrollContainer.value.removeEventListener('touchstart', handleTouchStart)
+    scrollContainer.value.removeEventListener('touchend', handleTouchEnd)
+  }
 })
 </script>
 
@@ -296,6 +338,14 @@ onUnmounted(() => {
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+  /* 移动端性能优化 */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: scroll-position;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  /* 禁用自动滚动在移动端 */
+  pointer-events: auto;
 }
 
 .bundle-images-scroll::-webkit-scrollbar {
@@ -555,6 +605,19 @@ onUnmounted(() => {
   }
 }
 
+/* 移动端滚动优化 */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch !important;
+  overflow-x: scroll !important;
+  scroll-snap-type: x mandatory;
+  -webkit-scroll-snap-type: x mandatory;
+}
+
+.mobile-scroll .bundle-image-item {
+  scroll-snap-align: center;
+  -webkit-scroll-snap-align: center;
+}
+
 /* Chrome浏览器特殊优化 */
 @supports (-webkit-appearance: none) {
   @media (max-width: 480px) {
@@ -564,12 +627,49 @@ onUnmounted(() => {
       will-change: transform;
     }
     
+    .bundle-images-scroll {
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+      -webkit-perspective: 1000px;
+      perspective: 1000px;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+    }
+    
+    .bundle-image-item {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      will-change: transform;
+    }
+    
+    .bundle-image-item img {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      will-change: auto;
+    }
+    
     .buy-btn {
       -webkit-tap-highlight-color: transparent;
       -webkit-touch-callout: none;
       -webkit-user-select: none;
       user-select: none;
     }
+  }
+}
+
+/* 移动端特殊优化 - 减少重绘和回流 */
+@media (max-width: 768px) {
+  .bundle-images-scroll {
+    contain: layout style paint;
+    isolation: isolate;
+  }
+  
+  .bundle-image-item {
+    contain: layout style paint;
+  }
+  
+  .bundle-image-item:hover {
+    transform: none; /* 移动端禁用hover效果 */
   }
 }
 </style>

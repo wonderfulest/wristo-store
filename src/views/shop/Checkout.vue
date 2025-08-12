@@ -324,7 +324,7 @@ if (isBundle.value) {
 <style scoped>
 .checkout {
     max-width: 900px;
-    margin: 0 auto;
+    margin: 0 auto 80px;
     padding: 32px 16px 0 16px;
     font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     min-height: 100vh;

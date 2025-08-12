@@ -26,7 +26,7 @@
             placeholder="000000" 
             class="code-input" 
             required 
-            @input="clearMessages"
+            @input="handleInput"
           />
           <div class="input-desc">
             The code shown on your smartwatch
@@ -143,6 +143,18 @@ const clearMessages = () => {
   }
 }
 
+const handleInput = () => {
+  clearMessages()
+  
+  // 当输入6位数字时自动提交
+  if (code.value.length === 6) {
+    // 添加短暂延迟，让用户看到输入完成
+    setTimeout(() => {
+      handleContinue()
+    }, 300)
+  }
+}
+
 const handleAlreadyPurchased = () => {
   router.push('/already-purchased')
 }
@@ -158,11 +170,13 @@ const handleLearnMore = () => {
 
 <style scoped>
 .code-input-page {
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .content-container {
@@ -171,16 +185,19 @@ const handleLearnMore = () => {
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 40px;
-  width: 480px;
+  width: 100%;
+  max-width: 480px;
   min-height: 500px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .header-section {
+  padding-top: 20px;
   text-align: center;
 }
 
@@ -227,6 +244,7 @@ const handleLearnMore = () => {
   flex-direction: column;
   gap: 16px;
   flex: 1;
+  padding-bottom: 40px;
 }
 
 .input-group {
@@ -376,17 +394,67 @@ const handleLearnMore = () => {
   color: #16a34a;
 }
 
-@media (max-width: 480px) {
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+  .code-input-page {
+    padding: 16px;
+    min-height: 100vh;
+  }
+  
   .content-container {
     padding: 32px 24px;
+    gap: 18px;
+    max-width: 100%;
+    min-height: auto;
+    max-height: none;
+    border-radius: 20px;
+  }
+  
+  .title {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+  
+  .desc {
+    font-size: 1.05rem;
+  }
+  
+  .tip-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+  
+  .code-input {
+    padding: 15px 18px;
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+  }
+  
+  .button-group {
+    gap: 14px;
+    margin-top: 20px;
+  }
+  
+  .btn {
+    padding: 15px 22px;
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .code-input-page {
+    padding: 12px;
+  }
+  
+  .content-container {
+    padding: 28px 20px;
     gap: 16px;
-    width: 90%;
-    min-height: 400px;
-    max-height: 95vh;
+    border-radius: 16px;
   }
   
   .title {
     font-size: 1.8rem;
+    margin-bottom: 8px;
   }
   
   .desc {
@@ -394,27 +462,71 @@ const handleLearnMore = () => {
   }
   
   .tip-card {
-    min-height: auto;
     padding: 12px;
+    gap: 10px;
+  }
+  
+  .tip-icon {
+    font-size: 1.3rem;
+  }
+  
+  .tip-content {
+    font-size: 0.9rem;
   }
   
   .code-form {
-    gap: 12px;
+    gap: 14px;
   }
   
   .code-input {
     padding: 14px 16px;
     font-size: 1.3rem;
+    letter-spacing: 2px;
   }
   
   .button-group {
     flex-direction: column;
     gap: 12px;
+    margin-top: 16px;
   }
   
   .btn {
     padding: 14px 20px;
     font-size: 1rem;
+  }
+  
+  .message {
+    padding: 14px 16px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .code-input-page {
+    padding: 8px;
+  }
+  
+  .content-container {
+    padding: 24px 16px;
+    gap: 14px;
+  }
+  
+  .title {
+    font-size: 1.6rem;
+  }
+  
+  .desc {
+    font-size: 0.95rem;
+  }
+  
+  .code-input {
+    padding: 12px 14px;
+    font-size: 1.2rem;
+  }
+  
+  .btn {
+    padding: 12px 18px;
+    font-size: 0.95rem;
   }
 }
 </style> 
