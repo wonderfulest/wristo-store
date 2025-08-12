@@ -123,7 +123,6 @@ defineEmits(['product-click']);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 32px;
 }
 
 .new-header-icon {
@@ -346,10 +345,6 @@ defineEmits(['product-click']);
     padding: 0 12px;
   }
   
-  .new-header {
-    margin-bottom: 24px;
-  }
-  
   .new-header-icon {
     width: 36px;
     height: 36px;
@@ -396,13 +391,13 @@ defineEmits(['product-click']);
   }
   
   .mobile-product-card {
-    padding: 20px;
-    max-width: 260px;
+    padding: 28px 16px;
+    max-width: 360px;
   }
   
   .mobile-product-img {
-    width: 180px;
-    height: 180px;
+    width: 220px;
+    height: 220px;
     margin-bottom: 16px;
   }
   

@@ -48,7 +48,7 @@
     
     <!-- 详情描述 -->
     <div class="card-info">
-      <div class="description" v-html="formattedDescription"></div>
+      <div v-if="type === 'bundle'" class="description" v-html="formattedDescription"></div>
       <div v-if="type === 'bundle' && bundleItems" class="product-count">
         Total {{ bundleItems.length }} apps
       </div>
