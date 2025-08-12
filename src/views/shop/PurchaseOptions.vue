@@ -5,6 +5,22 @@
     <p class="desc">✨ Unlock More Watch Faces – Pick Your Plan Today!</p>
     
     <div class="cards-container">
+      <!-- 套餐卡片 -->
+        <PurchaseCard
+        v-if="bundle"
+        type="bundle"
+        :title="bundle.bundleName"
+        :description="bundle.bundleDesc"
+        :bundle-items="bundleItems"
+        :original-price="bundleOriginalPrice"
+        :current-price="bundleCurrentPrice"
+        :discount="bundleDiscount"
+        :is-selected="isBundleSelected"
+        :button-text="`Buy Bundle for $${bundleCurrentPrice.toFixed(2)}`"
+        @select="selectBundle"
+        @buy="handleBuyBundle"
+      />
+    
       <!-- 单品卡片 -->
       <PurchaseCard
         v-if="product"
@@ -19,21 +35,6 @@
         :button-text="`Buy for $${productCurrentPrice.toFixed(2)}`"
         @select="selectProduct"
         @buy="handleBuyProduct"
-      />
-      <!-- 套餐卡片 -->
-      <PurchaseCard
-        v-if="bundle"
-        type="bundle"
-        :title="bundle.bundleName"
-        :description="bundle.bundleDesc"
-        :bundle-items="bundleItems"
-        :original-price="bundleOriginalPrice"
-        :current-price="bundleCurrentPrice"
-        :discount="bundleDiscount"
-        :is-selected="isBundleSelected"
-        :button-text="`Buy Bundle for $${bundleCurrentPrice.toFixed(2)}`"
-        @select="selectBundle"
-        @buy="handleBuyBundle"
       />
     
       <!-- 订阅盒子 -->
@@ -230,7 +231,7 @@ onMounted(() => {
   gap: 24px;
   justify-content: center;
   align-items: stretch;
-  min-height: 600px;
+  min-height: fit-content;
 }
 
 /* 统一卡片宽度 */

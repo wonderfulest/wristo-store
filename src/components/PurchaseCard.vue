@@ -107,6 +107,7 @@ const handleBuy = (event: Event) => {
 // 自动滚动功能
 const scrollContainer = ref<HTMLElement | null>(null)
 let autoScrollInterval: number | null = null
+let scrollDirection = 1 // 1为向右，-1为向左
 
 const startAutoScroll = () => {
   if (!scrollContainer.value || props.type !== 'bundle') return
@@ -118,11 +119,21 @@ const startAutoScroll = () => {
       const clientWidth = container.clientWidth
       const currentScroll = container.scrollLeft
       
-      // 如果滚动到末尾，回到开始
-      if (currentScroll >= scrollWidth - clientWidth) {
-        container.scrollLeft = 0
+      // 循环滚动逻辑
+      if (scrollDirection === 1) {
+        // 向右滚动
+        if (currentScroll >= scrollWidth - clientWidth) {
+          scrollDirection = -1 // 改变方向
+        } else {
+          container.scrollLeft += 1
+        }
       } else {
-        container.scrollLeft += 1
+        // 向左滚动
+        if (currentScroll <= 0) {
+          scrollDirection = 1 // 改变方向
+        } else {
+          container.scrollLeft -= 1
+        }
       }
     }
   }, 30) // 每30ms滚动1px
@@ -148,27 +159,34 @@ onUnmounted(() => {
 
 <style scoped>
 .purchase-card {
-  background: transparent;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   padding: 2rem;
   display: flex;
   flex-direction: column;
   border: 2px solid #e9ecef;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   margin-top: 1rem;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: fit-content;
+  height: auto;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .purchase-card:hover {
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  transform: translateY(-4px);
 }
 
 .purchase-card.active {
   border-color: #2d6a4f;
-  box-shadow: 0 8px 30px rgba(45, 106, 79, 0.3);
+  box-shadow: 0 12px 40px rgba(45, 106, 79, 0.4);
+  background: linear-gradient(135deg, #f0f9f4 0%, #e6f7ed 100%);
+  transform: translateY(-2px);
 }
 
 /* 折扣标签样式 */
@@ -181,6 +199,7 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 700;
   padding: 8px 16px;
+  border-top-left-radius: 12px;
   border-bottom-right-radius: 12px;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
@@ -196,6 +215,7 @@ onUnmounted(() => {
   font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
+  border-top-right-radius: 12px;
   border-bottom-left-radius: 12px;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(255, 204, 2, 0.3);
@@ -206,10 +226,10 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 24px;
-  margin-bottom: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #eee;
+  margin-top: 32px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f3f4;
 }
 
 .card-title {
@@ -249,8 +269,9 @@ onUnmounted(() => {
 
 /* 图片区域 */
 .card-image {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .single-image img {
@@ -269,11 +290,12 @@ onUnmounted(() => {
 
 .bundle-images-scroll {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   overflow-x: auto;
-  padding: 8px 0;
+  padding: 12px 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .bundle-images-scroll::-webkit-scrollbar {
@@ -338,7 +360,8 @@ onUnmounted(() => {
 .card-info {
   flex: 1;
   text-align: left;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  min-height: auto;
 }
 
 .description {
@@ -356,47 +379,197 @@ onUnmounted(() => {
 
 /* 购买按钮 */
 .buy-btn {
-  background-color: #2d6a4f;
+  background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  padding: 1rem 2rem;
+  border-radius: 16px;
+  padding: 18px 2rem;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   margin-top: auto;
   width: 100%;
-  box-shadow: 0 4px 15px rgba(45, 106, 79, 0.3);
-  transition: all 0.2s ease;
+  box-shadow: 0 8px 24px rgba(45, 106, 79, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+  min-height: 56px;
+  position: relative;
+  overflow: hidden;
 }
 
 .buy-btn:hover {
-  box-shadow: 0 6px 20px rgba(45, 106, 79, 0.4);
+  box-shadow: 0 12px 32px rgba(45, 106, 79, 0.5);
+  transform: translateY(-2px);
 }
 
-/* 响应式设计 */
+.buy-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 16px rgba(45, 106, 79, 0.3);
+}
+
+/* 响应式设计 - 平板 */
 @media (max-width: 768px) {
   .purchase-card {
-    padding: 24px 16px;
+    padding: 24px 20px;
+    min-height: fit-content;
+    border-radius: 18px;
+    margin-top: 16px;
   }
   
   .card-header {
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     text-align: center;
+    margin-top: 24px;
+    margin-bottom: 24px;
+    padding-bottom: 18px;
   }
   
   .single-image img {
-    width: 60px;
-    height: 60px;
+    width: 140px;
+    height: 140px;
+  }
+  
+  .bundle-image-item img {
+    width: 90px;
+    height: 90px;
+  }
+  
+  .card-info {
+    margin-bottom: 24px;
+    min-height: auto;
+  }
+  
+  .buy-btn {
+    padding: 16px 1.5rem;
+    font-size: 1.05rem;
+    margin-top: 20px;
+    min-height: 52px;
+    border-radius: 14px;
   }
 }
 
+/* 手机端优化 - 专门针对Chrome浏览器 */
 @media (max-width: 480px) {
+  .purchase-card {
+    padding: 20px 16px 24px 16px;
+    margin: 12px 0;
+    min-height: fit-content;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .card-header {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    gap: 12px;
+  }
+  
+  .card-title {
+    font-size: 1.3rem;
+    line-height: 1.4;
+  }
+  
+  .price {
+    font-size: 1.5rem;
+    font-weight: 800;
+  }
+  
+  .original-price {
+    font-size: 1.1rem;
+  }
+  
+  .card-image {
+    margin-bottom: 24px;
+  }
+  
+  .single-image img {
+    width: 120px;
+    height: 120px;
+    border-radius: 16px;
+  }
+  
+  .bundle-image-item img {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+  }
+  
+  .card-info {
+    margin-bottom: 24px;
+    min-height: auto;
+    flex: 1;
+  }
+  
+  .description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  
+  .buy-btn {
+    padding: 16px 1.2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    min-height: 56px;
+    border-radius: 14px;
+    margin-top: auto;
+    margin-bottom: 0;
+    letter-spacing: 0.6px;
+  }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 360px) {
+  .purchase-card {
+    padding: 18px 14px 22px 14px;
+    min-height: fit-content;
+  }
+  
   .card-title {
     font-size: 1.2rem;
+  }
+  
+  .price {
+    font-size: 1.4rem;
+  }
+  
+  .single-image img {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .bundle-image-item img {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .buy-btn {
+    padding: 14px 1rem;
+    font-size: 0.95rem;
+    min-height: 52px;
+  }
+}
+
+/* Chrome浏览器特殊优化 */
+@supports (-webkit-appearance: none) {
+  @media (max-width: 480px) {
+    .purchase-card {
+      -webkit-transform: translateZ(0);
+      transform: translateZ(0);
+      will-change: transform;
+    }
+    
+    .buy-btn {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+    }
   }
 }
 </style>

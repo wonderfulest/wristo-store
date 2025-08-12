@@ -327,6 +327,8 @@ if (isBundle.value) {
     margin: 0 auto;
     padding: 32px 16px 0 16px;
     font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
 .logo {
@@ -377,16 +379,19 @@ if (isBundle.value) {
 .input {
     width: 100%;
     font-size: 1.2rem;
-    padding: 14px 12px;
-    border: 3px solid #cbd5e1;
+    padding: 16px 16px;
+    border: 2px solid #e2e8f0;
     border-radius: 12px;
     margin-bottom: 4px;
     box-sizing: border-box;
     outline: none;
+    background: #ffffff;
+    transition: all 0.2s ease;
 }
 
 .input:focus {
-    border-color: #64748b;
+    border-color: #2d6a4f;
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
 }
 
 .input-desc {
@@ -409,26 +414,35 @@ if (isBundle.value) {
 
 .purchase-btn {
     width: 100%;
-    background: #2d6a4f;
+    background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
     color: #fff;
     font-size: 1.2rem;
-    font-weight: bold;
+    font-weight: 700;
     padding: 18px 0;
-    border-radius: 12px;
+    border-radius: 16px;
     border: none;
     margin-top: 24px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     position: relative;
+    box-shadow: 0 8px 24px rgba(45, 106, 79, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-height: 56px;
 }
 
 .purchase-btn:hover:not(:disabled) {
-    background: #40916c;
+    box-shadow: 0 12px 32px rgba(45, 106, 79, 0.5);
     transform: translateY(-2px);
+}
+
+.purchase-btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 4px 16px rgba(45, 106, 79, 0.3);
 }
 
 .purchase-btn:disabled {
@@ -452,14 +466,19 @@ if (isBundle.value) {
 }
 
 .checkout-left {
-    background: #fff;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     border-radius: 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     padding: 32px 24px;
     width: 400px;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
     margin-top: 0;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-sizing: border-box;
 }
 .card-header {
     display: flex;
@@ -517,8 +536,8 @@ if (isBundle.value) {
     min-width: 80px;
 }
 .bundle-image-item img {
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     border-radius: 12px;
     object-fit: cover;
     /* border: 2px solid #eee; */
@@ -572,6 +591,7 @@ if (isBundle.value) {
     object-fit: cover;
     border: 3px solid #eee;
     background: #fafafa;
+    max-width: 100%;
 }
 .product-info {
     flex: 1;
@@ -599,19 +619,231 @@ if (isBundle.value) {
     margin-left: 8px;
 }
 
-/* Responsive design */
+/* 错误消息样式 */
+.input-error-text {
+    color: #ef4444;
+    font-size: 0.9rem;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+/* 响应式设计 - 平板 */
 @media (max-width: 768px) {
+    .checkout {
+        padding: 24px 20px 0 20px;
+    }
+    
+    .title {
+        font-size: 1.8rem;
+        margin: 24px 0 20px 0;
+    }
+    
     .checkout-main {
         flex-direction: column;
-        gap: 24px;
+        gap: 32px;
+        margin-top: 24px;
     }
     
     .checkout-left {
         border-left: none;
-        border-top: 2px solid #e5e7eb;
-        padding-left: 0;
-        padding-top: 24px;
-        margin-top: 0;
+        border-top: none;
+        padding: 28px 20px;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
+        order: 2;
+        box-sizing: border-box;
+    }
+    
+    .checkout-right {
+        order: 1;
+        max-width: 500px;
+        margin: 0 auto;
+        width: 100%;
+    }
+    
+    .product-image img {
+        width: 180px;
+        height: 180px;
+    }
+    
+    .bundle-image-item img {
+        width: 100px;
+        height: 100px;
+    }
+}
+
+/* 手机端优化 */
+@media (max-width: 480px) {
+    .checkout {
+        padding: 16px 16px 0 16px;
+        min-height: 100vh;
+    }
+    
+    .title {
+        font-size: 1.6rem;
+        margin: 20px 0 16px 0;
+    }
+    
+    .checkout-main {
+        gap: 24px;
+        margin-top: 16px;
+    }
+    
+    .checkout-left {
+        padding: 20px 16px;
+        border-radius: 16px;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    
+    .checkout-right {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+    }
+    
+    .card-title {
+        font-size: 1.3rem;
+    }
+    
+    .price {
+        font-size: 1.5rem;
+    }
+    
+    .product-image {
+        margin-bottom: 20px;
+    }
+    
+    .product-image img {
+        width: 160px;
+        height: 160px;
+        border-radius: 14px;
+        max-width: calc(100vw - 64px);
+    }
+    
+    .bundle-image-item {
+        min-width: 90px;
+    }
+    
+    .bundle-image-item img {
+        width: 80px;
+        height: 80px;
+        border-radius: 12px;
+    }
+    
+    .bundle-name {
+        font-size: 1.1rem;
+    }
+    
+    .bundle-desc {
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+    
+    .product-info .product-name {
+        font-size: 1.2rem;
+    }
+    
+    .input-label {
+        font-size: 1rem;
+    }
+    
+    .input {
+        font-size: 1.1rem;
+        padding: 14px 16px;
+    }
+    
+    .purchase-btn {
+        font-size: 1.1rem;
+        padding: 16px 0;
+        margin-top: 20px;
+        min-height: 52px;
+    }
+    
+    .pay-method-title {
+        font-size: 1rem;
+        margin: 20px 0 6px 0;
+    }
+    
+    .pay-method-note {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+}
+
+/* 超小屏幕优化 */
+@media (max-width: 360px) {
+    .checkout {
+        padding: 12px 12px 0 12px;
+    }
+    
+    .checkout-left {
+        padding: 18px 12px;
+        margin: 0;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .card-title {
+        font-size: 1.2rem;
+    }
+    
+    .price {
+        font-size: 1.4rem;
+    }
+    
+    .product-image img {
+        width: 140px;
+        height: 140px;
+        max-width: calc(100vw - 48px);
+    }
+    
+    .bundle-image-item img {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .purchase-btn {
+        font-size: 1rem;
+        padding: 14px 0;
+        min-height: 48px;
+    }
+}
+
+/* Chrome浏览器特殊优化 */
+@supports (-webkit-appearance: none) {
+    @media (max-width: 480px) {
+        .checkout-left {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+        }
+        
+        .purchase-btn {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .input {
+            -webkit-appearance: none;
+            appearance: none;
+        }
     }
 }
 </style>

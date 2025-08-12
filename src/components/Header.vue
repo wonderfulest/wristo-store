@@ -4,7 +4,16 @@
       <div class="logo-area">
         <router-link to="/" class="logo-text">WRISTO</router-link>
       </div>
-      <nav class="nav-area">
+      
+      <!-- Mobile menu button -->
+      <button class="mobile-menu-btn" @click="toggleMobileMenu" :class="{ active: isMobileMenuOpen }">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      
+      <!-- Desktop navigation -->
+      <nav class="nav-area desktop-nav">
         <router-link to="/" class="nav-link">Home</router-link>
         <el-dropdown @command="handleSelectSeries" trigger="hover">
           <span class="nav-link dropdown-trigger">
@@ -23,23 +32,13 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <!-- <router-link to="/subscription" class="nav-link">Premium</router-link> -->
         <router-link to="/faq" class="nav-link">FAQ</router-link>
         <router-link to="/code" class="nav-link">Code</router-link>
       </nav>
-      <div class="user-area">
+      
+      <!-- Desktop user area -->
+      <div class="user-area desktop-user">
         <template v-if="isLoggedIn">
-          <!-- <router-link 
-            v-if="!isSubscribed" 
-            to="/subscription" 
-            class="upgrade-btn"
-          >
-            Upgrade to Premium
-          </router-link> -->
-          <!-- <div v-else class="subscription-badge">
-            <span class="badge-text">{{ subscriptionPlanName }}</span>
-            <span class="badge-days">{{ remainingDays }} days left</span>
-          </div> -->
           <el-dropdown @command="handleUserMenuCommand" trigger="click">
             <div class="user-avatar-container">
               <img :src="userAvatar" class="user-avatar" alt="user avatar" />
@@ -51,10 +50,6 @@
                   <el-icon><User /></el-icon>
                   <span>User Info</span>
                 </el-dropdown-item>
-                <!-- <el-dropdown-item command="subscription">
-                  <el-icon><Star /></el-icon>
-                  <span>Subscription</span>
-                </el-dropdown-item> -->
                 <el-dropdown-item command="purchase-records">
                   <el-icon><Document /></el-icon>
                   <span>Purchases</span>
@@ -79,6 +74,73 @@
         </template>
       </div>
     </div>
+    
+    <!-- Mobile navigation menu -->
+    <div class="mobile-nav" :class="{ open: isMobileMenuOpen }">
+      <div class="mobile-nav-content">
+        <div class="mobile-nav-links">
+          <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">Home</router-link>
+          <div class="mobile-dropdown">
+            <button class="mobile-dropdown-trigger centered" @click="toggleCategoriesDropdown">
+              <span class="dropdown-text">Categories</span>
+              <el-icon :class="{ rotated: isCategoriesOpen }"><arrow-down /></el-icon>
+            </button>
+            <div class="mobile-dropdown-content" :class="{ open: isCategoriesOpen }">
+              <router-link 
+                v-for="series in seriesList"
+                :key="series.id"
+                :to="`/categories/${series.slug}`"
+                class="mobile-dropdown-link"
+                @click="closeMobileMenu"
+              >
+                {{ series.name }}
+              </router-link>
+            </div>
+          </div>
+          <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link>
+          <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">Code</router-link>
+        </div>
+        
+        <template v-if="!isLoggedIn">
+          <div class="mobile-auth-buttons-top">
+            <button class="mobile-auth-btn login" @click="goToLogin; closeMobileMenu()">
+              Sign in
+            </button>
+            <button class="mobile-auth-btn signup" @click="goToSignup; closeMobileMenu()">
+              Sign Up
+            </button>
+          </div>
+        </template>
+        
+        <div class="mobile-user-area">
+          <template v-if="isLoggedIn">
+            <div class="mobile-user-info">
+              <div class="mobile-avatar-container">
+                <img :src="userAvatar" class="mobile-user-avatar" alt="user avatar" />
+                <span v-if="isSubscribed" class="mobile-premium-badge">Premium</span>
+              </div>
+            </div>
+            <div class="mobile-user-actions">
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('info'); closeMobileMenu()">
+                <el-icon><User /></el-icon>
+                <span>User Info</span>
+              </button>
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('purchase-records'); closeMobileMenu()">
+                <el-icon><Document /></el-icon>
+                <span>Purchases</span>
+              </button>
+              <button class="mobile-action-btn logout" @click="handleUserMenuCommand('logout'); closeMobileMenu()">
+                <el-icon><SwitchButton /></el-icon>
+                <span>Logout</span>
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mobile menu overlay -->
+    <div class="mobile-overlay" :class="{ active: isMobileMenuOpen }" @click="closeMobileMenu"></div>
   </header>
 </template>
 
@@ -96,6 +158,10 @@ const router = useRouter();
 const userStore = useUserStore();
 const isLoggedIn = ref(false);
 const userAvatar = ref('https://via.placeholder.com/32');
+
+// Mobile menu state
+const isMobileMenuOpen = ref(false);
+const isCategoriesOpen = ref(false);
 
 const loadSeries = async () => {
   seriesList.value = await productStore.getSeries();
@@ -156,6 +222,27 @@ const goToSignup = () => {
   const ssoBaseUrl = import.meta.env.VITE_SSO_SIGNUP_URL
   const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI;
   window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}&mode=signup`;
+};
+
+// Mobile menu functions
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  if (isMobileMenuOpen.value) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+    isCategoriesOpen.value = false;
+  }
+};
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false;
+  document.body.style.overflow = '';
+  isCategoriesOpen.value = false;
+};
+
+const toggleCategoriesDropdown = () => {
+  isCategoriesOpen.value = !isCategoriesOpen.value;
 };
 
 onMounted(() => {
@@ -370,5 +457,375 @@ watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
 .signup-btn:active {
   background: #0062C7;
   border-color: #0062C7;
+}
+
+/* Mobile menu button */
+.mobile-menu-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 31;
+}
+
+.mobile-menu-btn span {
+  width: 20px;
+  height: 2px;
+  background: #333;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+  margin: 2px 0;
+}
+
+.mobile-menu-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Mobile navigation */
+.mobile-nav {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 30;
+  overflow-y: auto;
+}
+
+.mobile-nav.open {
+  transform: translateX(0);
+}
+
+.mobile-nav-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mobile-nav-links {
+  flex: 1;
+}
+
+.mobile-nav-link {
+  display: block;
+  padding: 16px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  transition: color 0.2s;
+}
+
+.mobile-nav-link:hover {
+  color: #347cff;
+}
+
+.mobile-nav-link.router-link-active {
+  color: #347cff;
+  font-weight: 600;
+}
+
+/* Mobile dropdown */
+.mobile-dropdown {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 18px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-dropdown-trigger.centered {
+  justify-content: center;
+  position: relative;
+}
+
+.mobile-dropdown-trigger.centered .dropdown-text {
+  flex: 1;
+  text-align: center;
+}
+
+.mobile-dropdown-trigger.centered .el-icon {
+  position: absolute;
+  right: 0;
+}
+
+.mobile-dropdown-trigger .el-icon {
+  transition: transform 0.3s ease;
+}
+
+.mobile-dropdown-trigger .el-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.mobile-dropdown-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 0 -12px 12px;
+}
+
+.mobile-dropdown-content.open {
+  max-height: 300px;
+}
+
+.mobile-dropdown-link {
+  display: block;
+  padding: 12px 24px;
+  color: #666;
+  font-size: 16px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.mobile-dropdown-link:hover {
+  color: #347cff;
+  background: rgba(52, 124, 255, 0.1);
+}
+
+/* Mobile user area */
+.mobile-user-area {
+  border-top: 1px solid #f0f0f0;
+  padding-top: 24px;
+  margin-top: 24px;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.mobile-avatar-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mobile-user-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #f0f0f0;
+}
+
+.mobile-premium-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  background: linear-gradient(135deg, #ffd700, #ffb700);
+  color: #000;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.mobile-user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f8f9fa;
+  border: none;
+  border-radius: 12px;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.mobile-action-btn:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.mobile-action-btn.logout {
+  color: #dc3545;
+}
+
+.mobile-action-btn.logout:hover {
+  background: rgba(220, 53, 69, 0.1);
+}
+
+/* Mobile auth buttons at top */
+.mobile-auth-buttons-top {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  padding: 0 8px;
+}
+
+/* Mobile auth buttons */
+.mobile-auth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobile-auth-btn {
+  padding: 16px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  flex: 1;
+}
+
+.mobile-auth-btn.login {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0066CC;
+  border: 1px solid #D0D0D0;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.mobile-auth-btn.login:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #A0A0A0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+.mobile-auth-btn.signup {
+  background: #0071E3;
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+}
+
+.mobile-auth-btn.signup:hover {
+  background: #0077ED;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.4);
+}
+
+.mobile-auth-btn:active {
+  transform: translateY(0);
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 25;
+}
+
+.mobile-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .header-inner {
+    padding: 0 16px;
+  }
+  
+  .logo-area .logo-text {
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+  }
+  
+  .desktop-nav,
+  .desktop-user {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-inner {
+    padding: 0 12px;
+  }
+  
+  .logo-area .logo-text {
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+  }
+  
+  .mobile-nav-content {
+    padding: 20px 16px;
+  }
+  
+  .mobile-nav-link {
+    font-size: 16px;
+  }
+  
+  .mobile-dropdown-trigger {
+    font-size: 16px;
+  }
+  
+  .mobile-auth-buttons-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .mobile-auth-btn {
+    padding: 14px;
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-btn,
+  .mobile-nav,
+  .mobile-overlay {
+    display: none !important;
+  }
 }
 </style>
