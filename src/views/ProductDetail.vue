@@ -69,13 +69,14 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 
 const route = useRoute()
+const router = useRouter()
 const productStore = useProductStore()
 const product = ref<ProductVO | null>(null)
 
@@ -83,9 +84,9 @@ const product = ref<ProductVO | null>(null)
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
-    setTimeout(() => {
-      window.open(product.value!.garminStoreUrl, '_blank')
-    }, 600)
+    // 对于外部链接，保持在新标签页打开是最佳实践
+    // 这样用户不会丢失当前页面的上下文
+    window.open(product.value.garminStoreUrl, '_blank')
   } else {
     ElMessage.error('Download link is not available')
   }
@@ -93,16 +94,11 @@ const handleDownload = () => {
 
 const handleUnlock = () => {
   console.log(product.value)
-  window.open(`/code`, '_blank')
-  // if (product.value && product.value?.paddleProductId) { // 如果paddleProductId存在，则跳转到code页面
-  //   window.open(`/code`, '_blank')
-  // } else {
-  //   window.open(`https://kzl.io/code`, '_blank')
-  // }
+  router.push('/code')
 }
 
 const handleAlreadyPurchased = () => {
-  window.open('/already-purchased', '_blank')
+  router.push('/already-purchased')
 }
 
 // QR Code functionality
