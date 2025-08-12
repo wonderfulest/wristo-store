@@ -22,7 +22,26 @@
           <div class="install-methods">
             <div class="qrcode-section">
               <div class="qrcode-title">Scan to open in Garmin Connect IQ App</div>
-              <qrcode-vue :value="product.garminStoreUrl" :size="128" :level="'M'" class="qrcode-img" />
+              <div class="qrcode-container">
+                <qrcode-vue 
+                  ref="qrcodeRef"
+                  :value="product.garminStoreUrl" 
+                  :size="128" 
+                  :level="'M'" 
+                  class="qrcode-img" 
+                />
+                <div class="qrcode-actions">
+                  <button class="qrcode-action-btn" @click="saveQRCode" title="Save QR Code">
+                    💾
+                  </button>
+                  <button class="qrcode-action-btn" @click="shareQRCode" title="Share QR Code">
+                    📤
+                  </button>
+                </div>
+              </div>
+              <div class="qrcode-help">
+                <span class="qrcode-help-text">💡 Long press QR code to save or scan with camera</span>
+              </div>
             </div>
             <div class="install-or">or</div>
             <div class="button-section">
@@ -86,6 +105,67 @@ const handleAlreadyPurchased = () => {
   window.open('/already-purchased', '_blank')
 }
 
+// QR Code functionality
+const qrcodeRef = ref<any>(null)
+
+const saveQRCode = async () => {
+  try {
+    if (!product.value?.garminStoreUrl) return
+    
+    // Create canvas from QR code
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const qrCodeElement = qrcodeRef.value?.$el?.querySelector('canvas') as HTMLCanvasElement
+    
+    if (qrCodeElement) {
+      canvas.width = qrCodeElement.width
+      canvas.height = qrCodeElement.height
+      ctx?.drawImage(qrCodeElement, 0, 0)
+      
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `${product.value?.name || 'garmin-app'}-qrcode.png`
+          document.body.appendChild(a)
+          a.click()
+          document.body.removeChild(a)
+          URL.revokeObjectURL(url)
+          ElMessage.success('QR Code saved successfully!')
+        }
+      }, 'image/png')
+    }
+  } catch (error) {
+    console.error('Error saving QR code:', error)
+    ElMessage.error('Failed to save QR code')
+  }
+}
+
+const shareQRCode = async () => {
+  try {
+    if (!product.value?.garminStoreUrl) return
+    
+    // Check if Web Share API is supported
+    if (navigator.share) {
+      await navigator.share({
+        title: `${product.value?.name} - Garmin App`,
+        text: 'Check out this Garmin app!',
+        url: product.value.garminStoreUrl
+      })
+      ElMessage.success('Shared successfully!')
+    } else {
+      // Fallback: copy to clipboard
+      await navigator.clipboard.writeText(product.value.garminStoreUrl)
+      ElMessage.success('Link copied to clipboard!')
+    }
+  } catch (error) {
+    console.error('Error sharing:', error)
+    ElMessage.error('Failed to share')
+  }
+}
+
 onMounted(async () => {
   let productId = route.params.id
   if (Array.isArray(productId)) productId = productId[0]
@@ -103,7 +183,7 @@ onMounted(async () => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 60px 0 0 0;
+  padding: 60px 20px 0 20px;
 }
 .product-detail-main {
   display: flex;
@@ -288,11 +368,73 @@ onMounted(async () => {
   margin-bottom: 10px;
   letter-spacing: 0.2px;
 }
+.qrcode-container {
+  position: relative;
+  display: inline-block;
+}
+
 .qrcode-img {
   border-radius: 16px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
   background: #fff;
   padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.qrcode-img:hover {
+  transform: scale(1.05);
+}
+
+.qrcode-actions {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.qrcode-container:hover .qrcode-actions {
+  opacity: 1;
+}
+
+.qrcode-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qrcode-action-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  transform: scale(1.1);
+}
+
+.qrcode-help {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.qrcode-help-text {
+  font-size: 0.85rem;
+  color: #6b7280;
+  background: rgba(59, 130, 246, 0.05);
+  padding: 4px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  display: inline-block;
 }
 .icon-download-svg {
   display: inline-block;
@@ -344,36 +486,152 @@ onMounted(async () => {
   max-width: 320px;
 }
 @media (max-width: 900px) {
+  .product-detail-page {
+    padding: 40px 16px 120px 16px;
+  }
+  
   .product-detail-main {
     flex-direction: column;
     align-items: center;
     gap: 40px;
+    max-width: 100%;
   }
+  
   .product-info-wrap {
     margin-top: 0;
     align-items: center;
     min-width: 0;
+    width: 100%;
+    max-width: 400px;
   }
+  
   .product-btn {
     width: 100%;
+    max-width: 340px;
   }
+  
   .product-image-wrap {
-    width: 320px;
-    height: 320px;
+    width: 280px;
+    height: 280px;
   }
+  
   .install-methods {
     flex-direction: column;
     gap: 18px;
   }
+  
   .qrcode-section, .button-section {
     width: 100%;
     min-width: 0;
   }
+  
   .install-or {
     width: 100%;
     min-width: 0;
     height: auto;
     margin: 8px 0;
+  }
+  
+  .product-title {
+    font-size: 2.2rem;
+    text-align: center;
+  }
+  
+  .product-price {
+    text-align: center;
+  }
+  
+  .product-desc {
+    text-align: center;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-detail-page {
+    padding: 32px 12px 100px 12px;
+  }
+  
+  .product-detail-main {
+    gap: 32px;
+  }
+  
+  .product-image-wrap {
+    width: 240px;
+    height: 240px;
+  }
+  
+  .product-title {
+    font-size: 1.8rem;
+  }
+  
+  .product-btn {
+    height: 56px;
+    font-size: 1.1rem;
+  }
+  
+  .product-btn-unlock {
+    height: 56px;
+    font-size: 1.1rem;
+  }
+  
+  .product-btn-already-purchased {
+    height: 48px;
+    font-size: 1rem;
+  }
+  
+  .install-title {
+    font-size: 1.25rem;
+  }
+  
+  .qrcode-img {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .qrcode-actions {
+    top: -6px;
+    right: -6px;
+  }
+  
+  .qrcode-action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  
+  .qrcode-help-text {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .product-detail-page {
+    padding: 24px 8px 80px 8px;
+  }
+  
+  .product-image-wrap {
+    width: 200px;
+    height: 200px;
+  }
+  
+  .product-title {
+    font-size: 1.6rem;
+  }
+  
+  .product-btn {
+    height: 52px;
+    font-size: 1rem;
+  }
+  
+  .product-btn-unlock {
+    height: 52px;
+    font-size: 1rem;
+  }
+  
+  .product-btn-already-purchased {
+    height: 44px;
+    font-size: 0.95rem;
   }
 }
 </style> 

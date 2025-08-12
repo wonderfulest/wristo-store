@@ -113,8 +113,7 @@ defineEmits(['product-click']);
 }
 
 .hot-img-wrap {
-  width: 100%;
-  max-width: 300px;
+  width: 300px;
   height: 300px;
   border-radius: 50%;
   overflow: hidden;
@@ -124,6 +123,7 @@ defineEmits(['product-click']);
   align-items: center;
   justify-content: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
 }
 
 .hot-item:hover .hot-img-wrap {
@@ -178,6 +178,7 @@ defineEmits(['product-click']);
   }
 
   .hot-img-wrap {
+    width: 280px;
     height: 280px;
   }
 }
@@ -201,6 +202,7 @@ defineEmits(['product-click']);
   }
 
   .hot-img-wrap {
+    width: 240px;
     height: 240px;
   }
 
@@ -222,6 +224,7 @@ defineEmits(['product-click']);
   }
 
   .hot-img-wrap {
+    width: 280px;
     height: 280px;
   }
 }
