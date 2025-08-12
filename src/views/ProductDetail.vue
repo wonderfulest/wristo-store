@@ -84,9 +84,28 @@ const product = ref<ProductVO | null>(null)
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
-    // 对于外部链接，保持在新标签页打开是最佳实践
-    // 这样用户不会丢失当前页面的上下文
-    window.open(product.value.garminStoreUrl, '_blank')
+    // 保存当前页面状态到sessionStorage，防止页面刷新时丢失
+    try {
+      sessionStorage.setItem('productDetailState', JSON.stringify({
+        productId: route.params.id,
+        scrollPosition: window.scrollY,
+        timestamp: Date.now()
+      }))
+    } catch (error) {
+      console.warn('Failed to save page state:', error)
+    }
+    
+    // 在新标签页打开外部链接
+    const newWindow = window.open(product.value.garminStoreUrl, '_blank')
+    
+    // 确保新窗口成功打开
+    if (!newWindow) {
+      ElMessage.error('Please allow popups for this site to open Garmin Store')
+      return
+    }
+    
+    // 给用户反馈
+    ElMessage.success('Opening Garmin Connect IQ Store...')
   } else {
     ElMessage.error('Download link is not available')
   }
@@ -167,6 +186,26 @@ onMounted(async () => {
   if (Array.isArray(productId)) productId = productId[0]
   if (productId) {
     product.value = await productStore.getProductDetail(productId) as ProductVO
+    
+    // 恢复页面状态（如果用户从外部链接返回）
+    try {
+      const savedState = sessionStorage.getItem('productDetailState')
+      if (savedState) {
+        const state = JSON.parse(savedState)
+        // 检查是否是同一个产品页面，且时间不超过30分钟
+        if (state.productId === productId && (Date.now() - state.timestamp) < 30 * 60 * 1000) {
+          // 恢复滚动位置
+          setTimeout(() => {
+            window.scrollTo(0, state.scrollPosition)
+          }, 100)
+          
+          // 清除已使用的状态
+          sessionStorage.removeItem('productDetailState')
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to restore page state:', error)
+    }
   }
 })
 </script>
