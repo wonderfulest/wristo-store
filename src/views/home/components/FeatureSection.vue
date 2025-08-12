@@ -53,22 +53,21 @@ import { Plus, Check, Lightning } from '@element-plus/icons-vue';
 .feature-section {
   width: 100%;
   background: linear-gradient(135deg, #eaf1ff 0%, #f6f7fb 100%);
-  padding: 20px 0;
+  padding: 20px 16px;
   margin: 0;
+  box-sizing: border-box;
 }
 
 .feature-bg {
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 48px auto;
   border-radius: 36px;
   background: rgba(255,255,255,0.55);
   box-shadow: 0 8px 32px 0 rgba(80, 110, 255, 0.08);
   padding: 64px 24px 56px 24px;
   position: relative;
-  margin-top: 48px;
-  margin-bottom: 48px;
   overflow: hidden;
-  width: calc(100% - 32px);
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -136,10 +135,10 @@ import { Plus, Check, Lightning } from '@element-plus/icons-vue';
   font-weight: 600;
   border-radius: 999px;
   padding: 6px 22px;
-  margin-bottom: 24px;
+  margin: 0 auto 24px auto;
   letter-spacing: 1px;
   text-align: center;
-  width: 100%;
+  max-width: fit-content;
 }
 
 .feature-title {
@@ -168,10 +167,10 @@ import { Plus, Check, Lightning } from '@element-plus/icons-vue';
   margin-top: 0;
   flex-wrap: wrap;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
-  padding: 0 16px;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -238,32 +237,109 @@ import { Plus, Check, Lightning } from '@element-plus/icons-vue';
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  .feature-section {
+    padding: 20px 12px;
+  }
+  
   .feature-bg {
-    padding: 48px 16px;
-    margin-top: 32px;
-    margin-bottom: 32px;
+    padding: 40px 20px 48px 20px;
+    margin: 24px auto;
+    border-radius: 24px;
+    width: 100%;
   }
 
-  .feature-title {
-    font-size: 2.2rem;
+  .feature-badge {
+    font-size: 0.9rem;
+    padding: 5px 18px;
     margin-bottom: 20px;
   }
 
+  .feature-title {
+    font-size: 2rem;
+    margin-bottom: 18px;
+    line-height: 1.2;
+    padding: 0 8px;
+  }
+
   .feature-desc {
-    font-size: 1.1rem;
+    font-size: 1rem;
     margin-bottom: 32px;
-    padding: 0 16px;
+    padding: 0 8px;
+    line-height: 1.6;
   }
 
   .feature-cards {
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: 20px;
+    padding: 0 8px;
   }
 
   .feature-card {
     max-width: 100%;
     width: 100%;
+    padding: 20px 16px 24px 16px;
+  }
+  
+  /* 调整背景圆圈在移动端的位置 */
+  .feature-circle-1 {
+    width: 120px;
+    height: 120px;
+    left: -40px;
+    top: -40px;
+  }
+  
+  .feature-circle-2 {
+    width: 80px;
+    height: 80px;
+    right: -30px;
+    top: 30px;
+  }
+  
+  .feature-circle-4 {
+    width: 100px;
+    height: 100px;
+    right: 60px;
+    bottom: -40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .feature-section {
+    padding: 16px 8px;
+  }
+  
+  .feature-bg {
+    padding: 32px 16px 40px 16px;
+    margin: 16px auto;
+    border-radius: 20px;
+  }
+  
+  .feature-title {
+    font-size: 1.8rem;
+    padding: 0 4px;
+  }
+  
+  .feature-desc {
+    font-size: 0.95rem;
+    padding: 0 4px;
+  }
+  
+  .feature-cards {
+    padding: 0 4px;
+    gap: 16px;
+  }
+  
+  .feature-card {
+    padding: 18px 14px 20px 14px;
+  }
+  
+  .feature-card-title {
+    font-size: 1.1rem;
+  }
+  
+  .feature-card-desc {
+    font-size: 1rem;
   }
 }
 </style>

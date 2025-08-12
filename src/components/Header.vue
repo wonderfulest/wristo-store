@@ -65,7 +65,7 @@
         <template v-else>
           <div class="auth-buttons">
             <button class="auth-btn login-btn" @click="goToLogin">
-              <span>Sign in</span>
+              <span>Sign In</span>
             </button>
             <button class="auth-btn signup-btn" @click="goToSignup">
               <span>Sign Up</span>
@@ -103,10 +103,10 @@
         
         <template v-if="!isLoggedIn">
           <div class="mobile-auth-buttons-top">
-            <button class="mobile-auth-btn login" @click="goToLogin; closeMobileMenu()">
-              Sign in
+            <button class="mobile-auth-btn login" @click="handleMobileLogin">
+              Sign In
             </button>
-            <button class="mobile-auth-btn signup" @click="goToSignup; closeMobileMenu()">
+            <button class="mobile-auth-btn signup" @click="handleMobileSignup">
               Sign Up
             </button>
           </div>
@@ -215,13 +215,33 @@ const handleUserMenuCommand = (command: string) => {
 const goToLogin = () => {
   const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
   const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
-  window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
+  const loginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
+  
+  // 移动端兼容性更好的跳转方式
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    // 移动端使用延迟跳转
+    setTimeout(() => {
+      window.location.replace(loginUrl)
+    }, 100)
+  } else {
+    window.location.href = loginUrl
+  }
 };
 
 const goToSignup = () => {
   const ssoBaseUrl = import.meta.env.VITE_SSO_SIGNUP_URL
   const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI;
-  window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}&mode=signup`;
+  const signupUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}&mode=signup`
+  
+  // 移动端兼容性更好的跳转方式
+  if (/Mobi|Android/i.test(navigator.userAgent)) {
+    // 移动端使用延迟跳转
+    setTimeout(() => {
+      window.location.replace(signupUrl)
+    }, 100)
+  } else {
+    window.location.href = signupUrl
+  }
 };
 
 // Mobile menu functions
@@ -243,6 +263,17 @@ const closeMobileMenu = () => {
 
 const toggleCategoriesDropdown = () => {
   isCategoriesOpen.value = !isCategoriesOpen.value;
+};
+
+// Mobile auth functions
+const handleMobileLogin = () => {
+  closeMobileMenu();
+  goToLogin();
+};
+
+const handleMobileSignup = () => {
+  closeMobileMenu();
+  goToSignup();
 };
 
 onMounted(() => {
@@ -799,7 +830,7 @@ watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
   }
   
   .mobile-nav-content {
-    padding: 20px 16px;
+    padding: 0px 16px;
   }
   
   .mobile-nav-link {

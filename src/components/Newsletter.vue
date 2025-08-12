@@ -135,24 +135,27 @@ onMounted(() => {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: 64px;
-  padding-bottom: 64px;
+  padding: 64px 16px;
+  box-sizing: border-box;
 }
 .container {
   width: 100%;
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0;
+  box-sizing: border-box;
 }
 .newsletter {
   background: #fff;
   border-radius: 24px;
   box-shadow: 0 4px 32px rgba(0,0,0,0.10);
   padding: 48px 40px 40px 40px;
-  margin-top: 0;
+  margin: 0 auto;
   text-align: center;
   position: relative;
+  width: 100%;
   max-width: 600px;
+  box-sizing: border-box;
 }
 .title {
   font-size: 2.2em;
@@ -279,5 +282,121 @@ onMounted(() => {
   0% { transform: scale(0.7); opacity: 0; }
   80% { transform: scale(1.1); opacity: 1; }
   100% { transform: scale(1); }
+}
+
+/* 移动端响应式样式 */
+@media (max-width: 768px) {
+  .newsletter-bg {
+    padding: 48px 12px;
+  }
+  
+  .newsletter {
+    padding: 36px 24px 32px 24px;
+    border-radius: 20px;
+  }
+  
+  .title {
+    font-size: 1.8em;
+    margin-bottom: 12px;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+  
+  .input-email {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px 16px;
+    height: 44px;
+  }
+  
+  .btn, .subscribe-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0 24px;
+    height: 44px;
+    line-height: 44px;
+  }
+  
+  .unsubscribe-row {
+    text-align: center;
+    margin-top: 12px;
+  }
+  
+  .success {
+    padding: 24px 16px 20px 16px;
+    margin: 20px 0 0 0;
+  }
+  
+  .congrats-icon {
+    font-size: 2.8em;
+  }
+  
+  .congrats-title {
+    font-size: 1.3em;
+  }
+}
+
+@media (max-width: 480px) {
+  .newsletter-bg {
+    padding: 40px 8px;
+  }
+  
+  .newsletter {
+    padding: 28px 20px 24px 20px;
+    border-radius: 16px;
+  }
+  
+  .title {
+    font-size: 1.6em;
+    margin-bottom: 10px;
+  }
+  
+  .subtitle {
+    font-size: 0.95rem;
+    margin-bottom: 24px;
+  }
+  
+  .form-row {
+    gap: 12px;
+  }
+  
+  .input-email {
+    font-size: 0.95rem;
+    padding: 10px 14px;
+    height: 40px;
+  }
+  
+  .btn, .subscribe-btn {
+    font-size: 0.95rem;
+    height: 40px;
+    line-height: 40px;
+    padding: 0 20px;
+  }
+  
+  .success {
+    padding: 20px 12px 16px 12px;
+  }
+  
+  .congrats-icon {
+    font-size: 2.4em;
+  }
+  
+  .congrats-title {
+    font-size: 1.2em;
+  }
+  
+  .note {
+    font-size: 1rem;
+  }
 }
 </style>
