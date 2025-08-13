@@ -62,6 +62,6 @@ import Footer from './Footer.vue'
 
 /* 确保所有子元素不超出容器宽度 */
 .layout-root *:not(svg):not(path) {
-  max-width: 100%;
+  /* max-width: 100%; */
 }
 </style> 

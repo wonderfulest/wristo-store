@@ -186,7 +186,7 @@ const handleLearnMore = () => {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 40px;
   width: 100%;
-  max-width: 480px;
+  max-width: 600px;
   min-height: 500px;
   max-height: 90vh;
   display: flex;

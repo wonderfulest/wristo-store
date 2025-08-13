@@ -6,19 +6,21 @@
     
     <div class="cards-container">
       <!-- 套餐卡片 -->
-        <PurchaseCard
-        v-if="bundle"
+      <PurchaseCard
+        v-for="bundleItem in bundles"
+        :key="bundleItem.bundleId"
+        v-if="bundles.length > 0"
         type="bundle"
-        :title="bundle.bundleName"
-        :description="bundle.bundleDesc"
-        :bundle-items="bundleItems"
-        :original-price="bundleOriginalPrice"
-        :current-price="bundleCurrentPrice"
-        :discount="bundleDiscount"
-        :is-selected="isBundleSelected"
-        :button-text="`Buy Bundle for $${bundleCurrentPrice.toFixed(2)}`"
-        @select="selectBundle"
-        @buy="handleBuyBundle"
+        :title="bundleItem.bundleName"
+        :description="bundleItem.bundleDesc"
+        :bundle-items="getBundleItems(bundleItem)"
+        :original-price="getBundleOriginalPrice(bundleItem)"
+        :current-price="getBundleCurrentPrice(bundleItem)"
+        :discount="getBundleDiscount(bundleItem)"
+        :is-selected="isBundleSelected(bundleItem)"
+        :button-text="`Buy Bundle for $${getBundleCurrentPrice(bundleItem).toFixed(2)}`"
+        @select="() => selectBundle(bundleItem)"
+        @buy="() => handleBuyBundle(bundleItem)"
       />
     
       <!-- 单品卡片 -->
@@ -71,7 +73,15 @@ const selectedPlan = ref<SubscriptionPlan | null>(null)
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
 
 const product = computed(() => purchaseData.value?.product as ProductVO)
-const bundle = computed(() => purchaseData.value?.bundles?.[0] as Bundle)
+const bundles = computed(() => {
+  const bundlesList = purchaseData.value?.bundles || []
+  // 按实际金额从大到小排序
+  return bundlesList.sort((a, b) => {
+    const priceA = parseFloat(String(a.price))
+    const priceB = parseFloat(String(b.price))
+    return priceB - priceA
+  })
+})
 
 // 价格计算 - 产品
 const productOriginalPrice = computed(() => {
@@ -89,35 +99,39 @@ const productDiscount = computed(() => {
   return Math.round(((productOriginalPrice.value - productCurrentPrice.value) / productOriginalPrice.value) * 100)
 })
 
-// 价格计算 - 套餐
-const bundleOriginalPrice = computed(() => {
-  if (!bundle.value) return 0
+// 保留第一个bundle的引用用于向后兼容，但移除未使用的computed属性
+
+// 多个套餐的价格计算函数
+const getBundleOriginalPrice = (bundleItem: Bundle) => {
+  if (!bundleItem) return 0
   let bundlePrice = 0
-  for (const product of bundle.value.products) {
+  for (const product of bundleItem.products) {
     bundlePrice += parseFloat(String(product.price))
   }
   return bundlePrice
-})
+}
 
-const bundleCurrentPrice = computed(() => {
-  if (!bundle.value) return 0
-  return parseFloat(String(bundle.value.price))
-})
+const getBundleCurrentPrice = (bundleItem: Bundle) => {
+  if (!bundleItem) return 0
+  return parseFloat(String(bundleItem.price))
+}
 
-const bundleDiscount = computed(() => {
-  if (bundleOriginalPrice.value <= bundleCurrentPrice.value) return 0
-  return Math.round(((bundleOriginalPrice.value - bundleCurrentPrice.value) / bundleOriginalPrice.value) * 100)
-})
+const getBundleDiscount = (bundleItem: Bundle) => {
+  const originalPrice = getBundleOriginalPrice(bundleItem)
+  const currentPrice = getBundleCurrentPrice(bundleItem)
+  if (originalPrice <= currentPrice) return 0
+  return Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
+}
 
-// 套餐项目数据
-const bundleItems = computed(() => {
-  if (!bundle.value?.products) return []
-  return bundle.value.products.map(p => ({
+// 获取套餐项目数据
+const getBundleItems = (bundleItem: Bundle) => {
+  if (!bundleItem?.products) return []
+  return bundleItem.products.map(p => ({
     id: String(p.appId),
     name: p.name,
     imageUrl: p.garminImageUrl
   }))
-})
+}
 
 // 判断产品是否被选中
 const isProductSelected = computed(() => {
@@ -132,18 +146,20 @@ const isProductSelected = computed(() => {
   return false;
 });
 
-// 判断套餐是否被选中
-const isBundleSelected = computed(() => {
+// 移除未使用的 computed 属性，使用函数版本
+
+// 判断特定套餐是否被选中
+const isBundleSelected = (bundleItem: Bundle) => {
   // 确保套餐存在且已被选中（而不是订阅被选中）
-  if (!bundle.value || !store.selectedProduct || selectedPlan.value) return false;
+  if (!bundleItem || !store.selectedProduct || selectedPlan.value) return false;
   
   // 如果是Bundle类型，比较bundleId
-  if ('bundleId' in store.selectedProduct && 'bundleId' in bundle.value) {
-    return store.selectedProduct.bundleId === bundle.value.bundleId;
+  if ('bundleId' in store.selectedProduct && 'bundleId' in bundleItem) {
+    return store.selectedProduct.bundleId === bundleItem.bundleId;
   }
   
   return false;
-});
+};
 
 // 选择单个产品
 const selectProduct = () => {
@@ -154,10 +170,11 @@ const selectProduct = () => {
 };
 
 // 选择套餐
-const selectBundle = () => {
-  if (bundle.value) {
-    store.setSelectedProduct(bundle.value as Bundle);
-    selectedPlan.value = null;
+const selectBundle = (bundleItem?: Bundle) => {
+  const targetBundle = bundleItem
+  if (targetBundle) {
+    store.setSelectedProduct(targetBundle)
+    selectedPlan.value = null // 清除订阅选择
   }
 };
 
@@ -170,9 +187,10 @@ const handleBuyProduct = () => {
 }
 
 // 处理购买套餐
-const handleBuyBundle = () => {
-  if (bundle.value) {
-    store.setSelectedProduct(bundle.value as Bundle)
+const handleBuyBundle = (bundleItem?: Bundle) => {
+  const targetBundle = bundleItem
+  if (targetBundle) {
+    store.setSelectedProduct(targetBundle)
     router.push({ name: 'Checkout' })
   }
 }
