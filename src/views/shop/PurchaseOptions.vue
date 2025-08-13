@@ -254,8 +254,8 @@ onMounted(() => {
 
 /* 统一卡片宽度 */
 .cards-container > * {
-  flex: 0 0 360px;
-  width: 360px;
+  flex: 0 0 420px;
+  width: 420px;
 }
 
 .box-container {
