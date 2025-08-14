@@ -349,12 +349,20 @@ onMounted(() => {
   .cards-container {
     flex-direction: column;
     align-items: center;
+    padding: 0 20px;
+  }
+  
+  .cards-container > * {
+    flex: none;
+    width: calc(100% - 40px);
+    max-width: 500px;
+    margin-bottom: 24px;
   }
   
   .product-box, .bundle-box, .subscription-box {
     flex: 1 1 100%;
     width: 100%;
-    max-width: 800px;
+    max-width: 500px;
     margin-bottom: 30px;
   }
   
@@ -374,7 +382,16 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .purchase-options {
-    padding: 24px 12px 80px 12px;
+    padding: 24px 16px 80px 16px;
+  }
+  
+  .cards-container {
+    padding: 0 16px;
+  }
+  
+  .cards-container > * {
+    width: calc(100% - 32px);
+    max-width: 450px;
   }
   
   .box-container {
@@ -407,7 +424,16 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .purchase-options {
-    padding: 16px 8px 100px 8px;
+    padding: 16px 12px 100px 12px;
+  }
+  
+  .cards-container {
+    padding: 0 12px;
+  }
+  
+  .cards-container > * {
+    width: calc(100% - 24px);
+    max-width: 380px;
   }
   
   .title {
@@ -430,6 +456,29 @@ onMounted(() => {
   
   .card-title {
     font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .purchase-options {
+    padding: 16px 8px 100px 8px;
+  }
+  
+  .cards-container {
+    padding: 0 8px;
+  }
+  
+  .cards-container > * {
+    width: calc(100% - 16px);
+    max-width: 320px;
+  }
+  
+  .title {
+    font-size: 1.4rem;
+  }
+  
+  .desc {
+    font-size: 0.95rem;
   }
 }
 /* 选项卡样式 */
