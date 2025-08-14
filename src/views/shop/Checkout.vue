@@ -275,12 +275,23 @@ const formatDescription = (description: string) => {
   return description.replace(/\n/g, '<br>')
 }
 
-// Bundle图片自动滚动功能
+// Bundle图片自动滚动功能 - 移动端优化
 const bundleScrollContainer = ref<HTMLElement | null>(null)
 let autoScrollInterval: number | null = null
+let scrollDirection = 1 // 1为向右，-1为向左
+let isMobile = false
+
+// 检测是否为移动设备
+const detectMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+         window.innerWidth <= 768
+}
 
 const startAutoScroll = () => {
   if (!bundleScrollContainer.value || !isBundle.value) return
+  
+  // 移动端禁用自动滚动，避免与手势冲突
+  if (isMobile) return
   
   autoScrollInterval = window.setInterval(() => {
     if (bundleScrollContainer.value) {
@@ -289,14 +300,24 @@ const startAutoScroll = () => {
       const clientWidth = container.clientWidth
       const currentScroll = container.scrollLeft
       
-      // 如果滚动到末尾，回到开始
-      if (currentScroll >= scrollWidth - clientWidth) {
-        container.scrollLeft = 0
+      // 循环滚动逻辑
+      if (scrollDirection === 1) {
+        // 向右滚动
+        if (currentScroll >= scrollWidth - clientWidth) {
+          scrollDirection = -1 // 改变方向
+        } else {
+          container.scrollLeft += 1
+        }
       } else {
-        container.scrollLeft += 1
+        // 向左滚动
+        if (currentScroll <= 0) {
+          scrollDirection = 1 // 改变方向
+        } else {
+          container.scrollLeft -= 1
+        }
       }
     }
-  }, 30) // 每30ms滚动1px
+  }, 50) // 增加间隔到50ms，减少CPU占用
 }
 
 const stopAutoScroll = () => {
@@ -306,17 +327,46 @@ const stopAutoScroll = () => {
   }
 }
 
+// 移动端触摸事件处理
+const handleTouchStart = () => {
+  stopAutoScroll()
+}
+
+const handleTouchEnd = () => {
+  if (!isMobile && isBundle.value) {
+    setTimeout(() => {
+      startAutoScroll()
+    }, 2000) // 2秒后重新开始自动滚动
+  }
+}
+
 // 启动自动滚动
 if (isBundle.value) {
   onMounted(() => {
-    // 延迟启动自动滚动，确保DOM已渲染
-    setTimeout(() => {
-      startAutoScroll()
-    }, 1000)
+    isMobile = detectMobile()
+    
+    if (!isMobile) {
+      // 延迟启动自动滚动，确保DOM已渲染
+      setTimeout(() => {
+        startAutoScroll()
+      }, 1000)
+    }
+    
+    // 为移动端添加触摸事件监听
+    if (bundleScrollContainer.value && isMobile) {
+      bundleScrollContainer.value.addEventListener('touchstart', handleTouchStart, { passive: true })
+      bundleScrollContainer.value.addEventListener('touchend', handleTouchEnd, { passive: true })
+    }
   })
   
   onUnmounted(() => {
     stopAutoScroll()
+    
+    // 清理事件监听器
+    if (bundleScrollContainer.value && isMobile) {
+      bundleScrollContainer.value.removeEventListener('touchstart', handleTouchStart)
+      bundleScrollContainer.value.removeEventListener('touchend', handleTouchEnd)
+    }
   })
 }
 </script>
@@ -347,6 +397,7 @@ if (isBundle.value) {
     font-weight: bold;
     margin: 32px 0 24px 0;
     text-align: center;
+    color: #1a1a1a;
 }
 
 .checkout-main {
@@ -374,6 +425,7 @@ if (isBundle.value) {
     font-size: 1.1rem;
     margin-bottom: 8px;
     display: block;
+    color: #1a1a1a;
 }
 
 .input {
@@ -395,7 +447,7 @@ if (isBundle.value) {
 }
 
 .input-desc {
-    color: #6b7280;
+    color: #4a5568;
     font-size: 0.98rem;
     margin-bottom: 24px;
 }
@@ -404,10 +456,11 @@ if (isBundle.value) {
     font-weight: bold;
     font-size: 1.1rem;
     margin: 24px 0 8px 0;
+    color: #1a1a1a;
 }
 
 .pay-method-note {
-    color: #444;
+    color: #2d3748;
     font-size: 0.98rem;
     margin-bottom: 24px;
 }
@@ -491,7 +544,7 @@ if (isBundle.value) {
 .card-title {
     font-size: 1.4rem;
     font-weight: 700;
-    color: #333;
+    color: #1a1a1a;
     margin: 0;
 }
 .price-info {
@@ -513,6 +566,14 @@ if (isBundle.value) {
     padding: 8px 0;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    /* 移动端性能优化 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: scroll-position;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    /* 禁用自动滚动在移动端 */
+    pointer-events: auto;
 }
 .bundle-images-scroll::-webkit-scrollbar {
     height: 6px;
@@ -543,6 +604,10 @@ if (isBundle.value) {
     /* border: 2px solid #eee; */
     background: #fafafa;
     margin-bottom: 8px;
+    /* 图片性能优化 */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
 }
 .bundle-image-item .product-name {
     font-size: 0.9rem;
@@ -556,7 +621,7 @@ if (isBundle.value) {
 }
 .scroll-text {
     font-size: 0.85rem;
-    color: #999;
+    color: #718096;
     font-style: italic;
 }
 .bundle-info {
@@ -567,11 +632,11 @@ if (isBundle.value) {
 .bundle-name {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #333;
+    color: #1a1a1a;
     margin-bottom: 8px;
 }
 .bundle-desc {
-    color: #666;
+    color: #4a5568;
     margin-bottom: 12px;
     line-height: 1.4;
 }
@@ -601,11 +666,11 @@ if (isBundle.value) {
 .product-info .product-name {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #333;
+    color: #1a1a1a;
     margin-bottom: 8px;
 }
 .product-id {
-    color: #999;
+    color: #718096;
     font-size: 0.9rem;
     font-family: monospace;
 }
@@ -843,6 +908,32 @@ if (isBundle.value) {
         .input {
             -webkit-appearance: none;
             appearance: none;
+        }
+        
+        /* Bundle图片滚动优化 */
+        .bundle-images-scroll {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: scroll-position;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            /* 移动端禁用自动滚动 */
+            scroll-snap-type: x mandatory;
+        }
+        
+        .bundle-image-item {
+            scroll-snap-align: start;
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+        
+        .bundle-image-item img {
+            -webkit-transform: translateZ(0);
+            transform: translateZ(0);
+            will-change: transform;
+            /* 减少重绘 */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
         }
     }
 }
