@@ -157,11 +157,13 @@ function handleResendCode() {
 
 <style scoped>
 .already-purchased-page {
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .content-container {
@@ -170,13 +172,15 @@ function handleResendCode() {
   border-radius: 24px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   padding: 40px;
-  width: 480px;
+  width: 100%;
+  max-width: 600px;
   min-height: 500px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .header-section {
@@ -374,7 +378,7 @@ function handleResendCode() {
   .content-container {
     padding: 32px 24px;
     gap: 16px;
-    width: 90%;
+    max-width: 100%;
     min-height: 400px;
     max-height: 95vh;
   }

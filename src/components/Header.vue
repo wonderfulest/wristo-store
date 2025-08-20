@@ -157,7 +157,7 @@ const seriesList = ref<Series[]>([]);
 const router = useRouter();
 const userStore = useUserStore();
 const isLoggedIn = ref(false);
-const userAvatar = ref('https://via.placeholder.com/32');
+const userAvatar = ref('https://cdn.wristo.io/test/avatar/561aae25-41bd-47ab-974e-7231f5a850e8.png');
 
 // Mobile menu state
 const isMobileMenuOpen = ref(false);
@@ -173,7 +173,7 @@ const handleSelectSeries = (slug: string) => {
 
 const updateUserInfo = () => {
   isLoggedIn.value = !!userStore.userInfo;
-  userAvatar.value = userStore.userInfo?.avatar || 'https://via.placeholder.com/32';
+  userAvatar.value = userStore.userInfo?.avatar || 'https://cdn.wristo.io/test/avatar/561aae25-41bd-47ab-974e-7231f5a850e8.png';
 };
 
 // Check if user has an active subscription
