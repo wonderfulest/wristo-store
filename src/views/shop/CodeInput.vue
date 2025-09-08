@@ -58,9 +58,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { purchaseByCode, checkPurchaseByToken } from '@/api/pay'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { purchaseByCode, checkPurchaseByToken, continuePurchase } from '@/api/pay'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
 import Logo from '@/components/Logo.vue'
@@ -73,6 +73,7 @@ const error = ref('')
 const success = ref('')
 const loading = ref(false)
 const router = useRouter()
+const route = useRoute()
 const store = useShopOptionsStore()
 const userStore = useUserStore()
 
@@ -124,8 +125,8 @@ const handleContinue = async () => {
     store.setData(purchaseData)
     router.push({ name: 'PurchaseOptions' })
   } catch (e: unknown) {
-    if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
-      error.value = e.msg
+    if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof (e as any).msg === 'string') {
+      error.value = (e as any).msg
     } else {
       error.value = 'Network error, please try again later.'
     }
@@ -166,6 +167,34 @@ const handleLearnMore = () => {
     duration: 8000
   })
 }
+
+// 如果 URL 中带有 _ptxn，则请求后端获取 6 位代码并自动继续
+onMounted(async () => {
+  const txnId = route.query._ptxn as string | undefined
+  if (!txnId) return
+
+  try {
+    loading.value = true
+    clearMessages()
+    const codeStr = await continuePurchase(txnId)
+    // 保护性处理，只保留前6位数字
+    const six = (codeStr || '').toString().replace(/\D/g, '').slice(0, 6)
+    if (!six || six.length !== 6) {
+      error.value = 'Failed to retrieve a valid 6-digit code. Please try again.'
+      return
+    }
+    code.value = six
+    // 等待下一个 tick 确保 v-model 更新，再自动继续
+    setTimeout(() => {
+      handleContinue()
+    }, 100)
+  } catch (err) {
+    console.error('continuePurchase failed', err)
+    error.value = 'Failed to continue purchase. Please try again.'
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <style scoped>
@@ -529,4 +558,4 @@ const handleLearnMore = () => {
     font-size: 0.95rem;
   }
 }
-</style> 
+</style>

@@ -45,3 +45,8 @@ export const activatePurchase = (email: string, smartwatchCode: string): Promise
 export const checkPurchaseByToken = (code: string): Promise<CheckPurchaseResponse> => {
   return instance.post('/trials/check-purchase', { code })
 }
+
+// 继续支付：根据交易ID获取6位激活码
+export const continuePurchase = (txnId: string): Promise<string> => {
+  return instance.post('/public/trials/v1/purchase/continue', { txnId })
+}
