@@ -11,12 +11,12 @@
         <!-- Desktop carousel -->
         <el-carousel 
           ref="carouselRef"
-          :interval="3000" 
+          :interval="1200" 
           type="card" 
           height="420px"
           :autoplay="true"
           :loop="true"
-          :pause-on-hover="true"
+          :pause-on-hover="false"
           :initial-index="0"
           indicator-position="outside"
           class="custom-carousel desktop-carousel"
@@ -94,9 +94,12 @@ onMounted(() => {
   // Ensure carousels start automatically
   if (carouselRef.value) {
     carouselRef.value.setActiveItem(0);
+    // start autoplay programmatically to avoid any interaction requirement
+    carouselRef.value.play && carouselRef.value.play();
   }
   if (mobileCarouselRef.value) {
     mobileCarouselRef.value.setActiveItem(0);
+    mobileCarouselRef.value.play && mobileCarouselRef.value.play();
   }
 });
 

@@ -3,102 +3,34 @@
     <!-- Header Section -->
     <header class="page-header">
       <div class="header-content">
+        <!-- Celebration Icon (Blue) -->
+        <div class="celebration-icon" aria-hidden="true">
+          <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Party popper body -->
+            <path d="M10 46 L30 26 L38 34 L18 54 Z" stroke="currentColor" stroke-width="2" fill="none"/>
+            <!-- Confetti lines -->
+            <path d="M40 12 c4 4 8 4 12 0" stroke="currentColor" stroke-width="2"/>
+            <path d="M46 22 c3 3 6 3 9 0" stroke="currentColor" stroke-width="2"/>
+            <path d="M34 16 c2 2 4 2 6 0" stroke="currentColor" stroke-width="2"/>
+            <path d="M42 30 q4 -4 8 0" stroke="currentColor" stroke-width="2"/>
+            <!-- Sparkles -->
+            <path d="M24 10 l0 6 M21 13 l6 0" stroke="currentColor" stroke-width="2"/>
+            <path d="M52 36 l0 5 M49.5 38.5 l5 0" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </div>
         <div class="status-indicator">
           <div class="pulse-ring"></div>
           <div class="pulse-dot"></div>
         </div>
         <h1 class="page-title">Automatic Unlock</h1>
-        <p class="page-subtitle">Your product access is being processed</p>
+
       </div>
     </header>
 
     <!-- Main Content -->
     <main class="main-content">
-      <!-- Status Card -->
-      <section class="status-section">
-        <!-- Subscription Status -->
-        <div class="status-card subscription-card" v-if="subscriptionInfo">
-          <div class="card-header">
-            <div class="status-icon subscription-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/>
-              </svg>
-            </div>
-            <div class="card-title">
-              <h2>Active Subscription</h2>
-              <span class="status-badge subscription-badge">Premium</span>
-            </div>
-          </div>
-          <div class="card-content">
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="info-label">Plan</span>
-                <span class="info-value">{{ subscriptionInfo.name }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Valid Period</span>
-                <span class="info-value">{{ formatDate(subscriptionInfo.startTime) }} - {{ subscriptionInfo.endTime ? formatDate(subscriptionInfo.endTime) : 'Unlimited' }}</span>
-              </div>
-              <div class="info-item" v-if="subscriptionInfo.isGift">
-                <span class="gift-indicator">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/>
-                    <path d="M2 7h20v5H2z"/>
-                    <path d="M12 22V7"/>
-                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-                  </svg>
-                  Gift Subscription
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Purchase Status -->
-        <div class="status-card purchase-card" v-if="purchaseInfo && !subscriptionInfo">
-          <div class="card-header">
-            <div class="status-icon purchase-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 12l2 2 4-4"/>
-                <circle cx="12" cy="12" r="10"/>
-              </svg>
-            </div>
-            <div class="card-title">
-              <h2>Product Purchased</h2>
-              <span class="status-badge purchase-badge">Permanent</span>
-            </div>
-          </div>
-          <div class="card-content">
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="info-label">Product ID</span>
-                <span class="info-value">{{ purchaseInfo.appId }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Purchase Date</span>
-                <span class="info-value">{{ formatDate(purchaseInfo.createdAt) }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Amount</span>
-                <span class="info-value">{{ (purchaseInfo.grandTotal / 100).toFixed(2) }} {{ purchaseInfo.currencyCode }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Status</span>
-                <span class="status-success">{{ purchaseInfo.statusDesc }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- Process Steps -->
       <section class="process-section">
-        <div class="section-header">
-          <h2>Unlock Process</h2>
-          <p>Follow these steps to complete the automatic unlock</p>
-        </div>
-        
         <div class="steps-container">
           <div class="step-item" v-for="(step, index) in steps" :key="index">
             <div class="step-indicator">
@@ -151,7 +83,7 @@ const purchaseInfo = computed(() => store.purchaseInfo)
 const steps = ref([
   {
     title: 'Automatic Unlock Process Started',
-    description: 'Your subscription plan will automatically unlock this product. The process has already begun.'
+    description: 'Your bundle purchase will automatically unlock this product. The process has already begun.'
   },
   {
     title: 'Keep Your Watch Connected',
@@ -169,10 +101,6 @@ onMounted(() => {
     router.push('/')
   }
 })
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
-}
 
 const goToHome = () => {
   router.push('/')
@@ -308,15 +236,16 @@ const goToFAQ = () => {
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
-  color: white;
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
 }
 
 .subscription-icon {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: rgba(0, 122, 255, 0.12);
 }
 
 .purchase-icon {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: rgba(0, 122, 255, 0.12);
 }
 
 .card-title {
@@ -336,15 +265,15 @@ const goToFAQ = () => {
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: white;
+  color: #fff;
 }
 
 .subscription-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
 }
 
 .purchase-badge {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
 }
 
 .card-content {
@@ -386,7 +315,7 @@ const goToFAQ = () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #30d158;
+  color: #007AFF;
   font-weight: 500;
   font-size: 0.9rem;
 }
@@ -572,5 +501,28 @@ const goToFAQ = () => {
   .info-value {
     text-align: left;
   }
+}
+
+/* Celebration Icon */
+.celebration-icon {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: #007AFF;
+}
+
+.celebration-icon svg {
+  width: 56px;
+  height: 56px;
+  stroke: currentColor;
+}
+
+/* Unify all SVG icon stroke colors to Apple Blue */
+.auto-unlock-container svg {
+  stroke: #007AFF !important;
+}
+
+/* Ensure all button icons are blue regardless of text color */
+.action-buttons .btn svg {
+  stroke: #007AFF !important;
 }
 </style>
