@@ -75,8 +75,8 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest } from '@/types'
-import { checkPurchase, purchaseCallback } from '@/api/pay'
-import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest } from '@/types/purchase-check'
+import { checkPurchase } from '@/api/pay'
+import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
 
 declare global {
   interface Window {
