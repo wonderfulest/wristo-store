@@ -126,18 +126,14 @@ function loadPaddle() {
                     console.log('Paddle event:', data)
                     if (data.name === 'checkout.completed') {
                         const eventData = data as PaddleCheckoutCompletedEvent;
-                        
                         loading.value = false
-                        
-                        // 同步到后端
-                        const orderData: PurchaseCallbackRequest = {
-                            transaction_id: eventData.data.transaction_id,
-                        }
-                        
                         try {
-                            // 同步到后端
-                            await purchaseCallback(orderData)
-                         
+                            // // 同步到后端
+                            // const orderData: PurchaseCallbackRequest = {
+                            //     transaction_id: eventData.data.transaction_id,
+                            // }
+                            // const res = await purchaseCallback(orderData) 
+
                             // Save order info to store
                             store.setOrder({
                                 referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
