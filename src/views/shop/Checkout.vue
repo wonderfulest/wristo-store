@@ -47,7 +47,7 @@
             <div class="checkout-right">
                 <label class="input-label">Email for receipt</label>
                 <input v-model="email" class="input" placeholder="" />
-                <div class="input-desc">Only used for sending receipt.</div>
+                <div class="input-desc">Please use a real email address. It will be used to receive your order and subsequent activation benefits.</div>
                 <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
                 
                 <div class="pay-method-title">Payment Method</div>
@@ -712,12 +712,12 @@ if (isBundle.value) {
         width: 100%;
         max-width: 500px;
         margin: 0 auto;
-        order: 2;
+        order: 1;
         box-sizing: border-box;
     }
     
     .checkout-right {
-        order: 1;
+        order: 2;
         max-width: 500px;
         margin: 0 auto;
         width: 100%;

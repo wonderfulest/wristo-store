@@ -202,7 +202,7 @@ onUnmounted(() => {
 <style scoped>
 .purchase-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 20px;
+  border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   padding: 2rem;
   display: flex;
@@ -241,7 +241,7 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 700;
   padding: 8px 16px;
-  border-top-left-radius: 12px;
+  border-top-left-radius: 10px;
   border-bottom-right-radius: 12px;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
@@ -257,7 +257,7 @@ onUnmounted(() => {
   font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
-  border-top-right-radius: 12px;
+  border-top-right-radius: 10px;
   border-bottom-left-radius: 12px;
   z-index: 2;
   box-shadow: 0 2px 8px rgba(255, 204, 2, 0.3);

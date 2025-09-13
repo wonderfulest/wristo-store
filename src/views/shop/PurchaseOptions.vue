@@ -2,7 +2,7 @@
   <div class="purchase-options">
     <!-- <Logo /> -->
     <h2 class="title">Decision Time</h2>
-    <p class="desc">✨ Unlock More Watch Faces – Pick Your Plan Today!</p>
+    <p class="desc">✨ Unlock ALL watch faces with one purchase — enjoy them forever, no more switching hassle.</p>
     
     <div class="cards-container">
       <!-- 套餐卡片 -->
