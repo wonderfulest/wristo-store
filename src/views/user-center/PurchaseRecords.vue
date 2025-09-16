@@ -6,7 +6,7 @@
       <!-- Bundle 购买记录 -->
       <div v-if="bundleRecords.length > 0" class="records-section">
         <h3 class="section-title">Bundle Purchases</h3>
-        <div class="records-container">
+        <div class="records-container desktop-only">
           <el-table
             :data="bundleRecords"
             class="modern-table"
@@ -23,7 +23,7 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="bundle.bundleName" label="Bundle Name" min-width="100" align="left">
+            <el-table-column prop="bundle.bundleName" label="Bundle Name" min-width="160" align="left">
               <template #default="scope">
                 <span class="product-name">{{ scope.row.bundle?.bundleName || 'Bundle' }}</span>
               </template>
@@ -68,12 +68,55 @@
             </el-table-column>
           </el-table>
         </div>
+
+        <!-- Mobile Cards: Bundle -->
+        <div class="mobile-cards">
+          <div
+            v-for="item in bundleRecords"
+            :key="item.transactionId"
+            class="purchase-card"
+          >
+            <div class="card-header">
+              <div class="card-title">{{ item.bundleId ? `Bundle #${item.bundleId}` : 'Bundle' }}</div>
+              <div class="card-status" :class="getStatusClass(item.status)">{{ item.statusDesc }}</div>
+            </div>
+            <div class="card-row">
+              <span class="row-label">Date</span>
+              <span class="row-value">{{ formatDate(item.createdAt) }}</span>
+            </div>
+            <div class="card-row">
+              <span class="row-label">Amount</span>
+              <span class="row-value amount">
+                {{ (item.total / 100).toFixed(2) }}
+                <span class="currency">{{ item.currencyCode }}</span>
+              </span>
+            </div>
+            <div class="card-row">
+              <span class="row-label">Transaction</span>
+              <span class="row-value mono">{{ item.transactionId }}</span>
+            </div>
+            <div class="card-row meta">
+              <span class="badge">{{ item.paymentMethod }}</span>
+              <span class="badge warn">{{ item.countryCode }}</span>
+            </div>
+            <div class="card-actions">
+              <button
+                v-if="item.bundleId"
+                class="link-btn site-link"
+                @click="navigateToBundle(item.bundleId)"
+              >
+                <el-icon><Link /></el-icon>
+                Bundle Link
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Product 购买记录 -->
       <div v-if="productRecords.length > 0" class="records-section">
         <h3 class="section-title">Product Purchases</h3>
-        <div class="records-container">
+        <div class="records-container desktop-only">
           <el-table
             :data="productRecords"
             class="modern-table"
@@ -153,6 +196,61 @@
             </el-table-column>
           </el-table>
         </div>
+
+        <!-- Mobile Cards: Product -->
+        <div class="mobile-cards">
+          <div
+            v-for="item in productRecords"
+            :key="item.transactionId"
+            class="purchase-card"
+          >
+            <div class="card-header">
+              <div class="card-title with-thumb">
+                <img :src="item.product?.garminImageUrl" alt="product" class="product-thumb" />
+                <span>{{ item.product?.name || 'Product' }}</span>
+              </div>
+              <div class="card-status" :class="getStatusClass(item.status)">{{ item.statusDesc }}</div>
+            </div>
+            <div class="card-row">
+              <span class="row-label">Date</span>
+              <span class="row-value">{{ formatDate(item.createdAt) }}</span>
+            </div>
+            <div class="card-row">
+              <span class="row-label">Amount</span>
+              <span class="row-value amount">
+                {{ (item.total / 100).toFixed(2) }}
+                <span class="currency">{{ item.currencyCode }}</span>
+              </span>
+            </div>
+            <div class="card-row">
+              <span class="row-label">Transaction</span>
+              <span class="row-value mono">{{ item.transactionId }}</span>
+            </div>
+            <div class="card-row meta">
+              <span class="badge">{{ item.paymentMethod }}</span>
+              <span class="badge warn">{{ item.countryCode }}</span>
+            </div>
+            <div class="card-actions">
+              <a
+                v-if="item.product?.garminStoreUrl"
+                :href="item.product.garminStoreUrl"
+                target="_blank"
+                class="link-btn garmin-link"
+              >
+                <el-icon><Link /></el-icon>
+                App Store
+              </a>
+              <button
+                v-if="item.product?.designId"
+                class="link-btn site-link"
+                @click="navigateToProduct(item.product.appId)"
+              >
+                <el-icon><Link /></el-icon>
+                App Link
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -194,13 +292,13 @@ const router = useRouter()
 const records = ref<PurchaseRecord[]>([])
 
 // 导航到 bundle 页面
-const navigateToBundle = (bundleId: string) => {
-  router.push(`/bundle/${bundleId}`)
+const navigateToBundle = (bundleId: number | string) => {
+  router.push(`/bundle/${String(bundleId)}`)
 }
 
 // 导航到 product 页面
-const navigateToProduct = (productId: string) => {
-  router.push(`/product/${productId}`)
+const navigateToProduct = (productId: number | string) => {
+  router.push(`/product/${String(productId)}`)
 }
 
 // 分离Bundle和Product记录
@@ -273,6 +371,14 @@ h2 {
   border-radius: 16px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
+}
+
+/* Desktop/Mobile visibility */
+.desktop-only {
+  display: block;
+}
+.mobile-cards {
+  display: none;
 }
 
 .modern-table {
@@ -388,6 +494,111 @@ h2 {
   color: #fff;
   box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
 }
+
+/* Mobile card UI */
+.mobile-cards {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.purchase-card {
+  background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  padding: 14px;
+}
+.purchase-card .card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.purchase-card .card-title {
+  font-weight: 700;
+  color: #111827;
+  font-size: 1rem;
+}
+.purchase-card .card-title.with-thumb {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.product-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+.purchase-card .card-status {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #fff;
+}
+.purchase-card .card-status.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.25);
+}
+.purchase-card .card-status.failed {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.25);
+}
+.purchase-card .card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #f3f4f6;
+}
+.purchase-card .card-row:first-of-type {
+  border-top: none;
+}
+.row-label {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+.row-value {
+  color: #111827;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+.row-value.mono {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+.row-value.amount {
+  color: #047857;
+}
+.row-value .currency {
+  color: #6b7280;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.purchase-card .card-row.meta {
+  gap: 6px;
+}
+.badge {
+  background: #f3f4f6;
+  color: #374151;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge.warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+.purchase-card .card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
 .transaction-cell {
   min-width: 0;
 }
@@ -471,6 +682,12 @@ h2 {
 @media (max-width: 768px) {
   .purchase-records-page {
     padding: 16px 8px;
+  }
+  .desktop-only {
+    display: none;
+  }
+  .mobile-cards {
+    display: grid;
   }
   h2 {
     font-size: 1.5rem;

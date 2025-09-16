@@ -23,7 +23,7 @@ export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<Purchas
 
 // 获取用户购买记录列表
 export const getPurchaseRecords = (): Promise<PurchaseRecord[]> => {
-  return instance.get('/purchase/list/bytoken?populate=user,product')
+  return instance.get('/purchase/list/bytoken?populate=user,product,bundle')
 }
 
 // 根据邮箱查询购买记录列表

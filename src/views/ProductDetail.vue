@@ -21,13 +21,14 @@
           <div class="install-subtitle">Choose your preferred installation method</div>
           <div class="install-methods">
             <div class="qrcode-section">
-              <div class="qrcode-title">Scan to open in Garmin Connect IQ App</div>
-              <div class="qrcode-container">
+              <div class="qrcode-title">Scan to open in <br>Garmin Connect IQ App</div>
+              <div class="qrcode-container" ref="qrcodeBoxRef">
                 <qrcode-vue 
                   ref="qrcodeRef"
                   :value="product.garminStoreUrl" 
                   :size="128" 
                   :level="'M'" 
+                  :render-as="'canvas'"
                   class="qrcode-img" 
                 />
                 <div class="qrcode-actions">
@@ -40,7 +41,7 @@
                 </div>
               </div>
               <div class="qrcode-help">
-                <span class="qrcode-help-text">💡 Long press QR code to save or scan with camera</span>
+                <span class="qrcode-help-text">💡 Long press QR code to save <br>or <br>scan with camera</span>
               </div>
             </div>
             <div class="install-or">or</div>
@@ -68,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
@@ -122,24 +123,46 @@ const handleAlreadyPurchased = () => {
 
 // QR Code functionality
 const qrcodeRef = ref<any>(null)
+const qrcodeBoxRef = ref<HTMLElement | null>(null)
 
 const saveQRCode = async () => {
   try {
     if (!product.value?.garminStoreUrl) return
-    
-    // Create canvas from QR code
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const qrCodeElement = qrcodeRef.value?.$el?.querySelector('canvas') as HTMLCanvasElement
-    
-    if (qrCodeElement) {
-      canvas.width = qrCodeElement.width
-      canvas.height = qrCodeElement.height
-      ctx?.drawImage(qrCodeElement, 0, 0)
-      
-      // Convert to blob and download
-      canvas.toBlob((blob) => {
-        if (blob) {
+
+    // Wait for DOM to ensure QR is rendered
+    await nextTick()
+
+    // Prefer querying inside container to avoid instance differences
+    const container = qrcodeBoxRef.value
+    let el: HTMLCanvasElement | SVGElement | (HTMLElement & { toBlob?: any; toDataURL?: any; }) | undefined | null = null
+
+    const tryLocate = () => {
+      return (container?.querySelector('canvas') as HTMLCanvasElement | null)
+        || (container?.querySelector('svg') as SVGElement | null)
+        || (qrcodeRef.value?.$el as HTMLElement | undefined)
+    }
+
+    el = tryLocate()
+    // Retry up to 3 times with short delays
+    for (let i = 0; !el && i < 3; i++) {
+      await new Promise((r) => setTimeout(r, 50))
+      el = tryLocate()
+    }
+
+    if (!el) {
+      ElMessage.error('QR element not ready, please try again')
+      return
+    }
+
+    // If rendered as canvas (default)
+    if (el instanceof HTMLCanvasElement) {
+      // Prefer toBlob when available
+      if (el.toBlob) {
+        el.toBlob((blob) => {
+          if (!blob) {
+            ElMessage.error('Failed to generate image')
+            return
+          }
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = url
@@ -149,9 +172,53 @@ const saveQRCode = async () => {
           document.body.removeChild(a)
           URL.revokeObjectURL(url)
           ElMessage.success('QR Code saved successfully!')
-        }
-      }, 'image/png')
+        }, 'image/png')
+      } else {
+        // Fallback for older browsers
+        const dataUrl = el.toDataURL('image/png')
+        const a = document.createElement('a')
+        a.href = dataUrl
+        a.download = `${product.value?.name || 'garmin-app'}-qrcode.png`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        ElMessage.success('QR Code saved successfully!')
+      }
+      return
     }
+
+    // If rendered as SVG (in case render-as changes)
+    if (el instanceof SVGElement) {
+      const serializer = new XMLSerializer()
+      const svgStr = serializer.serializeToString(el)
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${product.value?.name || 'garmin-app'}-qrcode.svg`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      ElMessage.success('QR Code saved successfully!')
+      return
+    }
+
+    // As a final fallback, try querying a canvas inside
+    const canvas = el.querySelector?.('canvas') as HTMLCanvasElement | null
+    if (canvas) {
+      const dataUrl = canvas.toDataURL('image/png')
+      const a = document.createElement('a')
+      a.href = dataUrl
+      a.download = `${product.value?.name || 'garmin-app'}-qrcode.png`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      ElMessage.success('QR Code saved successfully!')
+      return
+    }
+
+    ElMessage.error('Unable to access QR code for saving')
   } catch (error) {
     console.error('Error saving QR code:', error)
     ElMessage.error('Failed to save QR code')
