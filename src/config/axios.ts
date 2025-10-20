@@ -50,16 +50,25 @@ instance.interceptors.response.use(
   error => {
     console.log('响应拦截器错误:', error.response?.status, error.response?.data)
     console.log('错误对象:', error)
+    const reqUrl: string = error.config?.url || ''
+    const isPublicApi = reqUrl.includes('/public/')
     if (error.response?.status === 403) {
-      console.log('403错误，重定向到登录页面')
-      ElMessage.error('登录已过期，请重新登录')
-      setTimeout(() => {
-        const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
-        const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
-        window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`  
-      }, 3000)
+      if (isPublicApi) {
+        // 对公开接口不做登录重定向，仅提示错误
+        const msg = error.response?.data?.msg || 'Permission denied'
+        ElMessage.error(msg)
+      } else {
+        console.log('403错误，重定向到登录页面')
+        ElMessage.error('登录已过期，请重新登录')
+        setTimeout(() => {
+          const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
+          const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+          window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`  
+        }, 3000)
+      }
     } else {
-      ElMessage.error('网络错误，请稍后重试')
+      const msg = error.response?.data?.msg || '网络错误，请稍后重试'
+      ElMessage.error(msg)
     }
     return Promise.reject(error)
   }

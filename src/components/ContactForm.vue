@@ -38,6 +38,7 @@
         placeholder="Please enter your question or feedback..." 
         v-model="message"
         class="contact-textarea"
+        rows="6"
       ></textarea>
       <button class="contact-send-btn" @click="sendMessage" :disabled="loading">
         <span class="send-icon">{{ loading ? '⏳' : '📤' }}</span>

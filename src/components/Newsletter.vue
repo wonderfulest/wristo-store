@@ -13,16 +13,13 @@
           <template v-else-if="success">
             <transition name="pop">
               <div class="note success">
-                <div class="congrats-icon">🎉</div>
-                <div class="congrats-title">Congratulations!</div>
-                <div>Thank you for joining our newsletter!</div>
-              </div>
-            </transition>
-          </template>
-          <template v-else-if="unsubscribeSuccess">
-            <transition name="pop">
-              <div class="note unsubscribe-success">
-                You have unsubscribed from our newsletter.
+                <div class="congrats-icon">{{ lastAction === 'unsubscribe' ? '✅' : '🎉' }}</div>
+                <div class="congrats-title">{{ lastAction === 'unsubscribe' ? 'Updated!' : 'Congratulations!' }}</div>
+                <div>
+                  {{ lastAction === 'unsubscribe' 
+                    ? 'You have been unsubscribed from our marketing emails.' 
+                    : 'Thank you for joining our newsletter!' }}
+                </div>
               </div>
             </transition>
           </template>
@@ -38,16 +35,15 @@
               <button
                 :disabled="loading"
                 class="btn subscribe-btn"
-                :class="{ 'unsubscribe-mode': showUnsubscribe }"
-                @click="showUnsubscribe ? unsubscribeHandler() : joinNewsletterHandler()"
+                @click="joinNewsletterHandler()"
               >
-                {{ showUnsubscribe ? 'Unsubscribe' : 'Join Newsletter' }}
+                Join Newsletter
               </button>
             </div>
             <div class="unsubscribe-row">
-              <a href="#" @click.prevent="toggleSubscribe" class="unsubscribe-link">
-                {{ showUnsubscribe ? 'Subscribe' : 'Unsubscribe?' }}
-              </a>
+              <a href="#" @click.prevent="goToPreferences" class="unsubscribe-link">Email Preferences</a>
+              <span class="divider">·</span>
+              <a href="#" @click.prevent="unsubscribeHandler" class="unsubscribe-link">Unsubscribe?</a>
             </div>
           </template>
         </div>
@@ -58,17 +54,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { joinNewsletter, unsubscribeNewsletter } from '@/api/contact'
+import { useRoute, useRouter } from 'vue-router'
+import { subscribeAll, unsubscribeAll } from '@/api/email-preferences'
 
 const route = useRoute()
+const router = useRouter()
 const email = ref<string | null>(null)
 const inputEmail = ref('')
 const loading = ref(false)
 const success = ref(false)
-const unsubscribeSuccess = ref(false)
 const error = ref('')
-const showUnsubscribe = ref(false)
+const lastAction = ref<'subscribe' | 'unsubscribe'>('subscribe')
+// Only subscription is handled here
 
 const joinNewsletterHandler = async () => {
   const targetEmail = email.value || inputEmail.value
@@ -79,7 +76,8 @@ const joinNewsletterHandler = async () => {
   loading.value = true
   error.value = ''
   try {
-    await joinNewsletter(targetEmail)
+    await subscribeAll(targetEmail)
+    lastAction.value = 'subscribe'
     success.value = true
   } catch (e: any) {
     error.value = e?.response?.data?.message || e.message || 'Request failed'
@@ -88,35 +86,30 @@ const joinNewsletterHandler = async () => {
   }
 }
 
-const unsubscribeHandler = async () => {
-  const targetEmail = inputEmail.value
-  if (!targetEmail || !/^\S+@\S+\.\S+$/.test(targetEmail)) {
+const unsubscribeHandler = () => {
+  const targetEmail = inputEmail.value || email.value || ''
+  if (!/^\S+@\S+\.\S+$/.test(targetEmail)) {
     error.value = 'Please enter a valid email address.'
     return
   }
   loading.value = true
   error.value = ''
-  try {
-    await unsubscribeNewsletter(targetEmail)
-    unsubscribeSuccess.value = true
-    showUnsubscribe.value = false
-  } catch (e: any) {
-    error.value = e?.response?.data?.message || e.message || 'Unsubscribe failed'
-  } finally {
-    loading.value = false
-  }
+  unsubscribeAll(targetEmail)
+    .then(() => { lastAction.value = 'unsubscribe'; success.value = true })
+    .catch((e: any) => { error.value = e?.response?.data?.message || e.message || 'Request failed' })
+    .finally(() => { loading.value = false })
 }
 
-const toggleSubscribe = () => {
-  showUnsubscribe.value = !showUnsubscribe.value
+const goToPreferences = () => {
+  const targetEmail = inputEmail.value || email.value || ''
+  const query = /^\S+@\S+\.\S+$/.test(targetEmail) ? { email: targetEmail } : undefined
+  router.push({ name: 'EmailPreferences', query })
 }
 
 const reset = () => {
   error.value = ''
   success.value = false
-  unsubscribeSuccess.value = false
   inputEmail.value = ''
-  showUnsubscribe.value = false
 }
 
 onMounted(() => {
@@ -224,7 +217,10 @@ onMounted(() => {
   box-shadow: none;
 }
 .unsubscribe-row {
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
   margin-top: 2px;
 }
 .unsubscribe-link {
@@ -234,6 +230,7 @@ onMounted(() => {
   cursor: pointer;
   transition: color 0.2s;
 }
+.unsubscribe-row .divider { color: #c5c5c5; }
 .unsubscribe-link:hover {
   color: #666;
 }

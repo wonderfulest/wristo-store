@@ -33,7 +33,9 @@
       @product-click="goToProduct"
     />
   </div>
-  <Newsletter />
+  <div class="newsletter-wrap">
+    <Newsletter />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -94,5 +96,11 @@ const goToSeries = (series: Series) => {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+}
+.newsletter-wrap {
+  margin-bottom: 64px;
+}
+@media (max-width: 768px) {
+  .newsletter-wrap { margin-bottom: 40px; }
 }
 </style>

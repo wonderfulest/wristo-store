@@ -121,15 +121,15 @@ const routes: RouteRecordRaw[] = [
     name: 'BundleProducts',
     component: () => import('@/views/BundledProducts.vue')
   },
-  {
-    path: '/subscription',
-    name: 'Subscription',
-    component: () => import('@/views/SubscriptionView.vue'),
-    meta: {
-      title: 'Premium Subscription - Unlock All Watch Faces',
-      description: 'Get unlimited access to all premium watch faces with a single purchase. One-time payment, lifetime access.'
-    }
-  },
+  // {
+  //   path: '/subscription',
+  //   name: 'Subscription',
+  //   component: () => import('@/views/SubscriptionView.vue'),
+  //   meta: {
+  //     title: 'Premium Subscription - Unlock All Watch Faces',
+  //     description: 'Get unlimited access to all premium watch faces with a single purchase. One-time payment, lifetime access.'
+  //   }
+  // },
   {
     path: '/user/profile',
     name: 'UserProfile',
@@ -140,6 +140,24 @@ const routes: RouteRecordRaw[] = [
     name: 'PurchaseRecords',
     component: () => import('@/views/user-center/PurchaseRecords.vue')
   },
+  /**
+   * Email Settings
+   */
+  {
+    path: '/email/preferences',
+    name: 'EmailPreferences',
+    component: () => import('@/views/email/EmailPreferences.vue')
+  },
+  {
+    path: '/unsubscribe',
+    name: 'Unsubscribe',
+    component: () => import('@/views/email/Unsubscribe.vue')
+  },
+  {
+    path: '/preferences/success',
+    name: 'PreferencesSuccess',
+    component: () => import('@/views/email/PreferencesSuccess.vue')
+  },
 ]
 
-export default routes 
+export default routes
