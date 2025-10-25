@@ -2,7 +2,7 @@
   <el-dialog
     v-model="visible"
     title="Select Your Device"
-    width="600px"
+    width="min(880px, 95vw)"
     :before-close="handleClose"
     class="device-selector-dialog"
   >
@@ -12,10 +12,10 @@
         <el-input
           v-model="query"
           placeholder="Search device name"
-          size="small"
+          size="large"
           clearable
           :prefix-icon="Search"
-          class="search-input"
+          class="search-input xl"
         />
       </div>
       <!-- Loading State -->
@@ -190,21 +190,65 @@ const handleClose = () => {
 </script>
 
 <style scoped>
+.device-selector-dialog :deep(.el-dialog) {
+  width: min(1000px, 95vw) !important;
+  max-width: 100vw !important;
+  box-sizing: border-box;
+  margin: 4vh auto;
+  overflow: hidden;
+}
+
 .device-selector-dialog :deep(.el-dialog__body) {
-  padding: 20px;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.device-selector-dialog :deep(.el-dialog__header) {
+  padding: 12px 16px;
+  margin-right: 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.device-selector-dialog :deep(.el-dialog__headerbtn) {
+  top: 12px;
+  right: 12px;
 }
 
 .device-selector-content {
   min-height: 300px;
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
 }
 
 .search-row {
-  margin-bottom: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 12px 16px;
+  background: #fff;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .search-input :deep(.el-input__wrapper) {
-  border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* XL visual size for search input */
+.search-input.xl :deep(.el-input__wrapper) {
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid #e5e7eb;
+}
+.search-input.xl :deep(.el-input__inner) {
+  font-size: 16px;
+  line-height: 48px;
+}
+.search-input.xl :deep(.el-input__prefix-inner .el-icon) {
+  border-radius: 12px;
+  font-size: 20px;
 }
 
 .loading-container {
@@ -223,9 +267,9 @@ const handleClose = () => {
 
 .device-list {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  max-height: 420px;
+  padding: 12px 16px 16px;
   overflow-y: auto;
 }
 
@@ -239,6 +283,7 @@ const handleClose = () => {
   cursor: pointer;
   transition: all 0.2s ease;
   background: #fff;
+  min-width: 0;
 }
 
 .device-item:hover {
@@ -286,6 +331,7 @@ const handleClose = () => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .device-name {
@@ -293,12 +339,18 @@ const handleClose = () => {
   color: #1f2937;
   font-weight: 600;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .device-family {
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .device-check {
@@ -338,16 +390,20 @@ const handleClose = () => {
 /* Responsive */
 @media (max-width: 640px) {
   .device-selector-dialog :deep(.el-dialog) {
-    width: 95vw !important;
-    margin: 5vh auto;
+    width: 92vw !important;
+    max-width: 92vw !important;
+    margin: 4vh auto;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   
   .device-list {
     grid-template-columns: 1fr;
+    max-height: none;
   }
   
   .device-item {
-    padding: 10px;
+    padding: 12px;
   }
   
   .device-avatar {
@@ -357,17 +413,38 @@ const handleClose = () => {
   }
   
   .device-name {
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
   
   .device-family {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .device-selector-content {
+    max-height: 78vh;
+  }
+
+  /* Slightly larger search input on mobile */
+  .search-input.xl :deep(.el-input__wrapper) {
+    height: 52px;
+  }
+  .search-input.xl :deep(.el-input__inner) {
+    line-height: 52px;
   }
 }
 
 @media (max-width: 1024px) and (min-width: 641px) {
   .device-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .device-selector-dialog :deep(.el-dialog) {
+    width: min(1040px, 95vw) !important;
+  }
+  .device-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>
