@@ -16,14 +16,27 @@ const instance = axios.create({
 instance.interceptors.request.use(config => {
   const userStore = useUserStore()
   const token = userStore.token
-  console.log('请求拦截器 - Token:', token)
-  console.log('请求URL:', config.url)
-  console.log('请求方法:', config.method)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
-    console.log('设置Authorization头:', `Bearer ${token}`)
-  } else {
-    console.log('Token为空，未设置Authorization头')
+  }
+
+  // Append device param ONLY for public products APIs
+  try {
+    const url = config.url || ''
+    const isPublicProducts = /\/public\/products(\/?|$)/.test(url)
+    if (isPublicProducts) {
+      const stored = localStorage.getItem('selectedDevice')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        const deviceId = parsed?.id
+        if (deviceId) {
+          // Do not override explicitly provided params
+          config.params = { ...(config.params || {}), device: deviceId }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('读取本地设备选择失败:', e)
   }
   return config
 })
@@ -48,8 +61,6 @@ instance.interceptors.response.use(
     }
   },
   error => {
-    console.log('响应拦截器错误:', error.response?.status, error.response?.data)
-    console.log('错误对象:', error)
     const reqUrl: string = error.config?.url || ''
     const isPublicApi = reqUrl.includes('/public/')
     if (error.response?.status === 403) {
@@ -58,7 +69,6 @@ instance.interceptors.response.use(
         const msg = error.response?.data?.msg || 'Permission denied'
         ElMessage.error(msg)
       } else {
-        console.log('403错误，重定向到登录页面')
         ElMessage.error('登录已过期，请重新登录')
         setTimeout(() => {
           const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL

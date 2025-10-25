@@ -13,6 +13,13 @@ export interface PaymentVO {
   paddlePriceId: string
 }
 
+export interface GarminDeviceBaseVO {
+  id: number
+  deviceId: string
+  displayName: string
+  imageUrl: string | null
+}
+
 export interface ProductBaseVO {
   appId: number
   name: string
@@ -45,6 +52,7 @@ export interface ProductVO {
   categories: any
   packageStatus: number
   payment: PaymentVO
+  devices?: GarminDeviceBaseVO[]
 }
 
 export interface Bundle {

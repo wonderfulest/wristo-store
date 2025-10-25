@@ -49,6 +49,47 @@
           </div>
         </div>
         
+        <!-- Device Information -->
+        <div v-if="userInfo?.device" class="form-item device-item">
+          <span class="form-icon device-icon">
+            <svg width="22" height="22" fill="none">
+              <circle cx="11" cy="11" r="11" fill="#f3e9fa"/>
+              <path d="M8 6h6c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2z" stroke="#a259c9" stroke-width="1.2" fill="none"/>
+              <circle cx="11" cy="11" r="1.5" fill="#a259c9"/>
+            </svg>
+          </span>
+          <div class="form-content">
+            <label>Current Device</label>
+            <div class="device-display">
+              <div class="device-avatar">
+                <img v-if="userInfo.device.imageUrl" :src="userInfo.device.imageUrl" :alt="userInfo.device.displayName" />
+                <div v-else class="device-fallback">⌚️</div>
+              </div>
+              <div class="device-info">
+                <div class="device-name">{{ userInfo.device.displayName }}</div>
+                <div v-if="userInfo.device.deviceFamily" class="device-family">{{ userInfo.device.deviceFamily }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div v-else class="form-item device-item no-device">
+          <span class="form-icon device-icon">
+            <svg width="22" height="22" fill="none">
+              <circle cx="11" cy="11" r="11" fill="#f3e9fa"/>
+              <path d="M8 6h6c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2z" stroke="#a259c9" stroke-width="1.2" fill="none"/>
+              <path d="M8 8l6 6M14 8l-6 6" stroke="#a259c9" stroke-width="1.2"/>
+            </svg>
+          </span>
+          <div class="form-content">
+            <label>Current Device</label>
+            <div class="no-device-text">
+              <span>No device connected</span>
+              <small>Connect your Garmin device to get personalized recommendations</small>
+            </div>
+          </div>
+        </div>
+        
       </div>
       <el-button v-if="editMode" class="save-btn" type="primary" @click="handleSave">SAVE</el-button>
     </div>
@@ -304,6 +345,94 @@ watch(() => userInfo, (val) => {
 .save-btn:hover {
   background: linear-gradient(90deg, #6a82fb 0%, #a259c9 100%);
 }
+
+/* Device Display Styles */
+.device-item {
+  position: relative;
+}
+
+.device-icon {
+  background: linear-gradient(135deg, #f3e9fa, #e8f4fd);
+}
+
+.device-display {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.device-avatar {
+  width: 48px;
+  height: 48px;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px;
+}
+
+.device-avatar img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  padding: 3px;
+  display: block;
+  background: #fff;
+}
+
+.device-fallback {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.device-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.device-name {
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.device-family {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.no-device {
+  opacity: 0.7;
+}
+
+.no-device-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.no-device-text span {
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.no-device-text small {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  line-height: 1.3;
+}
 @media (max-width: 600px) {
   .profile-card {
     max-width: 98vw;
@@ -312,6 +441,24 @@ watch(() => userInfo, (val) => {
   .profile-avatar {
     width: 90px;
     height: 90px;
+  }
+  
+  .device-display {
+    gap: 6px;
+  }
+  
+  .device-avatar {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+  }
+  
+  .device-name {
+    font-size: 0.9rem;
+  }
+  
+  .device-family {
+    font-size: 0.75rem;
   }
 }
 </style> 

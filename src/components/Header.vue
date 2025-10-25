@@ -36,6 +36,14 @@
         <router-link to="/code" class="nav-link">Code</router-link>
       </nav>
       
+      <!-- Current Device Display -->
+      <DeviceDisplay 
+        :selected-device="selectedDevice" 
+        class="current-device-display" 
+        @select-device="handleDeviceSelect"
+        @device-selected="onDeviceSelected"
+      />
+      
       <!-- Desktop user area -->
       <div class="user-area desktop-user">
         <template v-if="isLoggedIn">
@@ -99,6 +107,14 @@
           </div>
           <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link>
           <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">Code</router-link>
+          
+          <!-- Mobile Device Display -->
+          <DeviceDisplay 
+            :selected-device="selectedDevice" 
+            :is-mobile="true" 
+            @select-device="handleDeviceSelect"
+            @device-selected="onDeviceSelected"
+          />
         </div>
         
         <template v-if="!isLoggedIn">
@@ -151,6 +167,8 @@ import { useRouter } from 'vue-router';
 import { ArrowDown, User, Document, SwitchButton } from '@element-plus/icons-vue';
 import type { Series } from '@/types/product';
 import { useUserStore } from '@/store/user';
+import type { GarminDeviceVO } from '@/types';
+import DeviceDisplay from './DeviceDisplay.vue';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -162,6 +180,9 @@ const userAvatar = ref('https://cdn.wristo.io/test/avatar/561aae25-41bd-47ab-974
 // Mobile menu state
 const isMobileMenuOpen = ref(false);
 const isCategoriesOpen = ref(false);
+
+// Device selection state
+const selectedDevice = ref<GarminDeviceVO | null>(null);
 
 const loadSeries = async () => {
   seriesList.value = await productStore.getSeries();
@@ -283,6 +304,34 @@ onMounted(() => {
 
 // 监听 userInfo 变化
 watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
+
+// Device selection methods
+const selectDevice = (device: GarminDeviceVO) => {
+  selectedDevice.value = device;
+};
+
+const clearSelectedDevice = () => {
+  selectedDevice.value = null;
+};
+
+// Handle device selection
+const handleDeviceSelect = () => {
+  console.log('Device selection requested');
+};
+
+// Handle device selected from DeviceDisplay
+const onDeviceSelected = (device: GarminDeviceVO) => {
+  selectedDevice.value = device;
+  console.log('Device selected:', device);
+};
+
+// Expose methods for external use
+defineExpose({
+  selectDevice,
+  clearSelectedDevice,
+  handleDeviceSelect,
+  onDeviceSelected
+});
 </script>
 
 <style scoped>
@@ -334,6 +383,11 @@ watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
   align-items: center;
   gap: 16px;
   margin-left: 24px;
+}
+
+/* Current Device Display */
+.current-device-display {
+  margin-left: 16px;
 }
 
 .subscription-badge {
@@ -810,7 +864,8 @@ watch(() => userStore.userInfo, updateUserInfo, { immediate: true });
   }
   
   .desktop-nav,
-  .desktop-user {
+  .desktop-user,
+  .current-device-display {
     display: none;
   }
   

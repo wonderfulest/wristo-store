@@ -54,6 +54,37 @@
             </div>
           </div>
         </div>
+        <!-- Supported Devices -->
+        <div v-if="product?.devices && product.devices.length" class="devices-section">
+          <div class="devices-header">
+            <div class="devices-title">Supported Devices</div>
+            <div class="devices-subtitle">
+              Compatible Garmin models • {{ product.devices.length }} devices
+            </div>
+          </div>
+          <div class="devices-grid">
+            <div
+              v-for="d in displayedDevices"
+              :key="d.id || d.deviceId || d.displayName"
+              class="device-card"
+              :title="d.displayName"
+            >
+              <div class="device-avatar">
+                <img v-if="d.imageUrl" :src="d.imageUrl" :alt="d.displayName" />
+                <div v-else class="device-fallback">⌚️</div>
+              </div>
+              <div class="device-name">{{ d.displayName }}</div>
+            </div>
+          </div>
+          <button
+            v-if="product.devices.length > maxVisibleDevices"
+            class="devices-toggle"
+            @click="showAllDevices = !showAllDevices"
+          >
+            <span v-if="!showAllDevices">Show all {{ product.devices.length }} devices</span>
+            <span v-else>Show less</span>
+          </button>
+        </div>
         <div class="unlock-section">
           <div class="unlock-tip">Enter the 6-digit code from your watch to unlock the trial.</div>
           <button class="product-btn product-btn-unlock" @click="handleUnlock">
@@ -69,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
@@ -124,6 +155,15 @@ const handleAlreadyPurchased = () => {
 // QR Code functionality
 const qrcodeRef = ref<any>(null)
 const qrcodeBoxRef = ref<HTMLElement | null>(null)
+
+// Devices show more/less
+const maxVisibleDevices = 12
+const showAllDevices = ref(false)
+const displayedDevices = computed(() => {
+  const list = product.value?.devices || []
+  if (showAllDevices.value) return list
+  return list.slice(0, maxVisibleDevices)
+})
 
 const saveQRCode = async () => {
   try {
@@ -419,6 +459,98 @@ onMounted(async () => {
   margin: 0 0 32px 0;
   width: 100%;
 }
+/* Devices */
+.devices-section {
+  width: 100%;
+  margin: 12px 0 24px 0;
+}
+.devices-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.devices-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #181818;
+  letter-spacing: 0.3px;
+}
+.devices-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+}
+.devices-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.device-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  min-width: 0;
+}
+.device-avatar {
+  width: 48px;
+  height: 48px;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 48px; /* prevent squeezing */
+}
+.device-avatar img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: contain; /* do not squeeze/crop image */
+  padding: 6px;
+  display: block;
+  background: #fff;
+}
+.device-fallback {
+  font-size: 20px;
+  line-height: 1;
+}
+.device-name {
+  font-size: 0.98rem;
+  color: #1f2937;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* allow text to squeeze/wrap up to 2 lines */
+  -webkit-box-orient: vertical;
+  line-height: 1.2;
+  min-width: 0;
+  line-clamp: 2; /* standard property for compatibility */
+  word-break: break-word;
+  flex: 1 1 auto;
+}
+.devices-toggle {
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #2563eb;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.devices-toggle:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
 .install-title {
   font-size: 1.45rem;
   font-weight: 800;
@@ -647,6 +779,12 @@ onMounted(async () => {
     text-align: center;
     max-width: 100%;
   }
+  .devices-header {
+    align-items: center;
+  }
+  .devices-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 480px) {
@@ -704,6 +842,9 @@ onMounted(async () => {
   
   .qrcode-help-text {
     font-size: 0.8rem;
+  }
+  .devices-grid {
+    grid-template-columns: 1fr;
   }
 }
 

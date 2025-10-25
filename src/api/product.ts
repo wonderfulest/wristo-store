@@ -31,7 +31,7 @@ export const getHotProducts = (): Promise<ProductBaseVO[]> => {
 
 // 获取商品详情
 export const getProductDetail = (appId: string): Promise<ProductBaseVO> => {
-  return instance.get(`/public/products/app/${appId}`)
+  return instance.get(`/public/products/app/${appId}?populate=devices`)
 }
 
 // 获取相关商品
