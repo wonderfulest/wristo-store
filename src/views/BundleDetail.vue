@@ -70,8 +70,6 @@ const formatDescription = (description: string) => {
   return description.replace(/\n/g, '<br>')
 }
 
-
-
 const handleProductClick = (product: ProductBaseVO) => {
   router.push(`/product/${product.appId}`)
 }
@@ -84,7 +82,18 @@ onMounted(async () => {
   }
   
   try {
-    bundle.value = await getBundleById(Number(bundleId))
+    let deviceId: number | undefined
+    try {
+      const stored = localStorage.getItem('selectedDevice')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed && typeof parsed.id === 'number') {
+          deviceId = parsed.id
+        }
+      }
+    } catch (e) {
+    }
+    bundle.value = await getBundleById(Number(bundleId), deviceId ? { device: deviceId } : undefined)
   } catch (error) {
     console.error('Failed to load bundle:', error)
   } finally {

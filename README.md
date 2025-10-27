@@ -1,26 +1,48 @@
-# 用户支付前端
+# 路由
 
-## 环境配置
-
-### Paddle 支付配置
-
-在项目根目录创建 `.env` 文件，添加以下配置：
-
-```env
-# Paddle Configuration
-VITE_PADDLE_CLIENT_TOKEN=your_paddle_client_token
-VITE_PADDLE_PRICE_ID=your_paddle_price_id
-
-# API Configuration
-VITE_API_BASE_URL=your_api_base_url
-```
-
-### 获取 Paddle 配置
-
-1. 登录 [Paddle Dashboard](https://vendors.paddle.com/)
-2. 获取你的 Client Token
-3. 创建产品并获取 Price ID
-4. 将配置添加到 `.env` 文件中
+wristo.io/
+├──-------------------- Home --------------------
+├── /                          → Home
+├── /product/:id               → Product Detail
+├── /bundle/:id                → Bundle Detail
+├── /bundle-products           → Bundled Products (list/landing)
+├── /categories/:slug          → Category Detail
+│
+├──-------------------- User --------------------
+├── /user/profile              → User Profile
+├── /user/purchase-records     → User Purchase Records
+│
+├──-------------------- Shop --------------------
+├── /code                      → Enter Unlock Code (Shop)
+├── /purchase-options          → Purchase Options (Shop)
+├── /checkout                  → Checkout (One-time) (Shop)
+├── /checkout-subscription     → Checkout (Subscription) (Shop)
+├── /payment/success           → Payment Success (Shop)
+├── /auto-unlock               → Automatic Unlock (Shop)
+├── /already-purchased         → Activate Existing Purchase (Shop)
+├── /purchases-history         → Purchases History
+├── /unlock                    → Unlock (General)
+├── /subscription-management   → Subscription Management (Deprecated)
+├── /subscription-cancel       → Subscription Cancel (Deprecated)
+│
+├──-------------------- Blog --------------------
+├── /blog    → 博客首页
+│    ├── /zh/blog/...
+│    ├── /en/blog/...
+│    ├── /fr/blog/...
+│    └── ...
+│
+├──-------------------- Guides --------------------
+├── /uninstall-guide           → Uninstall Guide
+├── /contact                   → Contact
+├── /newsletter                → Newsletter
+├── /faq                       → FAQ
+├── /faq/checkout              → Checkout Help
+│
+├──-------------------- System --------------------
+├── /auth/callback             → SSO Callback
+└── /terms-and-conditions      → Terms & Conditions
+└── /privacy-policy            → Privacy Policy
 
 ## 开发
 

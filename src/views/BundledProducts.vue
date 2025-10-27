@@ -33,6 +33,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
+import { getBundleById } from '@/api/bundle'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,15 +55,23 @@ onMounted(async () => {
     return
   }
   try {
-    const res = await fetch(`/api/public/bundles/${bundleId}`)
-    const data = await res.json()
-    if (data.code === 0) {
-      bundle.value = data.data
-    } else {
-      error.value = data.msg || 'Failed to load bundle.'
+    let deviceId: number | undefined
+    try {
+      const stored = localStorage.getItem('selectedDevice')
+      console.log('stored', stored)
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        if (parsed && typeof parsed.id === 'number') {
+          deviceId = parsed.id
+        }
+      }
+    } catch (e) {
     }
+
+    const data = await getBundleById(Number(bundleId), deviceId ? { device: deviceId } : undefined)
+    bundle.value = data
   } catch (e: any) {
-    error.value = e.message || 'Request failed.'
+    error.value = e?.msg || e?.message || 'Request failed.'
   } finally {
     loading.value = false
   }
