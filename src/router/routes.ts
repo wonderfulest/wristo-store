@@ -158,6 +158,14 @@ const routes: RouteRecordRaw[] = [
     name: 'PreferencesSuccess',
     component: () => import('@/views/email/PreferencesSuccess.vue')
   },
+  /**
+   * Blog Post
+   */
+  {
+    path: '/blog/:slug',
+    name: 'BlogPost',
+    component: () => import('@/views/BlogPost.vue')
+  },
 ]
 
 export default routes
