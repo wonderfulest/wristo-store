@@ -89,6 +89,8 @@ onMounted(async () => {
 .blog-container {
   min-height: 100vh;
   background: #fff;
+  /* Reset global #app text-align so this page uses default alignment */
+  text-align: initial;
 }
 
 .blog-main {
@@ -241,6 +243,23 @@ onMounted(async () => {
 .content :deep(a) {
   color: #2563eb;
   text-decoration: underline;
+}
+
+/* Table rendering for v-html content: add subtle borders without overriding inline styles */
+.content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.content :deep(th),
+.content :deep(td) {
+  border: 2px solid #e5e7eb;
+  padding: 8px 10px;
+  vertical-align: top;
+  text-align: left;
+}
+.content :deep(thead th) {
+  background: #f8fafc;
 }
 
 @media (max-width: 640px) {
