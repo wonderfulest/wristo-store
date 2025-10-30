@@ -245,6 +245,16 @@ onMounted(async () => {
   text-decoration: underline;
 }
 
+/* Ensure embedded media in v-html content are responsive: width 100%, height = 66% of width */
+.content :deep(video),
+.content :deep(iframe) {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 100 / 66; /* 66% of width */
+  height: auto;
+  display: block;
+}
+
 /* Table rendering for v-html content: add subtle borders without overriding inline styles */
 .content :deep(table) {
   width: 100%;
