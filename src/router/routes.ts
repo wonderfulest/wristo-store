@@ -162,9 +162,24 @@ const routes: RouteRecordRaw[] = [
    * Blog Post
    */
   {
+    path: '/:lang/blog/:slug',
+    name: 'BlogPostLang',
+    component: () => import('@/views/BlogPost.vue')
+  },
+  {
+    path: '/:lang/blog',
+    name: 'BlogListLang',
+    component: () => import('@/views/BlogTree.vue')
+  },
+  {
     path: '/blog/:slug',
     name: 'BlogPost',
     component: () => import('@/views/BlogPost.vue')
+  },
+  {
+    path: '/blog',
+    name: 'BlogList',
+    component: () => import('@/views/BlogTree.vue')
   },
 ]
 

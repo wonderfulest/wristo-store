@@ -4,6 +4,7 @@ export interface BlogPostTranslationVO {
   title: string
   summary: string
   contentHtml: string
+  url?: string
 }
 
 export interface BlogCategoryVO {
@@ -38,4 +39,26 @@ export interface BlogPostVO {
   }
   category: BlogCategoryVO | null
   tags: BlogTagVO[]
+  // localized fields (optional in some APIs)
+  title?: string
+  summary?: string
+  contentHtml?: string
+  url?: string
+  lang?: string
+}
+
+export interface BlogPostTocItemVO {
+  id: number
+  postId: number | null
+  parentId: number | null
+  title: string
+  anchor: string | null
+  orderIndex: number
+  depth: number
+  linkUrl: string | null
+  isActive: number | null
+  createdAt: string
+  updatedAt: string
+  children: BlogPostTocItemVO[]
+  post?: BlogPostVO | null
 }

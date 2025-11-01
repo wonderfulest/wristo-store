@@ -36,6 +36,11 @@
           </div>
         </div>
 
+        <LanguageSwitcher
+          v-if="post && post.translations && post.translations.length"
+          :translations="post.translations"
+        />
+
         <div v-if="firstTr.summary" class="summary">{{ firstTr.summary }}</div>
 
         <div class="content" v-html="firstTr.contentHtml"></div>
@@ -45,19 +50,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getBlogPostBySlug } from '@/api/blog'
+import { getBlogPostBySlug, getBlogPostByLangSlug } from '@/api/blog'
 import type { BlogPostVO, BlogPostTranslationVO } from '@/types'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const route = useRoute()
 const loading = ref(true)
 const error = ref('')
 const post = ref<BlogPostVO | null>(null)
+const createdSeoLinks: HTMLLinkElement[] = []
+
+const currentLang = computed(() => {
+  const langParamRaw = route.params.lang
+  const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
+  const langQ = route.query.lang
+  const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
+  return langParam || queryLang
+})
 
 const firstTr = computed<BlogPostTranslationVO | null>(() => {
   if (!post.value?.translations?.length) return null
-  return post.value.translations[0]
+  const match = post.value.translations.find(t => currentLang.value && t.lang === currentLang.value)
+  return match || post.value.translations[0]
 })
 
 const formattedDate = computed(() => {
@@ -70,18 +86,103 @@ const formattedDate = computed(() => {
   }
 })
 
+function buildTranslationUrl(t: BlogPostTranslationVO): string {
+  if (t.url) return t.url
+  // Fallback build: /:lang/blog/:slug
+  return `/${encodeURIComponent(t.lang)}/blog/${encodeURIComponent(t.slug)}`
+}
+
+function ensureLink(rel: string, href: string): HTMLLinkElement {
+  const link = document.createElement('link')
+  link.rel = rel
+  link.href = href
+  document.head.appendChild(link)
+  createdSeoLinks.push(link)
+  return link
+}
+
+function setSeoLinks() {
+  if (!post.value || !post.value.translations?.length) return
+  // clear previous
+  for (const el of createdSeoLinks) {
+    if (el.parentNode) el.parentNode.removeChild(el)
+  }
+  createdSeoLinks.length = 0
+  const origin = window.location.origin
+  const currentPath = window.location.pathname
+
+  // canonical: prefer exact match for current lang+slug if present
+  const currentLang = typeof route.params.lang === 'string' ? route.params.lang : undefined
+  let canonicalHref = origin + currentPath
+  if (currentLang) {
+    const match = post.value.translations.find(t => t.lang === currentLang)
+    if (match) canonicalHref = origin + buildTranslationUrl(match)
+  }
+  ensureLink('canonical', canonicalHref)
+
+  // alternates for each translation
+  for (const t of post.value.translations) {
+    ensureLink('alternate', origin + buildTranslationUrl(t))
+      .setAttribute('hreflang', t.lang)
+  }
+  // x-default -> default to first translation or current path without lang
+  const xDefault = origin + (post.value.translations[0] ? buildTranslationUrl(post.value.translations[0]) : currentPath)
+  const xDefaultEl = ensureLink('alternate', xDefault)
+  xDefaultEl.setAttribute('hreflang', 'x-default')
+}
+
 onMounted(async () => {
   try {
     const slugRaw = route.params.slug
     const slug = Array.isArray(slugRaw) ? slugRaw[0] : slugRaw
+    const langParamRaw = route.params.lang
+    const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
     const langQ = route.query.lang
-    const lang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
-    post.value = await getBlogPostBySlug(slug || '', lang)
+    const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
+
+    if (langParam) {
+      post.value = await getBlogPostByLangSlug(langParam, slug || '')
+    } else {
+      post.value = await getBlogPostBySlug(slug || '', queryLang)
+    }
+    setSeoLinks()
   } catch (e: any) {
     error.value = e?.msg || e?.message || 'Unknown error'
   } finally {
     loading.value = false
   }
+})
+
+watch(() => route.fullPath, async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const slugRaw = route.params.slug
+    const slug = Array.isArray(slugRaw) ? slugRaw[0] : slugRaw
+    const langParamRaw = route.params.lang
+    const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
+    const langQ = route.query.lang
+    const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
+
+    if (langParam) {
+      post.value = await getBlogPostByLangSlug(langParam, slug || '')
+    } else {
+      post.value = await getBlogPostBySlug(slug || '', queryLang)
+    }
+    setSeoLinks()
+  } catch (e: any) {
+    error.value = e?.msg || e?.message || 'Unknown error'
+  } finally {
+    loading.value = false
+  }
+})
+
+onBeforeUnmount(() => {
+  // Clean up injected SEO link tags
+  for (const el of createdSeoLinks) {
+    if (el.parentNode) el.parentNode.removeChild(el)
+  }
+  createdSeoLinks.length = 0
 })
 </script>
 
