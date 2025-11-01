@@ -1,5 +1,5 @@
 import instance from '@/config/axios'
-import type { BlogPostVO } from '@/types'
+import type { BlogPostTocItemVO, BlogPostVO } from '@/types'
 
 export const getBlogPostBySlug = (slug: string, lang?: string): Promise<BlogPostVO> => {
   return instance.get(`/public/blog/get-by-slug/${encodeURIComponent(slug)}?populate=*`, {
@@ -30,8 +30,8 @@ export interface BlogPostTocItemTreeQueryDTO {
   parentId?: number
 }
 
-export const getBlogTocTree = (dto: BlogPostTocItemTreeQueryDTO = { parentId: -1 }, lang?: string) => {
-  return instance.post<import('@/types').BlogPostTocItemVO[]>('/public/blog/toc/tree?populate=translations', dto, {
+export const getBlogTocTree = (dto: BlogPostTocItemTreeQueryDTO = { parentId: -1 }, lang?: string) : Promise<BlogPostTocItemVO[]> => {
+  return instance.post('/public/blog/toc/tree?populate=translations', dto, {
     params: lang ? { lang } : undefined
   })
 }

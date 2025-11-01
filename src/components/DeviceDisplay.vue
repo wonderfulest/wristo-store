@@ -1,6 +1,5 @@
 <template>
-  <div class="device-display-root" v-bind="$attrs">
-    <div class="device-display-container" :class="{ mobile: isMobile }">
+  <div class="device-display-container" :class="{ mobile: isMobile }">
     <!-- Has Device -->
     <div v-if="currentDevice" class="device-info selected-state" @click="handleSelectDevice">
       <div class="device-avatar">
@@ -17,14 +16,13 @@
       </div>
       <div class="device-name">Select Device</div>
     </div>
-    </div>
-    
-    <!-- Device Selector Modal -->
-    <DeviceSelector 
-      v-model="showSelector" 
-      @device-selected="onDeviceSelected"
-    />
   </div>
+  
+  <!-- Device Selector Modal -->
+  <DeviceSelector 
+    v-model="showSelector" 
+    @device-selected="onDeviceSelected"
+  />
 </template>
 
 <script setup lang="ts">

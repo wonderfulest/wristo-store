@@ -6,10 +6,16 @@
           <h1 class="title">Blog</h1>
           <p class="subtitle">Browse by topics and read articles</p>
         </div>
-        <LanguageSwitcher v-if="hasAnyTranslations" :translations="sampleTranslations" />
+        <div class="header-actions">
+          <button class="toc-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
+            <span v-if="sidebarCollapsed">📚 Show Topics</span>
+            <span v-else>🗂️ Hide Topics</span>
+          </button>
+          <LanguageSwitcher v-if="hasAnyTranslations" :translations="sampleTranslations" />
+        </div>
       </div>
 
-      <div class="layout">
+      <div class="layout" :class="{ collapsed: sidebarCollapsed }">
         <aside class="sidebar">
           <div class="toc">
             <TreeNode
@@ -50,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onBeforeUnmount, defineComponent } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount, defineComponent, h } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getBlogTocTree } from '@/api/blog'
 import type { BlogPostTocItemVO, BlogPostVO, BlogPostTranslationVO } from '@/types'
@@ -64,6 +70,7 @@ const error = ref('')
 const tree = ref<BlogPostTocItemVO[]>([])
 const activeNodeId = ref<number | undefined>(undefined)
 const createdSeoLinks: HTMLLinkElement[] = []
+const sidebarCollapsed = ref(false)
 
 const currentLang = computed(() => {
   const p = route.params.lang
@@ -135,13 +142,18 @@ async function loadTree() {
   error.value = ''
   try {
     const lang = currentLang.value
-    const res = await getBlogTocTree({ parentId: -1 }, lang || undefined)
-    tree.value = (res?.data as BlogPostTocItemVO[]) || []
+    console.debug('[BlogTree] loadTree start', { lang, route: route.fullPath })
+    const data = await getBlogTocTree({ parentId: -1 }, lang || undefined)
+    console.debug('[BlogTree] API result', { count: data.length, first: data[0] })
+    tree.value = data
+    console.debug('[BlogTree] tree set', { size: tree.value.length })
     setSeoLinks()
   } catch (e: any) {
+    console.error('[BlogTree] loadTree error', e)
     error.value = e?.msg || e?.message || 'Unknown error'
   } finally {
     loading.value = false
+    console.debug('[BlogTree] loadTree done', { loading: loading.value, error: error.value })
   }
 }
 
@@ -149,13 +161,17 @@ function handleSelect(n: BlogPostTocItemVO) {
   activeNodeId.value = n.id
   // If node has a translated URL or slug in post.translations, navigate to detail when available
   const p = n.post
+  console.debug('[BlogTree] select node', { id: n.id, title: n.title || p?.title, hasPost: !!p, url: p?.url, slug: p?.slug })
   if (p && (p.url || p.slug)) {
     const lang = currentLang.value
     if (p.url) {
+      console.debug('[BlogTree] navigate by url', p.url)
       router.push(p.url)
     } else if (lang && p.slug) {
+      console.debug('[BlogTree] navigate by lang+slug', { lang, slug: p.slug })
       router.push(`/${encodeURIComponent(lang)}/blog/${encodeURIComponent(p.slug)}`)
     } else if (p.slug) {
+      console.debug('[BlogTree] navigate by slug', p.slug)
       router.push(`/blog/${encodeURIComponent(p.slug)}`)
     }
   }
@@ -163,6 +179,17 @@ function handleSelect(n: BlogPostTocItemVO) {
 
 onMounted(loadTree)
 watch(() => route.fullPath, loadTree)
+
+// debug watchers
+watch(tree, (val) => {
+  console.debug('[BlogTree] tree changed', { size: val?.length || 0 })
+})
+watch(activeNodeId, (id) => {
+  console.debug('[BlogTree] activeNodeId changed', { id })
+})
+watch(currentPost, (p) => {
+  console.debug('[BlogTree] currentPost changed', { id: p?.id, title: p?.title, hasContent: !!p?.contentHtml })
+})
 
 onBeforeUnmount(() => {
   for (const el of createdSeoLinks) {
@@ -184,29 +211,50 @@ const TreeNode = defineComponent({
     const isActive = computed(() => props.activeId === props.node.id)
     const onClick = () => emit('select', props.node)
     const toggle = () => (expanded.value = !expanded.value)
-    return { expanded, isActive, onClick, toggle, props }
-  },
-  template: `
-    <div class="tree-node" :style="{ paddingLeft: 8 + level * 14 + 'px' }">
-      <button class="toggle" v-if="props.node.children && props.node.children.length" @click.stop="toggle">
-        <span v-if="expanded">▾</span>
-        <span v-else>▸</span>
-      </button>
-      <button class="node-btn" :class="{ active: isActive }" @click="onClick">
-        {{ props.node.title || (props.node.post && props.node.post.title) || 'Untitled' }}
-      </button>
-    </div>
-    <div v-show="expanded" v-if="props.node.children && props.node.children.length">
-      <TreeNode
-        v-for="c in props.node.children"
-        :key="c.id"
-        :node="c"
-        :level="(level as number) + 1"
-        :active-id="activeId"
-        @select="$emit('select', $event)"
-      />
-    </div>
-  `
+    console.debug('[BlogTree] TreeNode mount', { id: props.node.id, title: props.node.title || props.node.post?.title, children: props.node.children?.length || 0 })
+
+    return () => {
+      const paddingLeft = 8 + (props.level as number) * 14 + 'px'
+
+      const toggleBtn = (props.node.children && props.node.children.length)
+        ? (
+            // toggle button
+            h('button', {
+              class: 'toggle',
+              onClick: (e: MouseEvent) => { e.stopPropagation(); toggle() }
+            }, expanded.value ? '▾' : '▸')
+          )
+        : null
+
+      const titleText = props.node.title || (props.node.post && props.node.post.title) || 'Untitled'
+
+      const header = h('div', { class: 'tree-node', style: { paddingLeft } }, [
+        toggleBtn,
+        h('button', {
+          class: ['node-btn', isActive.value ? 'active' : ''],
+          onClick
+        }, titleText)
+      ])
+
+      // children
+      let childrenBlock: any = null
+      if (props.node.children && props.node.children.length) {
+        childrenBlock = expanded.value
+          ? h('div', null, props.node.children.map((c: BlogPostTocItemVO) =>
+              h(TreeNode as any, {
+                key: c.id,
+                node: c,
+                level: (props.level as number) + 1,
+                activeId: props.activeId,
+                onSelect: (payload: BlogPostTocItemVO) => emit('select', payload)
+              })
+            ))
+          : null
+      }
+
+      return h('div', null, [header, childrenBlock])
+    }
+  }
 })
 </script>
 
@@ -214,10 +262,16 @@ const TreeNode = defineComponent({
 .blogtree-container { min-height: 100vh; background: #fff; text-align: initial; }
 .blogtree-main { max-width: 1200px; margin: 0 auto; padding: 20px 20px 80px; }
 .page-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.toc-toggle { appearance: none; border: 1px solid #e5e7eb; background: #ffffffcc; color: #1f2937; padding: 8px 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all .2s ease; }
+.toc-toggle:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.toc-toggle:active { transform: translateY(0); }
 .titles .title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; color: #0f172a; }
 .titles .subtitle { color: #475569; margin-top: 4px; }
 
 .layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+.layout.collapsed { grid-template-columns: 1fr; }
+.layout.collapsed .sidebar { display: none; }
 .sidebar { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
 .toc { display: block; }
 .tree-node { display: flex; align-items: center; gap: 6px; margin: 2px 0; }

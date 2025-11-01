@@ -34,6 +34,7 @@
         </el-dropdown>
         <router-link to="/faq" class="nav-link">FAQ</router-link>
         <router-link to="/code" class="nav-link">Code</router-link>
+        <!-- <router-link to="/blog" class="nav-link">Blog</router-link> -->
       </nav>
       
       <!-- Current Device Display -->

@@ -1,59 +1,83 @@
 <template>
   <div class="blog-container">
-
     <div class="blog-main">
-      <div v-if="loading" class="state-card loading">
-        <span class="spinner" />
-        <span>Loading article…</span>
-      </div>
-
-      <div v-else-if="error" class="state-card error">
-        <span class="state-emoji">⚠️</span>
-        <div>
-          <div class="state-title">Failed to load</div>
-          <div class="state-desc">{{ error }}</div>
+      <div class="page-header">
+        <div class="header-actions">
+          <button class="toc-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
+            <span v-if="sidebarCollapsed">📚 Show Topics</span>
+            <span v-else>🗂️ Hide Topics</span>
+          </button>
+          <LanguageSwitcher
+            v-if="post && post.translations && post.translations.length"
+            :translations="post.translations"
+          />
         </div>
       </div>
 
-      <article v-else-if="post && firstTr" class="blog-article">
-        <div class="hero" v-if="post.coverImageUrl">
-          <img class="hero-img" :src="post.coverImageUrl" :alt="firstTr.title" />
-        </div>
+      <div class="layout" :class="{ collapsed: sidebarCollapsed }">
+        <aside class="sidebar">
+          <div class="toc">
+            <TreeNode
+              v-for="n in tree"
+              :key="n.id"
+              :node="n"
+              :level="0"
+              :active-id="activeNodeId"
+              @select="handleSelect"
+            />
+          </div>
+        </aside>
 
-        <h1 class="title">{{ firstTr.title }}</h1>
+        <main class="content">
+          <div v-if="loading" class="state-card loading">
+            <span class="spinner" />
+            <span>Loading article…</span>
+          </div>
 
-        <div class="meta">
-          <div class="author" v-if="post.author">
-            <img v-if="post.author.avatar" class="avatar" :src="post.author.avatar" :alt="post.author.nickname || post.author.username" />
-            <div class="author-info">
-              <div class="name">{{ post.author.nickname || post.author.username }}</div>
-              <div class="date">{{ formattedDate }}</div>
+          <div v-else-if="error" class="state-card error">
+            <span class="state-emoji">⚠️</span>
+            <div>
+              <div class="state-title">Failed to load</div>
+              <div class="state-desc">{{ error }}</div>
             </div>
           </div>
-          <div class="chips">
-            <span v-if="post.category" class="chip">{{ post.category.name }}</span>
-            <span v-for="t in post.tags" :key="t.id" class="chip">#{{ t.name }}</span>
-          </div>
-        </div>
 
-        <LanguageSwitcher
-          v-if="post && post.translations && post.translations.length"
-          :translations="post.translations"
-        />
+          <article v-else-if="post && firstTr" class="blog-article">
+            <div class="hero" v-if="post.coverImageUrl">
+              <img class="hero-img" :src="post.coverImageUrl" :alt="firstTr.title" />
+            </div>
 
-        <div v-if="firstTr.summary" class="summary">{{ firstTr.summary }}</div>
+            <h1 class="title">{{ firstTr.title }}</h1>
 
-        <div class="content" v-html="firstTr.contentHtml"></div>
-      </article>
+            <div class="meta">
+              <div class="author" v-if="post.author">
+                <img v-if="post.author.avatar" class="avatar" :src="post.author.avatar" :alt="post.author.nickname || post.author.username" />
+                <div class="author-info">
+                  <div class="name">{{ post.author.nickname || post.author.username }}</div>
+                  <div class="date">{{ formattedDate }}</div>
+                </div>
+              </div>
+              <div class="chips">
+                <span v-if="post.category" class="chip">{{ post.category.name }}</span>
+                <span v-for="t in post.tags" :key="t.id" class="chip">#{{ t.name }}</span>
+              </div>
+            </div>
+
+            <div v-if="firstTr.summary" class="summary">{{ firstTr.summary }}</div>
+
+            <div class="content-body" v-html="firstTr.contentHtml"></div>
+          </article>
+        </main>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, defineComponent, h } from 'vue'
 import { useRoute } from 'vue-router'
-import { getBlogPostBySlug, getBlogPostByLangSlug } from '@/api/blog'
-import type { BlogPostVO, BlogPostTranslationVO } from '@/types'
+import { getBlogPostBySlug, getBlogPostByLangSlug, getBlogTocTree } from '@/api/blog'
+import type { BlogPostVO, BlogPostTranslationVO, BlogPostTocItemVO } from '@/types'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 
 const route = useRoute()
@@ -61,6 +85,10 @@ const loading = ref(true)
 const error = ref('')
 const post = ref<BlogPostVO | null>(null)
 const createdSeoLinks: HTMLLinkElement[] = []
+// toc state
+const tree = ref<BlogPostTocItemVO[]>([])
+const activeNodeId = ref<number | undefined>(undefined)
+const sidebarCollapsed = ref(false)
 
 const currentLang = computed(() => {
   const langParamRaw = route.params.lang
@@ -146,6 +174,35 @@ onMounted(async () => {
       post.value = await getBlogPostBySlug(slug || '', queryLang)
     }
     setSeoLinks()
+    // load toc
+    const tocLang = langParam || queryLang
+    try {
+      const toc = await getBlogTocTree({ parentId: -1 }, tocLang || undefined)
+      const data = Array.isArray(toc) ? (toc as BlogPostTocItemVO[]) : ((toc as any)?.data as BlogPostTocItemVO[])
+      tree.value = data
+      // set active to the node whose post.slug or url matches current
+      const path = window.location.pathname
+      const findNode = (nodes: BlogPostTocItemVO[]): BlogPostTocItemVO | null => {
+        for (const n of nodes) {
+          const p = n.post
+          if (p?.url && p.url === path) return n
+          if (p?.slug) {
+            if (tocLang && path === `/${encodeURIComponent(tocLang)}/blog/${encodeURIComponent(p.slug)}`) return n
+            if (!tocLang && path === `/blog/${encodeURIComponent(p.slug)}`) return n
+          }
+          if (n.children?.length) {
+            const r = findNode(n.children)
+            if (r) return r
+          }
+        }
+        return null
+      }
+      const matched = findNode(tree.value)
+      if (matched) activeNodeId.value = matched.id
+    } catch (e) {
+      // swallow toc error; article can still render
+      // console.debug('load toc failed', e)
+    }
   } catch (e: any) {
     error.value = e?.msg || e?.message || 'Unknown error'
   } finally {
@@ -184,6 +241,64 @@ onBeforeUnmount(() => {
   }
   createdSeoLinks.length = 0
 })
+
+function handleSelect(n: BlogPostTocItemVO) {
+  activeNodeId.value = n.id
+  const p = n.post
+  if (p && (p.url || p.slug)) {
+    const lang = currentLang.value
+    if (p.url) {
+      window.location.href = p.url
+    } else if (lang && p.slug) {
+      window.location.href = `/${encodeURIComponent(lang)}/blog/${encodeURIComponent(p.slug)}`
+    } else if (p.slug) {
+      window.location.href = `/blog/${encodeURIComponent(p.slug)}`
+    }
+  }
+}
+
+const TreeNode = defineComponent({
+  name: 'TreeNode',
+  props: {
+    node: { type: Object as () => BlogPostTocItemVO, required: true },
+    level: { type: Number, required: true },
+    activeId: { type: Number, required: false }
+  },
+  emits: ['select'],
+  setup(props, { emit }) {
+    const expanded = ref(true)
+    const isActive = computed(() => props.activeId === props.node.id)
+    const onClick = () => emit('select', props.node)
+    const toggle = () => (expanded.value = !expanded.value)
+
+    return () => {
+      const paddingLeft = 8 + (props.level as number) * 14 + 'px'
+      const toggleBtn = (props.node.children && props.node.children.length)
+        ? h('button', { class: 'toggle', onClick: (e: MouseEvent) => { e.stopPropagation(); toggle() } }, expanded.value ? '▾' : '▸')
+        : null
+      const titleText = props.node.title || (props.node.post && props.node.post.title) || 'Untitled'
+      const header = h('div', { class: 'tree-node', style: { paddingLeft } }, [
+        toggleBtn,
+        h('button', { class: ['node-btn', isActive.value ? 'active' : ''], onClick }, titleText)
+      ])
+      let childrenBlock: any = null
+      if (props.node.children && props.node.children.length) {
+        childrenBlock = expanded.value
+          ? h('div', null, props.node.children.map((c: BlogPostTocItemVO) =>
+              h(TreeNode as any, {
+                key: c.id,
+                node: c,
+                level: (props.level as number) + 1,
+                activeId: props.activeId,
+                onSelect: (payload: BlogPostTocItemVO) => emit('select', payload)
+              })
+            ))
+          : null
+      }
+      return h('div', null, [header, childrenBlock])
+    }
+  }
+})
 </script>
 
 <style scoped>
@@ -194,11 +309,23 @@ onBeforeUnmount(() => {
   text-align: initial;
 }
 
-.blog-main {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 16px 20px 80px 20px;
-}
+.blog-main { max-width: 1200px; margin: 0 auto; padding: 16px 20px 80px 20px; }
+.page-header { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 10px; }
+.header-actions { display: flex; align-items: center; gap: 10px; }
+.toc-toggle { appearance: none; border: 1px solid #e5e7eb; background: #ffffffcc; color: #1f2937; padding: 8px 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all .2s ease; }
+.toc-toggle:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.toc-toggle:active { transform: translateY(0); }
+
+.layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
+.layout.collapsed { grid-template-columns: 1fr; }
+.layout.collapsed .sidebar { display: none; }
+.sidebar { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.toc { display: block; }
+.tree-node { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
+.toggle { appearance: none; background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 12px; padding: 2px; }
+.node-btn { appearance: none; border: 1px solid #e5e7eb; background: #ffffffcc; color: #334155; padding: 6px 8px; border-radius: 10px; font-weight: 600; transition: all .2s ease; text-align: left; flex: 1; }
+.node-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+.node-btn.active { color: #fff; border-color: #3b82f6; background: linear-gradient(180deg, #60a5fa, #3b82f6); box-shadow: 0 2px 8px rgba(59,130,246,0.35); }
 
 .state-card {
   display: flex;
@@ -314,10 +441,8 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   color: #334155;
 }
-.content {
-  padding: 18px 24px 28px 24px;
-  color: #111827;
-}
+.content { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.content-body { padding: 18px 24px 28px 24px; color: #111827; }
 .content :deep(h1),
 .content :deep(h2),
 .content :deep(h3),
