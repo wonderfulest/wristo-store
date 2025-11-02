@@ -15,7 +15,7 @@ export const getBlogDetail = (postId: number | string): Promise<BlogPostVO> => {
   return instance.get(`/public/blog/detail/${encodeURIComponent(String(postId))}?populate=*`)
 }
 
-export const getBlogList = (params?: { lang?: string; page?: number; pageSize?: number }): Promise<{ items: BlogPostVO[]; total: number; page: number; pageSize: number } | BlogPostVO[]> => {
+export const getBlogTree = (params?: { lang?: string; page?: number; pageSize?: number }): Promise<{ items: BlogPostVO[]; total: number; page: number; pageSize: number } | BlogPostVO[]> => {
   const { lang, page, pageSize } = params || {}
   return instance.get('/public/blog/list', {
     params: {

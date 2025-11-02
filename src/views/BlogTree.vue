@@ -56,11 +56,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onBeforeUnmount, defineComponent, h } from 'vue'
+import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getBlogTocTree } from '@/api/blog'
 import type { BlogPostTocItemVO, BlogPostVO, BlogPostTranslationVO } from '@/types'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import TreeNode from '@/components/blog/TreeNode.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -178,7 +179,10 @@ function handleSelect(n: BlogPostTocItemVO) {
 }
 
 onMounted(loadTree)
-watch(() => route.fullPath, loadTree)
+// only reload when language actually changes
+watch(currentLang, () => {
+  loadTree()
+})
 
 // debug watchers
 watch(tree, (val) => {
@@ -198,64 +202,7 @@ onBeforeUnmount(() => {
   createdSeoLinks.length = 0
 })
 
-const TreeNode = defineComponent({
-  name: 'TreeNode',
-  props: {
-    node: { type: Object as () => BlogPostTocItemVO, required: true },
-    level: { type: Number, required: true },
-    activeId: { type: Number, required: false }
-  },
-  emits: ['select'],
-  setup(props, { emit }) {
-    const expanded = ref(true)
-    const isActive = computed(() => props.activeId === props.node.id)
-    const onClick = () => emit('select', props.node)
-    const toggle = () => (expanded.value = !expanded.value)
-    console.debug('[BlogTree] TreeNode mount', { id: props.node.id, title: props.node.title || props.node.post?.title, children: props.node.children?.length || 0 })
-
-    return () => {
-      const paddingLeft = 8 + (props.level as number) * 14 + 'px'
-
-      const toggleBtn = (props.node.children && props.node.children.length)
-        ? (
-            // toggle button
-            h('button', {
-              class: 'toggle',
-              onClick: (e: MouseEvent) => { e.stopPropagation(); toggle() }
-            }, expanded.value ? '▾' : '▸')
-          )
-        : null
-
-      const titleText = props.node.title || (props.node.post && props.node.post.title) || 'Untitled'
-
-      const header = h('div', { class: 'tree-node', style: { paddingLeft } }, [
-        toggleBtn,
-        h('button', {
-          class: ['node-btn', isActive.value ? 'active' : ''],
-          onClick
-        }, titleText)
-      ])
-
-      // children
-      let childrenBlock: any = null
-      if (props.node.children && props.node.children.length) {
-        childrenBlock = expanded.value
-          ? h('div', null, props.node.children.map((c: BlogPostTocItemVO) =>
-              h(TreeNode as any, {
-                key: c.id,
-                node: c,
-                level: (props.level as number) + 1,
-                activeId: props.activeId,
-                onSelect: (payload: BlogPostTocItemVO) => emit('select', payload)
-              })
-            ))
-          : null
-      }
-
-      return h('div', null, [header, childrenBlock])
-    }
-  }
-})
+// TreeNode extracted to its own component under src/components/blog/TreeNode.vue
 </script>
 
 <style scoped>
@@ -272,13 +219,138 @@ const TreeNode = defineComponent({
 .layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
 .layout.collapsed { grid-template-columns: 1fr; }
 .layout.collapsed .sidebar { display: none; }
-.sidebar { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.sidebar { 
+  background: #fff; 
+  border: 1px solid #e5e7eb; 
+  border-radius: 16px; 
+  padding: 8px; 
+  box-shadow: 0 2px 10px rgba(0,0,0,0.04); 
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
 .toc { display: block; }
-.tree-node { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
-.toggle { appearance: none; background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 12px; padding: 2px; }
-.node-btn { appearance: none; border: 1px solid #e5e7eb; background: #ffffffcc; color: #334155; padding: 6px 8px; border-radius: 10px; font-weight: 600; transition: all .2s ease; text-align: left; flex: 1; }
-.node-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-.node-btn.active { color: #fff; border-color: #3b82f6; background: linear-gradient(180deg, #60a5fa, #3b82f6); box-shadow: 0 2px 8px rgba(59,130,246,0.35); }
+.tree-node { 
+  display: flex; 
+  align-items: center; 
+  gap: 4px; 
+  margin: 1px 0; 
+  position: relative;
+}
+.tree-node::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  border-radius: 1px;
+  transition: all 0.2s ease;
+}
+.toggle { 
+  appearance: none; 
+  background: transparent; 
+  border: none; 
+  color: #64748b; 
+  cursor: pointer; 
+  font-size: 10px; 
+  padding: 2px 4px; 
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.toggle:hover {
+  background: #f1f5f9;
+  color: #475569;
+}
+.toggle-placeholder {
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.node-btn { 
+  appearance: none; 
+  border: none; 
+  background: transparent; 
+  color: #475569; 
+  padding: 4px 8px; 
+  border-radius: 8px; 
+  font-weight: 500; 
+  font-size: 14px;
+  transition: all .2s ease; 
+  text-align: left; 
+  flex: 1; 
+  cursor: pointer;
+  line-height: 1.4;
+}
+.node-btn:hover { 
+  background: #f8fafc;
+  color: #1e293b;
+}
+.node-btn.active { 
+  color: #2563eb; 
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe); 
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
+}
+.tree-node:has(.node-btn.active)::before {
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+}
+
+/* 不同层级的样式 */
+.tree-node.level-0 {
+  margin: 2px 0;
+}
+.tree-node.level-0 .node-btn {
+  font-weight: 600;
+  font-size: 15px;
+}
+.tree-node.level-1 .node-btn {
+  font-size: 14px;
+  opacity: 0.9;
+}
+.tree-node.level-2 .node-btn,
+.tree-node.level-3 .node-btn {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* 有文章和无文章节点的区分 */
+.tree-node.no-post .node-btn {
+  color: #64748b;
+  font-style: italic;
+}
+.tree-node.no-post .node-btn:hover {
+  color: #475569;
+  background: #f8fafc;
+}
+.tree-node.has-post .node-btn {
+  color: #374151;
+}
+.tree-node.has-post .node-btn:hover {
+  color: #111827;
+  background: #f3f4f6;
+}
+
+/* 层级指示线 */
+.tree-node.level-1::after,
+.tree-node.level-2::after,
+.tree-node.level-3::after {
+  content: '';
+  position: absolute;
+  left: calc(4px + var(--parent-level, 0) * 16px + 8px);
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e5e7eb;
+  opacity: 0.5;
+}
 
 .content { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
 .article-title { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0 0 6px; }

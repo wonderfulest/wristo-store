@@ -168,7 +168,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/:lang/blog',
-    name: 'BlogListLang',
+    name: 'BlogTreeLang',
     component: () => import('@/views/BlogTree.vue')
   },
   {
@@ -178,7 +178,7 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/blog',
-    name: 'BlogList',
+    name: 'BlogTree',
     component: () => import('@/views/BlogTree.vue')
   },
 ]

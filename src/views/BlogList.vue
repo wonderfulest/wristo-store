@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { getBlogList } from '@/api/blog'
+import { getBlogTree } from '@/api/blog'
 import type { BlogPostVO, BlogPostTranslationVO } from '@/types'
 
 const route = useRoute()
@@ -77,7 +77,7 @@ async function load() {
   error.value = ''
   try {
     const lang = currentLang.value
-    const res = await getBlogList({ lang: lang || undefined, page: 1, pageSize: 20 }) as any
+    const res = await getBlogTree({ lang: lang || undefined, page: 1, pageSize: 20 }) as any
     items.value = Array.isArray(res) ? res : (res.items || [])
     setSeoLinks()
   } catch (e: any) {

@@ -74,13 +74,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, defineComponent, h } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getBlogPostBySlug, getBlogPostByLangSlug, getBlogTocTree } from '@/api/blog'
 import type { BlogPostVO, BlogPostTranslationVO, BlogPostTocItemVO } from '@/types'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import TreeNode from '@/components/blog/TreeNode.vue'
 
 const route = useRoute()
+const router = useRouter()
 const loading = ref(true)
 const error = ref('')
 const post = ref<BlogPostVO | null>(null)
@@ -174,7 +176,7 @@ onMounted(async () => {
       post.value = await getBlogPostBySlug(slug || '', queryLang)
     }
     setSeoLinks()
-    // load toc
+    // load toc once on mount
     const tocLang = langParam || queryLang
     try {
       const toc = await getBlogTocTree({ parentId: -1 }, tocLang || undefined)
@@ -248,57 +250,15 @@ function handleSelect(n: BlogPostTocItemVO) {
   if (p && (p.url || p.slug)) {
     const lang = currentLang.value
     if (p.url) {
-      window.location.href = p.url
+      router.push(p.url)
     } else if (lang && p.slug) {
-      window.location.href = `/${encodeURIComponent(lang)}/blog/${encodeURIComponent(p.slug)}`
+      router.push(`/${encodeURIComponent(lang)}/blog/${encodeURIComponent(p.slug)}`)
     } else if (p.slug) {
-      window.location.href = `/blog/${encodeURIComponent(p.slug)}`
+      router.push(`/blog/${encodeURIComponent(p.slug)}`)
     }
   }
 }
 
-const TreeNode = defineComponent({
-  name: 'TreeNode',
-  props: {
-    node: { type: Object as () => BlogPostTocItemVO, required: true },
-    level: { type: Number, required: true },
-    activeId: { type: Number, required: false }
-  },
-  emits: ['select'],
-  setup(props, { emit }) {
-    const expanded = ref(true)
-    const isActive = computed(() => props.activeId === props.node.id)
-    const onClick = () => emit('select', props.node)
-    const toggle = () => (expanded.value = !expanded.value)
-
-    return () => {
-      const paddingLeft = 8 + (props.level as number) * 14 + 'px'
-      const toggleBtn = (props.node.children && props.node.children.length)
-        ? h('button', { class: 'toggle', onClick: (e: MouseEvent) => { e.stopPropagation(); toggle() } }, expanded.value ? '▾' : '▸')
-        : null
-      const titleText = props.node.title || (props.node.post && props.node.post.title) || 'Untitled'
-      const header = h('div', { class: 'tree-node', style: { paddingLeft } }, [
-        toggleBtn,
-        h('button', { class: ['node-btn', isActive.value ? 'active' : ''], onClick }, titleText)
-      ])
-      let childrenBlock: any = null
-      if (props.node.children && props.node.children.length) {
-        childrenBlock = expanded.value
-          ? h('div', null, props.node.children.map((c: BlogPostTocItemVO) =>
-              h(TreeNode as any, {
-                key: c.id,
-                node: c,
-                level: (props.level as number) + 1,
-                activeId: props.activeId,
-                onSelect: (payload: BlogPostTocItemVO) => emit('select', payload)
-              })
-            ))
-          : null
-      }
-      return h('div', null, [header, childrenBlock])
-    }
-  }
-})
 </script>
 
 <style scoped>
