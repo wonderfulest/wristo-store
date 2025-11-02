@@ -52,26 +52,17 @@
         <el-icon class="empty-icon"><Warning /></el-icon>
         <p>No devices available</p>
       </div>
-    </div>
-    
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="handleClose">Cancel</el-button>
-        <el-button 
-          type="primary" 
-          @click="confirmSelection"
-          :disabled="!selectedDeviceId || confirmLoading"
-          :loading="confirmLoading"
-        >
-          Confirm
-        </el-button>
+
+      <!-- Auto Confirm Banner -->
+      <div v-if="countdown !== null" class="auto-confirm-banner">
+        <span>Auto-selecting in {{ countdown }}s…</span>
       </div>
-    </template>
+    </div>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading, Check, Warning, Search } from '@element-plus/icons-vue'
 import { getDeviceList, getDeviceDetail } from '@/api/device'
@@ -95,6 +86,8 @@ const confirmLoading = ref(false)
 const deviceList = ref<GarminDeviceBaseVO[]>([])
 const selectedDeviceId = ref<number | null>(null)
 const query = ref('')
+const countdown = ref<number | null>(null)
+let countdownTimer: number | null = null
 
 // Filtered list by fuzzy query
 const filteredDevices = computed(() => {
@@ -130,6 +123,8 @@ watch(visible, (newValue) => {
   if (!newValue) {
     // Reset state when dialog closes
     selectedDeviceId.value = null
+    stopCountdown()
+    countdown.value = null
   }
 })
 
@@ -150,6 +145,7 @@ const loadDeviceList = async () => {
 // Select device
 const selectDevice = (device: GarminDeviceBaseVO) => {
   selectedDeviceId.value = device.id
+  startCountdown()
 }
 
 // Confirm selection
@@ -185,8 +181,35 @@ const confirmSelection = async () => {
 
 // Handle dialog close
 const handleClose = () => {
+  stopCountdown()
+  countdown.value = null
   visible.value = false
 }
+
+function startCountdown() {
+  stopCountdown()
+  countdown.value = 3
+  countdownTimer = window.setInterval(async () => {
+    if (countdown.value === null) return
+    if (countdown.value <= 1) {
+      stopCountdown()
+      await confirmSelection()
+      return
+    }
+    countdown.value = (countdown.value || 0) - 1
+  }, 1000)
+}
+
+function stopCountdown() {
+  if (countdownTimer !== null) {
+    clearInterval(countdownTimer)
+    countdownTimer = null
+  }
+}
+
+onBeforeUnmount(() => {
+  stopCountdown()
+})
 </script>
 
 <style scoped>
@@ -361,88 +384,13 @@ const handleClose = () => {
   justify-content: center;
 }
 
-.check-icon {
-  color: #3b82f6;
-  font-size: 20px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  gap: 12px;
-  color: #6b7280;
-}
-
-.empty-icon {
-  font-size: 48px;
-  color: #d1d5db;
-}
-
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-/* Responsive */
 @media (max-width: 640px) {
-  .device-selector-dialog :deep(.el-dialog) {
-    width: 92vw !important;
-    max-width: 92vw !important;
-    margin: 4vh auto;
-    box-sizing: border-box;
-    overflow: hidden;
-  }
-  
   .device-list {
     grid-template-columns: 1fr;
-    max-height: none;
-  }
-  
-  .device-item {
-    padding: 12px;
-  }
-  
-  .device-avatar {
-    width: 40px;
-    height: 40px;
-    flex: 0 0 40px;
-  }
-  
-  .device-name {
-    font-size: 1rem;
-  }
-  
-  .device-family {
-    font-size: 0.85rem;
-  }
-
-  .device-selector-content {
-    max-height: 78vh;
-  }
-
-  /* Slightly larger search input on mobile */
-  .search-input.xl :deep(.el-input__wrapper) {
-    height: 52px;
-  }
-  .search-input.xl :deep(.el-input__inner) {
-    line-height: 52px;
   }
 }
 
-@media (max-width: 1024px) and (min-width: 641px) {
-  .device-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1280px) {
-  .device-selector-dialog :deep(.el-dialog) {
-    width: min(1040px, 95vw) !important;
-  }
+@media (min-width: 1024px) {
   .device-list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
