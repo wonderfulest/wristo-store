@@ -239,10 +239,11 @@ onBeforeUnmount(() => {
 
 .device-selector-content {
   min-height: 300px;
-  max-height: 72vh;
+  max-height: 60vh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
 }
 
 .search-row {
@@ -385,6 +386,18 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 640px) {
+  .device-selector-dialog :deep(.el-dialog) {
+    margin: 8px;
+    width: calc(100vw - 16px) !important;
+    max-height: calc(100vh - 60px - env(safe-area-inset-bottom, 0px));
+    border-radius: 12px;
+  }
+
+  .device-selector-content {
+    max-height: calc(60vh - env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
   .device-list {
     grid-template-columns: 1fr;
   }
