@@ -49,9 +49,16 @@
         </div>
         
         <div class="button-group">
-          <button type="button" class="btn outline" @click="handleAlreadyPurchased">Already Purchased</button>
-          <button type="submit" class="btn" :disabled="loading">{{ loading ? 'Loading...' : 'Continue' }}</button>
+          <div class="btn-with-note">
+            <button type="button" class="btn outline" @click="handleAlreadyPurchased">Already Purchased</button>
+            <div class="helper-note">For users who already purchased bundle or this watch face.</div>
+          </div>
+          <div class="btn-with-note">
+            <button type="submit" class="btn" :disabled="loading">{{ loading ? 'Loading...' : 'Continue' }}</button>
+            <div class="helper-note">For users who don’t have a bundle or haven’t purchased this watch face yet.</div>
+          </div>
         </div>
+        
       </form>
     </div>
   </div>
@@ -148,16 +155,16 @@ const handleInput = () => {
   clearMessages()
   
   // 当输入6位数字时自动提交
-  if (code.value.length === 6) {
-    // 添加短暂延迟，让用户看到输入完成
-    setTimeout(() => {
-      handleContinue()
-    }, 300)
-  }
+  // if (code.value.length === 6) {
+  //   // 添加短暂延迟，让用户看到输入完成
+  //   setTimeout(() => {
+  //     handleContinue()
+  //   }, 300)
+  // }
 }
 
 const handleAlreadyPurchased = () => {
-  router.push('/already-purchased')
+  router.push({ path: '/already-purchased', query: { code: code.value || '' } })
 }
 
 const handleLearnMore = () => {
@@ -351,6 +358,20 @@ onMounted(async () => {
   gap: 16px;
   margin-top: auto;
   padding-top: 16px;
+}
+
+.btn-with-note {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.helper-note {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #6b7280;
+  text-align: center;
+  width: 100%;
 }
 
 .btn {

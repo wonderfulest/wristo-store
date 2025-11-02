@@ -68,12 +68,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { activatePurchase } from '@/api/pay'
 import { ElMessage } from 'element-plus'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 
 const userStore = useUserStore()
+const route = useRoute()
 const email = ref('')
 const activationCode = ref('')
 const loading = ref(false)
@@ -94,6 +96,11 @@ function clearMessages() {
 onMounted(() => {
   if (userStore.userInfo && userStore.userInfo.email) {
     email.value = userStore.userInfo.email
+  }
+  const q = route.query.code as string | undefined
+  const six = (q || '').toString().replace(/\D/g, '').slice(0, 6)
+  if (six && six.length === 6) {
+    activationCode.value = six
   }
 })
 
