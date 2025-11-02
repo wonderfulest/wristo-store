@@ -5,7 +5,7 @@
         <div class="header-actions">
           <button class="toc-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
             <span v-if="sidebarCollapsed">📚 Show Topics</span>
-            <span v-else>🗂️ Hide Topics 1</span>
+            <span v-else>🗂️ Hide Topics</span>
           </button>
           <LanguageSwitcher
             v-if="post && post.translations && post.translations.length"
@@ -171,10 +171,13 @@ onMounted(async () => {
     const langQ = route.query.lang
     const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
 
-    if (langParam) {
-      post.value = await getBlogPostByLangSlug(langParam, slug || '')
-    } else {
-      post.value = await getBlogPostBySlug(slug || '', queryLang)
+    console.debug('[BlogPost] onMounted: params', { slug, langParam, queryLang })
+    if (slug) {
+       if (langParam) {
+        post.value = await getBlogPostByLangSlug(langParam, slug || '')
+      } else {
+        post.value = await getBlogPostBySlug(slug || '', queryLang)
+      }
     }
     setSeoLinks()
     console.debug('[BlogPost] onMounted: will refreshTree', { lang: langParam || queryLang, route: route.fullPath })
@@ -202,10 +205,12 @@ watch(() => route.fullPath, async () => {
     const langQ = route.query.lang
     const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
 
-    if (langParam) {
-      post.value = await getBlogPostByLangSlug(langParam, slug || '')
-    } else {
-      post.value = await getBlogPostBySlug(slug || '', queryLang)
+    if (slug) {
+      if (langParam) {
+        post.value = await getBlogPostByLangSlug(langParam, slug || '')
+      } else {
+        post.value = await getBlogPostBySlug(slug || '', queryLang)
+      }
     }
     setSeoLinks()
   } catch (e: any) {
@@ -334,9 +339,9 @@ async function refreshTree(lang?: string) {
 
 .blog-article {
   background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  border: 1px solid #e5e7eb;
+  /* border-radius: 24px; */
+  /* box-shadow: 0 2px 12px rgba(0,0,0,0.06); */
+  /* border: 1px solid #e5e7eb; */
   overflow: hidden;
 }
 .hero {
@@ -464,8 +469,32 @@ async function refreshTree(lang?: string) {
 }
 
 @media (max-width: 640px) {
-  .title { font-size: 1.6rem; padding: 16px 16px 0 16px; }
-  .meta { padding: 10px 16px 6px 16px; }
-  .content { padding: 14px 16px 22px 16px; }
+  .blog-main { padding: 12px 12px 48px 12px; }
+  .page-header { justify-content: space-between; margin-bottom: 8px; }
+  .header-actions { gap: 8px; }
+  .toc-toggle { padding: 6px 10px; border-radius: 10px; font-size: 0.9rem; }
+
+  /* Make sidebar a bit narrower on small screens */
+  .layout { grid-template-columns: 220px 1fr; gap: 12px; }
+  .layout.collapsed { grid-template-columns: 1fr; }
+  .sidebar { padding: 8px; border-radius: 12px; }
+  .toc { max-height: calc(100vh - 180px); overflow: auto; -webkit-overflow-scrolling: touch; }
+
+  /* TreeNode touch-friendly but compact */
+  .tree-node { gap: 4px; margin: 1px 0; }
+  .toggle { font-size: 12px; padding: 2px; }
+  .node-btn { padding: 6px 8px; font-size: 0.92rem; border-radius: 10px; }
+
+  /* Article */
+  .title { font-size: 1.5rem; padding: 14px 14px 0 14px; }
+  .meta { padding: 8px 14px 4px 14px; gap: 10px; }
+  .avatar { width: 34px; height: 34px; }
+  .summary { margin: 6px 14px 0 14px; padding: 10px 12px; border-radius: 10px; }
+  .content { border-radius: 12px; }
+  .content-body { padding: 14px 14px 20px 14px; }
+  .content :deep(p),
+  .content :deep(ul),
+  .content :deep(ol) { font-size: 1rem; line-height: 1.7; }
+  .content :deep(img) { border-radius: 10px; }
 }
 </style>
