@@ -5,11 +5,12 @@
         <div class="header-actions">
           <button class="toc-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
             <span v-if="sidebarCollapsed">📚 Show Topics</span>
-            <span v-else>🗂️ Hide Topics</span>
+            <span v-else>🗂️ Hide Topics 1</span>
           </button>
           <LanguageSwitcher
             v-if="post && post.translations && post.translations.length"
             :translations="post.translations"
+            @switch="refreshTree"
           />
         </div>
       </div>
@@ -19,7 +20,7 @@
           <div class="toc">
             <TreeNode
               v-for="n in tree"
-              :key="n.id"
+              :key="`${currentLang || 'default'}-${n.id}`"
               :node="n"
               :level="0"
               :active-id="activeNodeId"
@@ -176,34 +177,12 @@ onMounted(async () => {
       post.value = await getBlogPostBySlug(slug || '', queryLang)
     }
     setSeoLinks()
-    // load toc once on mount
-    const tocLang = langParam || queryLang
+    console.debug('[BlogPost] onMounted: will refreshTree', { lang: langParam || queryLang, route: route.fullPath })
     try {
-      const toc = await getBlogTocTree({ parentId: -1 }, tocLang || undefined)
-      const data = Array.isArray(toc) ? (toc as BlogPostTocItemVO[]) : ((toc as any)?.data as BlogPostTocItemVO[])
-      tree.value = data
-      // set active to the node whose post.slug or url matches current
-      const path = window.location.pathname
-      const findNode = (nodes: BlogPostTocItemVO[]): BlogPostTocItemVO | null => {
-        for (const n of nodes) {
-          const p = n.post
-          if (p?.url && p.url === path) return n
-          if (p?.slug) {
-            if (tocLang && path === `/${encodeURIComponent(tocLang)}/blog/${encodeURIComponent(p.slug)}`) return n
-            if (!tocLang && path === `/blog/${encodeURIComponent(p.slug)}`) return n
-          }
-          if (n.children?.length) {
-            const r = findNode(n.children)
-            if (r) return r
-          }
-        }
-        return null
-      }
-      const matched = findNode(tree.value)
-      if (matched) activeNodeId.value = matched.id
+      await refreshTree(langParam || queryLang || undefined)
+      console.debug('[BlogPost] onMounted: refreshTree done', { size: tree.value.length, activeId: activeNodeId.value })
     } catch (e) {
-      // swallow toc error; article can still render
-      // console.debug('load toc failed', e)
+      console.error('[BlogPost] onMounted: refreshTree failed', e)
     }
   } catch (e: any) {
     error.value = e?.msg || e?.message || 'Unknown error'
@@ -257,6 +236,32 @@ function handleSelect(n: BlogPostTocItemVO) {
       router.push(`/blog/${encodeURIComponent(p.slug)}`)
     }
   }
+}
+
+async function refreshTree(lang?: string) {
+  console.debug('[BlogPost] refreshTree start', { lang: lang })
+  const useLang = lang ?? currentLang.value
+  const data = await getBlogTocTree({ parentId: -1 }, useLang || undefined)
+  tree.value = data
+  const path = window.location.pathname
+  const findNode = (nodes: BlogPostTocItemVO[]): BlogPostTocItemVO | null => {
+    for (const n of nodes) {
+      const p = n.post
+      if (p?.url && p.url === path) return n
+      if (p?.slug) {
+        if (useLang && path === `/${encodeURIComponent(useLang)}/blog/${encodeURIComponent(p.slug)}`) return n
+        if (!useLang && path === `/blog/${encodeURIComponent(p.slug)}`) return n
+      }
+      if (n.children?.length) {
+        const r = findNode(n.children)
+        if (r) return r
+      }
+    }
+    return null
+  }
+  const matched = findNode(tree.value)
+  if (matched) activeNodeId.value = matched.id
+  console.debug('[BlogPost] refreshTree done', { size: tree.value.length, activeId: activeNodeId.value })
 }
 
 </script>

@@ -22,6 +22,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { BlogPostTranslationVO } from '@/types'
 
 const props = defineProps<{ translations: BlogPostTranslationVO[] }>()
+const emit = defineEmits<{ (e: 'switch', lang: string): void }>()
 
 const route = useRoute()
 const router = useRouter()
@@ -42,6 +43,8 @@ function buildUrl(t: BlogPostTranslationVO): string {
 }
 
 function switchLanguage(targetLang: string) {
+  // notify parent about target language so it can refresh local state/TOC immediately
+  emit('switch', targetLang)
   const match = normalized.value.find(t => t.lang === targetLang)
   if (match) {
     const url = buildUrl(match)
