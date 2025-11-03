@@ -2,11 +2,6 @@ import type { RouteRecordRaw } from 'vue-router'
 
 const routes: RouteRecordRaw[] = [
   {
-    path: '/uninstall-guide',
-    name: 'UninstallGuide',
-    component: () => import('@/views/UninstallGuide.vue')
-  },
-  {
     path: '/',
     name: 'home',
     component: () => import('@/views/Home.vue')
@@ -76,11 +71,7 @@ const routes: RouteRecordRaw[] = [
     name: 'CheckoutHelp',
     component: () => import('@/views/faq/CheckoutHelp.vue')
   },
-  {
-    path: '/unlock',
-    name: 'Unlock',
-    component: () => import('@/views/Unlock.vue')
-  },
+ 
   {
     path: '/contact',
     name: 'Contact',
@@ -90,6 +81,10 @@ const routes: RouteRecordRaw[] = [
     path: '/already-purchased',
     name: 'AlreadyPurchased',
     component: () => import('@/views/shop/AlreadyPurchased.vue')
+  },
+   {
+    path: '/unlock',
+    redirect: '/already-purchased',
   },
   {
     path: '/purchases-history',
@@ -180,6 +175,11 @@ const routes: RouteRecordRaw[] = [
     path: '/blog',
     name: 'BlogTree',
     component: () => import('@/views/BlogPost.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('@/views/NotFound.vue')
   },
 ]
 

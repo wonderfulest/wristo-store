@@ -32,7 +32,7 @@
               <div class="info-icon">📋</div>
               <h3>Before Contacting</h3>
             </div>
-            <p>Check our <router-link to="/faq" class="info-link">FAQ page</router-link> for quick answers to common questions. You might find the solution you need right away!</p>
+            <!-- <p>Check our <router-link to="/faq" class="info-link">FAQ page</router-link> for quick answers to common questions. You might find the solution you need right away!</p> -->
           </div>
         </div>
         

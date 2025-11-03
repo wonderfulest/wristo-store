@@ -12,7 +12,7 @@
       <a href="/terms-and-conditions">Terms of Use</a> |
       <a href="/privacy-policy">Privacy Policy</a> |
       <a href="/contact">Contact</a> |
-      <a href="/faq">FAQ</a>
+      <!-- <a href="/faq">FAQ</a> -->
     </div>
     
     <!-- 移动端布局 -->
@@ -73,7 +73,7 @@
           <a href="/terms-and-conditions">Terms of Use</a> |
           <a href="/privacy-policy">Privacy Policy</a> |
           <a href="/contact">Contact</a> |
-          <a href="/faq">FAQ</a>
+          <!-- <a href="/faq">FAQ</a> -->
         </div>
       </div>
     </transition>

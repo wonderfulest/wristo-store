@@ -32,7 +32,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <router-link to="/faq" class="nav-link">FAQ</router-link>
+        <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link to="/code" class="nav-link">Code</router-link>
         <router-link to="/blog" class="nav-link">Blog</router-link>
       </nav>
@@ -106,7 +106,7 @@
               </router-link>
             </div>
           </div>
-          <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link>
+          <!-- <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link> -->
           <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">Code</router-link>
           
           <!-- Mobile Device Display -->
