@@ -1,5 +1,5 @@
 export const useGA = (app: any) => {
-  const measurementId = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID || 'G-XXXXXXXXXX'
+  const measurementId = (import.meta as any).env?.VITE_GA_MEASUREMENT_ID || '-J92MYN3NVY'
 
   if (!measurementId || typeof window === 'undefined') return
 
