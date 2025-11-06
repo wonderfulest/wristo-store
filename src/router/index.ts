@@ -41,8 +41,10 @@ router.beforeEach((to, from, next) => {
 
 // GA page view tracking
 router.afterEach((to) => {
+  console.log('page_view', to.fullPath, document.title)
   const gtag = (window as any).gtag as undefined | ((...args: any[]) => void)
   if (gtag) {
+    console.log('gtag event', to.fullPath, document.title)
     gtag('event', 'page_view', {
       page_path: to.fullPath,
       page_title: document.title
