@@ -66,6 +66,8 @@ export interface Bundle {
   isActive: number
   createdAt: string
   updatedAt: string
+  appCount: number
+  appTotalPrice: number
   products: ProductBaseVO[]
   user?: UserBaseVO
 }

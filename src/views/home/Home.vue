@@ -44,12 +44,12 @@ import { useRouter } from 'vue-router';
 import { useProductStore } from '@/store/product';
 import type { ProductBaseVO, Series } from '@/types';
 import Newsletter from '@/components/Newsletter.vue';
-import SearchSection from './home/components/SearchSection.vue';
-import SearchResultsSection from './home/components/SearchResultsSection.vue';
-import NewArrivalsCarousel from './home/components/NewArrivalsCarousel.vue';
-import FeatureSection from './home/components/FeatureSection.vue';
-import SeriesSection from './home/components/SeriesSection.vue';
-import HotProductsSection from './home/components/HotProductsSection.vue';
+import SearchSection from '@/views/home/components/SearchSection.vue';
+import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue';
+import NewArrivalsCarousel from '@/views/home/components/NewArrivalsCarousel.vue';
+import FeatureSection from '@/views/home/components/FeatureSection.vue';
+import SeriesSection from '@/views/home/components/SeriesSection.vue';
+import HotProductsSection from '@/views/home/components/HotProductsSection.vue';
 
 const productStore = useProductStore();
 const router = useRouter();

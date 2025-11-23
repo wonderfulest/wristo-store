@@ -24,7 +24,14 @@
                     <div class="bundle-info">
                         <div class="bundle-name">{{ (product as Bundle).bundleName }}</div>
                         <div class="bundle-desc" v-html="formatDescription((product as Bundle).bundleDesc)"></div>
-                        <div class="product-count">Total {{ (product as Bundle).products.length }} apps</div>
+                        <div class="product-count">
+                            <span class="product-count-main">
+                                Unlock {{ (product as Bundle).appCount.toLocaleString() }} apps
+                            </span>
+                            <span class="product-count-sub">
+                                (Value <span class="product-count-original">${{ (product as Bundle).appTotalPrice.toFixed(2) }}</span>)
+                            </span>
+                        </div>
                     </div>
                 </template>
                 <template v-else>
@@ -637,9 +644,18 @@ if (isBundle.value) {
     line-height: 1.4;
 }
 .product-count {
-    color: #2d6a4f;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+.product-count-main {
     font-weight: 500;
-    font-size: 0.95rem;
+    color: #4b5563;
+}
+.product-count-sub {
+    margin-left: 4px;
+}
+.product-count-original {
+    text-decoration: line-through;
 }
 .product-image {
     margin-bottom: 24px;

@@ -94,6 +94,15 @@
             Already Purchased
           </button>
         </div>
+        <div class="template-editor-section">
+          <div class="template-editor-section-header">
+            <div class="template-editor-section-title">Watch Text Template (Optional)</div>
+            <div class="template-editor-section-subtitle">
+              Design a dynamic text line using live data variables like heart rate and steps.
+            </div>
+          </div>
+          <TemplateEditor v-model="templateText" />
+        </div>
       </div>
     </div>
   </div>
@@ -106,13 +115,13 @@ import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
+import TemplateEditor from '@/components/TemplateEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const product = ref<ProductVO | null>(null)
-
-// const DownloadSvg = `<svg width=\"22\" height=\"22\" viewBox=\"0 0 22 22\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11 2V16M11 16L6 11M11 16L16 11\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"3\" y=\"18\" width=\"16\" height=\"2\" rx=\"1\" fill=\"white\"/></svg>`
+const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {

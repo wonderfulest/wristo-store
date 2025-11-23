@@ -15,7 +15,7 @@
       <div class="price-info">
         <div v-if="originalPrice > currentPrice" class="price-container">
           <div class="price-group">
-            <span class="original-price">${{ originalPrice.toFixed(2) }}</span>
+          
             <span class="price">${{ currentPrice.toFixed(2) }}</span>
           </div>
         </div>
@@ -49,8 +49,13 @@
     <!-- 详情描述 -->
     <div class="card-info">
       <div v-if="type === 'bundle'" class="description" v-html="formattedDescription"></div>
-      <div v-if="type === 'bundle' && bundleItems" class="product-count">
-        Total {{ bundleItems.length }} apps
+      <div v-if="type === 'bundle' && appCount" class="product-count">
+        <span class="product-count-main">
+          Unlock {{ appCount.toLocaleString() }} apps
+        </span>
+        <span class="product-count-sub">
+          (Value <span class="product-count-original">${{ appTotalPrice?.toFixed(2) }}</span>)
+        </span>
       </div>
     </div>
     
@@ -81,6 +86,8 @@ interface Props {
   discount: number
   isSelected: boolean
   buttonText: string
+  appCount?: number
+  appTotalPrice?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -422,9 +429,21 @@ onUnmounted(() => {
 }
 
 .product-count {
-  color: #2d6a4f;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.product-count-main {
   font-weight: 500;
-  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.product-count-sub {
+  margin-left: 4px;
+}
+
+.product-count-original {
+  text-decoration: line-through;
 }
 
 /* 购买按钮 */

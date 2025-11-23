@@ -4,7 +4,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/views/Home.vue')
+    component: () => import('@/views/home/Home.vue')
   },
   {
     path: '/auth/callback',
@@ -14,12 +14,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/product/:id',
     name: 'product-detail',
-    component: () => import('@/views/ProductDetail.vue')
+    component: () => import('@/views/products/ProductDetail.vue')
   },
   {
     path: '/bundle/:id',
     name: 'bundle-detail',
-    component: () => import('@/views/BundleDetail.vue')
+    component: () => import('@/views/products/BundleDetail.vue')
   },
   { 
     path: '/code', 
@@ -104,7 +104,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/categories/:slug',
     name: 'CategoryDetail',
-    component: () => import('@/views/Categories.vue')
+    component: () => import('@/views/products/Categories.vue')
   },
   {
     path: '/newsletter',
@@ -114,7 +114,16 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/bundle-products',
     name: 'BundleProducts',
-    component: () => import('@/views/BundledProducts.vue')
+    component: () => import('@/views/products/BundledProducts.vue')
+  },
+  {
+    path: '/template-editor',
+    name: 'TemplateEditorPage',
+    component: () => import('@/views/products/TemplateEditorPage.vue')
+  },
+  {
+    path: '/tpl',
+    redirect: '/template-editor',
   },
   // {
   //   path: '/subscription',
@@ -159,22 +168,22 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/:lang/blog/:slug',
     name: 'BlogPostLang',
-    component: () => import('@/views/BlogPost.vue')
+    component: () => import('@/views/blogs/BlogPost.vue')
   },
   {
     path: '/:lang/blog',
     name: 'BlogTreeLang',
-    component: () => import('@/views/BlogPost.vue')
+    component: () => import('@/views/blogs/BlogPost.vue')
   },
   {
     path: '/blog/:slug',
     name: 'BlogPost',
-    component: () => import('@/views/BlogPost.vue')
+    component: () => import('@/views/blogs/BlogPost.vue')
   },
   {
     path: '/blog',
     name: 'BlogTree',
-    component: () => import('@/views/BlogPost.vue')
+    component: () => import('@/views/blogs/BlogPost.vue')
   },
   {
     path: '/:pathMatch(.*)*',

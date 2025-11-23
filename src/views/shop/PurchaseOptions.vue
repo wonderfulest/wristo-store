@@ -21,6 +21,8 @@
         :button-text="`Buy Bundle for $${getBundleCurrentPrice(bundleItem).toFixed(2)}`"
         @select="() => selectBundle(bundleItem)"
         @buy="() => handleBuyBundle(bundleItem)"
+        :app-count="bundleItem.appCount"
+        :app-total-price="bundleItem.appTotalPrice"
       />
     
       <!-- 单品卡片 -->
@@ -171,6 +173,7 @@ const selectProduct = () => {
 
 // 选择套餐
 const selectBundle = (bundleItem?: Bundle) => {
+  console.log('bundleItem', bundleItem)
   const targetBundle = bundleItem
   if (targetBundle) {
     store.setSelectedProduct(targetBundle)

@@ -23,7 +23,6 @@ const clientSecret = 'xxx'
 const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
 
 onMounted(async () => {
-  console.log('onMounted', userStore.userInfo)
   const code = route.query.code as string
   if (!code) {
     error.value = '未获取到 code 参数'
@@ -37,10 +36,7 @@ onMounted(async () => {
       clientSecret,
       redirectUri
     })
-    console.log('111 res', res)
     userStore.token = res.accessToken
-    console.log('222 userStore.token', userStore.token)
-  
     // 获取用户信息并保存
     await userStore.getUserInfo()
     router.replace('/')
