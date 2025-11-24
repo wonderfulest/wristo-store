@@ -94,15 +94,6 @@
             Already Purchased
           </button>
         </div>
-        <div class="template-editor-section">
-          <div class="template-editor-section-header">
-            <div class="template-editor-section-title">Watch Text Template (Optional)</div>
-            <div class="template-editor-section-subtitle">
-              Design a dynamic text line using live data variables like heart rate and steps.
-            </div>
-          </div>
-          <!-- <TemplateEditor v-model="templateText" /> -->
-        </div>
       </div>
     </div>
   </div>
@@ -115,7 +106,6 @@ import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
-// import TemplateEditor from '@/components/TemplateEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
