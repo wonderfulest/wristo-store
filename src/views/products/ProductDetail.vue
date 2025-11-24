@@ -101,7 +101,7 @@
               Design a dynamic text line using live data variables like heart rate and steps.
             </div>
           </div>
-          <TemplateEditor v-model="templateText" />
+          <!-- <TemplateEditor v-model="templateText" /> -->
         </div>
       </div>
     </div>
@@ -115,13 +115,13 @@ import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
-import TemplateEditor from '@/components/TemplateEditor.vue'
+// import TemplateEditor from '@/components/TemplateEditor.vue'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const product = ref<ProductVO | null>(null)
-const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
+// const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
