@@ -14,8 +14,8 @@
       <div class="product-info-wrap">
         <div class="product-title">{{ product?.name }}</div>
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
-        <div class="product-section-title" v-if="product?.description">Product Details</div>
-        <div class="product-desc" v-if="product?.description" v-html="product?.description"></div>
+        <!-- <div class="product-section-title" v-if="product?.description">Product Details</div> -->
+        <!-- <div class="product-desc" v-if="product?.description" v-html="product?.description"></div> -->
         <div v-if="product?.garminStoreUrl" class="install-section">
           <div class="install-title">Install on your Garmin device</div>
           <div class="install-subtitle">Choose your preferred installation method</div>
