@@ -260,7 +260,7 @@ onMounted(async () => {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  min-height: 50px;
+  min-height: 80px;
 }
 
 .tip-icon {

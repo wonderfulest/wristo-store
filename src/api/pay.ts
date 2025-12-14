@@ -1,24 +1,11 @@
 import instance from '@/config/axios'
 import type { PurchaseData } from '@/types/purchase'
 import type { PurchaseRecord } from '@/types/purchase'
-import type { CheckPurchaseRequest, CheckPurchaseResponse,
-   PurchaseCallbackRequest, PurchaseSuccessResponseVO } from '@/types/purchase-check'
+import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
 
+// 根据智能手表代码查询购买信息
 export const purchaseByCode = (code: string): Promise<PurchaseData> => {
   return instance.post('/public/trials/v1/purchase', { code })
-}
-
-export const createPaypalOrder = (request: any): Promise<any> => {
-  return instance.post('/public/paypal/orders', request)
-}
-
-export const capturePaypalOrder = (orderId: string): Promise<any> => {
-  return instance.post(`/public/paypal/orders/${orderId}/capture`)
-}
-
-// 购买成功回调接口
-export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<PurchaseSuccessResponseVO> => {
-  return instance.post('/public/trials/v1/purchase/callback', data)
 }
 
 // 获取用户购买记录列表

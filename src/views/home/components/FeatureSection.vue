@@ -15,6 +15,10 @@
         Discover our curated collection of premium watch faces designed exclusively for Garmin devices. 
         Each design balances stunning aesthetics with practical functionality, giving you:
       </div>
+
+      <div class="feature-actions">
+        <button class="feature-cta" @click="goToPurchaseOptions">Download & Unlock</button>
+      </div>
       
       <div class="feature-cards">
         <div class="feature-card">
@@ -47,6 +51,13 @@
 
 <script setup lang="ts">
 import { Plus, Check, Lightning } from '@element-plus/icons-vue';
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToPurchaseOptions = () => {
+  router.push({ name: 'PurchaseOptions' })
+}
 </script>
 
 <style scoped>
@@ -157,6 +168,35 @@ import { Plus, Check, Lightning } from '@element-plus/icons-vue';
   max-width: 700px;
   margin: 0 auto 44px auto;
   line-height: 1.7;
+}
+
+.feature-actions {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 36px;
+}
+
+.feature-cta {
+  border: none;
+  border-radius: 999px;
+  padding: 14px 26px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #fff;
+  background: linear-gradient(135deg, #007aff 0%, #4a6cf7 100%);
+  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.18);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.feature-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(0, 122, 255, 0.22);
+  filter: saturate(1.05);
+}
+
+.feature-cta:active {
+  transform: translateY(0px) scale(0.99);
 }
 
 .feature-cards {

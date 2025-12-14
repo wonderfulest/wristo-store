@@ -53,10 +53,12 @@
             </div>
             <div class="checkout-right">
                 <label class="input-label">Email for receipt</label>
-                <input v-model="email" class="input" placeholder="" />
-                <div class="input-desc">Please use a real email address. It will be used to receive your order and subsequent activation benefits.</div>
+                <input v-model="email" class="input" placeholder="" :disabled="isEmailLocked" />
+                <div v-if="isEmailLocked" class="email-locked-hint">
+                    Your email is locked to your current account. To use a different email, please sign out and sign in (or create a new account) with the new email, then place the order again.
+                </div>
+                <div v-else class="input-desc">Please use a real email address. It will be used to receive your order and activation benefits — and it can also be used to sign in later. Sign in (or create an account) to manage your purchases.</div>
                 <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
-                
                 <div class="pay-method-title">Payment Method</div>
                 <div class="pay-method-note">
                     Secure payment powered by Paddle
@@ -85,6 +87,9 @@ import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, Pu
 import { checkPurchase } from '@/api/pay'
 import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
+import { checkBundle, checkBundleByEmail, purchaseCallback } from '@/api/purchase'
+import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
+import { useUserStore } from '@/store/user'
 
 declare global {
   interface Window {
@@ -94,14 +99,27 @@ declare global {
 
 const router = useRouter()
 const store = useShopOptionsStore()
+const userStore = useUserStore()
 const product = computed(() => store.selectedProduct as Bundle | ProductVO)
 
-const request = computed(() => store.data?.request as PurchaseRequest)
+const request = computed(() => store.data?.request as PurchaseRequest | undefined)
 const email = ref('')
 const loading = ref(false)
 const emailError = ref('')
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
+
+const isEmailLocked = computed(() => !!userStore.userInfo?.email)
+
+const isLoggedIn = computed(() => !!userStore.userInfo)
+
+const isBundle = computed(() => {
+  return product.value && 'bundleId' in product.value
+})
+
+const isBundleTokenFlow = computed(() => {
+  return isBundle.value && !request.value?.accounttoken
+})
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -109,13 +127,20 @@ function validateEmail(email: string) {
 
 onBeforeMount(() => {
     console.log('store.data', store.data)
-    if (!store.data || !store.selectedProduct) {
+    if (!store.selectedProduct) {
+        router.push('/')
+        return
+    }
+    if (!store.data && !isBundle.value) {
         router.push('/')
         return
     }
 })
 
 onMounted(() => {
+    if (!email.value && userStore.userInfo?.email) {
+        email.value = userStore.userInfo.email
+    }
     loadPaddle()
 })
 
@@ -136,6 +161,24 @@ function loadPaddle() {
                         const eventData = data as PaddleCheckoutCompletedEvent;
                         loading.value = false
                         try {
+                            if (isBundleTokenFlow.value) {
+                                const orderData: PurchaseCallbackRequest = {
+                                    transaction_id: eventData.data.transaction_id,
+                                }
+                                await purchaseCallback(orderData)
+                                const bundleId = (product.value as Bundle).bundleId
+                                const purchaseRecord: PurchaseRecordVO | null = isLoggedIn.value
+                                    ? await checkBundle({ email: email.value, bundleId })
+                                    : await checkBundleByEmail({ email: email.value, bundleId })
+                                if (purchaseRecord) {
+                                    store.setPurchaseInfo(purchaseRecord)
+                                }
+                                setTimeout(() => {
+                                    window.location.href = '/auto-unlock'
+                                }, 600)
+                                return
+                            }
+
                             // // 同步到后端
                             // const orderData: PurchaseCallbackRequest = {
                             //     transaction_id: eventData.data.transaction_id,
@@ -197,26 +240,53 @@ function loadPaddle() {
 }
 
 const handlePayment = async (isRetry = false) => {
+    if (isBundleTokenFlow.value) {
+        const bundleId = (product.value as Bundle).bundleId
+
+        if (!email.value) {
+            emailError.value = 'We need your email to send receipt.'
+            return
+        }
+        if (!validateEmail(email.value)) {
+            emailError.value = 'Please enter a valid email address'
+            return
+        }
+
+        try {
+            const existing: PurchaseRecordVO | null = isLoggedIn.value
+                ? await checkBundle({ email: email.value, bundleId })
+                : await checkBundleByEmail({ email: email.value, bundleId })
+            if (existing) {
+                store.setPurchaseInfo(existing)
+                router.push({ name: 'AutoUnlock' })
+                return
+            }
+        } catch (e) {
+        }
+    }
+
     // 根据邮箱 + part_number 校验购买过的权益
     const checkPurchaseRequest: CheckPurchaseRequest = {
         email: email.value,
-        appId: request.value.appid,
-        accountToken: request.value.accounttoken,
+        appId: request.value?.appid as number,
+        accountToken: request.value?.accounttoken as string,
         isSubscription: false,
     }
-    const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
-    console.log('checkPurchaseResponse', checkPurchaseResponse)
-    if (checkPurchaseResponse.isPurchase) {
-        // 存储购买和订阅信息到 store 中
-        if (checkPurchaseResponse.subscription) {
-            store.setSubscriptionInfo(checkPurchaseResponse.subscription);
+    if (!isBundleTokenFlow.value) {
+        const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
+        console.log('checkPurchaseResponse', checkPurchaseResponse)
+        if (checkPurchaseResponse.isPurchase) {
+            // 存储购买和订阅信息到 store 中
+            if (checkPurchaseResponse.subscription) {
+                store.setSubscriptionInfo(checkPurchaseResponse.subscription);
+            }
+            if (checkPurchaseResponse.purchase) {
+                store.setPurchaseInfo(checkPurchaseResponse.purchase);
+            }
+            // 跳转到自动解锁页面
+            router.push({ name: 'AutoUnlock' });
+            return;
         }
-        if (checkPurchaseResponse.purchase) {
-            store.setPurchaseInfo(checkPurchaseResponse.purchase);
-        }
-        // 跳转到自动解锁页面
-        router.push({ name: 'AutoUnlock' });
-        return;
     }
     if (!isRetry) {
         if (!email.value) {
@@ -231,7 +301,7 @@ const handlePayment = async (isRetry = false) => {
             ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')
             return
         }
-        if (!request.value.accounttoken) {
+        if (!isBundleTokenFlow.value && !request.value?.accounttoken) {
             ElMessageBox.alert('Please enter your code first', 'Error')
             router.push('/code')
             return
@@ -254,7 +324,7 @@ const handlePayment = async (isRetry = false) => {
             customer: { email: email.value },
             customData: {
                 isSubscription: false,
-                source: PurchaseOrigin.CODE,
+                source: isBundleTokenFlow.value ? PurchaseOrigin.STORE : PurchaseOrigin.CODE,
                 code: request?.value?.purchaseCode,
                 accessToken: request?.value?.accounttoken,
                 appId: request?.value?.appid,
@@ -268,10 +338,6 @@ const handlePayment = async (isRetry = false) => {
         loading.value = false
     }
 }
-
-const isBundle = computed(() => {
-  return product.value && 'bundleId' in product.value
-})
 
 // 格式化描述，支持换行
 const formatDescription = (description: string) => {
@@ -426,7 +492,7 @@ if (isBundle.value) {
 
 .input-label {
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     margin-bottom: 8px;
     display: block;
     color: #1a1a1a;
@@ -436,13 +502,22 @@ if (isBundle.value) {
     width: 100%;
     font-size: 1.2rem;
     padding: 16px 16px;
-    border: 2px solid #e2e8f0;
     border-radius: 12px;
-    margin-bottom: 4px;
-    box-sizing: border-box;
+    border: 1.5px solid #e5e7eb;
+    background: rgba(255, 255, 255, 0.9);
     outline: none;
-    background: #ffffff;
     transition: all 0.2s ease;
+}
+
+.input:disabled {
+    background: rgba(243, 244, 246, 0.95);
+    border-color: rgba(17, 24, 39, 0.12);
+    color: rgba(17, 24, 39, 0.55);
+    cursor: not-allowed;
+}
+
+.input:disabled::placeholder {
+    color: rgba(17, 24, 39, 0.35);
 }
 
 .input:focus {
@@ -453,12 +528,33 @@ if (isBundle.value) {
 .input-desc {
     color: #4a5568;
     font-size: 0.98rem;
+    padding: 10px 12px;
+    margin-top: 12px;
     margin-bottom: 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 122, 255, 0.18);
+    background: rgba(0, 122, 255, 0.06);
+    color: rgba(17, 24, 39, 0.78);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.email-locked-hint {
+    color: #4a5568;
+    margin-top: 12px;
+    margin-bottom: 18px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 122, 255, 0.18);
+    background: rgba(0, 122, 255, 0.06);
+    color: rgba(17, 24, 39, 0.78);
+    font-size: 0.98rem;
+    line-height: 1.5;
 }
 
 .pay-method-title {
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     margin: 24px 0 8px 0;
     color: #1a1a1a;
 }

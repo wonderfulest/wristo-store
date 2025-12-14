@@ -23,12 +23,12 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="bundle.bundleName" label="Bundle Name" min-width="160" align="left">
+            <el-table-column prop="bundle.bundleName" label="Bundle Name" min-width="180" align="center">
               <template #default="scope">
                 <span class="product-name">{{ scope.row.bundle?.bundleName || 'Bundle' }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="Website" width="360" align="center">
+            <el-table-column label="Website" width="160" align="center">
               <template #default="scope">
                 <button 
                   v-if="scope.row.bundle?.bundleId" 
@@ -40,12 +40,22 @@
                 </button>
               </template>
             </el-table-column>
-            <el-table-column prop="total" label="Amount" width="120" align="right">
+            <el-table-column prop="total" label="Amount" width="160" align="center">
               <template #default="scope">
                 <div class="amount-cell">
-                  <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
-                  <span class="amount-currency">{{ scope.row.currencyCode }}</span>
+                  <div class="amount-main">
+                    <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
+                    <div class="amount-meta">
+                      <span class="amount-pill amount-pill-country">{{ scope.row.countryCode }}</span>
+                    </div>
+                  </div>
                 </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="paymentMethod" label="Payment" width="120" align="center">
+              <template #default="scope">
+                <span class="payment-method-pill">{{ scope.row.paymentMethod }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="statusDesc" label="Status" width="120" align="center">
@@ -55,14 +65,10 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="transactionId" label="Transaction" min-width="200" align="left">
+            <el-table-column prop="transactionId" label="Transaction" min-width="320" align="left">
               <template #default="scope">
                 <div class="transaction-cell">
                   <div class="transaction-id">{{ scope.row.transactionId }}</div>
-                  <div class="transaction-meta">
-                    <span class="payment-method">{{ scope.row.paymentMethod }}</span>
-                    <span class="country-code">{{ scope.row.countryCode }}</span>
-                  </div>
                 </div>
               </template>
             </el-table-column>
@@ -168,12 +174,23 @@
                 </button>
               </template>
             </el-table-column>
-            <el-table-column prop="total" label="Amount" width="120" align="right">
+
+            <el-table-column prop="total" label="Amount" width="160" align="center">
               <template #default="scope">
                 <div class="amount-cell">
-                  <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
-                  <span class="amount-currency">{{ scope.row.currencyCode }}</span>
+                  <div class="amount-main">
+                    <span class="amount-value">{{ (scope.row.total / 100).toFixed(2) }}</span>
+                    <div class="amount-meta">
+                      <span class="amount-pill amount-pill-country">{{ scope.row.countryCode }}</span>
+                    </div>
+                  </div>
                 </div>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="paymentMethod" label="Payment" width="120" align="center">
+              <template #default="scope">
+                <span class="payment-method-pill">{{ scope.row.paymentMethod }}</span>
               </template>
             </el-table-column>
             <el-table-column prop="statusDesc" label="Status" width="120" align="center">
@@ -183,14 +200,10 @@
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="transactionId" label="Transaction" min-width="200" align="left">
+            <el-table-column prop="transactionId" label="Transaction" min-width="320" align="left">
               <template #default="scope">
                 <div class="transaction-cell">
                   <div class="transaction-id">{{ scope.row.transactionId }}</div>
-                  <div class="transaction-meta">
-                    <span class="payment-method">{{ scope.row.paymentMethod }}</span>
-                    <span class="country-code">{{ scope.row.countryCode }}</span>
-                  </div>
                 </div>
               </template>
             </el-table-column>
@@ -368,15 +381,11 @@ h2 {
 
 .records-container {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }
 
-/* Desktop/Mobile visibility */
-.desktop-only {
-  display: block;
-}
 .mobile-cards {
   display: none;
 }
@@ -435,7 +444,7 @@ h2 {
   align-items: center;
   gap: 4px;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 500;
   text-decoration: none;
@@ -462,7 +471,63 @@ h2 {
   box-shadow: 0 2px 4px rgba(245, 158, 66, 0.3);
 }
 .amount-cell {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.amount-main {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+}
+
+.amount-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.amount-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(243, 244, 246, 0.9);
+  color: rgba(17, 24, 39, 0.78);
+  text-transform: uppercase;
+}
+
+.amount-pill-country {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.22);
+  color: rgba(146, 64, 14, 0.92);
+}
+
+.payment-method-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  background: rgba(243, 244, 246, 0.9);
+  color: rgba(17, 24, 39, 0.78);
+  text-transform: uppercase;
 }
 .amount-value {
   font-weight: 700;
@@ -478,7 +543,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 0.8rem;
   text-transform: uppercase;
@@ -503,7 +568,7 @@ h2 {
 .purchase-card {
   background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
   border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   padding: 14px;
 }
@@ -527,13 +592,13 @@ h2 {
 .product-thumb {
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 8px;
   object-fit: cover;
   box-shadow: 0 2px 4px rgba(0,0,0,0.08);
 }
 .purchase-card .card-status {
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 700;
   color: #fff;
@@ -619,19 +684,19 @@ h2 {
 .payment-method {
   background: #f3f4f6;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 8px;
   text-transform: uppercase;
   font-weight: 500;
 }
 .country-code {
   background: #fef3c7;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 8px;
   font-weight: 500;
 }
 .empty-state-container {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 8px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   overflow: hidden;
 }

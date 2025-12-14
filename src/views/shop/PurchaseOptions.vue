@@ -64,6 +64,7 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
+import { getBundlesForPurchase } from '@/api/purchase'
 
 const router = useRouter()
 const store = useShopOptionsStore()
@@ -74,9 +75,13 @@ const selectedPlan = ref<SubscriptionPlan | null>(null)
 // 直接使用 PurchaseData 类型
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
 
+const bundlesFromApi = ref<Bundle[]>([])
+
 const product = computed(() => purchaseData.value?.product as ProductVO)
 const bundles = computed(() => {
-  const bundlesList = purchaseData.value?.bundles || []
+  const bundlesList = (purchaseData.value?.bundles && purchaseData.value.bundles.length > 0)
+    ? purchaseData.value.bundles
+    : bundlesFromApi.value
   // 按实际金额从大到小排序
   return bundlesList.sort((a, b) => {
     const priceA = parseFloat(String(a.price))
@@ -217,9 +222,14 @@ const handleBuyBundle = (bundleItem?: Bundle) => {
 // };
 
 onMounted(() => {
-  // 检查是否有数据
   if (!purchaseData.value) {
-    router.push('/code');
+    getBundlesForPurchase()
+      .then((list) => {
+        bundlesFromApi.value = list || []
+      })
+      .catch(() => {
+        bundlesFromApi.value = []
+      })
   }
 })
 </script>
