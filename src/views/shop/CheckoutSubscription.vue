@@ -149,6 +149,7 @@ import { purchaseCallback } from '@/api/pay'
 import type { SubscriptionPlan } from '@/api/subscription'
 import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest, PurchaseSuccessResponseVO } from '@/types/purchase-check'
 import { checkPurchase } from '@/api/pay'
+import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 
 declare global {
   interface Window {
@@ -399,7 +400,7 @@ const handlePayment = async (isRetry = false) => {
             customer: { email: email.value },
             customData: {
                 isSubscription: true,
-                source: 'shop_code',
+                source: PurchaseOrigin.CODE,
                 planId: subscription.value.id,
                 planCode: subscription.value.planCode,
                 email: email.value,

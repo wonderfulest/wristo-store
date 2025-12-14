@@ -84,6 +84,7 @@ import { useRouter } from 'vue-router'
 import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, PurchaseRequest } from '@/types'
 import { checkPurchase } from '@/api/pay'
 import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
+import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 
 declare global {
   interface Window {
@@ -253,7 +254,7 @@ const handlePayment = async (isRetry = false) => {
             customer: { email: email.value },
             customData: {
                 isSubscription: false,
-                source: 'shop_code',
+                source: PurchaseOrigin.CODE,
                 code: request?.value?.purchaseCode,
                 accessToken: request?.value?.accounttoken,
                 appId: request?.value?.appid,
