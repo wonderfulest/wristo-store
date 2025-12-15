@@ -4,6 +4,13 @@ import { searchProducts, getNewProducts, getSeries,
 } from '@/api/product'
 import type { ProductBaseVO, ProductVO, Series } from '@/types'
 
+const withSeriesImage = (list: Series[]) => {
+  return (list || []).map((s) => ({
+    ...s,
+    image: s.image ?? s.hero?.url ?? s.banner?.url ?? null,
+  }))
+}
+
 interface State {
   loading: boolean
   error: Error | null
@@ -51,7 +58,7 @@ export const useProductStore = defineStore('product', {
     async getHotSeries() {
       try {
         const response: Series[] = await getHotSeries()
-        this.hotSeries = response || []
+        this.hotSeries = withSeriesImage(response || [])
         return this.hotSeries
       } catch (error) {
         console.error('获取热门系列失败:', error)
@@ -62,7 +69,7 @@ export const useProductStore = defineStore('product', {
     async getSeries() {
       try {
         const response: Series[] = await getSeries()
-        this.seriesList = response || []
+        this.seriesList = withSeriesImage(response || [])
         return this.seriesList
       } catch (error) {
         console.error('获取系列失败:', error)

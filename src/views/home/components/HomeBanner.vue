@@ -133,7 +133,8 @@ const handleClick = (banner: HomeBannerVO) => {
   position: relative;
   display: block;
   width: 100%;
-  height: 420px;
+  aspect-ratio: 12 / 5;
+  height: auto;
   padding: 0;
   border: none;
   background: transparent;
@@ -181,9 +182,6 @@ const handleClick = (banner: HomeBannerVO) => {
 }
 
 @media (max-width: 1024px) {
-  .banner-slide {
-    height: 360px;
-  }
 }
 
 @media (max-width: 768px) {
@@ -200,7 +198,7 @@ const handleClick = (banner: HomeBannerVO) => {
   }
 
   .banner-slide {
-    height: 260px;
+    width: 100%;
   }
 }
 </style>

@@ -16,7 +16,7 @@ export const getNewProducts = (): Promise<ProductBaseVO[]> => {
 
 // 获取系列列表
 export const getHotSeries = (): Promise<Series[]> => {
-  return instance.get('/public/categories/hot?limit=8')
+  return instance.get('/public/categories/hot?limit=8&populate=image')
 }
 
 // 获取系列列表

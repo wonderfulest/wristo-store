@@ -86,10 +86,41 @@ export interface BundleItem {
   products: ProductVO[];
 }
 
+export interface ImageFormatVO {
+  url: string
+  width?: number
+  height?: number
+}
+
+export interface ImageVO {
+  id: number
+  documentId?: string
+  name?: string
+  alternativeText?: string
+  caption?: string
+  width?: number
+  height?: number
+  formats?: Record<string, ImageFormatVO>
+  url: string
+  previewUrl?: string | null
+  provider?: string
+  folderPath?: string
+  usageType?: string
+  createdAt?: string
+  updatedAt?: string
+  publishedAt?: string
+  locale?: string
+}
+
 export interface Series {
   id: number
   name: string
   slug: string
-  image: string | null
-  sort: number
-} 
+  heroId?: number | null
+  bannerId?: number | null
+  sort?: number | null
+  isActive?: number | null
+  hero?: ImageVO | null
+  banner?: ImageVO | null
+  image?: string | null
+}

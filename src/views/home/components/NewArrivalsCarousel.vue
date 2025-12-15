@@ -16,15 +16,18 @@
           :free-mode="{ enabled: true, momentum: false }"
           :centered-slides="true"
           :grab-cursor="true"
+          :slide-to-clicked-slide="false"
+          :threshold="12"
+          :short-swipes="false"
           :speed="7000"
           :autoplay="newProducts.length > 1 ? { delay: 1, disableOnInteraction: false, pauseOnMouseEnter: true } : false"
           :pagination="{ clickable: true }"
           :navigation="newProducts.length > 1"
           :breakpoints="{
-            0: { slidesPerView: 1.1, spaceBetween: 14 },
-            480: { slidesPerView: 1.25, spaceBetween: 16 },
-            768: { slidesPerView: 2.1, spaceBetween: 22 },
-            1024: { slidesPerView: 3, spaceBetween: 28 },
+            0: { slidesPerView: 1.1, spaceBetween: 8 },
+            480: { slidesPerView: 1.25, spaceBetween: 10 },
+            768: { slidesPerView: 2.1, spaceBetween: 18 },
+            1024: { slidesPerView: 3, spaceBetween: 24 },
           }"
         >
           <SwiperSlide v-for="product in newProducts" :key="product.appId" class="new-slide">
