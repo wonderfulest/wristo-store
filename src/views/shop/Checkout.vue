@@ -87,7 +87,7 @@ import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, Pu
 import { checkPurchase } from '@/api/pay'
 import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
-import { checkBundle, checkBundleByEmail, purchaseCallback } from '@/api/purchase'
+import { checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 
@@ -110,8 +110,6 @@ const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
 
 const isEmailLocked = computed(() => !!userStore.userInfo?.email)
-
-const isLoggedIn = computed(() => !!userStore.userInfo)
 
 const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
@@ -167,9 +165,7 @@ function loadPaddle() {
                                 }
                                 await purchaseCallback(orderData)
                                 const bundleId = (product.value as Bundle).bundleId
-                                const purchaseRecord: PurchaseRecordVO | null = isLoggedIn.value
-                                    ? await checkBundle({ email: email.value, bundleId })
-                                    : await checkBundleByEmail({ email: email.value, bundleId })
+                                const purchaseRecord: PurchaseRecordVO | null = await checkBundleByEmail({ email: email.value, bundleId })
                                 if (purchaseRecord) {
                                     store.setPurchaseInfo(purchaseRecord)
                                 }
@@ -253,9 +249,7 @@ const handlePayment = async (isRetry = false) => {
         }
 
         try {
-            const existing: PurchaseRecordVO | null = isLoggedIn.value
-                ? await checkBundle({ email: email.value, bundleId })
-                : await checkBundleByEmail({ email: email.value, bundleId })
+            const existing: PurchaseRecordVO | null = await checkBundleByEmail({ email: email.value, bundleId })
             if (existing) {
                 store.setPurchaseInfo(existing)
                 router.push({ name: 'AutoUnlock' })

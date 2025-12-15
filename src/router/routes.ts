@@ -7,6 +7,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/home/Home.vue')
   },
   {
+    path: '/brands',
+    name: 'Brands',
+    component: () => import('@/views/home/brands/Brands.vue')
+  },
+  {
+    path: '/brands/:userId',
+    name: 'MerchantDetail',
+    component: () => import('@/views/home/brands/MerchantDetail.vue')
+  },
+  {
     path: '/auth/callback',
     name: 'auth-callback',
     component: () => import('@/views/AuthCallback.vue')

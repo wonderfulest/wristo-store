@@ -8,100 +8,57 @@
         <h2 class="new-title">New Arrivals</h2>
       </div>
       <div class="new-carousel-wrap">
-        <!-- Desktop carousel -->
-        <el-carousel 
-          ref="carouselRef"
-          :interval="1200" 
-          type="card" 
-          height="420px"
-          :autoplay="true"
-          :loop="true"
-          :pause-on-hover="false"
-          :initial-index="0"
-          indicator-position="outside"
-          class="custom-carousel desktop-carousel"
+        <Swiper
+          class="new-swiper"
+          :modules="swiperModules"
+          :loop="newProducts.length > 1"
+          :loop-additional-slides="newProducts.length"
+          :free-mode="{ enabled: true, momentum: false }"
+          :centered-slides="true"
+          :grab-cursor="true"
+          :speed="7000"
+          :autoplay="newProducts.length > 1 ? { delay: 1, disableOnInteraction: false, pauseOnMouseEnter: true } : false"
+          :pagination="{ clickable: true }"
+          :navigation="newProducts.length > 1"
+          :breakpoints="{
+            0: { slidesPerView: 1.1, spaceBetween: 14 },
+            480: { slidesPerView: 1.25, spaceBetween: 16 },
+            768: { slidesPerView: 2.1, spaceBetween: 22 },
+            1024: { slidesPerView: 3, spaceBetween: 28 },
+          }"
         >
-          <el-carousel-item 
-            v-for="product in newProducts" 
-            :key="product.appId" 
-            class="flex flex-col items-center justify-center carousel-item"
-            @click="$emit('product-click', product)"
-          >
-            <div class="product-circle-img transform transition-transform duration-300 hover:scale-105">
-              <img
-                :src="product.heroFile?.url || product.garminImageUrl"
-                :alt="product.name"
-                class="circle-img"
-                loading="lazy"
-              />
-            </div>
-            <div class="product-info">
-              <div class="product-name">{{ product.name }}</div>
-              <div class="product-price">${{ product.price.toFixed(2) }}</div>
-            </div>
-          </el-carousel-item>
-        </el-carousel>
-        
-        <!-- Mobile carousel -->
-        <el-carousel 
-          ref="mobileCarouselRef"
-          :interval="4000" 
-          height="380px"
-          :autoplay="true"
-          :loop="true"
-          :pause-on-hover="false"
-          :initial-index="0"
-          indicator-position="outside"
-          class="mobile-carousel"
-          arrow="hover"
-        >
-          <el-carousel-item 
-            v-for="product in newProducts" 
-            :key="`mobile-${product.appId}`" 
-            class="mobile-carousel-item"
-            @click="$emit('product-click', product)"
-          >
-            <div class="mobile-product-card">
-              <div class="mobile-product-img">
+          <SwiperSlide v-for="product in newProducts" :key="product.appId" class="new-slide">
+            <button class="slide-btn" type="button" @click="$emit('product-click', product)">
+              <div class="product-circle-img">
                 <img
                   :src="product.heroFile?.url || product.garminImageUrl"
                   :alt="product.name"
-                  class="mobile-img"
+                  class="circle-img"
                   loading="lazy"
                 />
               </div>
-              <div class="mobile-product-info">
-                <div class="mobile-product-name">{{ product.name }}</div>
-                <div class="mobile-product-price">${{ product.price.toFixed(2) }}</div>
+              <div class="product-info">
+                <div class="product-name">{{ product.name }}</div>
+                <div class="product-price">${{ product.price.toFixed(2) }}</div>
               </div>
-            </div>
-          </el-carousel-item>
-        </el-carousel>
+            </button>
+          </SwiperSlide>
+        </Swiper>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
 import { Plus } from '@element-plus/icons-vue';
 import type { ProductBaseVO } from '@/types';
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Autoplay, FreeMode, Navigation, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
-const carouselRef = ref();
-const mobileCarouselRef = ref();
-
-onMounted(() => {
-  // Ensure carousels start automatically
-  if (carouselRef.value) {
-    carouselRef.value.setActiveItem(0);
-    // start autoplay programmatically to avoid any interaction requirement
-    carouselRef.value.play && carouselRef.value.play();
-  }
-  if (mobileCarouselRef.value) {
-    mobileCarouselRef.value.setActiveItem(0);
-    mobileCarouselRef.value.play && mobileCarouselRef.value.play();
-  }
-});
+const swiperModules = [Autoplay, Pagination, Navigation, FreeMode]
 
 defineProps<{
   newProducts: ProductBaseVO[];
@@ -112,14 +69,13 @@ defineEmits(['product-click']);
 
 <style scoped>
 .new-section {
-  padding: 32px 0;
   background: #fff;
 }
 
 .new-container {
-  width: 80%;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 16px;
 }
 
 .new-header {
@@ -157,23 +113,25 @@ defineEmits(['product-click']);
   position: relative;
 }
 
-/* Desktop carousel */
-.desktop-carousel {
-  display: block;
+.new-swiper {
+  width: 100%;
+  padding: 0 44px;
 }
 
-.mobile-carousel {
-  display: none;
+.new-slide {
+  height: auto;
 }
 
-:deep(.desktop-carousel .el-carousel__item) {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+.slide-btn {
+  width: 100%;
+  border: none;
   background: transparent;
-  box-shadow: none;
+  padding: 22px 10px 18px;
   cursor: pointer;
+}
+
+.slide-btn:active {
+  transform: scale(0.99);
 }
 
 .product-circle-img {
@@ -187,6 +145,13 @@ defineEmits(['product-click']);
   justify-content: center;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 4px solid rgba(255, 255, 255, 0.8);
+  margin: 0 auto;
+  transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.slide-btn:hover .product-circle-img {
+  transform: scale(1.03);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.16);
 }
 
 .circle-img {
@@ -218,123 +183,45 @@ defineEmits(['product-click']);
   letter-spacing: -0.01em;
 }
 
-/* Mobile carousel styles */
-:deep(.mobile-carousel .el-carousel__item) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: transparent;
-  padding: 20px;
-  box-sizing: border-box;
+/* ⭐ 连续滚动核心 */
+.new-swiper :deep(.swiper-wrapper) {
+  transition-timing-function: linear !important;
 }
 
-.mobile-carousel-item {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
+:deep(.new-swiper .swiper-pagination) {
+  bottom: 8px !important;
 }
 
-.mobile-product-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  width: 100%;
-  max-width: 320px;
-  text-align: center;
-  transition: all 0.3s ease;
-  margin: 0 auto;
-  box-sizing: border-box;
+:deep(.new-swiper .swiper-pagination-bullet) {
+  width: 7px;
+  height: 7px;
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.18);
+  margin: 0 4px !important;
 }
 
-.mobile-product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+:deep(.new-swiper .swiper-pagination-bullet-active) {
+  width: 18px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
 }
 
-.mobile-product-img {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.mobile-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  display: block;
-}
-
-.mobile-product-info {
-  text-align: center;
-}
-
-.mobile-product-name {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 8px;
-  line-height: 1.4;
-}
-
-.mobile-product-price {
-  font-size: 16px;
-  font-weight: 700;
-  color: #2563eb;
-  letter-spacing: -0.01em;
-}
-
-/* Mobile carousel arrows */
-:deep(.mobile-carousel .el-carousel__arrow) {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  color: #374151;
+:deep(.new-swiper .swiper-button-prev),
+:deep(.new-swiper .swiper-button-next) {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-:deep(.mobile-carousel .el-carousel__arrow:hover) {
-  background: rgba(255, 255, 255, 1);
-  color: #2563eb;
-  transform: scale(1.05);
-}
-
-/* Mobile carousel indicators */
-:deep(.mobile-carousel .el-carousel__indicators) {
-  bottom: -40px;
-}
-
-:deep(.mobile-carousel .el-carousel__indicator) {
-  padding: 8px 4px;
-}
-
-:deep(.mobile-carousel .el-carousel__button) {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.2);
-  border: none;
-}
-
-:deep(.mobile-carousel .el-carousel__indicator.is-active .el-carousel__button) {
-  background: #2563eb;
-  transform: scale(1.2);
+:deep(.new-swiper .swiper-button-prev:after),
+:deep(.new-swiper .swiper-button-next:after) {
+  font-size: 16px;
+  color: #111827;
 }
 
 /* Responsive styles */
@@ -365,13 +252,15 @@ defineEmits(['product-click']);
   .new-carousel-wrap {
     padding: 0 8px;
   }
-  
-  .desktop-carousel {
-    display: none;
+
+  .new-swiper {
+    padding: 10px 0 42px;
   }
-  
-  .mobile-carousel {
-    display: block;
+
+  .product-circle-img {
+    width: 250px;
+    height: 250px;
+    border-width: 3px;
   }
 }
 
@@ -392,43 +281,36 @@ defineEmits(['product-click']);
   .new-carousel-wrap {
     padding: 0;
   }
-  
-  .mobile-product-card {
-    padding: 28px 16px;
-    max-width: 360px;
+
+  .slide-btn {
+    padding: 18px 6px 14px;
   }
-  
-  .mobile-product-img {
+
+  .product-circle-img {
     width: 220px;
     height: 220px;
-    margin-bottom: 16px;
   }
-  
-  .mobile-product-name {
+
+  .product-name {
     font-size: 16px;
   }
-  
-  .mobile-product-price {
+
+  .product-price {
     font-size: 15px;
   }
 }
 
 @media (max-width: 360px) {
-  .mobile-product-card {
-    padding: 16px;
-    max-width: 240px;
+  .product-circle-img {
+    width: 190px;
+    height: 190px;
   }
-  
-  .mobile-product-img {
-    width: 160px;
-    height: 160px;
-  }
-  
-  .mobile-product-name {
+
+  .product-name {
     font-size: 15px;
   }
-  
-  .mobile-product-price {
+
+  .product-price {
     font-size: 14px;
   }
 }

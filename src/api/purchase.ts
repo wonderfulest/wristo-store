@@ -6,10 +6,6 @@ export const getBundlesForPurchase = (): Promise<Bundle[]> => {
   return instance.get('/public/purchase/bundles')
 }
 
-export const checkBundle = (request: { email: string; bundleId: number }): Promise<PurchaseRecordVO | null> => {
-  return instance.post('/purchase/bundle/check', request)
-}
-
 export const checkBundleByEmail = (request: { email: string; bundleId: number }): Promise<PurchaseRecordVO | null> => {
   return instance.post('/public/purchase/bundle/check', request)
 }

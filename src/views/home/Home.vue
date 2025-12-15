@@ -1,5 +1,9 @@
 <template>
+
   <div class="home bg-white">
+    <!-- Home Banner -->
+    <HomeBanner />
+
     <!-- Search Section -->
     <SearchSection 
       @search="handleSearch" 
@@ -17,7 +21,10 @@
       :new-products="newProducts"
       @product-click="goToProduct"
     />
-
+    
+    <!-- Brands Section -->
+    <!-- <BrandsSection /> -->
+    
     <!-- Feature Section -->
     <FeatureSection />
 
@@ -44,9 +51,11 @@ import { useRouter } from 'vue-router';
 import { useProductStore } from '@/store/product';
 import type { ProductBaseVO, Series } from '@/types';
 import Newsletter from '@/components/Newsletter.vue';
+import HomeBanner from '@/views/home/components/HomeBanner.vue';
 import SearchSection from '@/views/home/components/SearchSection.vue';
 import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue';
 import NewArrivalsCarousel from '@/views/home/components/NewArrivalsCarousel.vue';
+// import BrandsSection from '@/views/home/components/BrandsSection.vue';
 import FeatureSection from '@/views/home/components/FeatureSection.vue';
 import SeriesSection from '@/views/home/components/SeriesSection.vue';
 import HotProductsSection from '@/views/home/components/HotProductsSection.vue';
