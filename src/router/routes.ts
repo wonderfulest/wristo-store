@@ -9,12 +9,12 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/brands',
     name: 'Brands',
-    component: () => import('@/views/home/brands/Brands.vue')
+    component: () => import('@/views/brands/Brands.vue')
   },
   {
     path: '/brands/:userId',
     name: 'MerchantDetail',
-    component: () => import('@/views/home/brands/MerchantDetail.vue')
+    component: () => import('@/views/brands/MerchantDetail.vue')
   },
   {
     path: '/auth/callback',

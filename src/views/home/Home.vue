@@ -23,7 +23,7 @@
     />
     
     <!-- Brands Section -->
-    <!-- <BrandsSection /> -->
+    <BrandsSection />
     
     <!-- Feature Section -->
     <FeatureSection />
@@ -55,7 +55,7 @@ import HomeBanner from '@/views/home/components/HomeBanner.vue';
 import SearchSection from '@/views/home/components/SearchSection.vue';
 import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue';
 import NewArrivalsCarousel from '@/views/home/components/NewArrivalsCarousel.vue';
-// import BrandsSection from '@/views/home/components/BrandsSection.vue';
+import BrandsSection from '@/views/brands/BrandsSection.vue';
 import FeatureSection from '@/views/home/components/FeatureSection.vue';
 import SeriesSection from '@/views/home/components/SeriesSection.vue';
 import HotProductsSection from '@/views/home/components/HotProductsSection.vue';
