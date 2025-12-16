@@ -14,34 +14,43 @@
     <div v-else class="content">
       <div class="hero">
         <div class="hero-banner">
-          <img v-if="bannerUrl" class="hero-banner-img" :src="bannerUrl" :alt="displayName" loading="lazy" />
+          <img
+            v-if="bannerUrl"
+            class="hero-banner-img"
+            :src="bannerUrl"
+            :alt="displayName"
+            loading="lazy"
+          />
           <div class="hero-banner-overlay" />
         </div>
 
-        <div class="hero-card">
-          <div class="hero-top">
-            <div class="hero-avatar">
-              <img v-if="merchant.avatar" :src="merchant.avatar" :alt="displayName" loading="lazy" />
-              <div v-else class="hero-avatar-fallback">BR</div>
-            </div>
-
-            <div class="hero-text">
-              <div class="hero-name">{{ displayName }}</div>
-              <div v-if="merchant.slogan" class="hero-slogan">{{ merchant.slogan }}</div>
-            </div>
+        <div class="hero-left">
+          <div class="hero-avatar">
+            <img
+              v-if="merchant.avatar"
+              class="hero-avatar-img"
+              :src="merchant.avatar"
+              :alt="displayName"
+              loading="lazy"
+            />
+            <div v-else class="hero-avatar-fallback">BR</div>
           </div>
 
           <div class="hero-stats">
             <div class="stat">
-              <div class="stat-label">Apps</div>
               <div class="stat-value">{{ formatNumber(merchant.appCount) }}</div>
+              <div class="stat-label">Apps</div>
             </div>
             <div class="stat">
-              <div class="stat-label">Downloads</div>
               <div class="stat-value">{{ formatNumber(merchant.totalDownloads) }}</div>
+              <div class="stat-label">Downloads</div>
             </div>
           </div>
+        </div>
 
+        <div class="hero-right">
+          <div class="hero-name">{{ displayName }}</div>
+          <div v-if="merchant.slogan" class="hero-slogan">{{ merchant.slogan }}</div>
           <div v-if="hasAnySocial" class="social-row">
             <a v-if="merchant.instagramUrl" class="social-link" :href="merchant.instagramUrl" target="_blank" rel="noopener noreferrer">Instagram</a>
             <a v-if="merchant.facebookUrl" class="social-link" :href="merchant.facebookUrl" target="_blank" rel="noopener noreferrer">Facebook</a>
@@ -51,19 +60,48 @@
       </div>
 
       <div class="section">
-        <div class="section-title">About</div>
-        <div class="section-card">
-          <div class="about-row">
-            <div class="about-label">User ID</div>
-            <div class="about-value">{{ merchant.userId }}</div>
+        <div class="section-card apps-card">
+          <div class="apps-toolbar">
+            <div class="apps-search">
+              <input
+                v-model="appsQuery"
+                class="apps-search-input"
+                type="text"
+                placeholder="Search"
+                inputmode="search"
+                autocomplete="off"
+              />
+            </div>
           </div>
-          <div class="about-row">
-            <div class="about-label">Brand Name</div>
-            <div class="about-value">{{ displayName }}</div>
+
+          <div v-if="appsLoading" class="apps-loading">Loading...</div>
+          <div v-else-if="appsError" class="apps-error">{{ appsError }}</div>
+          <div v-else-if="apps.length === 0" class="apps-empty">No results</div>
+
+          <div v-else class="apps-grid">
+            <ProductCard v-for="p in apps" :key="p.appId" :product="p" />
           </div>
-          <div v-if="merchant.slogan" class="about-row">
-            <div class="about-label">Slogan</div>
-            <div class="about-value">{{ merchant.slogan }}</div>
+
+          <div v-if="appsTotalPages > 1" class="apps-pagination">
+            <button
+              class="pager-btn"
+              type="button"
+              :disabled="appsPageNum <= 1 || appsLoading"
+              @click="goToPrevPage"
+            >
+              Prev
+            </button>
+            <div class="pager-info">
+              Page {{ appsPageNum }} of {{ appsTotalPages }}
+            </div>
+            <button
+              class="pager-btn"
+              type="button"
+              :disabled="appsPageNum >= appsTotalPages || appsLoading"
+              @click="goToNextPage"
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
@@ -72,76 +110,162 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import { getMerchantDetail } from '@/api/merchant'
-import type { PublicMerchantVO } from '@/types/merchant'
+import { getMerchantAppsPage, getMerchantDetail } from "@/api/merchant";
+import type { PublicMerchantVO } from "@/types/merchant";
+import type { ProductBaseVO, PageResult } from "@/types";
 
-const router = useRouter()
-const route = useRoute()
+import ProductCard from "@/components/ProductCard.vue";
 
-const merchant = ref<PublicMerchantVO | null>(null)
-const loading = ref(true)
+const router = useRouter();
+const route = useRoute();
+
+const merchant = ref<PublicMerchantVO | null>(null);
+const loading = ref(true);
+
+const apps = ref<ProductBaseVO[]>([]);
+const appsLoading = ref(false);
+const appsError = ref("");
+const appsPageNum = ref(1);
+const appsPageSize = ref(12);
+const appsTotal = ref(0);
+const appsTotalPages = ref(1);
+const appsQuery = ref("");
+let appsQueryTimer: number | null = null;
 
 const userId = computed(() => {
-  const raw = route.params.userId
-  const v = Array.isArray(raw) ? raw[0] : raw
-  return v ? String(v) : ''
-})
+  const raw = route.params.userId;
+  const v = Array.isArray(raw) ? raw[0] : raw;
+  return v ? String(v) : "";
+});
 
 onMounted(async () => {
   try {
     if (!userId.value) {
-      merchant.value = null
-      return
+      merchant.value = null;
+      return;
     }
-    const detail = await getMerchantDetail(userId.value)
-    merchant.value = detail || null
+    const detail = await getMerchantDetail(userId.value);
+    merchant.value = detail || null;
   } catch (e) {
-    merchant.value = null
+    merchant.value = null;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-})
+});
+
+const fetchApps = async () => {
+  if (!userId.value) {
+    apps.value = [];
+    appsTotal.value = 0;
+    appsTotalPages.value = 1;
+    return;
+  }
+
+  appsLoading.value = true;
+  appsError.value = "";
+
+  try {
+    const res: PageResult<ProductBaseVO> = await getMerchantAppsPage({
+      userId: Number(userId.value),
+      name: appsQuery.value.trim() || undefined,
+      pageNum: appsPageNum.value,
+      pageSize: appsPageSize.value,
+    });
+
+    apps.value = res.list || [];
+    appsTotal.value = Number(res.total || 0);
+    appsTotalPages.value = Number(res.pages || 1);
+  } catch (e: any) {
+    apps.value = [];
+    appsTotal.value = 0;
+    appsTotalPages.value = 1;
+    appsError.value = "Failed to load apps. Please try again later.";
+  } finally {
+    appsLoading.value = false;
+  }
+};
+
+watch(
+  () => userId.value,
+  () => {
+    appsPageNum.value = 1;
+    fetchApps();
+  },
+  { immediate: true }
+);
+
+watch(
+  () => appsQuery.value,
+  () => {
+    if (appsQueryTimer) window.clearTimeout(appsQueryTimer);
+    appsQueryTimer = window.setTimeout(() => {
+      appsPageNum.value = 1;
+      fetchApps();
+    }, 350);
+  }
+);
+
+const goToPrevPage = () => {
+  if (appsLoading.value) return;
+  if (appsPageNum.value <= 1) return;
+  appsPageNum.value -= 1;
+  fetchApps();
+};
+
+const goToNextPage = () => {
+  if (appsLoading.value) return;
+  if (appsPageNum.value >= appsTotalPages.value) return;
+  appsPageNum.value += 1;
+  fetchApps();
+};
 
 const displayName = computed(() => {
-  const m = merchant.value
-  if (!m) return ''
-  return (m.nickname || m.username || `User ${String(m.userId)}`).trim()
-})
+  const m = merchant.value;
+  if (!m) return "";
+  return (m.nickname || m.username || `User ${String(m.userId)}`).trim();
+});
 
 const bannerUrl = computed(() => {
-  const m = merchant.value
-  const img = m?.bannerImage
-  if (!img) return ''
-  const formats = img.formats || {}
-  const preferred = ['large', 'medium', 'small', 'thumbnail']
+  const m = merchant.value;
+  const img = m?.bannerImage;
+  if (!img) return "";
+  const formats = img.formats || {};
+  const preferred = ["large", "medium", "small", "thumbnail"];
   for (const k of preferred) {
-    const u = formats[k]?.url
-    if (u) return u
+    const u = formats[k]?.url;
+    if (u) return u;
   }
-  return img.url || ''
-})
+  return img.url || "";
+});
 
 const hasAnySocial = computed(() => {
-  const m = merchant.value
-  return Boolean((m?.instagramUrl || '').trim() || (m?.facebookUrl || '').trim() || (m?.xUrl || '').trim())
-})
+  const m = merchant.value;
+  return Boolean(
+    (m?.instagramUrl || "").trim() ||
+      (m?.facebookUrl || "").trim() ||
+      (m?.xUrl || "").trim()
+  );
+});
 
 const formatNumber = (value?: number) => {
-  const n = Number(value || 0)
-  if (!Number.isFinite(n)) return '0'
-  return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
-}
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return "0";
+  return new Intl.NumberFormat("en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(n);
+};
 
 const goBack = () => {
   if (window.history.length > 1) {
-    router.back()
-    return
+    router.back();
+    return;
   }
-  router.push('/brands')
-}
+  router.push("/brands");
+};
 </script>
 
 <style scoped>
@@ -225,9 +349,23 @@ const goBack = () => {
   position: relative;
   border-radius: 24px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.7);
+  background: transparent;
   border: 1px solid rgba(15, 23, 42, 0.08);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 260px auto;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 260px;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.96);
+  pointer-events: none;
 }
 
 .hero-banner {
@@ -235,51 +373,90 @@ const goBack = () => {
   width: 100%;
   height: 260px;
   background: linear-gradient(135deg, #f2f6ff 0%, #eef2f7 100%);
+  grid-column: 1 / -1;
+  grid-row: 1;
 }
 
 .hero-banner-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transform: scale(1.01);
 }
 
 .hero-banner-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.35) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.06) 0%,
+    rgba(0, 0, 0, 0.28) 62%,
+    rgba(255, 255, 255, 0.92) 100%
+  );
+}
+
+.hero-left {
+  position: relative;
+  z-index: 1;
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: -34px;
+  padding: 0 18px 16px;
+}
+
+.hero-right {
+  position: relative;
+  z-index: 1;
+  grid-column: 2;
+  grid-row: 2;
+  padding: 12px 18px 16px 28px;
+  text-align: left;
 }
 
 .hero-card {
   position: relative;
-  margin-top: -54px;
+  margin-top: 0;
   padding: 18px 18px 16px;
+  background: #ffffff;
+  box-shadow: 0 -1px 0 rgba(15, 23, 42, 0.06) inset;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 30px;
+  row-gap: 14px;
+  align-items: start;
 }
 
 .hero-top {
-  display: flex;
-  gap: 14px;
-  align-items: center;
+  display: contents;
 }
 
 .hero-avatar {
-  width: 84px;
-  height: 84px;
-  border-radius: 22px;
+  width: 160px;
+  height: 160px;
+  border-radius: 999px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(15, 23, 42, 0.1);
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
+  margin-top: -54px;
 }
 
 .hero-avatar img {
   width: 100%;
   height: 100%;
+  margin: 0 auto;
+  display: block;
   object-fit: cover;
+  object-position: center;
 }
 
 .hero-avatar-fallback {
@@ -291,13 +468,19 @@ const goBack = () => {
 
 .hero-text {
   min-width: 0;
+  padding-left: 0;
+  text-align: left;
+  grid-column: 2;
+  grid-row: 1;
+  padding-top: 10px;
 }
 
 .hero-name {
-  font-size: 22px;
+  font-size: 32px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #0f172a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.65);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -305,8 +488,8 @@ const goBack = () => {
 
 .hero-slogan {
   margin-top: 6px;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 18px;
+  line-height: 1.5;
   color: rgba(15, 23, 42, 0.72);
   display: -webkit-box;
   line-clamp: 2;
@@ -317,36 +500,43 @@ const goBack = () => {
 
 .hero-stats {
   margin-top: 14px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
 }
 
 .stat {
-  border-radius: 16px;
-  padding: 12px 12px;
-  background: rgba(2, 132, 199, 0.06);
-  border: 1px solid rgba(2, 132, 199, 0.1);
+  text-align: center;
+  padding: 0;
+  background: transparent;
+  border: none;
+  min-width: 84px;
 }
 
 .stat-label {
+  margin-top: 6px;
   font-size: 11px;
-  color: rgba(15, 23, 42, 0.58);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.52);
 }
 
 .stat-value {
-  margin-top: 4px;
+  margin-top: 0;
   font-weight: 900;
-  font-size: 15px;
-  color: #0b63d1;
+  font-size: 24px;
+  color: rgba(15, 23, 42, 0.72);
   letter-spacing: -0.01em;
 }
 
 .social-row {
-  margin-top: 14px;
+  margin-top: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  justify-content: flex-start;
+  margin-top: 12px;
 }
 
 .social-link {
@@ -358,7 +548,7 @@ const goBack = () => {
   border-radius: 999px;
   text-decoration: none;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(15, 23, 42, 0.78);
   background: rgba(255, 255, 255, 0.75);
   border: 1px solid rgba(15, 23, 42, 0.1);
@@ -372,6 +562,130 @@ const goBack = () => {
 
 .section {
   margin-top: 18px;
+  border: none;
+}
+
+.apps-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.apps-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  padding: 0 0 10px;
+}
+
+.apps-search {
+  width: 260px;
+  max-width: 100%;
+}
+
+.apps-search-input {
+  margin-top: 0;
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.86);
+  outline: none;
+}
+
+.apps-search-input:focus {
+  border-color: rgba(0, 122, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
+}
+
+.apps-loading,
+.apps-empty,
+.apps-error {
+  padding: 8px 0 6px;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.66);
+}
+
+.apps-error {
+  color: rgba(220, 38, 38, 0.8);
+}
+
+.apps-grid {
+  padding-top: 6px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.apps-pagination {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.pager-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-weight: 800;
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.78);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pager-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+}
+
+.pager-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pager-info {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.68);
+}
+
+@media (max-width: 1024px) {
+  .apps-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .apps-toolbar {
+    justify-content: flex-end;
+  }
+
+  .apps-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .apps-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .section-title {
@@ -426,19 +740,54 @@ const goBack = () => {
     height: 210px;
   }
 
-  .hero-card {
-    margin-top: -48px;
-    padding: 16px 16px 14px;
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: 210px auto auto;
+  }
+
+  .hero::after {
+    top: 210px;
   }
 
   .hero-avatar {
-    width: 74px;
-    height: 74px;
-    border-radius: 20px;
+    width: 86px;
+    height: 86px;
+    border-radius: 999px;
+    margin-top: -48px;
+    align-self: center;
+  }
+
+  .hero-left {
+    grid-column: 1;
+    grid-row: 2;
+    align-items: center;
+    margin-top: -14px;
+    padding: 0 16px 0;
+  }
+
+  .hero-right {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 12px 16px 16px;
+    text-align: left;
+  }
+
+  .hero-stats {
+    gap: 22px;
+    justify-content: center;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .social-row {
+    justify-content: center;
+    margin-top: 8px;
   }
 
   .hero-name {
-    font-size: 20px;
+    font-size: 26px;
   }
 }
 </style>

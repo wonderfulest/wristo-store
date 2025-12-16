@@ -210,9 +210,73 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
+  overflow: hidden;
+  background-color: #eef2ff;
+  background-image:
+    radial-gradient(at 88% 40%, rgba(255, 255, 255, 0.95) 0px, transparent 85%),
+    radial-gradient(at 49% 30%, rgba(255, 255, 255, 0.90) 0px, transparent 85%),
+    radial-gradient(at 14% 26%, rgba(255, 255, 255, 0.88) 0px, transparent 85%),
+    radial-gradient(at 0% 64%, rgba(0, 122, 255, 0.26) 0px, transparent 80%),
+    radial-gradient(at 41% 94%, rgba(175, 82, 222, 0.18) 0px, transparent 80%),
+    radial-gradient(at 100% 99%, rgba(52, 199, 89, 0.16) 0px, transparent 85%);
   box-sizing: border-box;
   padding: 20px;
+}
+
+.code-input-page::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: -60%;
+  z-index: 0;
+  opacity: 0.26;
+  filter: blur(8px);
+  transform-origin: center;
+  background-image: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: code-bg-band-rotate-1 14s linear infinite;
+}
+
+.code-input-page::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: -55%;
+  z-index: 0;
+  opacity: 0.18;
+  filter: blur(10px);
+  transform-origin: center;
+  background-image: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: code-bg-band-rotate-2 20s linear infinite;
+}
+
+@keyframes code-bg-band-rotate-1 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes code-bg-band-rotate-2 {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code-input-page::before {
+    animation: none;
+  }
+  .code-input-page::after {
+    animation: none;
+  }
 }
 
 .content-container {
@@ -230,6 +294,8 @@ onMounted(async () => {
   gap: 20px;
   overflow-y: auto;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
 .header-section {
@@ -376,21 +442,28 @@ onMounted(async () => {
 
 .btn {
   flex: 1;
-  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
-  color: #fff;
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.98) 0%, rgba(64, 156, 255, 0.94) 55%, rgba(0, 122, 255, 0.90) 100%);
+  color: rgba(255, 255, 255, 0.98);
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 16px 24px;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.4px;
+  box-shadow:
+    0 18px 42px rgba(0, 122, 255, 0.30),
+    0 14px 30px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
 }
 
 .btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
+  box-shadow:
+    0 22px 56px rgba(0, 122, 255, 0.36),
+    0 18px 48px rgba(15, 23, 42, 0.20),
+    0 0 0 1px rgba(255, 255, 255, 0.28) inset;
 }
 
 .btn:disabled {
@@ -401,15 +474,21 @@ onMounted(async () => {
 }
 
 .btn.outline {
-  background: #fff;
-  color: #007aff;
-  border: 2px solid #007aff;
+  background: rgba(255, 255, 255, 0.88);
+  color: rgba(0, 122, 255, 0.95);
+  border: 1px solid rgba(0, 122, 255, 0.28);
+  box-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.10),
+    0 1px 0 rgba(255, 255, 255, 0.72) inset;
 }
 
 .btn.outline:hover {
-  background: #f0f9ff;
+  background: rgba(255, 255, 255, 0.94);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.2);
+  border-color: rgba(0, 122, 255, 0.34);
+  box-shadow:
+    0 16px 40px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(0, 122, 255, 0.10) inset;
 }
 
 .message {

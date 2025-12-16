@@ -32,10 +32,10 @@
             : false
         "
         :breakpoints="{
-          0: { slidesPerView: 4.2, spaceBetween: 14 },
-          480: { slidesPerView: 5.4, spaceBetween: 16 },
-          768: { slidesPerView: 7.5, spaceBetween: 18 },
-          1024: { slidesPerView: 9.5, spaceBetween: 20 },
+          0: { slidesPerView: 'auto', spaceBetween: 14 },
+          480: { slidesPerView: 'auto', spaceBetween: 16 },
+          768: { slidesPerView: 'auto', spaceBetween: 18 },
+          1024: { slidesPerView: 'auto', spaceBetween: 20 },
         }"
       >
         <SwiperSlide
@@ -125,6 +125,7 @@ const goToMerchant = (userId: number) => {
 
 .brands-header-left {
   min-width: 0;
+  text-align: left;
 }
 
 .brands-title {
@@ -171,15 +172,19 @@ const goToMerchant = (userId: number) => {
 
 .brands-slide {
   height: auto;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .brand-avatar-btn {
-  width: 76px;
-  height: 76px;
+  width: 160px;
+  height: 160px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 2px solid rgba(15, 23, 42, 0.08);
   background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12);
+  /* box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12); */
   overflow: hidden;
   padding: 0;
   cursor: pointer;
@@ -196,10 +201,17 @@ const goToMerchant = (userId: number) => {
 .brand-avatar-img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
+  object-position: center;
 }
 
 .brand-avatar-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
   font-weight: 800;
   color: rgba(17, 24, 39, 0.55);
@@ -218,11 +230,29 @@ const goToMerchant = (userId: number) => {
   .brands-swiper {
     padding: 12px 0 4px;
   }
+
+  .brands-slide {
+    width: 120px;
+  }
+
+  .brand-avatar-btn {
+    width: 120px;
+    height: 120px;
+  }
 }
 
 @media (max-width: 480px) {
   .brands-title {
     font-size: 1.75rem;
+  }
+
+  .brands-slide {
+    width: 96px;
+  }
+
+  .brand-avatar-btn {
+    width: 96px;
+    height: 96px;
   }
 }
 </style>

@@ -25,7 +25,73 @@
             </div>
 
             <div class="brand-text">
-              <div class="brand-name">{{ getDisplayName(m) }}</div>
+              <div class="brand-name-row">
+                <div class="brand-name">{{ getDisplayName(m) }}</div>
+                <div class="brand-social" @click.stop>
+                  <a
+                    v-if="m.instagramUrl"
+                    class="brand-social-btn"
+                    :href="m.instagramUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Instagram"
+                    title="Instagram"
+                  >
+                    <svg class="brand-social-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path
+                        d="M8 3h8a5 5 0 0 1 5 5v8a5 5 0 0 1-5 5H8a5 5 0 0 1-5-5V8a5 5 0 0 1 5-5Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                      />
+                      <path
+                        d="M12 16.2a4.2 4.2 0 1 0 0-8.4 4.2 4.2 0 0 0 0 8.4Z"
+                        stroke="currentColor"
+                        stroke-width="1.8"
+                      />
+                      <path
+                        d="M17.5 6.7h.01"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        stroke-linecap="round"
+                      />
+                    </svg>
+                  </a>
+
+                  <a
+                    v-if="m.facebookUrl"
+                    class="brand-social-btn"
+                    :href="m.facebookUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Facebook"
+                    title="Facebook"
+                  >
+                    <svg class="brand-social-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path
+                        d="M14 8.6V7.2c0-1 .8-1.8 1.8-1.8H18V3h-2.8A4.2 4.2 0 0 0 11 7.2v1.4H8.5V11H11v10h3V11h3l.8-2.4H14Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </a>
+
+                  <a
+                    v-if="m.xUrl"
+                    class="brand-social-btn"
+                    :href="m.xUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="X"
+                    title="X"
+                  >
+                    <svg class="brand-social-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path
+                        d="M18.5 3H21l-6.6 7.6L22 21h-6.2l-4.9-6.3L5.5 21H3l7.1-8.2L2 3h6.3l4.4 5.8L18.5 3Z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                  </a>
+                </div>
+              </div>
               <div v-if="m.slogan" class="brand-slogan">{{ m.slogan }}</div>
             </div>
           </div>
@@ -41,11 +107,6 @@
             </div>
           </div>
 
-          <div class="brand-actions" @click.stop>
-            <a v-if="m.instagramUrl" class="brand-link" :href="m.instagramUrl" target="_blank" rel="noopener noreferrer">Instagram</a>
-            <a v-if="m.facebookUrl" class="brand-link" :href="m.facebookUrl" target="_blank" rel="noopener noreferrer">Facebook</a>
-            <a v-if="m.xUrl" class="brand-link" :href="m.xUrl" target="_blank" rel="noopener noreferrer">X</a>
-          </div>
         </div>
       </button>
     </div>
@@ -130,6 +191,7 @@ const handlePrimaryClick = (m: PublicMerchantVO) => {
 
 .header-left {
   min-width: 0;
+  text-align: left;
 }
 
 .page-title {
@@ -266,6 +328,12 @@ const handlePrimaryClick = (m: PublicMerchantVO) => {
   min-width: 0;
 }
 
+.brand-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .brand-name {
   font-weight: 700;
   font-size: 16px;
@@ -273,6 +341,42 @@ const handlePrimaryClick = (m: PublicMerchantVO) => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.brand-social {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.brand-social-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: rgba(15, 23, 42, 0.68);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 200ms ease, box-shadow 200ms ease, color 200ms ease;
+}
+
+.brand-social-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  color: rgba(15, 23, 42, 0.84);
+}
+
+.brand-social-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .brand-slogan {
@@ -314,33 +418,7 @@ const handlePrimaryClick = (m: PublicMerchantVO) => {
   letter-spacing: -0.01em;
 }
 
-.brand-actions {
-  margin-top: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
 
-.brand-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.78);
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(15, 23, 42, 0.1);
-  transition: transform 200ms ease, box-shadow 200ms ease;
-}
-
-.brand-link:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
-}
 
 @media (max-width: 1024px) {
   .brands-grid {

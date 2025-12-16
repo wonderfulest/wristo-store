@@ -4,56 +4,48 @@
         <div class="checkout-main">
             <div class="checkout-left">
                 <template v-if="isBundle">
-                    <div class="card-header">
-                        <h3 class="card-title">{{ (product as Bundle).bundleName }}</h3>
-                        <div class="price-info">
-                            <span class="price">${{ (product as Bundle).price }}</span>
-                            <span class="tax-tip">(Exc. tax)</span>
-                        </div>
-                    </div>
-                    <div class="bundle-images-container">
-                        <div class="bundle-images-scroll" ref="bundleScrollContainer">
-                            <div v-for="p in (product as Bundle).products" :key="p.appId" class="bundle-image-item">
-                                <img :src="p.garminImageUrl" :alt="p.name" />
-                            </div>
-                        </div>
-                        <div class="scroll-indicator">
-                            <span class="scroll-text">← Scroll to view all products →</span>
-                        </div>
-                    </div>
-                    <div class="bundle-info">
-                        <div class="bundle-name">{{ (product as Bundle).bundleName }}</div>
-                        <div class="bundle-desc" v-html="formatDescription((product as Bundle).bundleDesc)"></div>
-                        <div class="product-count">
-                            <span class="product-count-main">
-                                Unlock {{ (product as Bundle).appCount.toLocaleString() }} apps
-                            </span>
-                            <span class="product-count-sub">
-                                (Value <span class="product-count-original">${{ (product as Bundle).appTotalPrice.toFixed(2) }}</span>)
-                            </span>
-                        </div>
-                    </div>
+                    <PurchaseCard
+                        type="bundle"
+                        :title="(product as Bundle).bundleName"
+                        :description="(product as Bundle).bundleDesc"
+                        :bundle-items="bundleItemsForCard"
+                        :original-price="bundleOriginalPrice"
+                        :current-price="bundleCurrentPrice"
+                        :discount="bundleDiscount"
+                        :is-selected="true"
+                        :show-button="false"
+                        button-text="Proceed to Checkout"
+                        :app-count="(product as Bundle).appCount"
+                        :app-total-price="(product as Bundle).appTotalPrice"
+                        @buy="handlePayment"
+                        @select="() => {}"
+                    />
                 </template>
                 <template v-else>
-                    <div class="card-header">
-                        <h3 class="card-title">Single App</h3>
-                        <div class="price-info">
-                            <span class="price">${{ (product as ProductVO).price }}</span>
-                            <span class="tax-tip">(Exc. tax)</span>
-                        </div>
-                    </div>
-                    <div class="product-image">
-                        <img :src="(product as ProductVO).garminImageUrl" :alt="(product as ProductVO).name" />
-                    </div>
-                    <div class="product-info">
-                        <div class="product-name">{{ (product as ProductVO).name }}</div>
-                        <div class="product-id">ID: {{ (product as ProductVO).designId }}</div>
-                    </div>
+                    <PurchaseCard
+                        type="product"
+                        :title="(product as ProductVO).name"
+                        :description="(product as ProductVO).description"
+                        :image-url="(product as ProductVO).garminImageUrl"
+                        :original-price="productOriginalPrice"
+                        :current-price="productCurrentPrice"
+                        :discount="productDiscount"
+                        :is-selected="true"
+                        :show-button="false"
+                        button-text="Proceed to Checkout"
+                        @buy="handlePayment"
+                        @select="() => {}"
+                    />
                 </template>
             </div>
             <div class="checkout-right">
                 <label class="input-label">Email for receipt</label>
-                <input v-model="email" class="input" placeholder="" :disabled="isEmailLocked" />
+                <input
+                    v-model="email"
+                    :class="['input', { 'email-input-highlight': shouldHighlightEmail }]"
+                    placeholder="you@example.com"
+                    :disabled="isEmailLocked"
+                />
                 <div v-if="isEmailLocked" class="email-locked-hint">
                     Your email is locked to your current account. To use a different email, please sign out and sign in (or create a new account) with the new email, then place the order again.
                 </div>
@@ -69,7 +61,7 @@
                     :disabled="loading"
                 >
                     <span v-if="loading" class="loading-spinner"></span>
-                    {{ loading ? 'Processing...' : 'Proceed to Checkout' }}
+                    {{ loading ? 'Processing...' : 'Continue' }}
                 </button>
                 
                 <div id="result-message" style="margin-top:16px;color:#e63946;"></div>
@@ -79,7 +71,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onBeforeMount, onMounted, computed } from 'vue'
+import PurchaseCard from '@/components/PurchaseCard.vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -111,8 +104,58 @@ const userSelectedQuantity = ref(1);
 
 const isEmailLocked = computed(() => !!userStore.userInfo?.email)
 
+const shouldHighlightEmail = computed(() => {
+    return !isEmailLocked.value && !email.value
+})
+
 const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
+})
+
+const bundleItemsForCard = computed(() => {
+    if (!isBundle.value) return []
+    return (product.value as Bundle).products.map(p => ({
+        id: String(p.appId),
+        name: p.name,
+        imageUrl: p.garminImageUrl,
+    }))
+})
+
+const bundleCurrentPrice = computed(() => {
+    if (!isBundle.value) return 0
+    return Number((product.value as Bundle).price) || 0
+})
+
+const bundleOriginalPrice = computed(() => {
+    if (!isBundle.value) return 0
+    const total = Number((product.value as Bundle).appTotalPrice)
+    const current = bundleCurrentPrice.value
+    if (Number.isFinite(total) && total > current) return total
+    return current
+})
+
+const bundleDiscount = computed(() => {
+    const original = bundleOriginalPrice.value
+    const current = bundleCurrentPrice.value
+    if (!original || original <= current) return 0
+    return Math.round(((original - current) / original) * 100)
+})
+
+const productCurrentPrice = computed(() => {
+    if (isBundle.value) return 0
+    return Number((product.value as ProductVO)?.price) || 0
+})
+
+const productOriginalPrice = computed(() => {
+    const current = productCurrentPrice.value
+    return current
+})
+
+const productDiscount = computed(() => {
+    const original = productOriginalPrice.value
+    const current = productCurrentPrice.value
+    if (!original || original <= current) return 0
+    return Math.round(((original - current) / original) * 100)
 })
 
 const isBundleTokenFlow = computed(() => {
@@ -332,107 +375,6 @@ const handlePayment = async (isRetry = false) => {
         loading.value = false
     }
 }
-
-// 格式化描述，支持换行
-const formatDescription = (description: string) => {
-  if (!description) return ''
-  return description.replace(/\n/g, '<br>')
-}
-
-// Bundle图片自动滚动功能 - 移动端优化
-const bundleScrollContainer = ref<HTMLElement | null>(null)
-let autoScrollInterval: number | null = null
-let scrollDirection = 1 // 1为向右，-1为向左
-let isMobile = false
-
-// 检测是否为移动设备
-const detectMobile = () => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-         window.innerWidth <= 768
-}
-
-const startAutoScroll = () => {
-  if (!bundleScrollContainer.value || !isBundle.value) return
-  
-  // 移动端禁用自动滚动，避免与手势冲突
-  if (isMobile) return
-  
-  autoScrollInterval = window.setInterval(() => {
-    if (bundleScrollContainer.value) {
-      const container = bundleScrollContainer.value
-      const scrollWidth = container.scrollWidth
-      const clientWidth = container.clientWidth
-      const currentScroll = container.scrollLeft
-      
-      // 循环滚动逻辑
-      if (scrollDirection === 1) {
-        // 向右滚动
-        if (currentScroll >= scrollWidth - clientWidth) {
-          scrollDirection = -1 // 改变方向
-        } else {
-          container.scrollLeft += 1
-        }
-      } else {
-        // 向左滚动
-        if (currentScroll <= 0) {
-          scrollDirection = 1 // 改变方向
-        } else {
-          container.scrollLeft -= 1
-        }
-      }
-    }
-  }, 50) // 增加间隔到50ms，减少CPU占用
-}
-
-const stopAutoScroll = () => {
-  if (autoScrollInterval) {
-    clearInterval(autoScrollInterval)
-    autoScrollInterval = null
-  }
-}
-
-// 移动端触摸事件处理
-const handleTouchStart = () => {
-  stopAutoScroll()
-}
-
-const handleTouchEnd = () => {
-  if (!isMobile && isBundle.value) {
-    setTimeout(() => {
-      startAutoScroll()
-    }, 2000) // 2秒后重新开始自动滚动
-  }
-}
-
-// 启动自动滚动
-if (isBundle.value) {
-  onMounted(() => {
-    isMobile = detectMobile()
-    
-    if (!isMobile) {
-      // 延迟启动自动滚动，确保DOM已渲染
-      setTimeout(() => {
-        startAutoScroll()
-      }, 1000)
-    }
-    
-    // 为移动端添加触摸事件监听
-    if (bundleScrollContainer.value && isMobile) {
-      bundleScrollContainer.value.addEventListener('touchstart', handleTouchStart, { passive: true })
-      bundleScrollContainer.value.addEventListener('touchend', handleTouchEnd, { passive: true })
-    }
-  })
-  
-  onUnmounted(() => {
-    stopAutoScroll()
-    
-    // 清理事件监听器
-    if (bundleScrollContainer.value && isMobile) {
-      bundleScrollContainer.value.removeEventListener('touchstart', handleTouchStart)
-      bundleScrollContainer.value.removeEventListener('touchend', handleTouchEnd)
-    }
-  })
-}
 </script>
 
 <style scoped>
@@ -476,13 +418,6 @@ if (isBundle.value) {
     min-width: 340px;
 }
 
-.checkout-left {
-    flex: 1;
-    min-width: 220px;
-    border-left: 2px solid #e5e7eb;
-    padding-left: 32px;
-    margin-top: 24px;
-}
 
 .input-label {
     font-weight: bold;
@@ -517,6 +452,43 @@ if (isBundle.value) {
 .input:focus {
     border-color: #2d6a4f;
     box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+}
+
+.email-input-highlight {
+    border-color: rgba(0, 122, 255, 0.55);
+    box-shadow:
+        0 0 0 4px rgba(0, 122, 255, 0.14),
+        0 14px 34px rgba(0, 122, 255, 0.18);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 255, 0.92) 100%);
+    animation: email-attention-pulse 2.2s ease-in-out infinite;
+}
+
+.email-input-highlight:focus {
+    animation: none;
+    border-color: rgba(0, 122, 255, 0.72);
+    box-shadow:
+        0 0 0 4px rgba(0, 122, 255, 0.18),
+        0 18px 44px rgba(0, 122, 255, 0.22);
+}
+
+.input:disabled.email-input-highlight {
+    animation: none;
+    box-shadow: none;
+}
+
+@keyframes email-attention-pulse {
+    0%,
+    100% {
+        box-shadow:
+            0 0 0 4px rgba(0, 122, 255, 0.12),
+            0 14px 34px rgba(0, 122, 255, 0.14);
+    }
+    50% {
+        box-shadow:
+            0 0 0 6px rgba(0, 122, 255, 0.16),
+            0 18px 44px rgba(0, 122, 255, 0.20);
+    }
 }
 
 .input-desc {
@@ -561,12 +533,12 @@ if (isBundle.value) {
 
 .purchase-btn {
     width: 100%;
-    background: linear-gradient(135deg, #2d6a4f 0%, #40916c 100%);
-    color: #fff;
+    background: linear-gradient(135deg, rgba(0, 122, 255, 0.98) 0%, rgba(64, 156, 255, 0.94) 55%, rgba(0, 122, 255, 0.90) 100%);
+    color: rgba(255, 255, 255, 0.98);
     font-size: 1.2rem;
     font-weight: 700;
     padding: 18px 0;
-    border-radius: 16px;
+    border-radius: 14px;
     border: none;
     margin-top: 24px;
     cursor: pointer;
@@ -576,20 +548,28 @@ if (isBundle.value) {
     justify-content: center;
     gap: 8px;
     position: relative;
-    box-shadow: 0 8px 24px rgba(45, 106, 79, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    box-shadow:
+        0 18px 42px rgba(0, 122, 255, 0.30),
+        0 14px 30px rgba(15, 23, 42, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+    letter-spacing: 0.4px;
     min-height: 56px;
 }
 
 .purchase-btn:hover:not(:disabled) {
-    box-shadow: 0 12px 32px rgba(45, 106, 79, 0.5);
+    box-shadow:
+        0 22px 56px rgba(0, 122, 255, 0.36),
+        0 18px 48px rgba(15, 23, 42, 0.20),
+        0 0 0 1px rgba(255, 255, 255, 0.28) inset;
     transform: translateY(-2px);
 }
 
 .purchase-btn:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 4px 16px rgba(45, 106, 79, 0.3);
+    box-shadow:
+        0 12px 30px rgba(0, 122, 255, 0.24),
+        0 10px 26px rgba(0, 0, 0, 0.30),
+        0 0 0 1px rgba(255, 255, 255, 0.18) inset;
 }
 
 .purchase-btn:disabled {
@@ -613,10 +593,6 @@ if (isBundle.value) {
 }
 
 .checkout-left {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    padding: 32px 24px;
     width: 400px;
     max-width: 100%;
     display: flex;
