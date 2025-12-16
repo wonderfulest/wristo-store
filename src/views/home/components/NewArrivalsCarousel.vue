@@ -8,45 +8,26 @@
         <h2 class="new-title">New Arrivals</h2>
       </div>
       <div class="new-carousel-wrap">
-        <Swiper
-          class="new-swiper"
-          :modules="swiperModules"
-          :loop="newProducts.length > 1"
-          :loop-additional-slides="newProducts.length"
-          :free-mode="{ enabled: true, momentum: false }"
-          :centered-slides="true"
-          :grab-cursor="true"
-          :slide-to-clicked-slide="false"
-          :threshold="12"
-          :short-swipes="false"
-          :speed="7000"
-          :autoplay="newProducts.length > 1 ? { delay: 1, disableOnInteraction: false, pauseOnMouseEnter: true } : false"
-          :pagination="{ clickable: true }"
-          :navigation="newProducts.length > 1"
-          :breakpoints="{
-            0: { slidesPerView: 1.1, spaceBetween: 8 },
-            480: { slidesPerView: 1.25, spaceBetween: 10 },
-            768: { slidesPerView: 2.1, spaceBetween: 18 },
-            1024: { slidesPerView: 3, spaceBetween: 24 },
-          }"
-        >
-          <SwiperSlide v-for="product in newProducts" :key="product.appId" class="new-slide">
-            <button class="slide-btn" type="button" @click="$emit('product-click', product)">
-              <div class="product-circle-img">
-                <img
-                  :src="product.heroFile?.url || product.garminImageUrl"
-                  :alt="product.name"
-                  class="circle-img"
-                  loading="lazy"
-                />
-              </div>
-              <div class="product-info">
-                <div class="product-name">{{ product.name }}</div>
-                <div class="product-price">${{ product.price.toFixed(2) }}</div>
-              </div>
-            </button>
-          </SwiperSlide>
-        </Swiper>
+        <div class="new-scroll" ref="scrollContainer">
+          <div class="new-scroll-track">
+            <div v-for="product in loopProducts" :key="`${product.appId}-${product.__loopKey}`" class="new-slide">
+              <button class="slide-btn" type="button" @click="$emit('product-click', product.__origin)">
+                <div class="product-circle-img">
+                  <img
+                    :src="product.heroFile?.url || product.garminImageUrl"
+                    :alt="product.name"
+                    class="circle-img"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="product-info">
+                  <div class="product-name">{{ product.name }}</div>
+                  <div class="product-price">${{ product.price.toFixed(2) }}</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -54,20 +35,133 @@
 
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { ProductBaseVO } from '@/types';
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay, FreeMode, Navigation, Pagination } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
 
-const swiperModules = [Autoplay, Pagination, Navigation, FreeMode]
-
-defineProps<{
+const props = defineProps<{
   newProducts: ProductBaseVO[];
 }>();
 
 defineEmits(['product-click']);
+
+const scrollContainer = ref<HTMLElement | null>(null)
+const isMobile = ref(false)
+let autoScrollInterval: number | null = null
+let resumeTimer: number | null = null
+
+const detectMobile = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.innerWidth <= 768
+}
+
+const loopProducts = computed(() => {
+  if (!props.newProducts || props.newProducts.length === 0) return [] as Array<ProductBaseVO & { __loopKey: string; __origin: ProductBaseVO }>
+  if (props.newProducts.length === 1) return [{ ...props.newProducts[0], __loopKey: 'a', __origin: props.newProducts[0] }]
+  return [
+    ...props.newProducts.map(p => ({ ...p, __loopKey: 'a', __origin: p })),
+    ...props.newProducts.map(p => ({ ...p, __loopKey: 'b', __origin: p })),
+  ]
+})
+
+const normalizeLoopScroll = () => {
+  const el = scrollContainer.value
+  if (!el) return
+  if (props.newProducts.length <= 1) return
+
+  const half = el.scrollWidth / 2
+  if (half <= 0) return
+
+  if (el.scrollLeft <= 0) {
+    el.scrollLeft = el.scrollLeft + half
+    return
+  }
+
+  if (el.scrollLeft >= half) {
+    el.scrollLeft = el.scrollLeft - half
+  }
+}
+
+const startAutoScroll = () => {
+  if (!scrollContainer.value) return
+  if (props.newProducts.length <= 1) return
+  if (isMobile.value) return
+
+  stopAutoScroll()
+  autoScrollInterval = window.setInterval(() => {
+    const el = scrollContainer.value
+    if (!el) return
+    el.scrollLeft += 1
+    normalizeLoopScroll()
+  }, 30)
+}
+
+const stopAutoScroll = () => {
+  if (autoScrollInterval) {
+    window.clearInterval(autoScrollInterval)
+    autoScrollInterval = null
+  }
+}
+
+const pauseAndCancelResume = () => {
+  stopAutoScroll()
+  if (resumeTimer) {
+    window.clearTimeout(resumeTimer)
+    resumeTimer = null
+  }
+}
+
+const scheduleResume = () => {
+  if (isMobile.value) return
+  if (props.newProducts.length <= 1) return
+  if (resumeTimer) window.clearTimeout(resumeTimer)
+  resumeTimer = window.setTimeout(() => {
+    startAutoScroll()
+  }, 2000)
+}
+
+const handleInteractionStart = () => {
+  pauseAndCancelResume()
+}
+
+const handleInteractionEnd = () => {
+  scheduleResume()
+}
+
+onMounted(() => {
+  isMobile.value = detectMobile()
+
+  if (scrollContainer.value) {
+    scrollContainer.value.addEventListener('scroll', normalizeLoopScroll, { passive: true })
+    scrollContainer.value.addEventListener('touchstart', handleInteractionStart, { passive: true })
+    scrollContainer.value.addEventListener('touchend', handleInteractionEnd, { passive: true })
+    scrollContainer.value.addEventListener('pointerdown', handleInteractionStart)
+    scrollContainer.value.addEventListener('pointerup', handleInteractionEnd)
+    scrollContainer.value.addEventListener('mouseenter', handleInteractionStart)
+    scrollContainer.value.addEventListener('mouseleave', handleInteractionEnd)
+  }
+
+  if (!isMobile.value) {
+    startAutoScroll()
+  }
+})
+
+onUnmounted(() => {
+  stopAutoScroll()
+  if (resumeTimer) {
+    window.clearTimeout(resumeTimer)
+    resumeTimer = null
+  }
+
+  if (scrollContainer.value) {
+    scrollContainer.value.removeEventListener('scroll', normalizeLoopScroll)
+    scrollContainer.value.removeEventListener('touchstart', handleInteractionStart)
+    scrollContainer.value.removeEventListener('touchend', handleInteractionEnd)
+    scrollContainer.value.removeEventListener('pointerdown', handleInteractionStart)
+    scrollContainer.value.removeEventListener('pointerup', handleInteractionEnd)
+    scrollContainer.value.removeEventListener('mouseenter', handleInteractionStart)
+    scrollContainer.value.removeEventListener('mouseleave', handleInteractionEnd)
+  }
+})
 </script>
 
 <style scoped>
@@ -105,7 +199,7 @@ defineEmits(['product-click']);
 }
 
 .new-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #222;
   letter-spacing: -0.02em;
@@ -116,13 +210,29 @@ defineEmits(['product-click']);
   position: relative;
 }
 
-.new-swiper {
+.new-slide {
+  height: auto;
+  flex: 0 0 auto;
+}
+
+.new-scroll {
   width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
   padding: 0 44px;
 }
 
-.new-slide {
-  height: auto;
+.new-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.new-scroll-track {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 0;
 }
 
 .slide-btn {
@@ -138,8 +248,8 @@ defineEmits(['product-click']);
 }
 
 .product-circle-img {
-  width: 320px;
-  height: 320px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   overflow: hidden;
   background: #fff;
@@ -187,44 +297,9 @@ defineEmits(['product-click']);
 }
 
 /* ⭐ 连续滚动核心 */
-.new-swiper :deep(.swiper-wrapper) {
-  transition-timing-function: linear !important;
-}
 
-:deep(.new-swiper .swiper-pagination) {
-  bottom: 8px !important;
-}
-
-:deep(.new-swiper .swiper-pagination-bullet) {
-  width: 7px;
-  height: 7px;
-  opacity: 1;
-  background: rgba(0, 0, 0, 0.18);
-  margin: 0 4px !important;
-}
-
-:deep(.new-swiper .swiper-pagination-bullet-active) {
-  width: 18px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.42);
-}
-
-:deep(.new-swiper .swiper-button-prev),
-:deep(.new-swiper .swiper-button-next) {
-  width: 44px;
-  height: 44px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-:deep(.new-swiper .swiper-button-prev:after),
-:deep(.new-swiper .swiper-button-next:after) {
-  font-size: 16px;
-  color: #111827;
+:deep(.new-scroll) {
+  scroll-behavior: auto;
 }
 
 /* Responsive styles */
@@ -256,8 +331,12 @@ defineEmits(['product-click']);
     padding: 0 8px;
   }
 
-  .new-swiper {
-    padding: 10px 0 42px;
+  .new-scroll {
+    padding: 10px 0 24px;
+  }
+
+  .new-scroll-track {
+    gap: 18px;
   }
 
   .product-circle-img {
@@ -287,6 +366,10 @@ defineEmits(['product-click']);
 
   .slide-btn {
     padding: 18px 6px 14px;
+  }
+
+  .new-scroll-track {
+    gap: 12px;
   }
 
   .product-circle-img {

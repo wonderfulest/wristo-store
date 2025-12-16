@@ -77,7 +77,7 @@ defineEmits(['product-click']);
 }
 
 .hot-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #222;
   margin: 0;
@@ -113,8 +113,8 @@ defineEmits(['product-click']);
 }
 
 .hot-img-wrap {
-  width: 300px;
-  height: 300px;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
   overflow: hidden;
   background: #f7f8fa;
