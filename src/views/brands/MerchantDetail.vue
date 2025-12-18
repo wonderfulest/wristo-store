@@ -38,7 +38,7 @@
 
           <div class="hero-stats">
             <div class="stat">
-              <div class="stat-value">{{ formatNumber(merchant.appCount) }}</div>
+              <div class="stat-value">{{ formatNumber(appsTotal) }}</div>
               <div class="stat-label">Apps</div>
             </div>
             <div class="stat">
@@ -74,7 +74,7 @@
             </div>
           </div>
 
-          <div v-if="appsLoading" class="apps-loading">Loading...</div>
+          <div v-if="appsLoading && apps.length === 0" class="apps-loading">Loading...</div>
           <div v-else-if="appsError" class="apps-error">{{ appsError }}</div>
           <div v-else-if="apps.length === 0" class="apps-empty">No results</div>
 
@@ -82,26 +82,13 @@
             <ProductCard v-for="p in apps" :key="p.appId" :product="p" />
           </div>
 
-          <div v-if="appsTotalPages > 1" class="apps-pagination">
-            <button
-              class="pager-btn"
-              type="button"
-              :disabled="appsPageNum <= 1 || appsLoading"
-              @click="goToPrevPage"
-            >
-              Prev
-            </button>
-            <div class="pager-info">
-              Page {{ appsPageNum }} of {{ appsTotalPages }}
-            </div>
-            <button
-              class="pager-btn"
-              type="button"
-              :disabled="appsPageNum >= appsTotalPages || appsLoading"
-              @click="goToNextPage"
-            >
-              Next
-            </button>
+          <div v-if="appsLoading && apps.length > 0" class="apps-loadmore">
+            <div class="apps-loadmore-spinner" />
+            <div class="apps-loadmore-text">Loading more apps...</div>
+          </div>
+
+          <div v-if="!appsHasMore && apps.length > 0" class="apps-no-more">
+            <div class="apps-no-more-text">You've reached the end!</div>
           </div>
         </div>
       </div>
@@ -110,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getMerchantAppsPage, getMerchantDetail } from "@/api/merchant";
@@ -135,6 +122,10 @@ const appsTotalPages = ref(1);
 const appsQuery = ref("");
 let appsQueryTimer: number | null = null;
 
+const appsHasMore = ref(true);
+let scrollTimeout: number | null = null;
+let scrollCheckInterval: number | null = null;
+
 const userId = computed(() => {
   const raw = route.params.userId;
   const v = Array.isArray(raw) ? raw[0] : raw;
@@ -156,12 +147,19 @@ onMounted(async () => {
   }
 });
 
-const fetchApps = async () => {
+const fetchApps = async (reset = true) => {
   if (!userId.value) {
     apps.value = [];
     appsTotal.value = 0;
     appsTotalPages.value = 1;
+    appsHasMore.value = false;
     return;
+  }
+
+  if (reset) {
+    apps.value = [];
+    appsPageNum.value = 1;
+    appsHasMore.value = true;
   }
 
   appsLoading.value = true;
@@ -175,24 +173,66 @@ const fetchApps = async () => {
       pageSize: appsPageSize.value,
     });
 
-    apps.value = res.list || [];
+    const next = res.list || [];
+    apps.value = reset ? next : [...apps.value, ...next];
     appsTotal.value = Number(res.total || 0);
     appsTotalPages.value = Number(res.pages || 1);
+
+    appsHasMore.value = next.length === appsPageSize.value;
   } catch (e: any) {
-    apps.value = [];
-    appsTotal.value = 0;
-    appsTotalPages.value = 1;
+    if (reset) {
+      apps.value = [];
+      appsTotal.value = 0;
+      appsTotalPages.value = 1;
+    }
+    appsHasMore.value = false;
     appsError.value = "Failed to load apps. Please try again later.";
   } finally {
     appsLoading.value = false;
   }
 };
 
+const loadMore = async () => {
+  if (appsLoading.value || !appsHasMore.value) return;
+  appsPageNum.value += 1;
+  await fetchApps(false);
+};
+
+const handleScroll = () => {
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout);
+  }
+
+  scrollTimeout = window.setTimeout(() => {
+    if (appsLoading.value || !appsHasMore.value) return;
+
+    const scrollTop = Math.max(
+      window.pageYOffset,
+      document.documentElement.scrollTop,
+      document.body.scrollTop
+    );
+    const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+    const documentHeight = Math.max(
+      document.documentElement.scrollHeight,
+      document.documentElement.offsetHeight,
+      document.body.scrollHeight,
+      document.body.offsetHeight
+    );
+
+    const scrollProgress = (scrollTop + windowHeight) / documentHeight;
+    const remainingHeight = documentHeight - (scrollTop + windowHeight);
+
+    const shouldLoad = scrollProgress >= 0.6 || remainingHeight <= 400;
+    if (shouldLoad) {
+      loadMore();
+    }
+  }, 100);
+};
+
 watch(
   () => userId.value,
   () => {
-    appsPageNum.value = 1;
-    fetchApps();
+    fetchApps(true);
   },
   { immediate: true }
 );
@@ -202,25 +242,42 @@ watch(
   () => {
     if (appsQueryTimer) window.clearTimeout(appsQueryTimer);
     appsQueryTimer = window.setTimeout(() => {
-      appsPageNum.value = 1;
-      fetchApps();
+      fetchApps(true);
     }, 350);
   }
 );
 
-const goToPrevPage = () => {
-  if (appsLoading.value) return;
-  if (appsPageNum.value <= 1) return;
-  appsPageNum.value -= 1;
-  fetchApps();
-};
+onMounted(() => {
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  document.addEventListener("scroll", handleScroll, { passive: true });
+  window.addEventListener("touchmove", handleScroll, { passive: true });
 
-const goToNextPage = () => {
-  if (appsLoading.value) return;
-  if (appsPageNum.value >= appsTotalPages.value) return;
-  appsPageNum.value += 1;
-  fetchApps();
-};
+  scrollCheckInterval = window.setInterval(() => {
+    if (appsLoading.value || !appsHasMore.value) return;
+    handleScroll();
+  }, 2000);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("scroll", handleScroll);
+  document.removeEventListener("scroll", handleScroll);
+  window.removeEventListener("touchmove", handleScroll);
+
+  if (appsQueryTimer) {
+    window.clearTimeout(appsQueryTimer);
+    appsQueryTimer = null;
+  }
+
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = null;
+  }
+
+  if (scrollCheckInterval) {
+    clearInterval(scrollCheckInterval);
+    scrollCheckInterval = null;
+  }
+});
 
 const displayName = computed(() => {
   const m = merchant.value;
@@ -626,44 +683,39 @@ const goBack = () => {
   gap: 12px;
 }
 
-.apps-pagination {
-  margin-top: 16px;
+.apps-loadmore,
+.apps-no-more {
+  margin-top: 14px;
+  padding-top: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding-top: 12px;
+  gap: 10px;
 }
 
-.pager-btn {
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  font-weight: 800;
+.apps-loadmore-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.12);
+  border-top-color: rgba(0, 122, 255, 0.7);
+  animation: apps-spin 0.8s linear infinite;
+}
+
+.apps-loadmore-text,
+.apps-no-more-text {
   font-size: 12px;
-  color: rgba(15, 23, 42, 0.78);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  font-weight: 700;
+  color: rgba(15, 23, 42, 0.62);
 }
 
-.pager-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
-}
-
-.pager-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.pager-info {
-  font-size: 12px;
-  font-weight: 800;
-  color: rgba(15, 23, 42, 0.68);
+@keyframes apps-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 1024px) {

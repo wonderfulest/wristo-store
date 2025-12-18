@@ -188,7 +188,7 @@ onMounted(() => {
         loadMore()
       }
     }
-  }, 5000) // 每5秒检查一次
+  }, 2000) // 每5秒检查一次
   
   // 保存定时器引用以便清理
   ;(window as any).scrollCheckInterval = checkInterval

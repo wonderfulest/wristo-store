@@ -14,64 +14,28 @@
         </button>
       </div>
 
-      <Swiper
+      <InfiniteCarousel
         class="brands-swiper"
-        :modules="swiperModules"
-        :loop="merchants.length > 1"
-        :loop-additional-slides="merchants.length"
-        :free-mode="{ enabled: true, momentum: false }"
-        :grab-cursor="true"
-        :speed="7000"
-        :autoplay="
-          merchants.length > 1
-            ? {
-                delay: 1,                // ⭐ 关键：不能是 0
-                disableOnInteraction: false,
-                pauseOnMouseEnter: true,
-              }
-            : false
-        "
-        :breakpoints="{
-          0: { slidesPerView: 'auto', spaceBetween: 14 },
-          480: { slidesPerView: 'auto', spaceBetween: 16 },
-          768: { slidesPerView: 'auto', spaceBetween: 18 },
-          1024: { slidesPerView: 'auto', spaceBetween: 20 },
-        }"
-      >
-        <SwiperSlide
-          v-for="m in merchants"
-          :key="m.userId"
-          class="brands-slide"
-        >
-          <button
-            class="brand-avatar-btn"
-            type="button"
-            @click="goToMerchant(m.userId)"
-          >
-            <img
-              v-if="m.avatar"
-              class="brand-avatar-img"
-              :src="m.avatar"
-              :alt="getDisplayName(m)"
-              loading="lazy"
-            />
-            <div v-else class="brand-avatar-fallback">
-              BR
-            </div>
-          </button>
-        </SwiperSlide>
-      </Swiper>
+        :items="carouselItems"
+        :size="160"
+        :space="18"
+        :speed="8000"
+        pause-on-hover
+        @click="handleCarouselClick"
+      />
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay, FreeMode } from 'swiper/modules'
+import InfiniteCarousel from '@/components/InfiniteCarousel.vue'
 
-import 'swiper/css'
+type InfiniteCarouselItem = {
+  id: string | number
+  avatar?: string
+}
 
 import { getTopMerchants } from '@/api/merchant'
 import type { PublicMerchantVO } from '@/types/merchant'
@@ -79,20 +43,30 @@ import type { PublicMerchantVO } from '@/types/merchant'
 const router = useRouter()
 
 const merchants = ref<PublicMerchantVO[]>([])
-const swiperModules = [Autoplay, FreeMode]
+
+const carouselItems = computed<InfiniteCarouselItem[]>(() =>
+  (merchants.value || []).map((m) => ({
+    id: m.userId,
+    avatar: m.avatar,
+  }))
+)
+
+const merchantById = computed(() => {
+  const map = new Map<string, PublicMerchantVO>()
+  for (const m of merchants.value || []) {
+    map.set(String(m.userId), m)
+  }
+  return map
+})
 
 onMounted(async () => {
   try {
     const list = await getTopMerchants(12)
     merchants.value = list || []
-    await nextTick() // 确保 DOM 完整后再跑 Swiper
   } catch (e) {
     merchants.value = []
   }
 })
-
-const getDisplayName = (m: PublicMerchantVO) =>
-  (m.nickname || m.username || `User ${m.userId}`).trim()
 
 const goToBrands = () => {
   router.push('/brands')
@@ -100,6 +74,12 @@ const goToBrands = () => {
 
 const goToMerchant = (userId: number) => {
   router.push(`/brands/${userId}`)
+}
+
+const handleCarouselClick = (item: InfiniteCarouselItem) => {
+  const m = merchantById.value.get(String(item.id))
+  if (!m) return
+  goToMerchant(Number(m.userId))
 }
 </script>
 
@@ -163,59 +143,13 @@ const goToMerchant = (userId: number) => {
 .brands-swiper {
   width: 100%;
   padding: 14px 0 4px;
-}
-
-/* ⭐ 连续滚动核心 */
-.brands-swiper :deep(.swiper-wrapper) {
-  transition-timing-function: linear !important;
-}
-
-.brands-slide {
-  height: auto;
-  width: 160px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.brand-avatar-btn {
-  width: 160px;
-  height: 160px;
-  border-radius: 999px;
-  border: 2px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.9);
-  /* box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12); */
-  overflow: hidden;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.2s ease;
-}
-
-.brand-avatar-btn:hover {
-  transform: translateY(-1px);
-}
-
-.brand-avatar-img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
-  object-position: center;
-}
-
-.brand-avatar-fallback {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
-  color: rgba(17, 24, 39, 0.55);
-  letter-spacing: 0.12em;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
 }
 
 @media (max-width: 768px) {
@@ -230,29 +164,11 @@ const goToMerchant = (userId: number) => {
   .brands-swiper {
     padding: 12px 0 4px;
   }
-
-  .brands-slide {
-    width: 120px;
-  }
-
-  .brand-avatar-btn {
-    width: 120px;
-    height: 120px;
-  }
 }
 
 @media (max-width: 480px) {
   .brands-title {
     font-size: 1.75rem;
-  }
-
-  .brands-slide {
-    width: 96px;
-  }
-
-  .brand-avatar-btn {
-    width: 96px;
-    height: 96px;
   }
 }
 </style>
