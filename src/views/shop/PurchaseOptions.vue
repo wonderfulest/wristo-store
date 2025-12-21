@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
@@ -67,6 +67,7 @@ import type { SubscriptionPlan } from '@/api/subscription'
 import { getBundlesForPurchase } from '@/api/purchase'
 
 const router = useRouter()
+const route = useRoute()
 const store = useShopOptionsStore()
 
 // 订阅计划相关
@@ -105,8 +106,6 @@ const productDiscount = computed(() => {
   if (productOriginalPrice.value <= productCurrentPrice.value) return 0
   return Math.round(((productOriginalPrice.value - productCurrentPrice.value) / productOriginalPrice.value) * 100)
 })
-
-// 保留第一个bundle的引用用于向后兼容，但移除未使用的computed属性
 
 // 多个套餐的价格计算函数
 const getBundleOriginalPrice = (bundleItem: Bundle) => {
@@ -152,8 +151,6 @@ const isProductSelected = computed(() => {
   
   return false;
 });
-
-// 移除未使用的 computed 属性，使用函数版本
 
 // 判断特定套餐是否被选中
 const isBundleSelected = (bundleItem: Bundle) => {
@@ -222,6 +219,10 @@ const handleBuyBundle = (bundleItem?: Bundle) => {
 // };
 
 onMounted(() => {
+  const shouldResetByPremiumPath = route.path === '/premium' || route.name === 'Premium'
+  if (shouldResetByPremiumPath) {
+    store.reset()
+  }
   if (!purchaseData.value) {
     getBundlesForPurchase()
       .then((list) => {

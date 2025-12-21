@@ -37,6 +37,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/shop/CodeInput.vue') 
   },
   {
+    path: '/premium',
+    name: 'Premium',
+    component: () => import('@/views/shop/PurchaseOptions.vue'),
+  },
+  {
     path: '/purchase-options',
     name: 'PurchaseOptions',
     component: () => import('@/views/shop/PurchaseOptions.vue'),
