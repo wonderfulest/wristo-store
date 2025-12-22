@@ -381,6 +381,7 @@ const handlePayment = async (isRetry = false) => {
                 },
             ],
             customer: { email: email.value },
+            discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
             customData: {
                 isSubscription: false,
                 source: isBundleTokenFlow.value ? PurchaseOrigin.STORE : PurchaseOrigin.CODE,
