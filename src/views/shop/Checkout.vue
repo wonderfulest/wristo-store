@@ -13,6 +13,7 @@
                         :current-price="bundleCurrentPrice"
                         :discount="bundleDiscount"
                         :is-selected="true"
+                        :currency-code="currencyCode"
                         :show-button="false"
                         button-text="Proceed to Checkout"
                         :app-count="(product as Bundle).appCount"
@@ -31,6 +32,7 @@
                         :current-price="productCurrentPrice"
                         :discount="productDiscount"
                         :is-selected="true"
+                        :currency-code="currencyCode"
                         :show-button="false"
                         button-text="Proceed to Checkout"
                         @buy="handlePayment"
@@ -112,6 +114,22 @@ const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
 })
 
+const getPriceIdForCheckout = computed(() => {
+  if (!product.value) return ''
+  if (isBundle.value) return (product.value as any)?.paddlePriceId || ''
+  return (product.value as ProductVO)?.payment?.paddlePriceId || ''
+})
+
+const discountInfo = computed(() => {
+  const priceId = getPriceIdForCheckout.value
+  if (!priceId) return null
+  return (store as any).discountsByPriceId?.[priceId] || null
+})
+
+const currencyCode = computed(() => {
+  return (discountInfo.value?.valid && discountInfo.value?.currency) ? String(discountInfo.value.currency) : 'USD'
+})
+
 const bundleItemsForCard = computed(() => {
     if (!isBundle.value) return []
     return (product.value as Bundle).products.map(p => ({
@@ -123,7 +141,9 @@ const bundleItemsForCard = computed(() => {
 
 const bundleCurrentPrice = computed(() => {
     if (!isBundle.value) return 0
-    return Number((product.value as Bundle).price) || 0
+    const base = Number((product.value as Bundle).price) || 0
+    if (discountInfo.value?.valid) return Number(discountInfo.value.finalPrice)
+    return base
 })
 
 const bundleOriginalPrice = computed(() => {
@@ -142,8 +162,10 @@ const bundleDiscount = computed(() => {
 })
 
 const productCurrentPrice = computed(() => {
-    if (isBundle.value) return 0
-    return Number((product.value as ProductVO)?.price) || 0
+  if (isBundle.value) return 0
+  const base = Number((product.value as ProductVO)?.price) || 0
+  if (discountInfo.value?.valid) return Number(discountInfo.value.finalPrice)
+  return base
 })
 
 const productOriginalPrice = computed(() => {
@@ -368,6 +390,8 @@ const handlePayment = async (isRetry = false) => {
                 bundleId: isBundle.value ? (product.value as Bundle).bundleId : '',
                 isBundle: isBundle.value,
                 email: email.value,
+                discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
+                discountId: discountInfo.value?.valid ? (discountInfo.value.discountId || discountInfo.value.discount?.id || '') : '',
             },
         })
     } else {

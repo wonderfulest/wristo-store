@@ -1,30 +1,32 @@
 <template>
   <div :class="['purchase-card', { active: isSelected }]" @click="handleSelect">
     <!-- 折扣和Lifetime License标签 -->
-    <div v-if="discount > 0" class="discount-badge">
-      {{ discount }}% Off
+    <div v-if="cappedDiscount > 0" class="discount-badge">
+      {{ cappedDiscount }}% Off
     </div>
     
     <div class="lifetime-badge">
       Lifetime License
     </div>
-    
+    <!-- 折扣提示 -->
+    <div v-if="shouldShowDiscountTip" class="discount-tip" role="status" aria-live="polite">
+      <div class="discount-tip-title">Christmas limited-time deal — don’t miss it.</div>
+    </div>
     <!-- 名字和价格 -->
     <div class="card-header">
       <h3 class="card-title">{{ title }}</h3>
       <div class="price-info">
         <div v-if="originalPrice > currentPrice" class="price-container">
           <div class="price-group">
-          
-            <span class="price">${{ currentPrice.toFixed(2) }}</span>
+            <span :class="['original-price', 'original-price-float', { 'original-float-animate': animateDiscount }]">{{ currencySymbol }}{{ originalPrice.toFixed(2) }}</span>
+            <span :class="['price', { 'discount-animate': animateDiscount, 'discounted-price': originalPrice > currentPrice }]">{{ currencySymbol }}{{ currentPrice.toFixed(2) }}</span>
           </div>
         </div>
         <div v-else class="price-container">
-          <span class="price">${{ currentPrice.toFixed(2) }}</span>
+          <span class="price">{{ currencySymbol }}{{ currentPrice.toFixed(2) }}</span>
         </div>
       </div>
-    </div>
-    
+    </div>  
     <!-- 图片 -->
     <div class="card-image">
       <div v-if="type === 'product'" class="single-image">
@@ -54,7 +56,7 @@
           Unlock {{ formatCountPlus(appCount) }} apps
         </span>
         <span class="product-count-sub">
-          (Value <span class="product-count-original">${{ appTotalPrice?.toFixed(2) }}</span>)
+          (Value <span class="product-count-original">{{ currencySymbol }}{{ appTotalPrice?.toFixed(2) }}</span>)
         </span>
       </div>
     </div>
@@ -72,6 +74,21 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useShopOptionsStore } from '@/store/shopOptions'
+
+const getCurrencySymbol = (code?: string) => {
+  const normalized = String(code || 'USD').toUpperCase()
+  const map: Record<string, string> = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    JPY: '¥',
+    CNY: '¥',
+    CAD: 'C$',
+    AUD: 'A$'
+  }
+  return map[normalized] || '$'
+}
 
 interface BundleItem {
   id: string
@@ -85,6 +102,7 @@ interface Props {
   description: string
   imageUrl?: string
   bundleItems?: BundleItem[]
+  priceId?: string
   originalPrice: number
   currentPrice: number
   discount: number
@@ -93,13 +111,34 @@ interface Props {
   showButton?: boolean
   appCount?: number
   appTotalPrice?: number
+  currencyCode?: string
+  animateDiscount?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'product',
   bundleItems: () => [],
-  showButton: true
+  showButton: true,
+  currencyCode: 'USD',
+  animateDiscount: false
 })
+
+const store = useShopOptionsStore()
+
+const cappedDiscount = computed(() => {
+  const n = Number(props.discount)
+  if (!Number.isFinite(n)) return 0
+  return Math.min(99, Math.max(0, Math.floor(n)))
+})
+
+const shouldShowDiscountTip = computed(() => {
+  const priceId = String(props.priceId || '')
+  if (!priceId) return false
+  const discountInfo = (store as any).discountsByPriceId?.[priceId]
+  return !!discountInfo?.valid
+})
+
+const currencySymbol = computed(() => getCurrencySymbol(props.currencyCode))
 
 const emit = defineEmits<{
   select: []
@@ -358,6 +397,34 @@ onUnmounted(() => {
   -webkit-backdrop-filter: blur(10px);
 }
 
+.discount-tip {
+  margin-top: 26px;
+  margin-bottom: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(240, 249, 255, 0.92) 0%, rgba(232, 244, 253, 0.85) 100%);
+  border: 1px solid rgba(0, 122, 255, 0.18);
+  box-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.10),
+    0 1px 0 rgba(255, 255, 255, 0.78) inset;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  text-align: left;
+}
+
+.discount-tip-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.discount-tip-desc {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: rgba(15, 23, 42, 0.64);
+}
+
 /* 卡片头部 */
 .card-header {
   display: flex;
@@ -389,6 +456,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  position: relative;
 }
 
 .price {
@@ -400,8 +468,68 @@ onUnmounted(() => {
 .original-price {
   font-size: 1.2rem;
   color: rgba(15, 23, 42, 0.45);
-  text-decoration: line-through;
   order: -1;
+}
+
+.original-price-float {
+  position: absolute;
+  right: 0;
+  top: -1.05rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+  text-decoration-color: rgba(15, 23, 42, 0.35);
+  opacity: 0.72;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.original-float-animate {
+  animation: original-float-in 620ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes original-float-in {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+    filter: blur(1px);
+  }
+  to {
+    transform: translateY(0);
+    opacity: 0.72;
+    filter: blur(0);
+  }
+}
+
+.discounted-price {
+  background: linear-gradient(135deg, rgba(0, 122, 255, 0.98) 0%, rgba(52, 199, 89, 0.92) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 14px 30px rgba(0, 122, 255, 0.18);
+}
+
+.discount-animate {
+  animation: discount-price-pop 900ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes discount-price-pop {
+  0% {
+    transform: translateY(2px) scale(0.98);
+    filter: blur(1px);
+    opacity: 0.65;
+  }
+  45% {
+    transform: translateY(-2px) scale(1.06);
+    filter: blur(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 /* 图片区域 */

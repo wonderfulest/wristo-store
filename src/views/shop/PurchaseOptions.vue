@@ -14,11 +14,14 @@
         :title="bundleItem.bundleName"
         :description="bundleItem.bundleDesc"
         :bundle-items="getBundleItems(bundleItem)"
+        :price-id="getPriceIdForBundle(bundleItem)"
         :original-price="getBundleOriginalPrice(bundleItem)"
         :current-price="getBundleCurrentPrice(bundleItem)"
         :discount="getBundleDiscount(bundleItem)"
         :is-selected="isBundleSelected(bundleItem)"
-        :button-text="`Buy Bundle for $${getBundleCurrentPrice(bundleItem).toFixed(2)}`"
+        :currency-code="getCurrencyCodeForBundle(bundleItem)"
+        :animate-discount="shouldAnimateDiscount(getPriceIdForBundle(bundleItem))"
+        :button-text="`Buy Bundle for ${formatPrice(getBundleCurrentPrice(bundleItem), getCurrencyCodeForBundle(bundleItem))}`"
         @select="() => selectBundle(bundleItem)"
         @buy="() => handleBuyBundle(bundleItem)"
         :app-count="bundleItem.appCount"
@@ -32,11 +35,14 @@
         :title="product.name"
         :description="product.description"
         :image-url="product.garminImageUrl"
+        :price-id="getPriceIdForProduct(product)"
         :original-price="productOriginalPrice"
         :current-price="productCurrentPrice"
         :discount="productDiscount"
         :is-selected="isProductSelected"
-        :button-text="`Buy for $${productCurrentPrice.toFixed(2)}`"
+        :currency-code="productCurrencyCode"
+        :animate-discount="shouldAnimateDiscount(getPriceIdForProduct(product))"
+        :button-text="`Buy for ${formatPrice(productCurrentPrice, productCurrencyCode)}`"
         @select="selectProduct"
         @buy="handleBuyProduct"
       />
@@ -64,7 +70,7 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
-import { getBundlesForPurchase } from '@/api/purchase'
+import { checkDiscount, getBundlesForPurchase } from '@/api/purchase'
 
 const router = useRouter()
 const route = useRoute()
@@ -91,15 +97,87 @@ const bundles = computed(() => {
   })
 })
 
+const discountCodeFromQuery = computed(() => {
+  const raw = route.query?.discountCode
+  const code = Array.isArray(raw) ? raw[0] : raw
+  return (code ? String(code) : '').trim()
+})
+
+const priceIdFromQuery = computed(() => {
+  const raw = route.query?.priceId
+  const id = Array.isArray(raw) ? raw[0] : raw
+  return (id ? String(id) : '').trim()
+})
+
+const getCurrencySymbol = (code?: string) => {
+  const normalized = String(code || 'USD').toUpperCase()
+  const map: Record<string, string> = {
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    JPY: '¥',
+    CNY: '¥',
+    CAD: 'C$',
+    AUD: 'A$'
+  }
+  return map[normalized] || '$'
+}
+
+const getPriceIdForProduct = (p?: ProductVO | null) => {
+  return p?.payment?.paddlePriceId || ''
+}
+
+const getPriceIdForBundle = (b?: Bundle | null) => {
+  return (b as any)?.paddlePriceId || ''
+}
+
+const getDiscountInfoByPriceId = (priceId: string) => {
+  if (!priceId) return null
+  return store.discountsByPriceId?.[priceId] || null
+}
+
+const animatedPriceIds = ref<Set<string>>(new Set())
+
+const shouldAnimateDiscount = (priceId: string) => {
+  if (!priceId) return false
+  return animatedPriceIds.value.has(priceId)
+}
+
+const productCurrencyCode = computed(() => {
+  const priceId = getPriceIdForProduct(product.value)
+  const discountInfo = getDiscountInfoByPriceId(priceId)
+  return (discountInfo?.valid && discountInfo.currency) ? String(discountInfo.currency) : 'USD'
+})
+
+const getCurrencyCodeForBundle = (bundleItem: Bundle) => {
+  const priceId = getPriceIdForBundle(bundleItem)
+  const discountInfo = getDiscountInfoByPriceId(priceId)
+  return (discountInfo?.valid && discountInfo.currency) ? String(discountInfo.currency) : 'USD'
+}
+
+const formatPrice = (amount: number, currencyCode?: string) => {
+  const symbol = getCurrencySymbol(currencyCode)
+  const safe = Number.isFinite(Number(amount)) ? Number(amount) : 0
+  return `${symbol}${safe.toFixed(2)}`
+}
+
 // 价格计算 - 产品
 const productOriginalPrice = computed(() => {
   if (!product.value) return 0
-  return parseFloat(String(product.value.price))
+  const base = parseFloat(String(product.value.price))
+  const priceId = getPriceIdForProduct(product.value)
+  const discountInfo = getDiscountInfoByPriceId(priceId)
+  if (discountInfo?.valid) return Number(discountInfo.originalPrice)
+  return base
 })
 
 const productCurrentPrice = computed(() => {
   if (!product.value) return 0
-  return parseFloat(String(product.value.price))
+  const base = parseFloat(String(product.value.price))
+  const priceId = getPriceIdForProduct(product.value)
+  const discountInfo = getDiscountInfoByPriceId(priceId)
+  if (discountInfo?.valid) return Number(discountInfo.finalPrice)
+  return base
 })
 
 const productDiscount = computed(() => {
@@ -110,6 +188,13 @@ const productDiscount = computed(() => {
 // 多个套餐的价格计算函数
 const getBundleOriginalPrice = (bundleItem: Bundle) => {
   if (!bundleItem) return 0
+  // 如果有折扣，返回bundle原价 和 折扣价
+  const priceId = getPriceIdForBundle(bundleItem)
+  const discountInfo = getDiscountInfoByPriceId(priceId)
+  if (discountInfo?.valid) return Number(discountInfo.originalPrice)
+  // 如果有appTotalPrice，返回appTotalPrice
+  if (bundleItem.appTotalPrice) return Number(bundleItem.appTotalPrice)
+  // 如果没有折扣 和 appTotalPrice，返回bundle里所有产品的价格总和
   let bundlePrice = 0
   for (const product of bundleItem.products) {
     bundlePrice += parseFloat(String(product.price))
@@ -117,11 +202,17 @@ const getBundleOriginalPrice = (bundleItem: Bundle) => {
   return bundlePrice
 }
 
+// 价格计算 - 套餐
 const getBundleCurrentPrice = (bundleItem: Bundle) => {
   if (!bundleItem) return 0
-  return parseFloat(String(bundleItem.price))
+  const base = parseFloat(String(bundleItem.price))
+  const priceId = getPriceIdForBundle(bundleItem)
+  const discountInfo = getDiscountInfoByPriceId(priceId)
+  if (discountInfo?.valid) return Number(discountInfo.finalPrice)
+  return base
 }
 
+// 价格计算 - 套餐折扣
 const getBundleDiscount = (bundleItem: Bundle) => {
   const originalPrice = getBundleOriginalPrice(bundleItem)
   const currentPrice = getBundleCurrentPrice(bundleItem)
@@ -218,6 +309,61 @@ const handleBuyBundle = (bundleItem?: Bundle) => {
 //   selectedPlan.value = plan;
 // };
 
+const runDiscountChecks = () => {
+  if (!discountCodeFromQuery.value) return
+
+  store.setDiscountCode(discountCodeFromQuery.value)
+
+  const requests: Array<{ priceId: string; discountCode: string }> = []
+  const productPriceId = getPriceIdForProduct(product.value)
+  const shouldCheckByQueryPriceId = !!priceIdFromQuery.value
+  const productMatchesQuery = !shouldCheckByQueryPriceId || priceIdFromQuery.value === productPriceId
+  if (productPriceId && productMatchesQuery) {
+    requests.push({ priceId: productPriceId, discountCode: discountCodeFromQuery.value })
+  }
+  for (const b of bundles.value) {
+    const pid = getPriceIdForBundle(b)
+    const bundleMatchesQuery = !shouldCheckByQueryPriceId || priceIdFromQuery.value === pid
+    if (pid && bundleMatchesQuery) {
+      requests.push({ priceId: pid, discountCode: discountCodeFromQuery.value })
+    }
+  }
+
+  if (!requests.length) return
+
+  Promise.all(
+    requests.map(async (req) => {
+      try {
+        const res = await checkDiscount(req)
+        store.setDiscountForPriceId(req.priceId, {
+          valid: !!res.valid,
+          originalPrice: Number(res.originalPrice),
+          finalPrice: Number(res.finalPrice),
+          currency: String(res.currency || 'USD'),
+          discount: res.discount,
+          discountId: res.discount?.id,
+          discountCode: req.discountCode
+        })
+
+        if (res?.valid) {
+          animatedPriceIds.value.add(req.priceId)
+          window.setTimeout(() => {
+            animatedPriceIds.value.delete(req.priceId)
+          }, 1000)
+        }
+      } catch {
+        store.setDiscountForPriceId(req.priceId, {
+          valid: false,
+          originalPrice: 0,
+          finalPrice: 0,
+          currency: 'USD',
+          discountCode: req.discountCode
+        })
+      }
+    })
+  )
+}
+
 onMounted(() => {
   const shouldResetByPremiumPath = route.path === '/premium' || route.name === 'Premium'
   if (shouldResetByPremiumPath) {
@@ -227,11 +373,14 @@ onMounted(() => {
     getBundlesForPurchase()
       .then((list) => {
         bundlesFromApi.value = list || []
+        runDiscountChecks()
       })
       .catch(() => {
         bundlesFromApi.value = []
       })
   }
+
+  runDiscountChecks()
 })
 </script>
 

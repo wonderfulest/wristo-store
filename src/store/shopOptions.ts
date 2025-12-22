@@ -3,6 +3,20 @@ import type { PurchaseData, Bundle, ApiResponse, ProductVO } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
 import type { SubscriptionVO, PurchaseRecordVO } from '@/types/purchase-check'
 
+export interface DiscountInfo {
+  valid: boolean
+  originalPrice: number
+  finalPrice: number
+  currency: string
+  discount?: {
+    type?: string
+    value?: number
+    id?: string
+  }
+  discountId?: string
+  discountCode?: string
+}
+
 export const useShopOptionsStore = defineStore('shopOptions', {
   state: () => ({
     data: null as PurchaseData | null,
@@ -10,7 +24,9 @@ export const useShopOptionsStore = defineStore('shopOptions', {
     selectedSubscription: null as SubscriptionPlan | null,
     order: null as ApiResponse<any>['data'] | null,
     subscriptionInfo: null as SubscriptionVO | null,
-    purchaseInfo: null as PurchaseRecordVO | null
+    purchaseInfo: null as PurchaseRecordVO | null,
+    discountCode: '' as string,
+    discountsByPriceId: {} as Record<string, DiscountInfo>
   }),
   actions: {
     setData(data: PurchaseData) {
@@ -33,6 +49,19 @@ export const useShopOptionsStore = defineStore('shopOptions', {
     setPurchaseInfo(purchase: PurchaseRecordVO) {
       this.purchaseInfo = purchase
     },
+    setDiscountCode(code: string) {
+      this.discountCode = code
+    },
+    setDiscountForPriceId(priceId: string, info: DiscountInfo) {
+      this.discountsByPriceId = {
+        ...this.discountsByPriceId,
+        [priceId]: info
+      }
+    },
+    clearDiscounts() {
+      this.discountCode = ''
+      this.discountsByPriceId = {}
+    },
     reset() {
       this.data = null
       this.selectedProduct = null
@@ -40,6 +69,8 @@ export const useShopOptionsStore = defineStore('shopOptions', {
       this.order = null
       this.subscriptionInfo = null
       this.purchaseInfo = null
+      this.discountCode = ''
+      this.discountsByPriceId = {}
     }
   },
   persist: true
