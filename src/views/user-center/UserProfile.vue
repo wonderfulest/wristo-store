@@ -97,19 +97,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { uploadUserAvatar } from '@/api/files'
 import { ElMessage } from 'element-plus'
 const userStore = useUserStore()
-const userInfo = userStore.userInfo
+const userInfo = computed(() => userStore.userInfo)
 const editMode = ref(false)
 const form = ref({
-  username: userInfo?.username || '',
-  nickname: userInfo?.nickname || '',
-  avatar: userInfo?.avatar || '',
-  email: userInfo?.email || '',
-  phone: userInfo?.phone || '',
+  username: userInfo.value?.username || '',
+  nickname: userInfo.value?.nickname || '',
+  avatar: userInfo.value?.avatar || '',
+  email: userInfo.value?.email || '',
+  phone: userInfo.value?.phone || '',
 })
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const onAvatarDblClick = () => {
@@ -128,11 +128,11 @@ const onAvatarFileChange = async (e: Event) => {
 }
 const startEdit = () => {
   form.value = {
-    username: userInfo?.username || '',
-    nickname: userInfo?.nickname || '',
-    avatar: userInfo?.avatar || '',
-    email: userInfo?.email || '',
-    phone: userInfo?.phone || '',
+    username: userInfo.value?.username || '',
+    nickname: userInfo.value?.nickname || '',
+    avatar: userInfo.value?.avatar || '',
+    email: userInfo.value?.email || '',
+    phone: userInfo.value?.phone || '',
   }
   editMode.value = true
 }
@@ -164,7 +164,7 @@ const handleAvatarUpload = async (option: any) => {
     ElMessage.error('Upload failed')
   }
 }
-watch(() => userInfo, (val) => {
+watch(() => userStore.userInfo, (val) => {
   if (!editMode.value) {
     form.value = {
       username: val?.username || '',
