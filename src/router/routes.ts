@@ -127,6 +127,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/components/Newsletter.vue')
   },
   {
+    path: '/creators',
+    name: 'Creators',
+    component: () => import('@/views/Creators.vue')
+  },
+  {
     path: '/bundle-products',
     name: 'BundleProducts',
     component: () => import('@/views/products/BundledProducts.vue')
