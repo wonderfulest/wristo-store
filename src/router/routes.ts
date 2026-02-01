@@ -173,6 +173,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/email/EmailPreferences.vue')
   },
   {
+    path: '/preferences',
+    name: 'Preferences',
+    component: () => import('@/views/email/EmailPreferences.vue')
+  },
+  {
     path: '/unsubscribe',
     name: 'Unsubscribe',
     component: () => import('@/views/email/Unsubscribe.vue')

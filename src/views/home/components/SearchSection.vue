@@ -10,22 +10,48 @@
           @input="handleSearch"
           :border="false"
         />
-        <el-button class="search-bar-btn" type="primary" round>Search</el-button>
+        <el-button class="search-bar-btn" type="primary" round @click="handleSearchImmediate">Search</el-button>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 
 const searchTerm = ref('');
 const emit = defineEmits(['search']);
 
+let debounceTimer: number | undefined
+
+const emitSearch = (value: string) => {
+  emit('search', value)
+}
+
+const emitSearchDebounced = (value: string) => {
+  if (debounceTimer) window.clearTimeout(debounceTimer)
+  debounceTimer = window.setTimeout(() => {
+    emitSearch(value)
+  }, 400)
+}
+
 const handleSearch = () => {
-  emit('search', searchTerm.value);
-};
+  const value = searchTerm.value.trim()
+  if (value.length < 2) return
+  emitSearchDebounced(value)
+}
+
+const handleSearchImmediate = () => {
+  const value = searchTerm.value.trim()
+  if (value.length < 2) return
+  if (debounceTimer) window.clearTimeout(debounceTimer)
+  emitSearch(value)
+}
+
+onBeforeUnmount(() => {
+  if (debounceTimer) window.clearTimeout(debounceTimer)
+})
 </script>
 
 <style scoped>

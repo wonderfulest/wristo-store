@@ -1,7 +1,7 @@
 <template>
   <div class="auth-callback">
-    <p v-if="loading">正在登录，请稍候...</p>
-    <p v-else-if="error">登录失败：{{ error }}</p>
+    <p v-if="loading">Signing you in, please wait...</p>
+    <p v-else-if="error">Sign-in failed: {{ error }}</p>
   </div>
 </template>
 
@@ -25,7 +25,7 @@ const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
 onMounted(async () => {
   const code = route.query.code as string
   if (!code) {
-    error.value = '未获取到 code 参数'
+    error.value = 'Missing authorization code parameter'
     loading.value = false
     return
   }
@@ -37,11 +37,11 @@ onMounted(async () => {
       redirectUri
     })
     userStore.token = res.accessToken
-    // 获取用户信息并保存
+    // Fetch and save user information
     await userStore.getUserInfo()
     router.replace('/')
   } catch (e: any) {
-    error.value = e?.response?.data?.msg || e.message || '请求失败'
+    error.value = e?.response?.data?.msg || e.message || 'Request failed'
     const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
     const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
     window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
