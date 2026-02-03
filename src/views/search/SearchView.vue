@@ -9,15 +9,6 @@
       @submit="handleSubmit"
     />
 
-    <button
-      v-if="showScrollTop"
-      type="button"
-      class="scroll-top-btn"
-      @click="scrollToTop"
-    >
-      Top
-    </button>
-
     <div class="search-content">
       <div v-if="loading" class="state-card">Loading results...</div>
 
@@ -28,23 +19,23 @@
 
       <SearchResultsSection v-else :search-results="searchResults" />
 
-      <div v-if="shouldShowPagination" class="pagination-wrap">
-        <el-pagination
-          v-model:current-page="pageNum"
-          v-model:page-size="pageSize"
-          :page-sizes="[12, 24, 48]"
-          :total="cappedTotal"
-          layout="sizes, prev, pager, next"
-          @current-change="handlePageChange"
-          @size-change="handlePageSizeChange"
-        />
+      <div
+        v-if="searchResults.length > 0 && !canLoadMore"
+        class="infinite-footer"
+      >
+        <span v-if="reachedHardLimit">
+          You have reached the first 10 pages of results. Try refining your search to narrow things down.
+        </span>
+        <span v-else-if="reachedBackendEnd">
+          You have reached the end of the results.
+        </span>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SearchSection from '@/views/home/components/SearchSection.vue'
 import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue'
@@ -59,20 +50,12 @@ const loading = ref(false)
 const searchTerm = ref('')
 const searchResults = ref<ProductBaseVO[]>([])
 
-const showScrollTop = ref(false)
-const isMobile = ref(false)
-
 const pageNum = ref(1)
-const pageSize = ref(24)
+const pageSize = ref(12)
 const total = ref(0)
 const pages = ref(0)
 
 const maxPages = computed(() => Math.min(pages.value || 0, 10))
-const cappedTotal = computed(() => {
-  if (total.value <= 0) return 0
-  const cap = pageSize.value * 10
-  return Math.min(total.value, cap)
-})
 
 const queryFromRoute = computed(() => {
   const q = route.query.q
@@ -145,54 +128,104 @@ const handleSubmit = async (term: string) => {
   await router.replace({ path: '/search', query: { q } })
 }
 
-const shouldShowPagination = computed(() => {
+const isFetchingMore = ref(false)
+
+const canLoadMore = computed(() => {
   const q = searchTerm.value.trim()
-  if (loading.value) return false
+  if (loading.value || isFetchingMore.value) return false
   if (q.length < 2) return false
-  return maxPages.value > 1
+  if (pageNum.value >= maxPages.value) return false
+  return true
 })
 
-const handlePageChange = async (next: number) => {
-  pageNum.value = Math.min(Math.max(next, 1), 10)
-  await runSearch(searchTerm.value)
-}
+const reachedHardLimit = computed(() => {
+  // Backend has more than 10 pages but we stop at 10
+  return pages.value > 10 && pageNum.value >= 10
+})
 
-const handlePageSizeChange = async (next: number) => {
-  pageSize.value = next
-  pageNum.value = 1
-  await runSearch(searchTerm.value)
-}
+const reachedBackendEnd = computed(() => {
+  // All backend pages have been loaded (<= 10 pages total)
+  return pages.value > 0 && pageNum.value >= pages.value && !reachedHardLimit.value
+})
 
-const updateIsMobile = () => {
-  isMobile.value = window.matchMedia('(max-width: 768px)').matches
+const loadNextPage = async () => {
+  if (!canLoadMore.value) return
+
+  const q = searchTerm.value.trim()
+  if (q.length < 2) return
+
+  const nextPage = Math.min(pageNum.value + 1, 10)
+  isFetchingMore.value = true
+  try {
+    const res = await productStore.searchProductsV2(q, nextPage, pageSize.value)
+    const list = res.list || []
+    if (list.length > 0) {
+      searchResults.value = [...searchResults.value, ...list]
+    }
+    total.value = res.total || total.value
+    pages.value = res.pages || pages.value
+    pageNum.value = Math.min(res.pageNum || nextPage, 10)
+  } finally {
+    isFetchingMore.value = false
+  }
 }
 
 const handleScroll = () => {
-  const y = window.scrollY || document.documentElement.scrollTop || 0
-  showScrollTop.value = isMobile.value && y > 120
-}
+  if (!canLoadMore.value) return
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
 
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
+  const host = scrollHost || window
 
-watch(
-  () => searchResults.value.length,
-  () => {
-    handleScroll()
+  let scrollTop: number
+  let viewportHeight: number
+  let docHeight: number
+
+  if (host instanceof Window) {
+    scrollTop =
+      window.scrollY ||
+      document.documentElement.scrollTop ||
+      document.body.scrollTop ||
+      0
+    viewportHeight = window.innerHeight || document.documentElement.clientHeight
+    docHeight =
+      document.documentElement.scrollHeight || document.body.scrollHeight || 0
+  } else {
+    scrollTop = host.scrollTop
+    viewportHeight = host.clientHeight
+    docHeight = host.scrollHeight
   }
-)
+
+  if (docHeight - (scrollTop + viewportHeight) < 200) {
+    loadNextPage()
+  }
+}
+
+let scrollHost: Window | HTMLElement | null = null
 
 onMounted(() => {
-  updateIsMobile()
-  window.addEventListener('resize', updateIsMobile, { passive: true })
-  window.addEventListener('scroll', handleScroll, { passive: true })
-  handleScroll()
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+
+  const layoutMain = document.querySelector('.layout-main') as HTMLElement | null
+
+  if (layoutMain && layoutMain.scrollHeight > layoutMain.clientHeight + 10) {
+    scrollHost = layoutMain
+    layoutMain.addEventListener('scroll', handleScroll, { passive: true })
+  } else {
+    scrollHost = window
+    window.addEventListener('scroll', handleScroll, { passive: true })
+  }
 })
 
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateIsMobile)
-  window.removeEventListener('scroll', handleScroll)
+onUnmounted(() => {
+  if (!scrollHost) return
+
+  if (scrollHost instanceof Window) {
+    scrollHost.removeEventListener('scroll', handleScroll)
+  } else {
+    scrollHost.removeEventListener('scroll', handleScroll)
+  }
+
+  scrollHost = null
 })
 </script>
 
@@ -323,35 +356,6 @@ onBeforeUnmount(() => {
 
 .pagination-wrap :deep(.el-pagination__sizes .el-select) {
   min-height: 44px;
-}
-
-.scroll-top-btn {
-  position: fixed;
-  right: 16px;
-  bottom: 18px;
-  z-index: 60;
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
-  border: 1px solid rgba(0, 122, 255, 0.25);
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.96), rgba(64, 156, 255, 0.92));
-  color: rgba(255, 255, 255, 0.98);
-  font-weight: 800;
-  font-size: 16px;
-  box-shadow:
-    0 18px 42px rgba(0, 122, 255, 0.26),
-    0 12px 28px rgba(15, 23, 42, 0.14);
-  transform: translateZ(0);
-}
-
-.scroll-top-btn:active {
-  transform: scale(0.98);
-}
-
-@media (min-width: 769px) {
-  .scroll-top-btn {
-    display: none;
-  }
 }
 
 .state-card {

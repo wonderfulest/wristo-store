@@ -12,7 +12,7 @@
           @keyup.enter="handleSubmit"
           :border="false"
         />
-        <el-button class="search-bar-btn" type="primary" round @click="handleSubmit">Search</el-button>
+        <!-- <el-button class="search-bar-btn" type="primary" round @click="handleSubmit">Search</el-button> -->
       </div>
     </div>
   </section>
@@ -86,7 +86,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .search-section {
-  min-height: 220px;
+  min-height: 260px;
   background: linear-gradient(135deg, #eaf3ff 0%, #f5faff 100%);
   display: flex;
   align-items: center;
@@ -107,26 +107,26 @@ onBeforeUnmount(() => {
   background: #fff;
   border-radius: 999px;
   box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
-  padding: 0 24px 0 20px;
-  width: 40vw;
+  padding: 0 28px 0 22px;
+  width: 56vw;
   min-width: 320px;
-  max-width: 600px;
-  height: 64px;
+  max-width: 820px;
+  height: 76px;
   display: flex;
   align-items: center;
 }
 
 .search-icon {
   color: #b0b7c3;
-  font-size: 26px;
-  margin-right: 12px;
+  font-size: 28px;
+  margin-right: 14px;
 }
 
 .search-bar-input :deep(.el-input__wrapper) {
   box-shadow: none !important;
   border: none !important;
   background: transparent !important;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #222;
   padding: 0;
 }
@@ -135,9 +135,28 @@ onBeforeUnmount(() => {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  font-size: 1.3rem;
+  font-size: 1.4rem;
   color: #222;
   padding: 0;
+}
+
+@media (max-width: 768px) {
+  .search-section {
+    min-height: 220px;
+  }
+
+  .search-bar-outer {
+    margin-top: 22px;
+    margin-bottom: 22px;
+  }
+
+  .search-bar-inner {
+    width: 98vw;
+    max-width: none;
+    min-width: 0;
+    height: 72px;
+    padding: 0 20px 0 18px;
+  }
 }
 
 .search-bar-input :deep(.el-input__inner)::placeholder {

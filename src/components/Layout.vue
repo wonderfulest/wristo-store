@@ -4,13 +4,24 @@
     <main class="layout-main">
       <slot />
     </main>
+    <FloatingActions
+      v-if="showFloatingActions"
+      always-visible
+    />
     <Footer />
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
+import FloatingActions from '@/components/FloatingActions/FloatingActions.vue'
+
+const route = useRoute()
+
+const showFloatingActions = computed(() => route.meta.showFloatingActions === true)
 </script>
 
 <style scoped>

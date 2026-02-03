@@ -4,12 +4,18 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
-    component: () => import('@/views/home/Home.vue')
+    component: () => import('@/views/home/Home.vue'),
+    meta: {
+      showFloatingActions: true
+    }
   },
   {
     path: '/search',
     name: 'Search',
-    component: () => import('@/views/search/SearchView.vue')
+    component: () => import('@/views/search/SearchView.vue'),
+    meta: {
+      showFloatingActions: true
+    }
   },
   {
     path: '/brands',
@@ -124,7 +130,10 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/categories/:slug',
     name: 'CategoryDetail',
-    component: () => import('@/views/products/Categories.vue')
+    component: () => import('@/views/products/Categories.vue'),
+    meta: {
+      showFloatingActions: true
+    }
   },
   {
     path: '/newsletter',
@@ -139,7 +148,10 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/bundle-products',
     name: 'BundleProducts',
-    component: () => import('@/views/products/BundledProducts.vue')
+    component: () => import('@/views/products/BundledProducts.vue'),
+    meta: {
+      showFloatingActions: true
+    }
   },
   {
     path: '/template-editor',

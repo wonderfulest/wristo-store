@@ -7,7 +7,6 @@
     <!-- Search Section -->
     <SearchSection 
       :initialSearchTerm="searchTerm"
-      placeholder="Search Garmin watch faces\nRetro / AMOLED / Minimal ..."
       :submitOnFocus="true"
       @submit="handleSubmitSearch"
     />
