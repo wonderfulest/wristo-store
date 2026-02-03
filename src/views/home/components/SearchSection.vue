@@ -138,6 +138,23 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
+.search-bar-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.results-count-pill {
+  margin-left: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #0369a1;
+  /* background: rgba(191, 219, 254, 0.75); */
+  /* border: 1px solid rgba(59, 130, 246, 0.35); */
+  white-space: nowrap;
+}
+
 .search-icon {
   color: #b0b7c3;
   font-size: 28px;
@@ -157,7 +174,7 @@ onBeforeUnmount(() => {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  font-size: 2.0rem;
+  font-size: 1.4rem;
   font-weight: 600;
   color: #222;
   padding: 0;
@@ -186,6 +203,12 @@ onBeforeUnmount(() => {
     min-width: 0;
     height: 72px;
     padding: 0 20px 0 18px;
+  }
+
+  .results-count-pill {
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
   }
 }
 
