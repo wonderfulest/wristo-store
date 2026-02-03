@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import { searchProducts, getNewProducts, getSeries, 
   getHotProducts, getProductDetail, getRelatedProducts, getHotSeries, 
+  searchProductsV2,
 } from '@/api/product'
-import type { ProductBaseVO, ProductVO, Series } from '@/types'
+import type { ProductBaseVO, ProductVO, Series, PageResult } from '@/types'
 
 const withSeriesImage = (list: Series[]) => {
   return (list || []).map((s) => ({
@@ -41,6 +42,30 @@ export const useProductStore = defineStore('product', {
       } catch (error) {
         console.error('搜索商品失败:', error)
         return []
+      }
+    },
+
+    async searchProductsV2(keyword: string, pageNum = 1, pageSize = 24): Promise<PageResult<ProductBaseVO>> {
+      try {
+        const response: PageResult<ProductBaseVO> = await searchProductsV2(keyword, pageNum, pageSize)
+        this.searchResults = response?.list || []
+        return {
+          pageNum: response?.pageNum || pageNum,
+          pageSize: response?.pageSize || pageSize,
+          total: response?.total || 0,
+          pages: response?.pages || 0,
+          list: response?.list || [],
+        }
+      } catch (error) {
+        console.error('搜索商品失败:', error)
+        this.searchResults = []
+        return {
+          pageNum,
+          pageSize,
+          total: 0,
+          pages: 0,
+          list: [],
+        }
       }
     },
 

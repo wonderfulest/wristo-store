@@ -32,7 +32,6 @@ defineProps<{
 .search-results-section {
   width: 100%;
   padding: 80px 0;
-  background: #f5f5f7;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 

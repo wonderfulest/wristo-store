@@ -9,6 +9,13 @@ export const searchProducts = (keyword: string): Promise<ProductBaseVO[]> => {
   })
 }
 
+// 搜索商品（分页）
+export const searchProductsV2 = (keyword: string, pageNum = 1, pageSize = 24): Promise<PageResult<ProductBaseVO>> => {
+  return instance.get('/public/products/search/v2', {
+    params: { keyword, pageNum, pageSize }
+  })
+}
+
 // 获取新品
 export const getNewProducts = (): Promise<ProductBaseVO[]> => {
   return instance.get('/public/products/new?limit=16')
