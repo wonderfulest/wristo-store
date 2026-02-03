@@ -6,14 +6,10 @@
 
     <!-- Search Section -->
     <SearchSection 
-      @search="handleSearch" 
       :initialSearchTerm="searchTerm"
-    />
-
-    <!-- Search Results -->
-    <SearchResultsSection 
-      v-if="searchResults.length > 0" 
-      :search-results="searchResults"
+      placeholder="Search Garmin watch faces\nRetro / AMOLED / Minimal ..."
+      :submitOnFocus="true"
+      @submit="handleSubmitSearch"
     />
 
     <!-- New Arrivals Carousel -->
@@ -53,7 +49,6 @@ import type { ProductBaseVO, Series } from '@/types';
 import Newsletter from '@/components/Newsletter.vue';
 import HomeBanner from '@/views/home/components/HomeBanner.vue';
 import SearchSection from '@/views/home/components/SearchSection.vue';
-import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue';
 import NewArrivalsCarousel from '@/views/home/components/NewArrivalsCarousel.vue';
 import BrandsSection from '@/views/brands/BrandsSection.vue';
 import FeatureSection from '@/views/home/components/FeatureSection.vue';
@@ -64,19 +59,15 @@ const productStore = useProductStore();
 const router = useRouter();
 
 const searchTerm = ref('');
-const searchResults = ref<ProductBaseVO[]>([]);
 const newProducts = ref<ProductBaseVO[]>([]);
 const seriesList = ref<Series[]>([]);
 const hotProducts = ref<ProductBaseVO[]>([]);
 
-const handleSearch = async (term: string) => {
-  searchTerm.value = term;
-  if (term.length > 0) {
-    searchResults.value = await productStore.searchProducts(term);
-  } else {
-    searchResults.value = [];
-  }
-};
+const handleSubmitSearch = async (term: string) => {
+  const q = term.trim()
+  searchTerm.value = term
+  await router.push(q ? { path: '/search', query: { q } } : { path: '/search' })
+}
 
 // Fetch initial data
 onMounted(async () => {

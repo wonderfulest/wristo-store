@@ -5,23 +5,38 @@
         <el-icon class="search-icon"><Search /></el-icon>
         <el-input
           v-model="searchTerm"
-          placeholder='Try "Elegant" ...'
+          :placeholder="placeholder"
           class="search-bar-input"
           @input="handleSearch"
+          @focus="handleFocus"
+          @keyup.enter="handleSubmit"
           :border="false"
         />
-        <el-button class="search-bar-btn" type="primary" round @click="handleSearchImmediate">Search</el-button>
+        <el-button class="search-bar-btn" type="primary" round @click="handleSubmit">Search</el-button>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import { Search } from '@element-plus/icons-vue';
 
-const searchTerm = ref('');
-const emit = defineEmits(['search']);
+const props = withDefaults(
+  defineProps<{
+    initialSearchTerm?: string
+    placeholder?: string
+    submitOnFocus?: boolean
+  }>(),
+  {
+    initialSearchTerm: '',
+    placeholder: 'Try "Elegant" ...',
+    submitOnFocus: false
+  }
+)
+
+const searchTerm = ref(props.initialSearchTerm || '')
+const emit = defineEmits(['search', 'submit']);
 
 let debounceTimer: number | undefined
 
@@ -42,12 +57,27 @@ const handleSearch = () => {
   emitSearchDebounced(value)
 }
 
-const handleSearchImmediate = () => {
+const handleSubmit = () => {
   const value = searchTerm.value.trim()
   if (value.length < 2) return
   if (debounceTimer) window.clearTimeout(debounceTimer)
-  emitSearch(value)
+  emit('submit', value)
 }
+
+const handleFocus = () => {
+  if (!props.submitOnFocus) return
+  if (debounceTimer) window.clearTimeout(debounceTimer)
+  emit('submit', searchTerm.value.trim())
+}
+
+watch(
+  () => props.initialSearchTerm,
+  (next) => {
+    if (typeof next !== 'string') return
+    if (next === searchTerm.value) return
+    searchTerm.value = next
+  }
+)
 
 onBeforeUnmount(() => {
   if (debounceTimer) window.clearTimeout(debounceTimer)

@@ -177,6 +177,14 @@ const handleLearnMore = () => {
 
 // 如果 URL 中带有 _ptxn，则请求后端获取 6 位代码并自动继续
 onMounted(async () => {
+  const initialCode = route.query.code as string | undefined
+  if (initialCode) {
+    const six = (initialCode || '').toString().replace(/\D/g, '').slice(0, 6)
+    if (six.length === 6) {
+      code.value = six
+    }
+  }
+
   const txnId = route.query._ptxn as string | undefined
   if (!txnId) return
 
