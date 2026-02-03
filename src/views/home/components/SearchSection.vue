@@ -7,26 +7,33 @@
           v-model="searchTerm"
           :placeholder="placeholder"
           class="search-bar-input"
+          :input-style="{ textAlign: 'center' }"
           @input="handleSearch"
           @focus="handleFocus"
           @keyup.enter="handleSubmit"
           :border="false"
         />
-        <!-- <el-button class="search-bar-btn" type="primary" round @click="handleSubmit">Search</el-button> -->
+        <span
+          v-if="displayCount && searchTerm"
+          class="results-count-pill"
+        >
+          {{ displayCount }}
+        </span>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue';
-import { Search } from '@element-plus/icons-vue';
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { Search } from '@element-plus/icons-vue'
 
 const props = withDefaults(
   defineProps<{
     initialSearchTerm?: string
     placeholder?: string
     submitOnFocus?: boolean
+    total?: number
   }>(),
   {
     initialSearchTerm: '',
@@ -39,6 +46,21 @@ const searchTerm = ref(props.initialSearchTerm || '')
 const emit = defineEmits(['search', 'submit']);
 
 let debounceTimer: number | undefined
+
+const displayCount = computed(() => {
+  if (props.total == null) return ''
+
+  const total = props.total
+
+  if (total < 0) return ''
+
+  if (total < 100) {
+    return `${total} items`
+  }
+
+  const bucket = Math.floor(total / 100) * 100
+  return `${bucket}+ items`
+})
 
 const emitSearch = (value: string) => {
   emit('search', value)
@@ -126,7 +148,7 @@ onBeforeUnmount(() => {
   box-shadow: none !important;
   border: none !important;
   background: transparent !important;
-  font-size: 1.4rem;
+  font-size: 2.8rem;
   color: #222;
   padding: 0;
 }
@@ -135,9 +157,17 @@ onBeforeUnmount(() => {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  font-size: 1.4rem;
+  font-size: 2.0rem;
+  font-weight: 600;
   color: #222;
   padding: 0;
+}
+
+.search-bar-input :deep(.el-input__inner::placeholder) {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #b0b7c3 !important;
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
@@ -157,11 +187,6 @@ onBeforeUnmount(() => {
     height: 72px;
     padding: 0 20px 0 18px;
   }
-}
-
-.search-bar-input :deep(.el-input__inner)::placeholder {
-  color: #b0b7c3 !important;
-  opacity: 1;
 }
 
 .search-bar-btn {

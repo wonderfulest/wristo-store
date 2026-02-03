@@ -1,10 +1,6 @@
 <template>
   <section v-if="searchResults.length > 0" class="search-results-section">
     <div class="search-results-container">
-      <div class="section-header">
-        <h2 class="section-title">Search Results</h2>
-        <span class="results-count">{{ searchResults.length }} items</span>
-      </div>
       <div class="products-grid">
         <div 
           v-for="product in searchResults" 
@@ -19,13 +15,13 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue';
-import ProductCard from '@/components/ProductCard.vue';
-import type { ProductBaseVO } from '@/types';
+import { defineProps } from 'vue'
+import ProductCard from '@/components/ProductCard.vue'
+import type { ProductBaseVO } from '@/types'
 
 defineProps<{
-  searchResults: ProductBaseVO[];
-}>();
+  searchResults: ProductBaseVO[]
+}>()
 </script>
 
 <style scoped>

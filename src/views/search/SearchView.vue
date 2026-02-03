@@ -5,6 +5,7 @@
       class="search-section-standalone"
       :initialSearchTerm="searchTerm"
       placeholder="Search styles, features, keywords or activate code"
+      :total="total"
       @search="handleSearch"
       @submit="handleSubmit"
     />
