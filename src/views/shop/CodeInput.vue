@@ -98,7 +98,7 @@ import { purchaseByCode, checkPurchaseByToken, continuePurchase } from '@/api/pa
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
 import Logo from '@/components/Logo.vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import type { PurchaseData } from '@/types/purchase'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 
