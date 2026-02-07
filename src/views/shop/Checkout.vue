@@ -148,10 +148,11 @@ const bundleCurrentPrice = computed(() => {
 
 const bundleOriginalPrice = computed(() => {
     if (!isBundle.value) return 0
+    const base = Number((product.value as Bundle).price) || 0
+    if (discountInfo.value?.valid) return Number(discountInfo.value.originalPrice)
     const total = Number((product.value as Bundle).appTotalPrice)
-    const current = bundleCurrentPrice.value
-    if (Number.isFinite(total) && total > current) return total
-    return current
+    if (Number.isFinite(total) && total > base) return total
+    return base
 })
 
 const bundleDiscount = computed(() => {
@@ -169,8 +170,10 @@ const productCurrentPrice = computed(() => {
 })
 
 const productOriginalPrice = computed(() => {
-    const current = productCurrentPrice.value
-    return current
+    if (isBundle.value) return 0
+    const base = Number((product.value as ProductVO)?.price) || 0
+    if (discountInfo.value?.valid) return Number(discountInfo.value.originalPrice)
+    return base
 })
 
 const productDiscount = computed(() => {
@@ -384,7 +387,9 @@ const handlePayment = async (isRetry = false) => {
             discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
             customData: {
                 isSubscription: false,
-                source: isBundleTokenFlow.value ? PurchaseOrigin.STORE : PurchaseOrigin.CODE,
+                source: (discountInfo.value?.valid || (store as any).discountCode)
+                    ? PurchaseOrigin.PROMOTION
+                    : (isBundleTokenFlow.value ? PurchaseOrigin.STORE : PurchaseOrigin.CODE),
                 code: request?.value?.purchaseCode,
                 accessToken: request?.value?.accounttoken,
                 appId: request?.value?.appid,
@@ -392,7 +397,6 @@ const handlePayment = async (isRetry = false) => {
                 isBundle: isBundle.value,
                 email: email.value,
                 discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
-                discountId: discountInfo.value?.valid ? (discountInfo.value.discountId || discountInfo.value.discount?.id || '') : '',
             },
         })
     } else {

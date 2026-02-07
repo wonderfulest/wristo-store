@@ -3,4 +3,5 @@ export enum PurchaseOrigin {
   CODE = 'shop_code',
   WEBHOOK = 'webhook',
   CRONTAB = 'crontab',
+  PROMOTION = 'promotion',
 }

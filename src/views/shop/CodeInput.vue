@@ -37,6 +37,33 @@
             </span>
           </div>
         </div>
+        <div class="coupon-toggle-row">
+          <button
+            v-if="!showCouponInput"
+            type="button"
+            class="coupon-toggle-link"
+            @click="showCouponInput = true"
+          >
+            Have a coupon code (optional)?
+          </button>
+        </div>
+
+        <div
+          v-if="showCouponInput"
+          class="input-group"
+        >
+          <label class="input-label">Coupon (optional)</label>
+          <input
+            v-model="coupon"
+            type="text"
+            placeholder="Enter coupon code if you have one"
+            class="code-input coupon-input"
+            @input="handleInput"
+          />
+          <div class="input-desc">
+            If you received a special coupon or invite code, enter it here.
+          </div>
+        </div>
         
         <div v-if="error" class="message error-message">
           <div class="message-icon">⚠️</div>
@@ -71,14 +98,16 @@ import { purchaseByCode, checkPurchaseByToken, continuePurchase } from '@/api/pa
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
 import Logo from '@/components/Logo.vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { PurchaseData } from '@/types/purchase'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 
 const code = ref('')
+const coupon = ref('')
 const error = ref('')
 const success = ref('')
 const loading = ref(false)
+const showCouponInput = ref(false)
 const router = useRouter()
 const route = useRoute()
 const store = useShopOptionsStore()
@@ -130,7 +159,16 @@ const handleContinue = async () => {
     // 正常流程：获取产品信息并跳转到购买页面
     const purchaseData: PurchaseData = await purchaseByCode(code.value)
     store.setData(purchaseData)
-    router.push({ name: 'PurchaseOptions' })
+    if (coupon.value.trim()) {
+      // 将口令码保存到全局 discountCode，后续 PurchaseOptions / Checkout 统一使用
+      store.setDiscountCode(coupon.value.trim())
+      router.push({
+        name: 'PurchaseOptions',
+        query: { discountCode: coupon.value.trim() }
+      })
+    } else {
+      router.push({ name: 'PurchaseOptions' })
+    }
   } catch (e: unknown) {
     if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof (e as any).msg === 'string') {
       error.value = (e as any).msg
@@ -169,9 +207,10 @@ const handleAlreadyPurchased = () => {
 
 const handleLearnMore = () => {
   // Show help information about smartwatch codes
-  ElMessage.info({
-    message: 'After installing the clock face or app, there will be a short trial period. Once the trial ends, a 6-digit code will appear on your smartwatch screen for activation. If no code appears, it means the watch face has been automatically unlocked—feel free to continue using it.',
-    duration: 8000
+  ElMessageBox.alert('After installing the clock face or app, there will be a short trial period. Once the trial ends, a 6-digit code will appear on your smartwatch screen for activation. If no code appears, it means the watch face has been automatically unlocked—feel free to continue using it.', {
+    title: 'Smartwatch Code',
+    confirmButtonText: 'OK',
+    showClose: false
   })
 }
 
@@ -365,7 +404,7 @@ onMounted(async () => {
 }
 
 .input-label {
-  font-size: 0.95rem;
+  font-size: 1.6rem;
   font-weight: 600;
   color: #1d1d1f;
   margin-bottom: 4px;
@@ -401,6 +440,27 @@ onMounted(async () => {
   color: #86868b;
   margin-top: 4px;
   line-height: 1.4;
+}
+
+.coupon-toggle-row {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.coupon-toggle-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #007aff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.coupon-toggle-link:hover {
+  color: #0056cc;
 }
 
 .help-inline {

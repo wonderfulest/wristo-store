@@ -11,9 +11,7 @@ export interface DiscountInfo {
   discount?: {
     type?: string
     value?: number
-    id?: string
   }
-  discountId?: string
   discountCode?: string
 }
 

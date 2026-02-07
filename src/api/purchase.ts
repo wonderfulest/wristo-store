@@ -12,11 +12,7 @@ export interface CheckDiscountResponseVO {
   discount?: {
     type?: string
     value?: number
-    id?: string
   }
-  originalPrice: number
-  finalPrice: number
-  currency: string
 }
 
 export const getBundlesForPurchase = (): Promise<Bundle[]> => {

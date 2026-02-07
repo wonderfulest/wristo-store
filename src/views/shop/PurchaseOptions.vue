@@ -3,6 +3,15 @@
     <!-- <Logo /> -->
     <h2 class="title">Decision Time</h2>
     <p class="desc">✨ Unlock ALL watch faces with one purchase — enjoy them forever, no more switching hassle.</p>
+
+    <div
+      v-if="activeDiscountCode"
+      class="discount-banner"
+    >
+      <span class="badge-label">Coupon</span>
+      <span class="code-text">{{ activeDiscountCode }}</span>
+      <span class="banner-text">has been applied to eligible prices.</span>
+    </div>
     
     <div class="cards-container">
       <!-- 套餐卡片 -->
@@ -103,6 +112,11 @@ const discountCodeFromQuery = computed(() => {
   return (code ? String(code) : '').trim()
 })
 
+const activeDiscountCode = computed(() => {
+  // 优先使用 store 中的 discountCode，退回到 query
+  return (store.discountCode || discountCodeFromQuery.value || '').trim()
+})
+
 const priceIdFromQuery = computed(() => {
   const raw = route.query?.priceId
   const id = Array.isArray(raw) ? raw[0] : raw
@@ -161,14 +175,53 @@ const formatPrice = (amount: number, currencyCode?: string) => {
   return `${symbol}${safe.toFixed(2)}`
 }
 
+const normalizePercentageValue = (value?: number) => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return null
+  if (n <= 0) return null
+  if (n > 100) return null
+  return n
+}
+
+const normalizeFlatAmount = (value?: number, basePrice?: number) => {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return null
+  if (n <= 0) return null
+
+  const base = Number(basePrice)
+  if (Number.isFinite(base) && base > 0 && n > base * 1.5) {
+    return n / 100
+  }
+  return n
+}
+
+const computeDiscountedPrice = (basePrice: number, discount?: { type?: string; value?: number }) => {
+  const base = Number.isFinite(Number(basePrice)) ? Number(basePrice) : 0
+  const type = String(discount?.type || '').toLowerCase()
+
+  if (!discount || !type) return { finalPrice: base, applied: false }
+
+  if (type === 'percentage') {
+    const pct = normalizePercentageValue(discount.value)
+    if (!pct) return { finalPrice: base, applied: false }
+    const final = Math.max(0, base * (1 - pct / 100))
+    return { finalPrice: Number(final.toFixed(2)), applied: final < base }
+  }
+
+  if (type === 'flat') {
+    const flat = normalizeFlatAmount(discount.value, base)
+    if (!flat) return { finalPrice: base, applied: false }
+    const final = Math.max(0, base - flat)
+    return { finalPrice: Number(final.toFixed(2)), applied: final < base }
+  }
+
+  return { finalPrice: base, applied: false }
+}
+
 // 价格计算 - 产品
 const productOriginalPrice = computed(() => {
   if (!product.value) return 0
-  const base = parseFloat(String(product.value.price))
-  const priceId = getPriceIdForProduct(product.value)
-  const discountInfo = getDiscountInfoByPriceId(priceId)
-  if (discountInfo?.valid) return Number(discountInfo.originalPrice)
-  return base
+  return parseFloat(String(product.value.price))
 })
 
 const productCurrentPrice = computed(() => {
@@ -188,7 +241,7 @@ const productDiscount = computed(() => {
 // 多个套餐的价格计算函数
 const getBundleOriginalPrice = (bundleItem: Bundle) => {
   if (!bundleItem) return 0
-  // 如果有折扣，返回bundle原价 和 折扣价
+  // 如果有折扣，返回 bundle 原价（折扣前）
   const priceId = getPriceIdForBundle(bundleItem)
   const discountInfo = getDiscountInfoByPriceId(priceId)
   if (discountInfo?.valid) return Number(discountInfo.originalPrice)
@@ -314,18 +367,18 @@ const runDiscountChecks = () => {
 
   store.setDiscountCode(discountCodeFromQuery.value)
 
-  const requests: Array<{ priceId: string; discountCode: string }> = []
+  const requests: Array<{ priceId: string; discountCode: string; basePrice: number }> = []
   const productPriceId = getPriceIdForProduct(product.value)
   const shouldCheckByQueryPriceId = !!priceIdFromQuery.value
   const productMatchesQuery = !shouldCheckByQueryPriceId || priceIdFromQuery.value === productPriceId
   if (productPriceId && productMatchesQuery) {
-    requests.push({ priceId: productPriceId, discountCode: discountCodeFromQuery.value })
+    requests.push({ priceId: productPriceId, discountCode: discountCodeFromQuery.value, basePrice: parseFloat(String(product.value?.price || 0)) })
   }
   for (const b of bundles.value) {
     const pid = getPriceIdForBundle(b)
     const bundleMatchesQuery = !shouldCheckByQueryPriceId || priceIdFromQuery.value === pid
     if (pid && bundleMatchesQuery) {
-      requests.push({ priceId: pid, discountCode: discountCodeFromQuery.value })
+      requests.push({ priceId: pid, discountCode: discountCodeFromQuery.value, basePrice: parseFloat(String((b as any)?.price || 0)) })
     }
   }
 
@@ -334,18 +387,22 @@ const runDiscountChecks = () => {
   Promise.all(
     requests.map(async (req) => {
       try {
-        const res = await checkDiscount(req)
+        const res = await checkDiscount({ priceId: req.priceId, discountCode: req.discountCode })
+
+        const base = Number.isFinite(Number(req.basePrice)) ? Number(req.basePrice) : 0
+        const computed = computeDiscountedPrice(base, res.discount)
+        const isValid = !!res.valid && !!computed.applied
+
         store.setDiscountForPriceId(req.priceId, {
-          valid: !!res.valid,
-          originalPrice: Number(res.originalPrice),
-          finalPrice: Number(res.finalPrice),
-          currency: String(res.currency || 'USD'),
+          valid: isValid,
+          originalPrice: base,
+          finalPrice: computed.finalPrice,
+          currency: 'USD',
           discount: res.discount,
-          discountId: res.discount?.id,
           discountCode: req.discountCode
         })
 
-        if (res?.valid) {
+        if (isValid) {
           animatedPriceIds.value.add(req.priceId)
           window.setTimeout(() => {
             animatedPriceIds.value.delete(req.priceId)
@@ -403,6 +460,35 @@ onMounted(() => {
   color: #666;
   margin-bottom: 1rem;
   font-size: 1.1rem;
+}
+
+.discount-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #047857;
+  font-size: 0.9rem;
+  margin-bottom: 16px;
+}
+
+.badge-label {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.8rem;
+}
+
+.code-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.banner-text {
+  opacity: 0.9;
 }
 
 .cards-container {

@@ -8,10 +8,6 @@
     <div class="lifetime-badge">
       Lifetime License
     </div>
-    <!-- 折扣提示 -->
-    <div v-if="shouldShowDiscountTip" class="discount-tip" role="status" aria-live="polite">
-      <div class="discount-tip-title">Christmas limited-time deal — don’t miss it.</div>
-    </div>
     <!-- 名字和价格 -->
     <div class="card-header">
       <h3 class="card-title">{{ title }}</h3>
@@ -74,7 +70,6 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useShopOptionsStore } from '@/store/shopOptions'
 
 const getCurrencySymbol = (code?: string) => {
   const normalized = String(code || 'USD').toUpperCase()
@@ -123,19 +118,10 @@ const props = withDefaults(defineProps<Props>(), {
   animateDiscount: false
 })
 
-const store = useShopOptionsStore()
-
 const cappedDiscount = computed(() => {
   const n = Number(props.discount)
   if (!Number.isFinite(n)) return 0
   return Math.min(99, Math.max(0, Math.floor(n)))
-})
-
-const shouldShowDiscountTip = computed(() => {
-  const priceId = String(props.priceId || '')
-  if (!priceId) return false
-  const discountInfo = (store as any).discountsByPriceId?.[priceId]
-  return !!discountInfo?.valid
 })
 
 const currencySymbol = computed(() => getCurrencySymbol(props.currencyCode))
