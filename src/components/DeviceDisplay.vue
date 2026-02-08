@@ -102,11 +102,11 @@ const handleSelectDevice = () => {
 
 // Handle device selection from modal
 const onDeviceSelected = (device: ApiGarminDeviceVO) => {
-  localSelectedDevice.value = device as GarminDeviceVO
+  localSelectedDevice.value = device as unknown as GarminDeviceVO
   showSelector.value = false
   
   // Emit device selected event
-  emit('device-selected', device as GarminDeviceVO)
+  emit('device-selected', device as unknown as GarminDeviceVO)
 }
 
 // Expose current device for parent components
