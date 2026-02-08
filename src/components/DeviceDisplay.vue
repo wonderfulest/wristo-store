@@ -6,7 +6,7 @@
         <img v-if="currentDevice.imageUrl" :src="currentDevice.imageUrl" :alt="currentDevice.displayName" />
         <div v-else class="device-fallback">⌚️</div>
       </div>
-      <div class="device-name">{{ currentDevice.displayName }}</div>
+      <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ currentDevice.displayName }}</div>
     </div>
     
     <!-- No Device -->
@@ -14,7 +14,7 @@
       <div class="device-avatar">
         <div class="device-fallback">📱</div>
       </div>
-      <div class="device-name">Select Device</div>
+      <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">Select Device</div>
     </div>
   </div>
   
@@ -36,6 +36,7 @@ interface Props {
   selectedDevice?: GarminDeviceVO | null
   isMobile?: boolean
   showWhenEmpty?: boolean
+  nameMaxWidth?: number
 }
 
 interface Emits {
@@ -46,7 +47,8 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   selectedDevice: null,
   isMobile: false,
-  showWhenEmpty: true
+  showWhenEmpty: true,
+  nameMaxWidth: 120
 })
 
 const emit = defineEmits<Emits>()
@@ -176,7 +178,6 @@ defineExpose({
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 120px;
   font-weight: 500;
 }
 

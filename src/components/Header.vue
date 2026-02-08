@@ -76,9 +76,6 @@
             <button class="auth-btn login-btn" @click="goToLogin">
               <span>Sign In</span>
             </button>
-            <button class="auth-btn signup-btn" @click="goToSignup">
-              <span>Sign Up</span>
-            </button>
           </div>
         </template>
       </div>
@@ -122,9 +119,6 @@
           <div class="mobile-auth-buttons-top">
             <button class="mobile-auth-btn login" @click="handleMobileLogin">
               Sign In
-            </button>
-            <button class="mobile-auth-btn signup" @click="handleMobileSignup">
-              Sign Up
             </button>
           </div>
         </template>
@@ -250,23 +244,8 @@ const goToLogin = () => {
   }
 };
 
-const goToSignup = () => {
-  const ssoBaseUrl = import.meta.env.VITE_SSO_SIGNUP_URL
-  const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI;
-  const signupUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}&mode=signup`
-  
-  // 移动端兼容性更好的跳转方式
-  if (/Mobi|Android/i.test(navigator.userAgent)) {
-    // 移动端使用延迟跳转
-    setTimeout(() => {
-      window.location.replace(signupUrl)
-    }, 100)
-  } else {
-    window.location.href = signupUrl
-  }
-};
+// signup 已不再需要，移动端和桌面统一走登录入口（支持 Google / 邮箱验证码）
 
-// Mobile menu functions
 const toggleMobileMenu = () => {
   isMobileMenuOpen.value = !isMobileMenuOpen.value;
   if (isMobileMenuOpen.value) {
@@ -291,11 +270,6 @@ const toggleCategoriesDropdown = () => {
 const handleMobileLogin = () => {
   closeMobileMenu();
   goToLogin();
-};
-
-const handleMobileSignup = () => {
-  closeMobileMenu();
-  goToSignup();
 };
 
 onMounted(() => {

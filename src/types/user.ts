@@ -70,6 +70,8 @@ export interface UserInfo {
   roles?: Array<{id: number, roleName: string, roleCode: string, description: string, status: number}>
   userProfile?: UserProfileVO
   device?: GarminDeviceVO
+  googleBound?: boolean
+  hasPassword?: boolean
 }
 
 export interface UserBaseVO {

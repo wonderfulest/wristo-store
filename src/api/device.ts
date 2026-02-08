@@ -3,6 +3,7 @@ import instance from '@/config/axios'
 // 设备基础信息接口
 export interface GarminDeviceBaseVO {
   id: number
+  deviceId: number
   displayName: string
   imageUrl?: string
   deviceFamily?: string

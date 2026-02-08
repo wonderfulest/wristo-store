@@ -1,106 +1,228 @@
 <template>
   <div class="profile-gradient-bg">
+
+    <!-- Avatar -->
     <div class="profile-avatar-block">
-      <img :src="editMode ? form.avatar : (userInfo?.avatar || 'https://cdn.wristo.io/test/avatar/561aae25-41bd-47ab-974e-7231f5a850e8.png')"
-           class="profile-avatar"
-           :class="{ 'avatar-editing': editMode }"
-           alt="avatar"
-           @dblclick="onAvatarDblClick" />
+      <img
+        :src="editMode ? form.avatar : (userInfo?.avatar || defaultAvatar)"
+        class="profile-avatar"
+        :class="{ 'avatar-editing': editMode }"
+        @dblclick="onAvatarDblClick"
+      />
+
       <input
         v-if="editMode"
         ref="avatarInputRef"
         type="file"
         accept="image/*"
-        style="display: none"
+        hidden
         @change="onAvatarFileChange"
       />
     </div>
+
+    <!-- Nickname -->
     <div class="profile-nickname-row">
-      <span class="profile-nickname">{{ userInfo?.username }}</span>
+      <span class="profile-nickname">
+        {{ userInfo?.username }}
+      </span>
+
       <span class="profile-edit-btn" @click="startEdit">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="11" fill="#fff"/><path d="M15.13 3.29a2.5 2.5 0 0 1 3.54 3.54l-9.6 9.6a1 1 0 0 1-.41.25l-3.5 1a1 1 0 0 1-1.24-1.24l1-3.5a1 1 0 0 1 .25-.41l9.6-9.6ZM16.54 7.12l-2.66-2.66" stroke="#a259c9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <Icon icon="mdi:pencil-circle" width="22" />
       </span>
     </div>
+
+    <!-- Card -->
     <div class="profile-card">
-      <div class="profile-title">USER PROFILE</div>
+
       <div class="profile-form">
+
+        <!-- Email -->
         <div class="form-item">
-          <span class="form-icon"><svg width="22" height="22" fill="none"><circle cx="11" cy="11" r="11" fill="#f3e9fa"/><path d="M11 12.5c2.5 0 4.5 1 4.5 2.5v1H6.5v-1c0-1.5 2-2.5 4.5-2.5Z" stroke="#a259c9" stroke-width="1.2"/><circle cx="11" cy="9" r="2.5" stroke="#a259c9" stroke-width="1.2"/></svg></span>
-          <div class="form-content">
-            <label>User Name</label>
-            <el-input v-model="form.username" placeholder="Enter User Name" class="form-input" v-if="editMode" />
-            <span v-else>{{ userInfo?.username }}</span>
-          </div>
-        </div>
-        <div class="form-item">
-          <span class="form-icon"><svg width="22" height="22" fill="none"><circle cx="11" cy="11" r="11" fill="#f3e9fa"/><path d="M8 10h6M8 13h4" stroke="#a259c9" stroke-width="1.2"/><rect x="7" y="7" width="8" height="8" rx="4" stroke="#a259c9" stroke-width="1.2"/></svg></span>
-          <div class="form-content">
-            <label>Nickname</label>
-            <el-input v-model="form.nickname" placeholder="Enter your nickname" class="form-input" v-if="editMode" />
-            <span v-else>{{ userInfo?.nickname }}</span>
-          </div>
-        </div>
-        <div class="form-item">
-          <span class="form-icon"><svg width="22" height="22" fill="none"><circle cx="11" cy="11" r="11" fill="#f3e9fa"/><path d="M6.5 9.5l4.5 3 4.5-3" stroke="#a259c9" stroke-width="1.2"/></svg></span>
-          <div class="form-content">
-            <label>Email</label>
-            <el-input v-model="form.email" placeholder="Enter Email" class="form-input" v-if="editMode" />
-            <span v-else>{{ userInfo?.email }}</span>
-          </div>
-        </div>
-        
-        <!-- Device Information -->
-        <div v-if="userInfo?.device" class="form-item device-item">
-          <span class="form-icon device-icon">
-            <svg width="22" height="22" fill="none">
-              <circle cx="11" cy="11" r="11" fill="#f3e9fa"/>
-              <path d="M8 6h6c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2z" stroke="#a259c9" stroke-width="1.2" fill="none"/>
-              <circle cx="11" cy="11" r="1.5" fill="#a259c9"/>
-            </svg>
+          <span class="form-icon">
+            <Icon icon="mdi:email-outline" width="24" />
           </span>
+
           <div class="form-content">
-            <label>Current Device</label>
-            <div class="device-display">
-              <div class="device-avatar">
-                <img v-if="userInfo.device.imageUrl" :src="userInfo.device.imageUrl" :alt="userInfo.device.displayName" />
-                <div v-else class="device-fallback">⌚️</div>
+            <div class="form-main">
+              <div class="form-label-with-help">
+                <label>Email</label>
               </div>
-              <div class="device-info">
-                <div class="device-name">{{ userInfo.device.displayName }}</div>
-                <div v-if="userInfo.device.deviceFamily" class="device-family">{{ userInfo.device.deviceFamily }}</div>
-              </div>
+
+              <span class="value-text">
+                {{ userInfo?.email }}
+              </span>
+            </div>
+
+            <div class="form-action">
+              <a class="action-link" @click="goChangeEmail">
+                <Icon icon="mdi:email-edit-outline" width="16" />
+              </a>
             </div>
           </div>
         </div>
-        
-        <div v-else class="form-item device-item no-device">
-          <span class="form-icon device-icon">
-            <svg width="22" height="22" fill="none">
-              <circle cx="11" cy="11" r="11" fill="#f3e9fa"/>
-              <path d="M8 6h6c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2z" stroke="#a259c9" stroke-width="1.2" fill="none"/>
-              <path d="M8 8l6 6M14 8l-6 6" stroke="#a259c9" stroke-width="1.2"/>
-            </svg>
+
+        <!-- Username -->
+        <div class="form-item">
+          <span class="form-icon">
+            <Icon icon="mdi:account-circle" width="24" />
           </span>
+
           <div class="form-content">
-            <label>Current Device</label>
-            <div class="no-device-text">
-              <span>No device connected</span>
-              <small>Connect your Garmin device to get personalized recommendations</small>
+            <div class="form-main">
+              <label>Username</label>
+
+              <span v-if="!editMode" class="value-text">
+                {{ userInfo?.username }}
+              </span>
+
+              <el-input
+                v-else
+                v-model="form.username"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-action"></div>
+          </div>
+        </div>
+
+        <!-- Nickname -->
+        <div class="form-item">
+          <span class="form-icon">
+            <Icon icon="mdi:badge-account-outline" width="24" />
+          </span>
+
+          <div class="form-content">
+            <div class="form-main">
+              <label>Nickname</label>
+
+              <span v-if="!editMode" class="value-text">
+                {{ userInfo?.nickname }}
+              </span>
+
+              <el-input
+                v-else
+                v-model="form.nickname"
+                class="form-input"
+              />
+            </div>
+
+            <div class="form-action"></div>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-item">
+          <span class="form-icon">
+            <Icon icon="mdi:lock-outline" width="24" />
+          </span>
+
+          <div class="form-content">
+            <div class="form-main">
+              <label>Password</label>
+
+              <span
+                class="status-tag"
+                :class="userInfo?.hasPassword ? 'ok' : 'muted'"
+              >
+                {{ userInfo?.hasPassword ? 'Set' : 'Not set' }}
+              </span>
+            </div>
+
+            <div class="form-action">
+              <a class="action-link" @click="goSetPassword">
+                <Icon
+                  :icon="userInfo?.hasPassword ? 'mdi:key-change' : 'mdi:key-plus'"
+                  width="16"
+                />
+              </a>
             </div>
           </div>
         </div>
-        
+
+        <!-- Google -->
+        <div class="form-item">
+          <span class="form-icon google">
+            <Icon icon="logos:google-icon" width="20" />
+          </span>
+
+          <div class="form-content">
+            <div class="form-main">
+              <label>Google</label>
+
+              <span
+                class="status-tag"
+                :class="userInfo?.googleBound ? 'ok' : 'muted'"
+              >
+                {{ userInfo?.googleBound ? 'Connected' : 'Not connected' }}
+              </span>
+            </div>
+
+            <div class="form-action">
+              <a
+                class="action-link"
+                :class="userInfo?.googleBound ? 'danger' : 'primary'"
+                @click="userInfo?.googleBound
+                  ? handleUnbindGoogle()
+                  : handleBindGoogle()"
+              >
+                <Icon
+                  :icon="userInfo?.googleBound
+                    ? 'mdi:link-variant-off'
+                    : 'mdi:link-variant-plus'"
+                  width="16"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Device -->
+        <div class="form-item device-row">
+          <span class="form-icon">
+            <Icon icon="mdi:watch-variant" width="24" />
+          </span>
+
+          <div class="form-content">
+            <div class="form-main">
+              <label>Device</label>
+              <DeviceDisplay
+                :selected-device="userInfo?.device || null"
+                :name-max-width="200"
+              />
+            </div>
+            <div class="form-action"></div>
+          </div>
+        </div>
       </div>
-      <el-button v-if="editMode" class="save-btn" type="primary" @click="handleSave">SAVE</el-button>
+
+      <!-- Save -->
+      <el-button
+        v-if="editMode"
+        class="save-btn"
+        type="primary"
+        @click="handleSave"
+      >
+        Save Changes
+      </el-button>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { uploadUserAvatar } from '@/api/files'
-import { ElMessage } from 'element-plus'
+import { bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/api/auth'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import DeviceDisplay from '@/components/DeviceDisplay.vue'
+
+const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL?.replace(/\/login\/?$/, '').replace(/\/auth\/?$/, '') || ''
+
+// Default avatar image shown when userInfo.avatar is empty
+const defaultAvatar = '/logo.svg'
+
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
 const editMode = ref(false)
@@ -110,6 +232,10 @@ const form = ref({
   avatar: userInfo.value?.avatar || '',
   email: userInfo.value?.email || '',
   phone: userInfo.value?.phone || '',
+})
+onMounted(() => {
+  // 页面刷新时，通过 /users/info 接口重新获取用户信息
+  userStore.getUserInfo()
 })
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const onAvatarDblClick = () => {
@@ -143,6 +269,90 @@ const handleSave = async () => {
     avatar: form.value.avatar,
   })
   editMode.value = false
+}
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+let googleScriptLoaded = false
+
+const loadGoogleScript = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (googleScriptLoaded || (window as any).google?.accounts) {
+      googleScriptLoaded = true
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://accounts.google.com/gsi/client'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      googleScriptLoaded = true
+      resolve()
+    }
+    script.onerror = () => reject(new Error('Failed to load Google script'))
+    document.head.appendChild(script)
+  })
+}
+
+const handleBindGoogle = async () => {
+  try {
+    await loadGoogleScript()
+    const google = (window as any).google
+    if (!google?.accounts?.id) {
+      ElMessage.error('Google Sign-In is not available')
+      return
+    }
+    console.log('googleClientId', googleClientId)
+    google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: async (response: any) => {
+        if (response.credential) {
+          try {
+            await bindGoogleApi(response.credential)
+            ElMessage.success('Google account connected!')
+            await userStore.getUserInfo()
+          } catch (e: any) {
+            ElMessage.error(e.msg || 'Failed to connect Google account')
+          }
+        }
+      }
+    })
+    google.accounts.id.prompt()
+  } catch (e) {
+    ElMessage.error('Failed to initialize Google Sign-In')
+  }
+}
+
+const handleUnbindGoogle = async () => {
+  try {
+    await ElMessageBox.confirm(
+      'Are you sure you want to disconnect your Google account?',
+      'Disconnect Google',
+      { confirmButtonText: 'Disconnect', cancelButtonText: 'Cancel', type: 'warning' }
+    )
+    await unbindGoogleApi()
+    ElMessage.success('Google account disconnected!')
+    await userStore.getUserInfo()
+  } catch (e: any) {
+    if (e === 'cancel' || e?.toString?.().includes('cancel')) return
+    ElMessage.error(e.msg || 'Failed to disconnect Google account')
+  }
+}
+
+const goSetPassword = () => {
+  const token = userStore.token
+  const email = userInfo.value?.email || ''
+  const redirectUri = window.location.href
+  const mode = userInfo.value?.hasPassword ? 'change' : 'set'
+  const url = `${ssoBaseUrl}/set-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&redirect_uri=${encodeURIComponent(redirectUri)}&mode=${mode}`
+  window.location.href = url
+}
+
+const goChangeEmail = () => {
+  const token = userStore.token
+  const email = userInfo.value?.email || ''
+  const redirectUri = window.location.href
+  const url = `${ssoBaseUrl}/change-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}&redirect_uri=${encodeURIComponent(redirectUri)}`
+  window.location.href = url
 }
 const beforeAvatarUpload = (file: File) => {
   const isImage = file.type.startsWith('image/')
@@ -186,7 +396,9 @@ watch(() => userStore.userInfo, (val) => {
   align-items: center;
   padding-top: 32px;
   padding-bottom: 32px;
+  background: #fafafa;
 }
+
 .profile-avatar-block {
   position: relative;
   display: flex;
@@ -194,23 +406,24 @@ watch(() => userStore.userInfo, (val) => {
   align-items: center;
   margin-bottom: 12px;
 }
+
 .profile-avatar {
-  width: 120px;
-  height: 120px;
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #fff;
-  box-shadow: 0 4px 18px 0 rgba(52,124,255,0.13);
-  background: #e9e9e9;
+  border: 2px solid #f3f4f6;
+  box-shadow: none;
+  background: #f9fafb;
 }
+
 .avatar-editing {
-  animation: avatar-blink 1s steps(1, start) infinite;
   cursor: pointer;
+  outline: 2px solid #6366f1;
+  outline-offset: 2px;
+  animation: none;
 }
-@keyframes avatar-blink {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.5); }
-}
+
 .avatar-edit-tip {
   position: absolute;
   left: 50%;
@@ -229,10 +442,12 @@ watch(() => userStore.userInfo, (val) => {
   animation: tip-fade 1.5s infinite alternate;
   letter-spacing: 0.04em;
 }
+
 @keyframes tip-fade {
   from { opacity: 1; }
   to { opacity: 0.5; }
 }
+
 .profile-nickname-row {
   display: flex;
   align-items: center;
@@ -240,11 +455,13 @@ watch(() => userStore.userInfo, (val) => {
   gap: 8px;
   margin-bottom: 18px;
 }
+
 .profile-nickname {
   font-size: 2.6rem;
   font-weight: 700;
   letter-spacing: 0.01em;
 }
+
 .profile-edit-btn {
   width: 32px;
   height: 32px;
@@ -257,22 +474,27 @@ watch(() => userStore.userInfo, (val) => {
   border: 2px solid #f3e9fa;
   transition: background 0.18s, box-shadow 0.18s;
 }
+
 .profile-edit-btn:hover {
   background: #f3e9fa;
   box-shadow: 0 2px 8px 0 rgba(162,89,201,0.10);
 }
+
 .profile-card {
   width: 100%;
-  max-width: 400px;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 6px 32px 0 rgba(52,124,255,0.08), 0 1.5px 6px 0 rgba(0,0,0,0.04);
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #f0f2f5;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.03),
+    0 4px 12px rgba(0,0,0,0.04);
   margin-top: 0;
-  padding: 32px 24px 24px 24px;
+  padding: 20px 20px 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
+
 .profile-title {
   font-size: 1.18rem;
   font-weight: 700;
@@ -281,69 +503,246 @@ watch(() => userStore.userInfo, (val) => {
   margin-bottom: 18px;
   text-align: center;
 }
+
 .profile-form {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 18px;
 }
+/* ========== Form Layout ========== */
+
+/* 主体内容区域：图标 + 内容 + 操作 */
 .form-item {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  background: #f8f8fa;
-  border-radius: 24px;
-  padding: 10px 16px;
+  align-items: stretch;
+  gap: 10px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  transition: all 0.15s ease;
 }
-.form-icon {
-  width: 36px;
-  height: 36px;
+
+.form-item:hover {
+  background: #fafafa;
+}
+
+.form-item:hover .form-icon {
+  color: #6366f1;
+}
+
+.form-content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #f3e9fa;
-  border-radius: 50%;
+  gap: 12px;
+  width: 100%;
 }
-.form-content {
+
+.form-main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
 }
-.form-content label {
-  font-size: 0.98rem;
-  color: #a259c9;
+
+.device-row .form-main {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.form-main label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9ca3af;
+  line-height: 1;
+}
+
+.value-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.form-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 40px;
+  min-width: 40px;
+}
+
+
+/* ========== Status ========== */
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 2px;
 }
+
+.status-tag.ok {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.status-tag.muted {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+
+/* ========== Action ========== */
+
+.action-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  cursor: pointer;
+  transition: all .18s;
+}
+
+.action-link:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+
+.action-link.primary {
+  color: #4285f4;
+}
+
+.action-link.primary:hover {
+  background: #eff6ff;
+}
+
+.action-link.danger {
+  color: #ea4335;
+}
+
+.action-link.danger:hover {
+  background: #fef2f2;
+}
+
+
+/* ========== Icon ========== */
+
+.form-icon {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+  background: #f9fafb;
+
+  color: #6b7280;
+}
+
+.form-icon.google {
+  background: linear-gradient(135deg,#f3e9fa,#e8f0fe);
+  border-radius: 8px;
+}
+
+.email-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  grid-column: 1 / span 2;
+}
+
+.email-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.email-content span {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.change-email-link {
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #a259c9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.change-email-link:hover {
+  color: #6a82fb;
+  border-color: #c4d0ff;
+  box-shadow: 0 2px 8px rgba(106,130,251,0.18);
+}
+
 .form-input {
-  border-radius: 18px;
-  border: 1.5px solid #eee;
-  font-size: 1.08rem;
-  padding: 8px 14px;
+  border: none !important;
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
 }
+
+.form-input:focus-within {
+  box-shadow: inset 0 0 0 1px #6366f1;
+}
+
+.form-input :deep(.el-input__inner) {
+  font-size: 0.9rem;
+}
+
 .sex-item .form-content {
   flex-direction: row;
   align-items: center;
   gap: 18px;
 }
+
 .sex-radio-group {
   margin-left: 8px;
 }
+
 .save-btn {
   width: 100%;
-  margin-top: 28px;
-  border-radius: 24px;
-  font-size: 1.13rem;
-  font-weight: 700;
-  padding: 14px 0;
-  background: linear-gradient(90deg, #a259c9 0%, #6a82fb 100%);
+  margin-top: 20px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 0;
+  background: #111827;
   border: none;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
 }
+
 .save-btn:focus,
 .save-btn:hover {
-  background: linear-gradient(90deg, #6a82fb 0%, #a259c9 100%);
+  background: #1f2937;
 }
 
 /* Device Display Styles */
@@ -426,6 +825,122 @@ watch(() => userStore.userInfo, (val) => {
   font-size: 1rem;
   color: #6b7280;
   font-weight: 500;
+}
+
+/* Password Styles */
+.password-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+
+.password-status-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.password-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.password-status.set,
+.password-status.not-set {
+  width: 100%;
+  text-align: center;
+}
+
+.password-status.set {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.password-status.not-set {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.password-action-link {
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #a259c9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.password-action-link:hover {
+  color: #6a82fb;
+  border-color: #c4d0ff;
+  box-shadow: 0 2px 8px rgba(106,130,251,0.18);
+}
+
+/* Google Account Styles */
+.google-icon {
+  background: linear-gradient(135deg, #f3e9fa, #e8f0fe);
+}
+.google-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+}
+.google-status-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+.google-status {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.google-status.bound {
+  background: #ecfdf5;
+  color: #059669;
+}
+.google-status.unbound {
+  background: #f9fafb;
+  color: #6b7280;
+}
+.google-action-link {
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.google-action-link.bind {
+  color: #4285F4;
+}
+.google-action-link.bind:hover {
+  color: #1a73e8;
+  border-color: #b5d0ff;
+  box-shadow: 0 2px 8px rgba(66,133,244,0.18);
+}
+.google-action-link.unbind {
+  color: #EA4335;
+}
+.google-action-link.unbind:hover {
+  color: #c5221f;
+  border-color: #f5b2aa;
+  box-shadow: 0 2px 8px rgba(234,67,53,0.18);
 }
 
 .no-device-text small {

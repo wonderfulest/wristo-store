@@ -66,6 +66,8 @@ import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Loading, Check, Warning, Search } from '@element-plus/icons-vue'
 import { getDeviceList, getDeviceDetail } from '@/api/device'
+import { bindDevice } from '@/api/user'
+import { useUserStore } from '@/store/user'
 import type { GarminDeviceBaseVO, GarminDeviceVO } from '@/api/device'
 
 interface Props {
@@ -79,6 +81,7 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+const userStore = useUserStore()
 
 const visible = ref(false)
 const loading = ref(false)
@@ -159,6 +162,21 @@ const confirmSelection = async () => {
     
     // Save to localStorage
     localStorage.setItem('selectedDevice', JSON.stringify(deviceDetail))
+
+    console.log('Device selected:', deviceDetail)
+    // If user is logged in, bind device on server side
+    if (userStore.userInfo && deviceDetail?.deviceId) {
+      console.log('Binding device for current user:', deviceDetail.deviceId)
+      try {
+        await bindDevice({ deviceId: String(deviceDetail.deviceId) })
+        // After binding, refresh local user info so watchModel / deviceId stays in sync
+        await userStore.getUserInfo()
+      } catch (e) {
+        console.error('Failed to bind device for current user:', e)
+        // 轻量提示，不打断本地选择流程
+        ElMessage.error('Failed to bind device to your account')
+      }
+    }
     
     // Emit selection event
     emit('device-selected', deviceDetail)
