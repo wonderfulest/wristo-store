@@ -457,9 +457,10 @@ watch(() => userStore.userInfo, (val) => {
 }
 
 .profile-nickname {
-  font-size: 2.6rem;
+  font-size: 2.8rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  color: #111827;
 }
 
 .profile-edit-btn {
@@ -552,14 +553,14 @@ watch(() => userStore.userInfo, (val) => {
 }
 
 .form-main label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #9ca3af;
   line-height: 1;
 }
 
 .value-text {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   color: #111827;
   line-height: 1.3;
@@ -585,7 +586,7 @@ watch(() => userStore.userInfo, (val) => {
   justify-content: center;
   padding: 2px 10px;
   border-radius: 999px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
@@ -956,6 +957,16 @@ watch(() => userStore.userInfo, (val) => {
   .profile-avatar {
     width: 90px;
     height: 90px;
+  }
+  .profile-nickname {
+    font-size: 2.2rem;
+    color: #111827;
+  }
+  .form-main label {
+    font-size: 14px;
+  }
+  .value-text {
+    font-size: 16px;
   }
   
   .device-display {
