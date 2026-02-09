@@ -46,6 +46,6 @@ export const useUserStore = defineStore('user', {
   },
   persist: {
     key: 'wristo-user',
-    storage: sessionStorage
+    storage: localStorage
   }
 })

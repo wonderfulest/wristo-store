@@ -34,6 +34,7 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link to="/code" class="nav-link">Code</router-link>
+        <router-link to="/top" class="nav-link">Top</router-link>
         <router-link to="/blog" class="nav-link">Blog</router-link>
       </nav>
       
@@ -105,6 +106,7 @@
           </div>
           <!-- <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link> -->
           <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">Code</router-link>
+          <router-link to="/top" class="mobile-nav-link" @click="closeMobileMenu">Top</router-link>
           
           <!-- Mobile Device Display -->
           <DeviceDisplay 

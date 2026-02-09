@@ -124,3 +124,19 @@ export interface Series {
   banner?: ImageVO | null
   image?: string | null
 }
+
+// Top sales summary for apps
+export interface AppSalesSummaryVO {
+  appId: number
+  salesCount: number
+  totalAmount: number
+  bundleTriggerCount: number
+  app: ProductBaseVO | null
+}
+
+// Optional query for sales range / filters
+export interface SalesQueryDTO {
+  startDate?: string
+  endDate?: string
+  appId?: number
+}
