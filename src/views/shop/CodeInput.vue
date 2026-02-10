@@ -37,7 +37,7 @@
             </span>
           </div>
         </div>
-        <div class="coupon-toggle-row">
+        <!-- <div class="coupon-toggle-row">
           <button
             v-if="!showCouponInput"
             type="button"
@@ -46,7 +46,7 @@
           >
             Have a coupon code (optional)?
           </button>
-        </div>
+        </div> -->
 
         <div
           v-if="showCouponInput"
