@@ -364,12 +364,7 @@ const beforeAvatarUpload = (file: File) => {
 const handleAvatarUpload = async (option: any) => {
   try {
     const res = await uploadUserAvatar(option.file)
-    if (res.code === 0 && res.data) {
-      form.value.avatar = res.data as string
-      ElMessage.success('Avatar uploaded!')
-    } else {
-      ElMessage.error(res.msg || 'Upload failed')
-    }
+    form.value.avatar = res as string
   } catch (e) {
     ElMessage.error('Upload failed')
   }
