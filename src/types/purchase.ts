@@ -44,4 +44,5 @@ export interface PurchaseRecord {
   version: number
   user: UserBaseVO
   product: ProductBaseVO
+  bundle: Bundle
 }
