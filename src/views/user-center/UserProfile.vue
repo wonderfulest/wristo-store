@@ -1,210 +1,154 @@
 <template>
-  <div class="profile-gradient-bg">
+  <div class="profile-page">
+    <div class="profile-container">
 
-    <!-- Avatar -->
-    <div class="profile-avatar-block">
-      <img
-        :src="editMode ? form.avatar : (userInfo?.avatar || defaultAvatar)"
-        class="profile-avatar"
-        :class="{ 'avatar-editing': editMode }"
-        @dblclick="onAvatarDblClick"
-      />
-
-      <input
-        v-if="editMode"
-        ref="avatarInputRef"
-        type="file"
-        accept="image/*"
-        hidden
-        @change="onAvatarFileChange"
-      />
-    </div>
-
-    <!-- Nickname -->
-    <div class="profile-nickname-row">
-      <span class="profile-nickname">
-        {{ userInfo?.username }}
-      </span>
-
-      <span class="profile-edit-btn" @click="startEdit">
-        <Icon icon="mdi:pencil-circle" width="22" />
-      </span>
-    </div>
-
-    <!-- Card -->
-    <div class="profile-card">
-
-      <div class="profile-form">
-
-        <!-- Email -->
-        <div class="form-item">
-          <span class="form-icon">
-            <Icon icon="mdi:email-outline" width="24" />
-          </span>
-
-          <div class="form-content">
-            <div class="form-main">
-              <div class="form-label-with-help">
-                <label>Email</label>
-              </div>
-
-              <span class="value-text">
-                {{ userInfo?.email }}
-              </span>
-            </div>
-
-            <div class="form-action">
-              <a class="action-link" @click="goChangeEmail">
-                <Icon icon="mdi:email-edit-outline" width="16" />
-              </a>
-            </div>
+      <!-- Hero: Avatar + Name + Edit -->
+      <div class="profile-hero">
+        <div class="avatar-wrapper" :class="{ editing: editMode }" @click="onAvatarDblClick">
+          <img
+            :src="editMode ? form.avatar : (userInfo?.avatar || defaultAvatar)"
+            class="avatar-img"
+          />
+          <div v-if="editMode" class="avatar-overlay">
+            <Icon icon="mdi:camera-outline" width="22" color="#fff" />
           </div>
+          <input
+            v-if="editMode"
+            ref="avatarInputRef"
+            type="file"
+            accept="image/*"
+            hidden
+            @change="onAvatarFileChange"
+          />
         </div>
 
-        <!-- Username -->
-        <div class="form-item">
-          <span class="form-icon">
-            <Icon icon="mdi:account-circle" width="24" />
-          </span>
+        <div class="hero-name">
+          {{ userInfo?.nickname || userInfo?.username }}
+        </div>
+        <div class="hero-email">
+          {{ userInfo?.email }}
+        </div>
+      </div>
 
-          <div class="form-content">
-            <div class="form-main">
-              <label>Username</label>
-
-              <span v-if="!editMode" class="value-text">
-                {{ userInfo?.username }}
-              </span>
-
-              <el-input
-                v-else
-                v-model="form.username"
-                class="form-input"
-              />
-            </div>
-
-            <div class="form-action"></div>
-          </div>
+      <!-- Section: Personal Info -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Personal Information</span>
+          <button v-if="!editMode" class="edit-trigger" @click="startEdit">
+            Edit
+          </button>
+          <button v-else class="edit-trigger cancel" @click="editMode = false">
+            Cancel
+          </button>
         </div>
 
-        <!-- Nickname -->
-        <div class="form-item">
-          <span class="form-icon">
-            <Icon icon="mdi:badge-account-outline" width="24" />
-          </span>
-
-          <div class="form-content">
-            <div class="form-main">
-              <label>Nickname</label>
-
-              <span v-if="!editMode" class="value-text">
-                {{ userInfo?.nickname }}
-              </span>
-
-              <el-input
-                v-else
-                v-model="form.nickname"
-                class="form-input"
-              />
+        <div class="section-card">
+          <!-- Username -->
+          <div class="row">
+            <div class="row-label">Username</div>
+            <div class="row-value">
+              <span v-if="!editMode">{{ userInfo?.username || '—' }}</span>
+              <el-input v-else v-model="form.username" class="apple-input" placeholder="Username" />
             </div>
-
-            <div class="form-action"></div>
           </div>
+
+          <div class="row-divider" />
+
+          <!-- Nickname -->
+          <div class="row">
+            <div class="row-label">Nickname</div>
+            <div class="row-value">
+              <span v-if="!editMode">{{ userInfo?.nickname || '—' }}</span>
+              <el-input v-else v-model="form.nickname" class="apple-input" placeholder="Nickname" />
+            </div>
+          </div>
+
+          <div class="row-divider" />
+
+          <!-- Email -->
+          <div class="row clickable" @click="goChangeEmail">
+            <div class="row-label">Email</div>
+            <div class="row-value with-chevron">
+              <span class="row-value-text">{{ userInfo?.email || '—' }}</span>
+              <Icon icon="mdi:chevron-right" width="20" class="chevron" />
+            </div>
+          </div>
+
+          <!-- Save -->
+          <template v-if="editMode">
+            <div class="row-divider" />
+            <div class="row save-row">
+              <button class="save-btn" @click="handleSave">
+                Save Changes
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Section: Security -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Security</span>
         </div>
 
-        <!-- Password -->
-        <div class="form-item">
-          <span class="form-icon">
-            <Icon icon="mdi:lock-outline" width="24" />
-          </span>
-
-          <div class="form-content">
-            <div class="form-main">
-              <label>Password</label>
-
+        <div class="section-card">
+          <!-- Password -->
+          <div class="row clickable" @click="goSetPassword">
+            <div class="row-label">Password</div>
+            <div class="row-value with-chevron">
               <span
-                class="status-tag"
-                :class="userInfo?.hasPassword ? 'ok' : 'muted'"
+                class="status-pill"
+                :class="userInfo?.hasPassword ? 'green' : 'gray'"
               >
-                {{ userInfo?.hasPassword ? 'Set' : 'Not set' }}
+                {{ userInfo?.hasPassword ? 'Set' : 'Not Set' }}
               </span>
-            </div>
-
-            <div class="form-action">
-              <a class="action-link" @click="goSetPassword">
-                <Icon
-                  :icon="userInfo?.hasPassword ? 'mdi:key-change' : 'mdi:key-plus'"
-                  width="16"
-                />
-              </a>
+              <Icon icon="mdi:chevron-right" width="20" class="chevron" />
             </div>
           </div>
-        </div>
 
-        <!-- Google -->
-        <div class="form-item">
-          <span class="form-icon google">
-            <Icon icon="logos:google-icon" width="20" />
-          </span>
+          <div class="row-divider" />
 
-          <div class="form-content">
-            <div class="form-main">
-              <label>Google</label>
-
+          <!-- Google -->
+          <div
+            class="row clickable"
+            @click="userInfo?.googleBound ? handleUnbindGoogle() : handleBindGoogle()"
+          >
+            <div class="row-label">
+              <Icon icon="logos:google-icon" width="18" class="row-label-icon" />
+              Google Account
+            </div>
+            <div class="row-value with-chevron">
               <span
-                class="status-tag"
-                :class="userInfo?.googleBound ? 'ok' : 'muted'"
+                class="status-pill"
+                :class="userInfo?.googleBound ? 'green' : 'gray'"
               >
-                {{ userInfo?.googleBound ? 'Connected' : 'Not connected' }}
+                {{ userInfo?.googleBound ? 'Connected' : 'Not Connected' }}
               </span>
-            </div>
-
-            <div class="form-action">
-              <a
-                class="action-link"
-                :class="userInfo?.googleBound ? 'danger' : 'primary'"
-                @click="userInfo?.googleBound
-                  ? handleUnbindGoogle()
-                  : handleBindGoogle()"
-              >
-                <Icon
-                  :icon="userInfo?.googleBound
-                    ? 'mdi:link-variant-off'
-                    : 'mdi:link-variant-plus'"
-                  width="16"
-                />
-              </a>
+              <Icon icon="mdi:chevron-right" width="20" class="chevron" />
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Device -->
-        <div class="form-item device-row">
-          <span class="form-icon">
-            <Icon icon="mdi:watch-variant" width="24" />
-          </span>
+      <!-- Section: Device -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Device</span>
+        </div>
 
-          <div class="form-content">
-            <div class="form-main">
-              <label>Device</label>
+        <div class="section-card">
+          <div class="row device-row">
+            <div class="row-label">Smartwatch</div>
+            <div class="row-value">
               <DeviceDisplay
                 :selected-device="userInfo?.device || null"
                 :name-max-width="200"
               />
             </div>
-            <div class="form-action"></div>
           </div>
         </div>
       </div>
-
-      <!-- Save -->
-      <el-button
-        v-if="editMode"
-        class="save-btn"
-        type="primary"
-        @click="handleSave"
-      >
-        Save Changes
-      </el-button>
 
     </div>
   </div>
@@ -383,603 +327,334 @@ watch(() => userStore.userInfo, (val) => {
 </script>
 
 <style scoped>
-.profile-gradient-bg {
+/* ===== Page ===== */
+.profile-page {
   width: 100%;
   min-height: 100vh;
+  background: #f2f2f7;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 48px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding-top: 40px;
+}
+
+/* ===== Hero ===== */
+.profile-hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 32px;
-  padding-bottom: 32px;
-  background: #fafafa;
+  gap: 6px;
+  padding-bottom: 8px;
 }
 
-.profile-avatar-block {
+.avatar-wrapper {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.profile-avatar {
-  width: 96px;
-  height: 96px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #f3f4f6;
-  box-shadow: none;
-  background: #f9fafb;
-}
-
-.avatar-editing {
-  cursor: pointer;
-  outline: 2px solid #6366f1;
-  outline-offset: 2px;
-  animation: none;
-}
-
-.avatar-edit-tip {
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  transform: translateX(-50%) translateY(12px);
-  background: #fffbe6;
-  color: #a259c9;
-  font-size: 1.18rem;
-  font-weight: 900;
-  padding: 8px 22px;
-  border-radius: 18px;
-  box-shadow: 0 2px 12px 0 rgba(162,89,201,0.13);
-  border: 2px solid #a259c9;
-  z-index: 2;
-  text-align: center;
-  animation: tip-fade 1.5s infinite alternate;
-  letter-spacing: 0.04em;
-}
-
-@keyframes tip-fade {
-  from { opacity: 1; }
-  to { opacity: 0.5; }
-}
-
-.profile-nickname-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.profile-nickname {
-  font-size: 2.8rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #111827;
-}
-
-.profile-edit-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: 2px solid #f3e9fa;
-  transition: background 0.18s, box-shadow 0.18s;
-}
-
-.profile-edit-btn:hover {
-  background: #f3e9fa;
-  box-shadow: 0 2px 8px 0 rgba(162,89,201,0.10);
-}
-
-.profile-card {
-  width: 100%;
-  max-width: 420px;
-  background: #ffffff;
-  border-radius: 14px;
-  border: 1px solid #f0f2f5;
-  box-shadow:
-    0 1px 2px rgba(0,0,0,0.03),
-    0 4px 12px rgba(0,0,0,0.04);
-  margin-top: 0;
-  padding: 20px 20px 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.profile-title {
-  font-size: 1.18rem;
-  font-weight: 700;
-  color: #222;
-  letter-spacing: 0.04em;
-  margin-bottom: 18px;
-  text-align: center;
-}
-
-.profile-form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-/* ========== Form Layout ========== */
-
-/* 主体内容区域：图标 + 内容 + 操作 */
-.form-item {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  padding: 6px 4px;
-  border-radius: 10px;
-  transition: all 0.15s ease;
-}
-
-.form-item:hover {
-  background: #fafafa;
-}
-
-.form-item:hover .form-icon {
-  color: #6366f1;
-}
-
-.form-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-}
-
-.form-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-}
-
-.device-row .form-main {
-  flex-direction: row;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
-}
-
-.form-main label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #9ca3af;
-  line-height: 1;
-}
-
-.value-text {
-  font-size: 15px;
-  font-weight: 500;
-  color: #111827;
-  line-height: 1.3;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.form-action {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  width: 40px;
-  min-width: 40px;
-}
-
-
-/* ========== Status ========== */
-
-.status-tag {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.status-tag.ok {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.status-tag.muted {
-  background: #f9fafb;
-  color: #6b7280;
-}
-
-
-/* ========== Action ========== */
-
-.action-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  width: 32px;
-  height: 32px;
-
-  border-radius: 50%;
-  border: 1px solid #e5e7eb;
   background: #fff;
+  box-shadow:
+    0 0 0 3px #fff,
+    0 2px 16px rgba(0, 0, 0, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
 
+.avatar-wrapper.editing {
   cursor: pointer;
-  transition: all .18s;
+  box-shadow:
+    0 0 0 3px #007aff,
+    0 4px 20px rgba(0, 122, 255, 0.18);
 }
 
-.action-link:hover {
-  box-shadow: 0 2px 6px rgba(0,0,0,.12);
+.avatar-wrapper.editing:hover {
+  transform: scale(1.04);
 }
 
-.action-link.primary {
-  color: #4285f4;
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.action-link.primary:hover {
-  background: #eff6ff;
-}
-
-.action-link.danger {
-  color: #ea4335;
-}
-
-.action-link.danger:hover {
-  background: #fef2f2;
-}
-
-
-/* ========== Icon ========== */
-
-.form-icon {
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-
+.avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-
-  border-radius: 10px;
-  background: #f9fafb;
-
-  color: #6b7280;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.form-icon.google {
-  background: linear-gradient(135deg,#f3e9fa,#e8f0fe);
-  border-radius: 8px;
+.avatar-wrapper.editing:hover .avatar-overlay {
+  opacity: 1;
 }
 
-.email-row {
+.hero-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -0.02em;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.hero-email {
+  font-size: 0.9375rem;
+  color: #86868b;
+  font-weight: 400;
+  text-align: center;
+}
+
+/* ===== Section ===== */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  grid-column: 1 / span 2;
+  padding: 0 4px;
 }
 
-.email-content {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.email-content span {
-  display: block;
-  width: 100%;
-  text-align: center;
-}
-
-.change-email-link {
-  font-size: 0.88rem;
+.section-title {
+  font-size: 0.8125rem;
   font-weight: 600;
+  color: #86868b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.edit-trigger {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #007aff;
+  background: none;
+  border: none;
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #a259c9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s ease;
 }
 
-.change-email-link:hover {
-  color: #6a82fb;
-  border-color: #c4d0ff;
-  box-shadow: 0 2px 8px rgba(106,130,251,0.18);
+.edit-trigger:hover {
+  background: rgba(0, 122, 255, 0.08);
 }
 
-.form-input {
-  border: none !important;
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-size: 0.9rem;
+.edit-trigger.cancel {
+  color: #86868b;
 }
 
-.form-input:focus-within {
-  box-shadow: inset 0 0 0 1px #6366f1;
+.edit-trigger.cancel:hover {
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.form-input :deep(.el-input__inner) {
-  font-size: 0.9rem;
+/* ===== Card ===== */
+.section-card {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.04);
 }
 
-.sex-item .form-content {
-  flex-direction: row;
+/* ===== Row ===== */
+.row {
+  display: flex;
   align-items: center;
-  gap: 18px;
+  justify-content: space-between;
+  padding: 13px 18px;
+  min-height: 48px;
+  gap: 12px;
+  transition: background 0.15s ease;
 }
 
-.sex-radio-group {
-  margin-left: 8px;
+.row.clickable {
+  cursor: pointer;
+}
+
+.row.clickable:hover {
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.row.clickable:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.row-divider {
+  height: 0.5px;
+  background: #d1d1d6;
+  margin-left: 18px;
+}
+
+.row-label {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: #1d1d1f;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.row-label-icon {
+  flex-shrink: 0;
+}
+
+.row-value {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: #86868b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+  min-width: 0;
+  flex: 1;
+}
+
+.row-value.with-chevron {
+  gap: 2px;
+}
+
+.row-value-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  color: #c7c7cc;
+  flex-shrink: 0;
+}
+
+/* ===== Status Pill ===== */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.status-pill.green {
+  background: #e8f8ef;
+  color: #30a14e;
+}
+
+.status-pill.gray {
+  background: #f2f2f7;
+  color: #86868b;
+}
+
+/* ===== Apple Input ===== */
+.apple-input {
+  width: 100%;
+}
+
+.apple-input :deep(.el-input__wrapper) {
+  background: #f2f2f7;
+  border-radius: 8px;
+  box-shadow: none !important;
+  padding: 4px 10px;
+  transition: background 0.2s ease;
+}
+
+.apple-input :deep(.el-input__wrapper.is-focus) {
+  background: #e8e8ed;
+}
+
+.apple-input :deep(.el-input__inner) {
+  font-size: 0.9375rem;
+  color: #1d1d1f;
+  text-align: right;
+}
+
+/* ===== Save Button ===== */
+.save-row {
+  padding: 12px 18px 14px;
+  justify-content: center;
 }
 
 .save-btn {
   width: 100%;
-  margin-top: 20px;
+  padding: 11px 24px;
   border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 10px 0;
-  background: #111827;
   border: none;
-  letter-spacing: 0.02em;
+  background: #007aff;
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  letter-spacing: -0.01em;
 }
 
-.save-btn:focus,
 .save-btn:hover {
-  background: #1f2937;
+  background: #0066d6;
 }
 
-/* Device Display Styles */
-.device-item {
-  position: relative;
+.save-btn:active {
+  background: #0055b3;
+  transform: scale(0.985);
 }
 
-.device-icon {
-  background: linear-gradient(135deg, #f3e9fa, #e8f4fd);
+/* ===== Device Row ===== */
+.device-row .row-value {
+  justify-content: flex-end;
 }
 
-.device-display {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 4px 0;
-}
-
-.device-avatar {
-  width: 48px;
-  height: 48px;
-  aspect-ratio: 1 / 1;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 48px;
-}
-
-.device-avatar img {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: contain;
-  padding: 3px;
-  display: block;
-  background: #fff;
-}
-
-.device-fallback {
-  font-size: 16px;
-  line-height: 1;
-}
-
-.device-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.device-name {
-  font-size: 0.95rem;
-  color: #1f2937;
-  font-weight: 600;
-  line-height: 1.1;
-}
-
-.device-family {
-  font-size: 0.8rem;
-  color: #6b7280;
-  font-weight: 400;
-  line-height: 1.1;
-}
-
-.no-device {
-  opacity: 0.7;
-}
-
-.no-device-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.no-device-text span {
-  font-size: 1rem;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-/* Password Styles */
-.password-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-}
-
-.password-status-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-
-.password-status {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.password-status.set,
-.password-status.not-set {
-  width: 100%;
-  text-align: center;
-}
-
-.password-status.set {
-  background: #ecfdf5;
-  color: #059669;
-}
-
-.password-status.not-set {
-  background: #f9fafb;
-  color: #6b7280;
-}
-
-.password-action-link {
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  color: #a259c9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.password-action-link:hover {
-  color: #6a82fb;
-  border-color: #c4d0ff;
-  box-shadow: 0 2px 8px rgba(106,130,251,0.18);
-}
-
-/* Google Account Styles */
-.google-icon {
-  background: linear-gradient(135deg, #f3e9fa, #e8f0fe);
-}
-.google-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-}
-.google-status-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-}
-.google-status {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.google-status.bound {
-  background: #ecfdf5;
-  color: #059669;
-}
-.google-status.unbound {
-  background: #f9fafb;
-  color: #6b7280;
-}
-.google-action-link {
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #ffffff;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-.google-action-link.bind {
-  color: #4285F4;
-}
-.google-action-link.bind:hover {
-  color: #1a73e8;
-  border-color: #b5d0ff;
-  box-shadow: 0 2px 8px rgba(66,133,244,0.18);
-}
-.google-action-link.unbind {
-  color: #EA4335;
-}
-.google-action-link.unbind:hover {
-  color: #c5221f;
-  border-color: #f5b2aa;
-  box-shadow: 0 2px 8px rgba(234,67,53,0.18);
-}
-
-.no-device-text small {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  line-height: 1.3;
-}
+/* ===== Responsive ===== */
 @media (max-width: 600px) {
-  .profile-card {
-    max-width: 98vw;
-    padding: 18px 4vw 18px 4vw;
+  .profile-page {
+    padding: 0 0 32px;
   }
-  .profile-avatar {
-    width: 90px;
-    height: 90px;
+
+  .profile-container {
+    max-width: 100%;
+    gap: 24px;
+    padding-top: 24px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
-  .profile-nickname {
-    font-size: 2.2rem;
-    color: #111827;
+
+  .avatar-wrapper {
+    width: 88px;
+    height: 88px;
   }
-  .form-main label {
-    font-size: 14px;
+
+  .hero-name {
+    font-size: 1.5rem;
   }
-  .value-text {
-    font-size: 16px;
+
+  .section-card {
+    border-radius: 12px;
   }
-  
-  .device-display {
-    gap: 6px;
+
+  .row {
+    padding: 12px 16px;
   }
-  
-  .device-avatar {
-    width: 32px;
-    height: 32px;
-    flex: 0 0 32px;
-  }
-  
-  .device-name {
-    font-size: 0.9rem;
-  }
-  
-  .device-family {
-    font-size: 0.75rem;
+
+  .row-divider {
+    margin-left: 16px;
   }
 }
 </style> 
