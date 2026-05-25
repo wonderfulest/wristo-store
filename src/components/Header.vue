@@ -6,7 +6,13 @@
       </div>
       
       <!-- Mobile menu button -->
-      <button class="mobile-menu-btn" @click="toggleMobileMenu" :class="{ active: isMobileMenuOpen }">
+      <button
+        class="mobile-menu-btn"
+        type="button"
+        aria-label="Toggle navigation"
+        @click="toggleMobileMenu"
+        :class="{ active: isMobileMenuOpen }"
+      >
         <span></span>
         <span></span>
         <span></span>
@@ -88,7 +94,7 @@
         <div class="mobile-nav-links">
           <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">Home</router-link>
           <div class="mobile-dropdown">
-            <button class="mobile-dropdown-trigger centered" @click="toggleCategoriesDropdown">
+            <button class="mobile-dropdown-trigger centered" type="button" @click="toggleCategoriesDropdown">
               <span class="dropdown-text">Categories</span>
               <el-icon :class="{ rotated: isCategoriesOpen }"><arrow-down /></el-icon>
             </button>
@@ -314,41 +320,48 @@ defineExpose({
 <style scoped>
 .header-bar {
   width: 100%;
-  background: #fff;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid var(--color-line);
+  box-shadow: 0 10px 35px rgba(17, 24, 39, 0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   position: sticky;
   top: 0;
   z-index: 20;
 }
 .header-inner {
-  max-width: 1440px;
+  max-width: var(--container);
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  padding: 0 32px;
+  height: 72px;
+  padding: 0 24px;
 }
 .logo-area .logo-text {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #000;
-  letter-spacing: 6px;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  letter-spacing: 4px;
   text-decoration: none;
 }
 .nav-area {
   display: flex;
-  gap: 32px;
+  gap: 8px;
 }
 .nav-link {
-  color: #222;
-  font-size: 1.1rem;
-  font-weight: 500;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 650;
   text-decoration: none;
-  transition: color 0.2s;
+  padding: 10px 12px;
+  border-radius: 999px;
+  transition: color 0.18s ease, background 0.18s ease;
 }
-.nav-link:hover {
-  color: #347cff;
+.nav-link:hover,
+.nav-link.router-link-active {
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
 }
 .dropdown-trigger {
   cursor: pointer;
@@ -359,7 +372,7 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-left: 24px;
+  margin-left: 16px;
 }
 
 /* Current Device Display */
@@ -412,15 +425,15 @@ defineExpose({
   transition: all 0.2s ease;
 }
 .user-avatar-container:hover .user-avatar {
-  border-color: #347cff;
+  border-color: var(--color-brand);
   transform: scale(1.05);
 }
 .premium-badge {
   position: absolute;
   bottom: -8px;
   right: -8px;
-  background: linear-gradient(135deg, #ffd700, #ffb700);
-  color: #000;
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  color: #111827;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -440,7 +453,7 @@ defineExpose({
 .auth-btn {
   position: relative;
   padding: 0 22px;
-  height: 36px;
+  min-height: 44px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
@@ -489,36 +502,37 @@ defineExpose({
 
 /* Login button */
 .login-btn {
-  color: #0066CC;
-  border-color: #D0D0D0;
-  background: rgba(255, 255, 255, 0.8);
+  color: #fff;
+  border-color: var(--color-brand);
+  background: var(--color-brand);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .login-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: #A0A0A0;
+  background: var(--color-brand-strong);
+  border-color: var(--color-brand-strong);
+  box-shadow: 0 12px 26px rgba(15, 107, 104, 0.18);
 }
 
 /* Signup button */
 .signup-btn {
-  background: #0071E3;
+  background: var(--color-brand);
   color: white;
-  border-color: #0071E3;
+  border-color: var(--color-brand);
   font-weight: 500;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .signup-btn:hover {
-  background: #0077ED;
-  border-color: #0077ED;
-  box-shadow: 0 2px 6px rgba(0, 113, 227, 0.3);
+  background: var(--color-brand-strong);
+  border-color: var(--color-brand-strong);
+  box-shadow: 0 12px 26px rgba(15, 107, 104, 0.18);
 }
 
 .signup-btn:active {
-  background: #0062C7;
-  border-color: #0062C7;
+  background: var(--color-brand-strong);
+  border-color: var(--color-brand-strong);
 }
 
 /* Mobile menu button */
@@ -527,8 +541,8 @@ defineExpose({
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   background: none;
   border: none;
   cursor: pointer;
@@ -539,7 +553,7 @@ defineExpose({
 .mobile-menu-btn span {
   width: 20px;
   height: 2px;
-  background: #333;
+  background: var(--color-ink);
   border-radius: 1px;
   transition: all 0.3s ease;
   margin: 2px 0;
@@ -560,7 +574,7 @@ defineExpose({
 /* Mobile navigation */
 .mobile-nav {
   position: fixed;
-  top: 64px;
+  top: 72px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -591,26 +605,26 @@ defineExpose({
 .mobile-nav-link {
   display: block;
   padding: 16px 0;
-  color: #333;
+  color: var(--color-ink);
   font-size: 18px;
   font-weight: 500;
   text-decoration: none;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-line);
   transition: color 0.2s;
 }
 
 .mobile-nav-link:hover {
-  color: #347cff;
+  color: var(--color-brand);
 }
 
 .mobile-nav-link.router-link-active {
-  color: #347cff;
+  color: var(--color-brand);
   font-weight: 600;
 }
 
 /* Mobile dropdown */
 .mobile-dropdown {
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-line);
 }
 
 .mobile-dropdown-trigger {
@@ -621,7 +635,7 @@ defineExpose({
   padding: 16px 0;
   background: none;
   border: none;
-  color: #333;
+  color: var(--color-ink);
   font-size: 18px;
   font-weight: 500;
   text-align: left;
@@ -655,8 +669,8 @@ defineExpose({
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: var(--color-surface-soft);
+  border-radius: var(--radius-sm);
   margin: 0 -12px 12px;
 }
 
@@ -667,20 +681,20 @@ defineExpose({
 .mobile-dropdown-link {
   display: block;
   padding: 12px 24px;
-  color: #666;
+  color: var(--color-muted);
   font-size: 16px;
   text-decoration: none;
   transition: all 0.2s;
 }
 
 .mobile-dropdown-link:hover {
-  color: #347cff;
-  background: rgba(52, 124, 255, 0.1);
+  color: var(--color-brand-strong);
+  background: rgba(15, 107, 104, 0.08);
 }
 
 /* Mobile user area */
 .mobile-user-area {
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--color-line);
   padding-top: 24px;
   margin-top: 24px;
 }
@@ -709,8 +723,8 @@ defineExpose({
   position: absolute;
   bottom: -4px;
   right: -4px;
-  background: linear-gradient(135deg, #ffd700, #ffb700);
-  color: #000;
+  background: linear-gradient(135deg, #fde68a, #f59e0b);
+  color: #111827;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -729,10 +743,10 @@ defineExpose({
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--color-surface-soft);
   border: none;
   border-radius: 12px;
-  color: #333;
+  color: var(--color-ink);
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
@@ -741,7 +755,7 @@ defineExpose({
 }
 
 .mobile-action-btn:hover {
-  background: #e9ecef;
+  background: var(--color-brand-soft);
   transform: translateY(-1px);
 }
 
@@ -780,30 +794,30 @@ defineExpose({
 }
 
 .mobile-auth-btn.login {
-  background: rgba(255, 255, 255, 0.9);
-  color: #0066CC;
-  border: 1px solid #D0D0D0;
+  background: var(--color-brand);
+  color: #fff;
+  border: 1px solid var(--color-brand);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 .mobile-auth-btn.login:hover {
-  background: rgba(255, 255, 255, 1);
-  border-color: #A0A0A0;
+  background: var(--color-brand-strong);
+  border-color: var(--color-brand-strong);
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+  box-shadow: 0 12px 26px rgba(15, 107, 104, 0.18);
 }
 
 .mobile-auth-btn.signup {
-  background: #0071E3;
+  background: var(--color-brand);
   color: white;
-  box-shadow: 0 2px 8px rgba(0, 113, 227, 0.3);
+  box-shadow: 0 12px 26px rgba(15, 107, 104, 0.18);
 }
 
 .mobile-auth-btn.signup:hover {
-  background: #0077ED;
+  background: var(--color-brand-strong);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.4);
+  box-shadow: 0 14px 30px rgba(15, 107, 104, 0.2);
 }
 
 .mobile-auth-btn:active {

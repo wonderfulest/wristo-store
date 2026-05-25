@@ -1,14 +1,6 @@
 <template>
   <section class="feature-section">
     <div class="feature-bg">
-      <!-- Background circle decorations -->
-      <div class="feature-circle feature-circle-1"></div>
-      <div class="feature-circle feature-circle-2"></div>
-      <div class="feature-circle feature-circle-3"></div>
-      <div class="feature-circle feature-circle-4"></div>
-      <div class="feature-circle feature-circle-5"></div>
-      <div class="feature-circle feature-circle-6"></div>
-      
       <div class="feature-badge">ELEVATE YOUR GARMIN EXPERIENCE</div>
       <h2 class="feature-title">Transform Your Watch Into A Masterpiece</h2>
       <div class="feature-desc">
@@ -63,18 +55,19 @@ const goToPurchaseOptions = () => {
 <style scoped>
 .feature-section {
   width: 100%;
-  background: linear-gradient(135deg, #eaf1ff 0%, #f6f7fb 100%);
+  background: linear-gradient(180deg, #f8fbfa 0%, #eef5f3 100%);
   padding: 20px 16px;
   margin: 0;
   box-sizing: border-box;
 }
 
 .feature-bg {
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 48px auto;
-  border-radius: 36px;
-  background: rgba(255,255,255,0.55);
-  box-shadow: 0 8px 32px 0 rgba(80, 110, 255, 0.08);
+  border-radius: var(--radius-lg);
+  background: rgba(255,255,255,0.78);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-line);
   padding: 64px 24px 56px 24px;
   position: relative;
   overflow: hidden;
@@ -82,66 +75,10 @@ const goToPurchaseOptions = () => {
   box-sizing: border-box;
 }
 
-.feature-circle {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.25;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.feature-circle-1 {
-  width: 160px;
-  height: 160px;
-  left: -60px;
-  top: -60px;
-  background: #bcdcff;
-}
-
-.feature-circle-2 {
-  width: 100px;
-  height: 100px;
-  right: -40px;
-  top: 40px;
-  background: #e6edfd;
-}
-
-.feature-circle-3 {
-  width: 80px;
-  height: 80px;
-  left: 60px;
-  bottom: -30px;
-  background: #e6f9ed;
-}
-
-.feature-circle-4 {
-  width: 120px;
-  height: 120px;
-  right: 80px;
-  bottom: -50px;
-  background: #f3eafd;
-}
-
-.feature-circle-5 {
-  width: 70px;
-  height: 70px;
-  left: 32%;
-  top: 58%;
-  background: #e6edfd;
-}
-
-.feature-circle-6 {
-  width: 90px;
-  height: 90px;
-  right: 28%;
-  top: 38%;
-  background: #f3eafd;
-}
-
 .feature-badge {
   display: inline-block;
-  background: #e6edfd;
-  color: #4a6cf7;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
   font-size: 1rem;
   font-weight: 600;
   border-radius: 999px;
@@ -153,9 +90,9 @@ const goToPurchaseOptions = () => {
 }
 
 .feature-title {
-  font-size: 2.8rem;
+  font-size: clamp(2rem, 4vw, 2.8rem);
   font-weight: 800;
-  color: #4a3aff;
+  color: var(--color-ink);
   text-align: center;
   margin-bottom: 28px;
   letter-spacing: 1px;
@@ -163,7 +100,7 @@ const goToPurchaseOptions = () => {
 
 .feature-desc {
   font-size: 1.25rem;
-  color: #444;
+  color: var(--color-muted);
   text-align: center;
   max-width: 700px;
   margin: 0 auto 44px auto;
@@ -183,15 +120,15 @@ const goToPurchaseOptions = () => {
   font-weight: 700;
   letter-spacing: 0.2px;
   color: #fff;
-  background: linear-gradient(135deg, #007aff 0%, #4a6cf7 100%);
-  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.18);
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
+  box-shadow: 0 10px 30px rgba(15, 107, 104, 0.18);
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .feature-cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(0, 122, 255, 0.22);
+  box-shadow: 0 14px 36px rgba(15, 107, 104, 0.22);
   filter: saturate(1.05);
 }
 
@@ -216,8 +153,9 @@ const goToPurchaseOptions = () => {
 
 .feature-card {
   background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px 0 rgba(80, 110, 255, 0.10);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-line);
   padding: 24px 20px 32px 20px;
   min-width: 180px;
   max-width: 220px;
@@ -232,7 +170,7 @@ const goToPurchaseOptions = () => {
 
 .feature-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 8px 32px 0 rgba(80, 110, 255, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .feature-icon {
@@ -247,30 +185,30 @@ const goToPurchaseOptions = () => {
 }
 
 .feature-icon-blue {
-  background: #e6edfd;
-  color: #4a6cf7;
+  background: var(--color-brand-soft);
+  color: var(--color-brand);
 }
 
 .feature-icon-green {
-  background: #e6f9ed;
+  background: #ecfdf3;
   color: #34c759;
 }
 
 .feature-icon-purple {
-  background: #f3eafd;
-  color: #a259ff;
+  background: #fff7ed;
+  color: var(--color-accent);
 }
 
 .feature-card-title {
   font-size: 1.18rem;
   font-weight: 700;
-  color: #222;
+  color: var(--color-ink);
   margin-bottom: 8px;
 }
 
 .feature-card-desc {
   font-size: 1.05rem;
-  color: #666;
+  color: var(--color-muted);
   line-height: 1.6;
   text-align: center;
 }
@@ -321,27 +259,6 @@ const goToPurchaseOptions = () => {
     padding: 20px 16px 24px 16px;
   }
   
-  /* 调整背景圆圈在移动端的位置 */
-  .feature-circle-1 {
-    width: 120px;
-    height: 120px;
-    left: -40px;
-    top: -40px;
-  }
-  
-  .feature-circle-2 {
-    width: 80px;
-    height: 80px;
-    right: -30px;
-    top: 30px;
-  }
-  
-  .feature-circle-4 {
-    width: 100px;
-    height: 100px;
-    right: 60px;
-    bottom: -40px;
-  }
 }
 
 @media (max-width: 480px) {

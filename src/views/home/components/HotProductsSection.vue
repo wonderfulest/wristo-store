@@ -3,7 +3,7 @@
     <div class="hot-container">
       <div class="hot-header">
         <div class="hot-header-icon">
-          <span class="hot-header-icon-inner">🔥</span>
+          <el-icon class="hot-header-icon-inner"><TrendCharts /></el-icon>
         </div>
         <h2 class="hot-title">Trending Now</h2>
       </div>
@@ -26,6 +26,7 @@
 </template>
 
 <script setup lang="ts">
+import { TrendCharts } from '@element-plus/icons-vue';
 import type { ProductBaseVO } from '@/types';
 
 defineProps<{
@@ -39,7 +40,7 @@ defineEmits(['product-click']);
 .hot-section {
   padding: 64px 0;
   background: #fff;
-  border-top: 2px solid #f3f4f6;
+  border-top: 1px solid var(--color-line);
 }
 
 .hot-container {
@@ -64,7 +65,7 @@ defineEmits(['product-click']);
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #ffedd5;
+  background: #fff7ed;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,14 +73,14 @@ defineEmits(['product-click']);
 }
 
 .hot-header-icon-inner {
-  color: #fb923c;
+  color: var(--color-accent);
   font-size: 24px;
 }
 
 .hot-title {
   font-size: 2rem;
-  font-weight: bold;
-  color: #222;
+  font-weight: 800;
+  color: var(--color-ink);
   margin: 0;
 }
 
@@ -90,7 +91,7 @@ defineEmits(['product-click']);
   justify-items: center;
   align-items: start;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 0 auto;
   justify-content: center;
   place-items: center;
@@ -106,6 +107,7 @@ defineEmits(['product-click']);
   max-width: 320px;
   cursor: pointer;
   transition: transform 0.3s ease;
+  border-radius: var(--radius-md);
 }
 
 .hot-item:hover {
@@ -117,8 +119,8 @@ defineEmits(['product-click']);
   height: 260px;
   border-radius: 50%;
   overflow: hidden;
-  background: #f7f8fa;
-  box-shadow: 0 4px 24px 0 rgba(80, 110, 255, 0.10);
+  background: linear-gradient(180deg, #fff 0%, #f4f7f6 100%);
+  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,7 +130,7 @@ defineEmits(['product-click']);
 
 .hot-item:hover .hot-img-wrap {
   transform: scale(1.05);
-  box-shadow: 0 8px 32px 0 rgba(80, 110, 255, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .hot-img {
@@ -147,19 +149,19 @@ defineEmits(['product-click']);
 .hot-name {
   font-size: 1.18rem;
   font-weight: 600;
-  color: #222;
+  color: var(--color-ink);
   margin-top: 22px;
   text-align: center;
   transition: color 0.3s ease;
 }
 
 .hot-item:hover .hot-name {
-  color: #4a3aff;
+  color: var(--color-brand);
 }
 
 .hot-price {
   font-size: 1.1rem;
-  color: #888;
+  color: var(--color-muted);
   margin-top: 6px;
   text-align: center;
   font-weight: 500;
@@ -167,7 +169,7 @@ defineEmits(['product-click']);
 }
 
 .hot-item:hover .hot-price {
-  color: #4a3aff;
+  color: var(--color-brand);
 }
 
 /* Responsive adjustments */

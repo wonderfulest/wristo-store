@@ -1,6 +1,6 @@
 <template>
 
-  <div class="home bg-white">
+  <div class="home">
     <!-- Home Banner -->
     <HomeBanner />
 
@@ -95,6 +95,8 @@ const goToSeries = (series: Series) => {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  background:
+    linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 34%, #ffffff 100%);
 }
 .newsletter-wrap {
   margin-bottom: 64px;

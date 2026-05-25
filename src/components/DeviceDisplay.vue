@@ -4,7 +4,7 @@
     <div v-if="currentDevice" class="device-info selected-state" @click="handleSelectDevice">
       <div class="device-avatar">
         <img v-if="currentDevice.imageUrl" :src="currentDevice.imageUrl" :alt="currentDevice.displayName" />
-        <div v-else class="device-fallback">⌚️</div>
+        <div v-else class="device-fallback">W</div>
       </div>
       <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ currentDevice.displayName }}</div>
     </div>
@@ -12,7 +12,7 @@
     <!-- No Device -->
     <div v-else class="device-info no-device" @click="handleSelectDevice">
       <div class="device-avatar">
-        <div class="device-fallback">📱</div>
+        <div class="device-fallback">+</div>
       </div>
       <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">Select Device</div>
     </div>
@@ -128,9 +128,9 @@ defineExpose({
   gap: 8px;
   padding: 6px 12px;
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
@@ -139,8 +139,8 @@ defineExpose({
 }
 
 .device-info:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  border-color: rgba(15, 107, 104, 0.22);
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.08);
 }
 
 .device-avatar {
@@ -150,7 +150,7 @@ defineExpose({
   border-radius: 6px;
   overflow: hidden;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,13 +168,15 @@ defineExpose({
 }
 
 .device-fallback {
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-brand);
   line-height: 1;
 }
 
 .device-name {
   font-size: 0.85rem;
-  color: #1f2937;
+  color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -184,40 +186,40 @@ defineExpose({
 /* No Device State */
 .device-info.no-device {
   cursor: pointer;
-  border-color: #d1d5db;
-  background: #f9fafb;
+  border-color: var(--color-line);
+  background: var(--color-surface-soft);
   transition: all 0.2s ease;
 }
 
 .device-info.no-device:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.1);
+  border-color: rgba(15, 107, 104, 0.24);
+  background: var(--color-brand-soft);
+  box-shadow: 0 8px 18px rgba(15, 107, 104, 0.1);
 }
 
 .device-info.no-device .device-name {
-  color: #6b7280;
+  color: var(--color-muted);
   font-weight: 400;
 }
 
 .device-info.no-device:hover .device-name {
-  color: #3b82f6;
+  color: var(--color-brand);
   font-weight: 500;
 }
 
 /* Mobile Device Display */
 .device-display-container.mobile {
   padding: 16px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-line);
   margin-bottom: 16px;
 }
 
 .device-display-container.mobile .device-info {
   gap: 12px;
   padding: 12px 16px;
-  background: #f8f9fa;
+  background: var(--color-surface-soft);
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-line);
 }
 
 .device-display-container.mobile .device-avatar {
@@ -244,10 +246,10 @@ defineExpose({
 
 /* Mobile No Device State */
 .device-display-container.mobile .device-info.no-device {
-  background: #f3f4f6;
+  background: var(--color-surface-soft);
 }
 
 .device-display-container.mobile .device-info.no-device:hover {
-  background: #e5f3ff;
+  background: var(--color-brand-soft);
 }
 </style>

@@ -26,10 +26,10 @@ const showFloatingActions = computed(() => route.meta.showFloatingActions === tr
 
 <style scoped>
 .layout-root {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f7f8fa;
+  background: var(--color-canvas);
   width: 100vw;
   max-width: 100vw;
   overflow-x: hidden;

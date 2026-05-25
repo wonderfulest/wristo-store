@@ -22,7 +22,7 @@
     
     <!-- No more data tip -->
     <div v-if="!hasMore && products.length > 0" class="no-more-tip">
-      <p>You've reached the end! 🎉</p>
+      <p>You've reached the end.</p>
     </div>
     
     <div v-else-if="products.length === 0 && !loading" class="empty-tip">No products found in this series.</div>
@@ -145,7 +145,7 @@ const handleScroll = () => {
     const shouldLoad = scrollProgress >= 0.6 || remainingHeight <= 400
     
     if (shouldLoad && !loading.value && hasMore.value) {
-      console.log('🚀 Auto loading more apps triggered!')
+      console.log('Auto loading more apps triggered')
       loadMore()
     }
   }, 100)
@@ -184,7 +184,7 @@ onMounted(() => {
       const remainingHeight = documentHeight - (scrollTop + windowHeight)
       
       if (scrollProgress >= 0.6 || remainingHeight <= 400) {
-        console.log('🔄 Interval check triggered loading')
+        console.log('Interval check triggered loading')
         loadMore()
       }
     }
@@ -221,34 +221,40 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .category-detail-page {
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 56px 20px 80px;
 }
 
 .category-header {
   display: flex;
   align-items: center;
   gap: 32px;
-  margin-bottom: 32px;
+  margin-bottom: 36px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 .category-image {
   width: 96px;
   height: 96px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
 }
 .category-title {
-  font-size: 2.2rem;
-  font-weight: bold;
-  color: #222;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0;
 }
 
 .product-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
   padding: 20px 0;
 }
 
@@ -257,13 +263,13 @@ onBeforeUnmount(() => {
 }
 
 .product-item:hover {
-  transform: translateY(-5px);
+  transform: translateY(-3px);
 }
 
 .empty-tip {
   text-align: center;
   font-size: 1.2rem;
-  color: #666;
+  color: var(--color-muted);
   padding: 60px 20px;
 }
 
@@ -279,8 +285,8 @@ onBeforeUnmount(() => {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #f3f4f6;
-  border-top: 3px solid #007aff;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid var(--color-brand);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -292,7 +298,7 @@ onBeforeUnmount(() => {
 
 .loading-text {
   font-size: 1rem;
-  color: #666;
+  color: var(--color-muted);
   margin: 0;
 }
 
@@ -306,15 +312,20 @@ onBeforeUnmount(() => {
 
 .no-more-tip p {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--color-muted);
   margin: 0;
   font-weight: 500;
 }
 
 @media (max-width: 768px) {
   .product-list {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 16px;
+  }
+  .category-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
   }
   
   .category-title {
@@ -328,7 +339,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 480px) {
   .product-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 15px;
   }
   

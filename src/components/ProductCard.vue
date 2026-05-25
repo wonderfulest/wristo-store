@@ -1,5 +1,5 @@
 <template>
-  <div class="product-card" @click="handleClick">
+  <button class="product-card" type="button" @click="handleClick">
     <div class="product-img-wrap">
       <img 
         :src="product?.heroFile?.url || product?.garminImageUrl" 
@@ -11,7 +11,7 @@
       <div class="product-name">{{ product?.name }}</div>
       <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
     </div>
-  </div>
+  </button>
 </template>
 
 <script setup lang="ts">
@@ -33,30 +33,35 @@ const handleClick = () => {
 <style scoped>
 .product-card {
   background: #fff;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-sm);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
+  padding: 0;
+  text-align: left;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  border-color: rgba(15, 107, 104, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .product-img-wrap {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #f8f8f8;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5f3 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   box-sizing: border-box;
 }
 
@@ -85,7 +90,7 @@ const handleClick = () => {
 .product-name {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1d1d1f;
+  color: var(--color-ink);
   margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -94,13 +99,13 @@ const handleClick = () => {
   text-overflow: ellipsis;
   min-height: 1.2em;
   line-height: 1.4;
-  letter-spacing: -0.3px;
+  letter-spacing: 0;
 }
 
 .product-price {
   font-size: 1.1rem;
   font-weight: 500;
-  color: #86868b;
+  color: var(--color-brand);
   margin-top: auto;
 }
 

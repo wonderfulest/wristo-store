@@ -41,13 +41,13 @@ defineEmits(['series-click']);
 <style scoped>
 .series-section {
   padding: 64px 16px;
-  background: #fff;
+  background: #f8fbfa;
   box-sizing: border-box;
 }
 
 .series-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 0 auto;
   padding: 0;
   box-sizing: border-box;
@@ -64,7 +64,7 @@ defineEmits(['series-click']);
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #ede9fe;
+  background: var(--color-brand-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,14 +72,14 @@ defineEmits(['series-click']);
 }
 
 .series-header-icon-inner {
-  color: #a78bfa;
+  color: var(--color-brand);
   font-size: 24px;
 }
 
 .series-title {
   font-size: 2rem;
-  font-weight: bold;
-  color: #222;
+  font-weight: 800;
+  color: var(--color-ink);
   margin: 0;
 }
 
@@ -116,8 +116,9 @@ defineEmits(['series-click']);
   height: 220px;
   border-radius: 50%;
   overflow: hidden;
-  background: #f7f8fa;
-  box-shadow: 0 4px 24px 0 rgba(80, 110, 255, 0.10);
+  background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -127,7 +128,7 @@ defineEmits(['series-click']);
 
 .series-item:hover .series-img-wrap {
   transform: scale(1.05);
-  box-shadow: 0 8px 32px 0 rgba(80, 110, 255, 0.15);
+  box-shadow: var(--shadow-lg);
 }
 
 .series-img {
@@ -154,17 +155,17 @@ defineEmits(['series-click']);
 .series-name {
   font-size: 1.15rem;
   font-weight: 600;
-  color: #222;
+  color: var(--color-ink);
   transition: color 0.3s ease;
 }
 
 .series-item:hover .series-name {
-  color: #4a3aff;
+  color: var(--color-brand);
 }
 
 .series-arrow {
   font-size: 1.3rem;
-  color: #b0b7c3;
+  color: var(--color-subtle);
   margin-left: 2px;
   font-weight: 400;
   transition: transform 0.3s ease, color 0.3s ease;
@@ -172,7 +173,7 @@ defineEmits(['series-click']);
 
 .series-item:hover .series-arrow {
   transform: translateX(5px);
-  color: #4a3aff;
+  color: var(--color-brand);
 }
 
 /* Responsive adjustments */

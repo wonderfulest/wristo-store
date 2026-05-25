@@ -167,11 +167,12 @@ onUnmounted(() => {
 <style scoped>
 .new-section {
   background: #fff;
+  padding: 62px 0 54px;
 }
 
 .new-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 0 auto;
 }
 
@@ -185,28 +186,28 @@ onUnmounted(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  background: var(--color-brand-soft);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 16px;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  box-shadow: var(--shadow-sm);
 }
 
 .new-header-icon-inner {
-  color: #2563eb;
+  color: var(--color-brand);
   font-size: 24px;
 }
 
 .new-title {
   font-size: 2rem;
-  font-weight: bold;
-  color: #222;
+  font-weight: 800;
+  color: var(--color-ink);
   letter-spacing: -0.02em;
 }
 
 .new-carousel-wrap {
-  padding: 0 16px;
+  padding: 10px 16px 0;
   position: relative;
 }
 
@@ -241,6 +242,7 @@ onUnmounted(() => {
   background: transparent;
   padding: 22px 10px 18px;
   cursor: pointer;
+  border-radius: var(--radius-md);
 }
 
 .slide-btn:active {
@@ -252,12 +254,12 @@ onUnmounted(() => {
   height: 220px;
   border-radius: 50%;
   overflow: hidden;
-  background: #fff;
+  background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 4px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-line);
   margin: 0 auto;
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -284,7 +286,7 @@ onUnmounted(() => {
 .product-name {
   font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--color-ink);
   margin-bottom: 8px;
   line-height: 1.4;
 }
@@ -292,7 +294,7 @@ onUnmounted(() => {
 .product-price {
   font-size: 16px;
   font-weight: 700;
-  color: #2563eb;
+  color: var(--color-brand);
   letter-spacing: -0.01em;
 }
 

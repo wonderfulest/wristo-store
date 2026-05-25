@@ -33,15 +33,15 @@
                 />
                 <div class="qrcode-actions">
                   <button class="qrcode-action-btn" @click="saveQRCode" title="Save QR Code">
-                    💾
+                    <el-icon><Download /></el-icon>
                   </button>
                   <button class="qrcode-action-btn" @click="shareQRCode" title="Share QR Code">
-                    📤
+                    <el-icon><Share /></el-icon>
                   </button>
                 </div>
               </div>
               <div class="qrcode-help">
-                <span class="qrcode-help-text">💡 Long press QR code to save <br>or <br>scan with camera</span>
+                <span class="qrcode-help-text">Long press QR code to save <br>or <br>scan with camera</span>
               </div>
             </div>
             <div class="install-or">or</div>
@@ -71,7 +71,7 @@
             >
               <div class="device-avatar">
                 <img v-if="d.imageUrl" :src="d.imageUrl" :alt="d.displayName" />
-                <div v-else class="device-fallback">⌚️</div>
+                <div v-else class="device-fallback">W</div>
               </div>
               <div class="device-name">{{ d.displayName }}</div>
             </div>
@@ -88,7 +88,7 @@
         <div class="unlock-section">
           <div class="unlock-tip">Enter the 6-digit code from your watch to unlock the trial.</div>
           <button class="product-btn product-btn-unlock" @click="handleUnlock">
-            Unlock Trial <span class="iconfont icon-lock" style="margin-left:10px;font-size:1.2em;">🔒</span>
+            Unlock Trial <el-icon class="btn-icon"><Lock /></el-icon>
           </button>
           <button class="product-btn product-btn-already-purchased" @click="handleAlreadyPurchased">
             Already Purchased
@@ -103,6 +103,7 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { Download, Lock, Share } from '@element-plus/icons-vue'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
@@ -320,11 +321,12 @@ onMounted(async () => {
 .product-detail-page {
   width: 100vw;
   min-height: 100vh;
-  background: #fff;
+  background:
+    linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 100%);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 60px 20px 0 20px;
+  padding: 64px 20px 96px;
 }
 .product-detail-main {
   display: flex;
@@ -332,15 +334,18 @@ onMounted(async () => {
   align-items: flex-start;
   justify-content: center;
   width: 100%;
-  max-width: 1200px;
-  gap: 80px;
+  max-width: var(--container);
+  gap: 64px;
 }
 .product-image-wrap {
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.10);
+  width: min(42vw, 460px);
+  height: min(42vw, 460px);
+  min-width: 320px;
+  min-height: 320px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -350,7 +355,7 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: var(--radius-lg);
   display: block;
 }
 .product-info-wrap {
@@ -359,27 +364,28 @@ onMounted(async () => {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  margin-top: 40px;
+  margin-top: 12px;
   min-width: 340px;
 }
 .product-title {
-  font-size: 2.6rem;
+  font-size: clamp(2.1rem, 4vw, 3.2rem);
   font-weight: 700;
-  color: #111;
+  color: var(--color-ink);
   margin-bottom: 12px;
-  letter-spacing: 1px;
+  letter-spacing: 0;
+  line-height: 1.08;
 }
 .product-price {
-  font-size: 1.3rem;
-  color: #222;
-  font-weight: 500;
-  margin-bottom: 38px;
+  font-size: 1.35rem;
+  color: var(--color-brand);
+  font-weight: 800;
+  margin-bottom: 34px;
   margin-top: 0;
 }
 .product-btn {
   width: 300px;
   max-width: 100%;
-  height: 64px;
+  min-height: 56px;
   border-radius: 999px;
   font-size: 1.25rem;
   font-weight: 600;
@@ -387,26 +393,31 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
   cursor: pointer;
   outline: none;
   border: none;
 }
+
+.btn-icon {
+  margin-left: 10px;
+  font-size: 1.15em;
+}
 .product-btn-download {
-  background: #111;
+  background: var(--color-brand);
   color: #fff;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
 }
 .product-btn-download:hover {
-  background: #222;
+  background: var(--color-brand-strong);
 }
 .product-btn-unlock {
-  background: #111;
+  background: var(--color-brand);
   color: #fff;
   border: none;
   font-weight: 700;
   font-size: 1.22rem;
-  box-shadow: 0 4px 18px 0 rgba(0,0,0,0.10);
+  box-shadow: 0 14px 30px rgba(15, 107, 104, 0.18);
   height: 64px;
   width: 340px;
   max-width: 100%;
@@ -416,14 +427,14 @@ onMounted(async () => {
   transition: box-shadow 0.2s, background 0.2s;
 }
 .product-btn-unlock:hover {
-  background: #222;
-  box-shadow: 0 6px 24px 0 rgba(0,0,0,0.16);
+  background: var(--color-brand-strong);
+  box-shadow: 0 18px 38px rgba(15, 107, 104, 0.22);
 }
 
 .product-btn-already-purchased {
   background: #fff;
-  color: #111;
-  border: 2px solid #e5e7eb;
+  color: var(--color-ink);
+  border: 1px solid var(--color-line);
   font-weight: 600;
   font-size: 1.1rem;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
@@ -437,8 +448,8 @@ onMounted(async () => {
 }
 
 .product-btn-already-purchased:hover {
-  background: #f8f9fa;
-  border-color: #d1d5db;
+  background: var(--color-surface-soft);
+  border-color: rgba(15, 107, 104, 0.2);
   box-shadow: 0 4px 18px 0 rgba(0,0,0,0.08);
 }
 .product-section-title {
@@ -457,6 +468,11 @@ onMounted(async () => {
 .install-section {
   margin: 0 0 32px 0;
   width: 100%;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 /* Devices */
 .devices-section {
@@ -472,12 +488,12 @@ onMounted(async () => {
 .devices-title {
   font-size: 1.15rem;
   font-weight: 800;
-  color: #181818;
+  color: var(--color-ink);
   letter-spacing: 0.3px;
 }
 .devices-subtitle {
   font-size: 0.95rem;
-  color: #6b7280;
+  color: var(--color-muted);
 }
 .devices-grid {
   margin-top: 12px;
@@ -490,8 +506,8 @@ onMounted(async () => {
   align-items: center;
   gap: 10px;
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   min-width: 0;
@@ -503,7 +519,7 @@ onMounted(async () => {
   border-radius: 12px;
   overflow: hidden;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -519,12 +535,14 @@ onMounted(async () => {
   background: #fff;
 }
 .device-fallback {
-  font-size: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-brand);
   line-height: 1;
 }
 .device-name {
   font-size: 0.98rem;
-  color: #1f2937;
+  color: var(--color-ink);
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* allow text to squeeze/wrap up to 2 lines */
@@ -538,8 +556,8 @@ onMounted(async () => {
 .devices-toggle {
   margin-top: 10px;
   background: #fff;
-  border: 1px solid #e5e7eb;
-  color: #2563eb;
+  border: 1px solid var(--color-line);
+  color: var(--color-brand);
   border-radius: 999px;
   padding: 10px 14px;
   font-weight: 600;
@@ -547,13 +565,13 @@ onMounted(async () => {
   transition: all 0.2s ease;
 }
 .devices-toggle:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--color-brand-soft);
+  border-color: rgba(15, 107, 104, 0.2);
 }
 .install-title {
   font-size: 1.45rem;
   font-weight: 800;
-  color: #181818;
+  color: var(--color-ink);
   margin-bottom: 6px;
   letter-spacing: 0.5px;
   text-align: center;
@@ -561,7 +579,7 @@ onMounted(async () => {
 }
 .install-subtitle {
   font-size: 1.08rem;
-  color: #666;
+  color: var(--color-muted);
   font-weight: 400;
   margin-bottom: 18px;
   text-align: center;
@@ -587,7 +605,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  color: #aaa;
+  color: var(--color-subtle);
   font-weight: 500;
   width: 48px;
   min-width: 48px;
@@ -597,7 +615,7 @@ onMounted(async () => {
 }
 .qrcode-title {
   font-size: 1.02rem;
-  color: #888;
+  color: var(--color-muted);
   margin-bottom: 10px;
   letter-spacing: 0.2px;
 }
@@ -607,8 +625,8 @@ onMounted(async () => {
 }
 
 .qrcode-img {
-  border-radius: 16px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.08);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
   background: #fff;
   padding: 8px;
   transition: transform 0.2s ease;
@@ -634,11 +652,11 @@ onMounted(async () => {
 }
 
 .qrcode-action-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-line);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -650,8 +668,8 @@ onMounted(async () => {
 }
 
 .qrcode-action-btn:hover {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: #3b82f6;
+  background: var(--color-brand-soft);
+  border-color: rgba(15, 107, 104, 0.25);
   transform: scale(1.1);
 }
 
@@ -662,11 +680,11 @@ onMounted(async () => {
 
 .qrcode-help-text {
   font-size: 0.85rem;
-  color: #6b7280;
-  background: rgba(59, 130, 246, 0.05);
+  color: var(--color-muted);
+  background: var(--color-brand-soft);
   padding: 4px 8px;
   border-radius: 12px;
-  border: 1px solid rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(15, 107, 104, 0.1);
   display: inline-block;
 }
 .icon-download-svg {
@@ -678,7 +696,7 @@ onMounted(async () => {
 }
 .button-title {
   font-size: 1.02rem;
-  color: #888;
+  color: var(--color-muted);
   margin-bottom: 12px;
   letter-spacing: 0.2px;
   text-align: center;
@@ -689,8 +707,8 @@ onMounted(async () => {
   max-width: 100%;
   height: 48px;
   background: #fff;
-  color: #888;
-  border: 1.5px solid #e5e7eb;
+  color: var(--color-brand);
+  border: 1px solid var(--color-line);
   font-weight: 500;
   font-size: 1.08rem;
   box-shadow: none;
@@ -699,8 +717,8 @@ onMounted(async () => {
 }
 .button-section .product-btn-download:hover {
   background: #fff;
-  color: #888;
-  border: 1.5px solid #e5e7eb;
+  color: var(--color-brand-strong);
+  border: 1px solid rgba(15, 107, 104, 0.2);
   box-shadow: none;
 }
 .unlock-section {
@@ -712,7 +730,7 @@ onMounted(async () => {
 }
 .unlock-tip {
   font-size: 1.02rem;
-  color: #888;
+  color: var(--color-muted);
   margin-bottom: 12px;
   letter-spacing: 0.2px;
   text-align: center;
@@ -746,6 +764,8 @@ onMounted(async () => {
   .product-image-wrap {
     width: 280px;
     height: 280px;
+    min-width: 280px;
+    min-height: 280px;
   }
   
   .install-methods {

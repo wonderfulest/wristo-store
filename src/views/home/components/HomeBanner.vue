@@ -108,32 +108,32 @@ const handleClick = (banner: HomeBannerVO) => {
 <style scoped>
 .home-banner {
   width: 100%;
-  padding: 18px 0 10px;
-  background: linear-gradient(180deg, #ffffff 0%, #f6f8fb 70%, rgba(246, 248, 251, 0) 100%);
+  padding: 28px 0 14px;
+  background: transparent;
 }
 
 .banner-shell {
-  width: min(1200px, calc(100% - 32px));
+  width: min(var(--container), calc(100% - 32px));
   margin: 0 auto;
 }
 
 .banner-swiper {
-  border-radius: 20px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.78);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow:
-    0 14px 35px rgba(0, 0, 0, 0.08),
+    var(--shadow-lg),
     0 1px 0 rgba(255, 255, 255, 0.7) inset;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--color-line);
 }
 
 .banner-slide {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 12 / 5;
+  aspect-ratio: 12 / 4.8;
   height: auto;
   padding: 0;
   border: none;
@@ -157,7 +157,7 @@ const handleClick = (banner: HomeBannerVO) => {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(1200px 420px at 10% 0%, rgba(0, 122, 255, 0.12) 0%, rgba(0, 122, 255, 0) 60%),
+    radial-gradient(1200px 420px at 10% 0%, rgba(15, 107, 104, 0.16) 0%, rgba(15, 107, 104, 0) 60%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.22) 100%);
   pointer-events: none;
 }
@@ -194,7 +194,7 @@ const handleClick = (banner: HomeBannerVO) => {
   }
 
   .banner-swiper {
-    border-radius: 16px;
+    border-radius: var(--radius-md);
   }
 
   .banner-slide {

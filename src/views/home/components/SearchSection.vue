@@ -108,12 +108,12 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .search-section {
-  min-height: 260px;
-  background: linear-gradient(135deg, #eaf3ff 0%, #f5faff 100%);
+  min-height: 220px;
+  background:
+    linear-gradient(135deg, rgba(223, 245, 241, 0.95) 0%, rgba(255, 255, 255, 0.82) 100%);
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.04);
+  border-block: 1px solid var(--color-line);
 }
 
 .search-bar-outer {
@@ -126,16 +126,17 @@ onBeforeUnmount(() => {
 }
 
 .search-bar-inner {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-md);
   padding: 0 28px 0 22px;
   width: 56vw;
   min-width: 320px;
   max-width: 820px;
-  height: 76px;
+  min-height: 72px;
   display: flex;
   align-items: center;
+  border: 1px solid rgba(15, 107, 104, 0.12);
 }
 
 .search-bar-input {
@@ -149,14 +150,14 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #0369a1;
+  color: var(--color-brand-strong);
   /* background: rgba(191, 219, 254, 0.75); */
   /* border: 1px solid rgba(59, 130, 246, 0.35); */
   white-space: nowrap;
 }
 
 .search-icon {
-  color: #b0b7c3;
+  color: var(--color-brand);
   font-size: 28px;
   margin-right: 14px;
 }
@@ -166,7 +167,7 @@ onBeforeUnmount(() => {
   border: none !important;
   background: transparent !important;
   font-size: 2.8rem;
-  color: #222;
+  color: var(--color-ink);
   padding: 0;
 }
 
@@ -176,14 +177,14 @@ onBeforeUnmount(() => {
   box-shadow: none !important;
   font-size: 1.4rem;
   font-weight: 600;
-  color: #222;
+  color: var(--color-ink);
   padding: 0;
 }
 
 .search-bar-input :deep(.el-input__inner::placeholder) {
   font-size: 1.2rem;
   font-weight: 400;
-  color: #b0b7c3 !important;
+  color: var(--color-subtle) !important;
   opacity: 1;
 }
 
@@ -198,10 +199,10 @@ onBeforeUnmount(() => {
   }
 
   .search-bar-inner {
-    width: 98vw;
+    width: calc(100vw - 28px);
     max-width: none;
     min-width: 0;
-    height: 72px;
+    min-height: 64px;
     padding: 0 20px 0 18px;
   }
 
@@ -218,7 +219,7 @@ onBeforeUnmount(() => {
   min-width: 110px;
   font-size: 1.1rem;
   border-radius: 999px !important;
-  background: #347cff;
+  background: var(--color-brand);
   border: none;
   box-shadow: 0 2px 8px 0 rgba(52,124,255,0.08);
 }

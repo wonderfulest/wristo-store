@@ -24,23 +24,23 @@
       
       <div class="mobile-footer-content">
         <div class="footer-actions">
-          <a href="/faq" class="footer-action">
-            <div class="action-icon">❓</div>
+          <a href="/faq" class="footer-action" aria-label="Help">
+            <div class="action-icon">?</div>
             <span>Help</span>
           </a>
           
-          <a href="/terms-and-conditions" class="footer-action">
-            <div class="action-icon">📋</div>
+          <a href="/terms-and-conditions" class="footer-action" aria-label="Terms">
+            <div class="action-icon">T</div>
             <span>Terms</span>
           </a>
           
-          <a href="mailto:support@wristo.io" class="footer-action">
-            <div class="action-icon">✉️</div>
+          <a href="mailto:support@wristo.io" class="footer-action" aria-label="Support">
+            <div class="action-icon">@</div>
             <span>Support</span>
           </a>
           
-          <button @click="scrollToTop" class="footer-action">
-            <div class="action-icon">⬆️</div>
+          <button @click="scrollToTop" class="footer-action" type="button" aria-label="Back to top">
+            <div class="action-icon">↑</div>
             <span>Top</span>
           </button>
         </div>
@@ -175,10 +175,10 @@ onUnmounted(() => {
 
 <style scoped>
 .footer {
-  color: #888;
-  font-size: 1rem;
-  background: #000;
-  padding: 16px 0 16px 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.95rem;
+  background: #0b1220;
+  padding: 18px 16px;
   text-align: center;
   cursor: pointer;
   outline: none;
@@ -267,26 +267,33 @@ onUnmounted(() => {
     text-decoration: none;
     color: #374151;
     padding: 12px 8px;
-    border-radius: 12px;
+    min-height: 64px;
+    border-radius: var(--radius-sm);
     background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-line);
     transition: all 0.2s ease;
     cursor: pointer;
-    border: none;
     font-family: inherit;
   }
   
   .footer-action:hover,
   .footer-action:active {
-    background: rgba(59, 130, 246, 0.1);
-    border-color: rgba(59, 130, 246, 0.2);
+    background: var(--color-brand-soft);
+    border-color: rgba(15, 107, 104, 0.2);
     transform: translateY(-1px);
   }
   
   .action-icon {
-    font-size: 1.5rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--color-brand-strong);
+    background: #fff;
     margin-bottom: 4px;
-    filter: grayscale(0.2);
   }
   
   .footer-action span {
@@ -296,7 +303,7 @@ onUnmounted(() => {
   }
   
   .footer-action:hover span {
-    color: #3B82F6;
+    color: var(--color-brand-strong);
   }
   
   .footer-copyright {
@@ -329,13 +336,13 @@ onUnmounted(() => {
 }
 
 .footer-main {
-  color: #ccc;
-  font-size: 1.08rem;
-  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.95rem;
+  letter-spacing: 0;
 }
 
 .footer a {
-  color: #a5b4fc;
+  color: #b7f4ea;
   text-decoration: underline;
   margin: 0 4px;
   transition: color 0.2s;
@@ -352,7 +359,7 @@ onUnmounted(() => {
   line-height: 1.7;
   animation: fadeIn 0.3s;
   padding: 16px 0;
-  background: #000;
+  background: #0b1220;
   width: 100%;
 }
 
@@ -363,11 +370,11 @@ onUnmounted(() => {
 }
 .footer-detail-links {
   margin-top: 18px;
-  color: #a5b4fc;
+  color: #b7f4ea;
   font-size: 1.08rem;
 }
 .footer-detail-links a {
-  color: #a5b4fc;
+  color: #b7f4ea;
   margin: 0 4px;
 }
 .footer-expand-enter-active,

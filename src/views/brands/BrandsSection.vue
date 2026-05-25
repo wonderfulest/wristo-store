@@ -85,13 +85,13 @@ const handleCarouselClick = (item: InfiniteCarouselItem) => {
 
 <style scoped>
 .brands-section {
-  padding: 28px 0;
+  padding: 46px 0;
   background: #fff;
 }
 
 .brands-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--container);
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -111,33 +111,34 @@ const handleCarouselClick = (item: InfiniteCarouselItem) => {
 .brands-title {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-ink);
   letter-spacing: -0.02em;
 }
 
 .brands-subtitle {
   margin-top: 6px;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.65);
+  color: var(--color-muted);
 }
 
 .brands-more {
   height: 32px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
+  border: 1px solid var(--color-line);
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   font-weight: 700;
   font-size: 12px;
-  color: #0b63d1;
+  color: var(--color-brand);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .brands-more:hover {
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
+  background: var(--color-brand-soft);
 }
 
 .brands-swiper {
