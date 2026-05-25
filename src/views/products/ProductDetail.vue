@@ -1,16 +1,20 @@
 <template>
   <div class="product-detail-page">
     <div class="product-detail-main">
-      <!-- 左侧大圆形图片 -->
-      <div class="product-image-wrap">
-        <img
-          v-if="product?.heroFile?.url || product?.garminImageUrl"
-          :src="product?.heroFile?.url || product?.garminImageUrl"
-          :alt="product.name"
-          class="product-image"
-        />
+      <!-- Left side: Image + Share -->
+      <div class="product-left">
+        <div class="product-image-wrap">
+          <img
+            v-if="product?.heroFile?.url || product?.garminImageUrl"
+            :src="product?.heroFile?.url || product?.garminImageUrl"
+            :alt="product?.name || 'Product image'"
+            class="product-image"
+          />
+        </div>
+        <!-- Social share -->
+        <ShareBar v-if="product?.appId" :product="product" />
       </div>
-      <!-- 右侧信息区 -->
+      <!-- Right side: Info -->
       <div class="product-info-wrap">
         <div class="product-title">{{ product?.name }}</div>
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
@@ -106,6 +110,7 @@ import { ElMessage } from 'element-plus'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
+import ShareBar from '@/components/ShareBar.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -115,7 +120,7 @@ const product = ref<ProductVO | null>(null)
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
-    // 保存当前页面状态到sessionStorage，防止页面刷新时丢失
+    // Save current page state to sessionStorage to restore after external navigation
     try {
       sessionStorage.setItem('productDetailState', JSON.stringify({
         productId: route.params.id,
@@ -126,16 +131,16 @@ const handleDownload = () => {
       console.warn('Failed to save page state:', error)
     }
     
-    // 在新标签页打开外部链接
+    // Open external link in a new tab
     const newWindow = window.open(product.value.garminStoreUrl, '_blank')
     
-    // 确保新窗口成功打开
+    // Ensure the new window opened successfully
     if (!newWindow) {
       ElMessage.error('Please allow popups for this site to open Garmin Store')
       return
     }
     
-    // 给用户反馈
+    // Feedback to user
     ElMessage.success('Opening Garmin Connect IQ Store...')
   } else {
     ElMessage.error('Download link is not available')
@@ -150,6 +155,7 @@ const handleUnlock = () => {
 const handleAlreadyPurchased = () => {
   router.push('/already-purchased')
 }
+
 
 // QR Code functionality
 const qrcodeRef = ref<any>(null)
@@ -293,19 +299,19 @@ onMounted(async () => {
   if (productId) {
     product.value = await productStore.getProductDetail(productId) as ProductVO
     
-    // 恢复页面状态（如果用户从外部链接返回）
+    // Restore page state (if user comes back from external link)
     try {
       const savedState = sessionStorage.getItem('productDetailState')
       if (savedState) {
         const state = JSON.parse(savedState)
-        // 检查是否是同一个产品页面，且时间不超过30分钟
+        // Ensure it's the same product page and within 30 minutes
         if (state.productId === productId && (Date.now() - state.timestamp) < 30 * 60 * 1000) {
-          // 恢复滚动位置
+          // Restore scroll position
           setTimeout(() => {
             window.scrollTo(0, state.scrollPosition)
           }, 100)
           
-          // 清除已使用的状态
+          // Clear the used state
           sessionStorage.removeItem('productDetailState')
         }
       }
@@ -334,6 +340,12 @@ onMounted(async () => {
   width: 100%;
   max-width: 1200px;
   gap: 80px;
+}
+.product-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
 }
 .product-image-wrap {
   width: 420px;
