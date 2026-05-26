@@ -2,7 +2,7 @@
   <section class="search-section search-section-gradient">
     <div class="search-bar-outer">
       <div class="search-bar-inner flex items-center">
-        <el-icon class="search-icon"><Search /></el-icon>
+        <Icon class="search-icon" icon="solar:magnifer-line-duotone" width="30" height="30" aria-hidden="true" />
         <el-input
           v-model="searchTerm"
           :placeholder="placeholder"
@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { Icon } from '@iconify/vue'
 
 const props = withDefaults(
   defineProps<{
@@ -37,7 +37,7 @@ const props = withDefaults(
   }>(),
   {
     initialSearchTerm: '',
-    placeholder: 'Try "Elegant" ...',
+    placeholder: 'Search elegant, sporty, minimal...',
     submitOnFocus: false
   }
 )
@@ -110,7 +110,7 @@ onBeforeUnmount(() => {
 .search-section {
   min-height: 220px;
   background:
-    linear-gradient(135deg, rgba(223, 245, 241, 0.95) 0%, rgba(255, 255, 255, 0.82) 100%);
+    linear-gradient(135deg, rgba(223, 245, 241, 0.9) 0%, rgba(255, 247, 237, 0.62) 48%, rgba(255, 255, 255, 0.86) 100%);
   display: flex;
   align-items: center;
   border-block: 1px solid var(--color-line);
@@ -128,7 +128,9 @@ onBeforeUnmount(() => {
 .search-bar-inner {
   background: rgba(255, 255, 255, 0.92);
   border-radius: 999px;
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    var(--shadow-md),
+    0 1px 0 rgba(255, 255, 255, 0.8) inset;
   padding: 0 28px 0 22px;
   width: 56vw;
   min-width: 320px;
@@ -158,8 +160,8 @@ onBeforeUnmount(() => {
 
 .search-icon {
   color: var(--color-brand);
-  font-size: 28px;
   margin-right: 14px;
+  flex: 0 0 auto;
 }
 
 .search-bar-input :deep(.el-input__wrapper) {

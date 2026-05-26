@@ -1,0 +1,56 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="960" height="720" rx="48" fill="#F8FBFA"/>
+  <path d="M120 508C216 618 407 646 562 590C717 534 888 408 850 250C812 92 606 70 454 108C302 146 24 398 120 508Z" fill="#DFF5F1"/>
+  <path d="M641 92C740 135 824 224 813 343C802 462 682 551 558 558C434 565 303 490 281 368C259 246 347 130 463 91C522 71 583 67 641 92Z" fill="#FFEDD5"/>
+  <g filter="url(#shadow)">
+    <rect x="213" y="160" width="268" height="368" rx="134" fill="#111827"/>
+    <rect x="238" y="185" width="218" height="318" rx="109" fill="url(#faceA)"/>
+    <circle cx="347" cy="344" r="77" stroke="white" stroke-opacity=".26" stroke-width="10"/>
+    <path d="M347 277V344L394 382" stroke="white" stroke-width="13" stroke-linecap="round"/>
+    <text x="347" y="262" text-anchor="middle" fill="white" font-family="DM Sans, Arial, sans-serif" font-size="32" font-weight="800">10:28</text>
+    <text x="347" y="440" text-anchor="middle" fill="white" fill-opacity=".72" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="700">URBAN CLASSIC</text>
+  </g>
+  <g filter="url(#shadowSmall)" opacity=".96">
+    <rect x="513" y="107" width="182" height="250" rx="91" fill="#111827"/>
+    <rect x="531" y="125" width="146" height="214" rx="73" fill="url(#faceB)"/>
+    <text x="604" y="206" text-anchor="middle" fill="white" font-family="DM Sans, Arial, sans-serif" font-size="35" font-weight="800">72</text>
+    <path d="M561 248C578 230 595 230 612 248C629 230 646 230 663 248" stroke="white" stroke-opacity=".64" stroke-width="8" stroke-linecap="round"/>
+    <text x="604" y="297" text-anchor="middle" fill="white" fill-opacity=".74" font-family="DM Sans, Arial, sans-serif" font-size="15" font-weight="700">HEALTH</text>
+  </g>
+  <g filter="url(#shadowSmall)" opacity=".96">
+    <rect x="592" y="374" width="205" height="282" rx="102.5" fill="#111827"/>
+    <rect x="612" y="394" width="165" height="242" rx="82.5" fill="url(#faceC)"/>
+    <text x="695" y="486" text-anchor="middle" fill="white" font-family="DM Sans, Arial, sans-serif" font-size="43" font-weight="800">8.4K</text>
+    <path d="M646 548H744" stroke="white" stroke-opacity=".22" stroke-width="9" stroke-linecap="round"/>
+    <path d="M664 578H726" stroke="white" stroke-opacity=".5" stroke-width="9" stroke-linecap="round"/>
+    <text x="695" y="596" text-anchor="middle" fill="white" fill-opacity=".74" font-family="DM Sans, Arial, sans-serif" font-size="15" font-weight="700">STEPS</text>
+  </g>
+  <circle cx="188" cy="143" r="14" fill="#0F6B68"/>
+  <circle cx="782" cy="169" r="18" fill="#F59E0B"/>
+  <circle cx="808" cy="566" r="11" fill="#0F6B68"/>
+  <path d="M154 221C183 205 215 207 241 226" stroke="#0F6B68" stroke-width="10" stroke-linecap="round" opacity=".25"/>
+  <path d="M708 82C750 83 786 101 812 133" stroke="#F59E0B" stroke-width="10" stroke-linecap="round" opacity=".36"/>
+  <defs>
+    <filter id="shadow" x="153" y="112" width="388" height="488" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="30" flood-color="#111827" flood-opacity=".25"/>
+    </filter>
+    <filter id="shadowSmall" x="465" y="67" width="380" height="629" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="22" stdDeviation="24" flood-color="#111827" flood-opacity=".18"/>
+    </filter>
+    <linearGradient id="faceA" x1="238" y1="185" x2="456" y2="503" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F59E0B"/>
+      <stop offset=".46" stop-color="#0F6B68"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="faceB" x1="531" y1="125" x2="677" y2="339" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0EA5E9"/>
+      <stop offset=".55" stop-color="#0F6B68"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="faceC" x1="612" y1="394" x2="777" y2="636" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F97316"/>
+      <stop offset=".5" stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+</svg>

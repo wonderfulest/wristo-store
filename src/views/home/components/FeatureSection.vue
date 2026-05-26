@@ -1,40 +1,63 @@
 <template>
   <section class="feature-section">
-    <div class="feature-bg">
-      <div class="feature-badge">ELEVATE YOUR GARMIN EXPERIENCE</div>
-      <h2 class="feature-title">Transform Your Watch Into A Masterpiece</h2>
-      <div class="feature-desc">
-        Discover our curated collection of premium watch faces designed exclusively for Garmin devices. 
-        Each design balances stunning aesthetics with practical functionality, giving you:
+    <div class="feature-panel">
+      <div class="feature-copy">
+        <div class="feature-badge">ELEVATE YOUR GARMIN EXPERIENCE</div>
+        <h2 class="feature-title">Transform Your Watch Into A Masterpiece</h2>
+        <p class="feature-desc">
+          Premium Garmin watch faces with sharp aesthetics, practical data layouts, and battery-conscious performance.
+        </p>
+
+        <div class="feature-actions">
+          <button class="feature-cta" @click="goToPurchaseOptions">Download & Unlock</button>
+          <span class="feature-note">One unlock, curated premium designs</span>
+        </div>
       </div>
 
-      <div class="feature-actions">
-        <button class="feature-cta" @click="goToPurchaseOptions">Download & Unlock</button>
-      </div>
-      
-      <div class="feature-cards">
-        <div class="feature-card">
-          <div class="feature-icon feature-icon-blue">
-            <el-icon><Plus /></el-icon>
+      <div class="feature-showcase" aria-label="Watch face benefits">
+        <div class="watch-orbit" aria-hidden="true">
+          <div class="watch-body">
+            <div class="watch-screen">
+              <span class="watch-time">10:28</span>
+              <span class="watch-label">WRISTO</span>
+              <div class="watch-metrics">
+                <span>HR 72</span>
+                <span>8.4K</span>
+              </div>
+            </div>
           </div>
-          <div class="feature-card-title">Unique Style</div>
-          <div class="feature-card-desc">Express your personality with designs you won't find anywhere else</div>
         </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon feature-icon-green">
-            <el-icon><Check /></el-icon>
+
+        <div class="feature-points">
+          <div class="feature-point">
+            <div class="feature-icon feature-icon-blue">
+              <Icon icon="solar:stars-line-duotone" width="24" height="24" aria-hidden="true" />
+            </div>
+            <div>
+              <div class="feature-card-title">Gallery-Level Style</div>
+              <div class="feature-card-desc">Original visual systems made to feel intentional on the wrist.</div>
+            </div>
           </div>
-          <div class="feature-card-title">Health Tracking</div>
-          <div class="feature-card-desc">Monitor your vitals with beautiful, easy-to-read displays</div>
-        </div>
-        
-        <div class="feature-card">
-          <div class="feature-icon feature-icon-purple">
-            <el-icon><Lightning /></el-icon>
+
+          <div class="feature-point">
+            <div class="feature-icon feature-icon-green">
+              <Icon icon="solar:pulse-2-line-duotone" width="24" height="24" aria-hidden="true" />
+            </div>
+            <div>
+              <div class="feature-card-title">Readable Health Data</div>
+              <div class="feature-card-desc">Vitals, activity, and time stay clear at a glance.</div>
+            </div>
           </div>
-          <div class="feature-card-title">Battery Efficient</div>
-          <div class="feature-card-desc">Optimized designs that won't drain your watch battery</div>
+
+          <div class="feature-point">
+            <div class="feature-icon feature-icon-purple">
+              <Icon icon="solar:battery-charge-minimalistic-line-duotone" width="24" height="24" aria-hidden="true" />
+            </div>
+            <div>
+              <div class="feature-card-title">Battery Balanced</div>
+              <div class="feature-card-desc">Optimized faces designed for everyday wear.</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -42,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus, Check, Lightning } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -55,70 +78,98 @@ const goToPurchaseOptions = () => {
 <style scoped>
 .feature-section {
   width: 100%;
-  background: linear-gradient(180deg, #f8fbfa 0%, #eef5f3 100%);
-  padding: 20px 16px;
+  background:
+    linear-gradient(180deg, #f8fbfa 0%, #eef5f3 100%);
+  padding: 18px 16px;
   margin: 0;
   box-sizing: border-box;
 }
 
-.feature-bg {
+.feature-panel {
   max-width: var(--container);
-  margin: 48px auto;
-  border-radius: var(--radius-lg);
-  background: rgba(255,255,255,0.78);
-  box-shadow: var(--shadow-lg);
+  margin: 34px auto;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 251, 249, 0.9) 52%, rgba(223, 245, 241, 0.78) 100%);
+  box-shadow:
+    0 22px 60px rgba(17, 24, 39, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.82) inset;
   border: 1px solid var(--color-line);
-  padding: 64px 24px 56px 24px;
+  padding: 34px;
   position: relative;
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(460px, 1.1fr);
+  align-items: center;
+  gap: 34px;
+}
+
+.feature-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 83% 18%, rgba(245, 158, 11, 0.16), transparent 18rem),
+    radial-gradient(circle at 8% 100%, rgba(15, 107, 104, 0.12), transparent 18rem);
+  pointer-events: none;
+}
+
+.feature-copy,
+.feature-showcase {
+  position: relative;
+  z-index: 1;
 }
 
 .feature-badge {
-  display: inline-block;
-  background: var(--color-brand-soft);
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  background: rgba(15, 107, 104, 0.1);
   color: var(--color-brand-strong);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 800;
   border-radius: 999px;
-  padding: 6px 22px;
-  margin: 0 auto 24px auto;
-  letter-spacing: 1px;
-  text-align: center;
-  max-width: fit-content;
+  padding: 5px 12px;
+  margin-bottom: 14px;
+  letter-spacing: 0;
+  border: 1px solid rgba(15, 107, 104, 0.12);
 }
 
 .feature-title {
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  font-weight: 800;
+  font-size: clamp(2rem, 4.4vw, 3.2rem);
+  line-height: 1.03;
+  font-family: var(--font-display);
+  font-weight: 700;
   color: var(--color-ink);
-  text-align: center;
-  margin-bottom: 28px;
-  letter-spacing: 1px;
+  margin: 0 0 14px;
+  max-width: 620px;
 }
 
 .feature-desc {
-  font-size: 1.25rem;
+  font-size: 1.03rem;
   color: var(--color-muted);
-  text-align: center;
-  max-width: 700px;
-  margin: 0 auto 44px auto;
-  line-height: 1.7;
+  max-width: 520px;
+  margin: 0;
+  line-height: 1.58;
 }
 
 .feature-actions {
   display: flex;
-  justify-content: center;
-  margin: 0 auto 36px;
+  align-items: center;
+  gap: 14px;
+  margin-top: 24px;
+  flex-wrap: wrap;
 }
 
 .feature-cta {
   border: none;
   border-radius: 999px;
-  padding: 14px 26px;
+  min-height: 46px;
+  padding: 12px 22px;
   font-weight: 700;
-  letter-spacing: 0.2px;
+  letter-spacing: 0;
   color: #fff;
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
   box-shadow: 0 10px 30px rgba(15, 107, 104, 0.18);
@@ -136,52 +187,113 @@ const goToPurchaseOptions = () => {
   transform: translateY(0px) scale(0.99);
 }
 
-.feature-cards {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 36px;
-  margin-top: 0;
-  flex-wrap: wrap;
-  width: 100%;
-  max-width: 1000px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0;
-  box-sizing: border-box;
+.feature-note {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-.feature-card {
-  background: #fff;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--color-line);
-  padding: 24px 20px 32px 20px;
-  min-width: 180px;
-  max-width: 220px;
-  flex: 1 1 0;
+.feature-showcase {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.watch-orbit {
+  width: 216px;
+  height: 216px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.82) 0 38%, rgba(15, 107, 104, 0.1) 39% 61%, rgba(245, 158, 11, 0.12) 62% 100%);
+  box-shadow: 0 20px 50px rgba(6, 78, 75, 0.12);
+}
+
+.watch-body {
+  width: 154px;
+  height: 154px;
+  border-radius: 50%;
+  padding: 12px;
+  background:
+    linear-gradient(145deg, #1f2937 0%, #050f12 100%);
+  box-shadow:
+    0 18px 34px rgba(17, 24, 39, 0.26),
+    0 0 0 7px rgba(17, 24, 39, 0.06);
+}
+
+.watch-screen {
+  height: 100%;
+  border-radius: 50%;
+  color: #f8fafc;
+  padding: 22px 19px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  justify-content: space-between;
+  background:
+    radial-gradient(circle at 28% 20%, rgba(245, 158, 11, 0.55), transparent 30%),
+    linear-gradient(160deg, #0f6b68 0%, #064e4b 48%, #111827 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
 }
 
-.feature-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
+.watch-time {
+  font-size: 1.84rem;
+  line-height: 1;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.watch-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.watch-metrics {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.feature-points {
+  display: grid;
+  gap: 10px;
+}
+
+.feature-point {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 76px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.07);
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.feature-point:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 34px rgba(17, 24, 39, 0.1);
 }
 
 .feature-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
-  margin-bottom: 18px;
+  flex: 0 0 auto;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
 }
 
 .feature-icon-blue {
@@ -200,103 +312,158 @@ const goToPurchaseOptions = () => {
 }
 
 .feature-card-title {
-  font-size: 1.18rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-ink);
-  margin-bottom: 8px;
+  margin-bottom: 3px;
 }
 
 .feature-card-desc {
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   color: var(--color-muted);
-  line-height: 1.6;
-  text-align: center;
+  line-height: 1.45;
 }
 
 /* Responsive adjustments */
+@media (max-width: 1024px) {
+  .feature-panel {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .feature-copy {
+    text-align: center;
+  }
+
+  .feature-title,
+  .feature-desc {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .feature-actions {
+    justify-content: center;
+  }
+
+  .feature-showcase {
+    grid-template-columns: 196px minmax(0, 1fr);
+  }
+
+  .watch-orbit {
+    width: 196px;
+    height: 196px;
+  }
+}
+
 @media (max-width: 768px) {
   .feature-section {
-    padding: 20px 12px;
+    padding: 16px 12px;
   }
   
-  .feature-bg {
-    padding: 40px 20px 48px 20px;
+  .feature-panel {
+    padding: 26px 18px;
     margin: 24px auto;
-    border-radius: 24px;
+    border-radius: 20px;
     width: 100%;
+    gap: 24px;
   }
 
   .feature-badge {
-    font-size: 0.9rem;
-    padding: 5px 18px;
-    margin-bottom: 20px;
+    font-size: 0.72rem;
+    margin-bottom: 12px;
   }
 
   .feature-title {
-    font-size: 2rem;
-    margin-bottom: 18px;
+    font-size: 2.04rem;
+    margin-bottom: 12px;
     line-height: 1.2;
-    padding: 0 8px;
+    padding: 0;
   }
 
   .feature-desc {
     font-size: 1rem;
-    margin-bottom: 32px;
-    padding: 0 8px;
-    line-height: 1.6;
+    padding: 0;
+    line-height: 1.55;
   }
 
-  .feature-cards {
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    padding: 0 8px;
+  .feature-actions {
+    margin-top: 20px;
   }
 
-  .feature-card {
-    max-width: 100%;
+  .feature-showcase {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 18px;
+  }
+
+  .watch-orbit {
+    width: 172px;
+    height: 172px;
+  }
+
+  .watch-body {
+    width: 126px;
+    height: 126px;
+    border-radius: 50%;
+    padding: 9px;
+  }
+
+  .watch-screen {
+    border-radius: 50%;
+    padding: 17px 14px;
+  }
+
+  .watch-time {
+    font-size: 1.5rem;
+  }
+
+  .feature-points {
     width: 100%;
-    padding: 20px 16px 24px 16px;
+  }
+
+  .feature-point {
+    min-height: 72px;
   }
   
 }
 
 @media (max-width: 480px) {
   .feature-section {
-    padding: 16px 8px;
+    padding: 14px 8px;
   }
   
-  .feature-bg {
-    padding: 32px 16px 40px 16px;
+  .feature-panel {
+    padding: 22px 14px;
     margin: 16px auto;
-    border-radius: 20px;
+    border-radius: 18px;
   }
   
   .feature-title {
-    font-size: 1.8rem;
-    padding: 0 4px;
+    font-size: 1.82rem;
+    padding: 0;
   }
   
   .feature-desc {
     font-size: 0.95rem;
-    padding: 0 4px;
+    padding: 0;
   }
   
-  .feature-cards {
-    padding: 0 4px;
-    gap: 16px;
+  .feature-actions {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
   }
   
-  .feature-card {
-    padding: 18px 14px 20px 14px;
+  .feature-cta {
+    width: 100%;
   }
   
   .feature-card-title {
-    font-size: 1.1rem;
+    font-size: 0.98rem;
   }
   
   .feature-card-desc {
-    font-size: 1rem;
+    font-size: 0.86rem;
   }
 }
 </style>

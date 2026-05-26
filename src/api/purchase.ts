@@ -33,10 +33,10 @@ export const checkDiscount = (data: CheckDiscountRequest): Promise<CheckDiscount
 
 // Top apps by sales for last 7 days
 export const getTopWeekApps = (data?: SalesQueryDTO): Promise<AppSalesSummaryVO[]> => {
-  return instance.post('/public/website/purchases/app/top-week', data || {})
+  return instance.post('/public/website/purchases/app/top-week', { topN: 20, ...(data || {}) })
 }
 
 // Top apps by sales for last 30 days
 export const getTopMonthApps = (data?: SalesQueryDTO): Promise<AppSalesSummaryVO[]> => {
-  return instance.post('/public/website/purchases/app/top-month', data || {})
+  return instance.post('/public/website/purchases/app/top-month', { topN: 20, ...(data || {}) })
 }

@@ -2,44 +2,53 @@
   <div class="already-purchased-page">
     <div class="content-container">
       <div class="header-section">
-        <h1 class="title">Activate Your Purchase</h1>
-        <p class="desc">Enter your purchase email and the code shown on your smartwatch to unlock your products.</p>
+        <p class="eyebrow">Already purchased</p>
+        <h1 class="title">Activate your purchase</h1>
+        <p class="desc">Enter your purchase email and the 6-digit code shown on your Garmin watch.</p>
       </div>
       
       <div class="tip-card">
-        <div class="tip-icon">⌚</div>
+        <div class="tip-icon" aria-hidden="true">
+          <el-icon><QuartzWatch /></el-icon>
+        </div>
         <div class="tip-content">
-          <strong>Code:</strong> The 6-digit code will appear on your smartwatch after installing a clockface or app.
+          <strong>Where to find it</strong>
+          <span>The code appears after installing a clock face or app.</span>
         </div>
       </div>
       
       <form class="activation-form" @submit.prevent="handleActivation">
         <div class="input-group">
-          <label class="input-label">Purchase Email</label>
+          <label class="input-label" for="purchase-email">Purchase email</label>
           <input 
+            id="purchase-email"
             v-model="email" 
             type="email" 
-            placeholder="Enter your purchase email address" 
+            placeholder="you@example.com" 
             class="email-input" 
             required 
+            autocomplete="email"
             @input="clearMessages"
           />
         </div>
         
         <div class="input-group">
-          <label class="input-label">Code</label>
+          <label class="input-label" for="activation-code">6-digit code</label>
           <input 
+            id="activation-code"
             v-model="activationCode" 
             type="text" 
+            inputmode="numeric"
+            pattern="[0-9]*"
             maxlength="6" 
             placeholder="000000" 
             class="code-input" 
             required 
-            @input="clearMessages"
+            autocomplete="one-time-code"
+            @input="handleCodeInput"
           />
           <div class="input-desc">
-            The code shown on your smartwatch
-            <br>
+            Enter numbers only.
             <span class="help-inline">
               Not seeing your code? 
               <button type="button" class="help-link-inline" @click="handleResendCode">Learn more</button>
@@ -47,19 +56,21 @@
           </div>
         </div>
         
-        <button class="activation-btn" :disabled="loading || !isFormValid">
+        <button type="submit" class="activation-btn" :disabled="loading || !isFormValid" :aria-busy="loading">
+          <span v-if="loading" class="loading-spinner"></span>
+          <el-icon v-else aria-hidden="true"><ArrowRight /></el-icon>
           <span v-if="loading">Activating...</span>
           <span v-else>Activate Purchase</span>
         </button>
       </form>
       
       <div v-if="error" class="message error-message">
-        <div class="message-icon">⚠️</div>
+        <el-icon class="message-icon" aria-hidden="true"><WarningFilled /></el-icon>
         <div class="message-text">{{ error }}</div>
       </div>
       
       <div v-if="success" class="message success-message">
-        <div class="message-icon">✅</div>
+        <el-icon class="message-icon" aria-hidden="true"><CircleCheckFilled /></el-icon>
         <div class="message-text">{{ successMessage }}</div>
       </div>
     </div>
@@ -73,6 +84,7 @@ import { activatePurchase } from '@/api/pay'
 import { ElMessage } from 'element-plus'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
+import { ArrowRight, CircleCheckFilled, QuartzWatch, WarningFilled } from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -90,6 +102,11 @@ const isFormValid = computed(() => {
 function clearMessages() {
   error.value = ''
   success.value = false
+}
+
+function handleCodeInput() {
+  activationCode.value = activationCode.value.replace(/\D/g, '').slice(0, 6)
+  clearMessages()
 }
 
 // 如果用户已登录，自动填入用户邮箱
@@ -164,29 +181,36 @@ function handleResendCode() {
 
 <style scoped>
 .already-purchased-page {
-  min-height: 100vh;
+  height: calc(100dvh - 132px);
+  min-height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background:
+    radial-gradient(circle at 18% 0%, rgba(15, 107, 104, 0.12), transparent 28rem),
+    radial-gradient(circle at 92% 8%, rgba(245, 158, 11, 0.14), transparent 24rem),
+    linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 100%);
   padding: 20px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .content-container {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.94));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 40px;
+  box-shadow:
+    0 24px 70px rgba(15, 23, 42, 0.10),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  padding: 36px;
   width: 100%;
-  max-width: 600px;
-  min-height: 500px;
-  max-height: 90vh;
+  max-width: 540px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
+  gap: 22px;
   box-sizing: border-box;
 }
 
@@ -195,45 +219,74 @@ function handleResendCode() {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #0f6b68;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #1d1d1f;
-  margin-bottom: 12px;
-  letter-spacing: -0.5px;
+  max-width: 11ch;
+  margin: 0 auto;
+  font-size: clamp(2.1rem, 5vw, 3.35rem);
+  font-weight: 850;
+  color: #0f172a;
+  line-height: 0.98;
+  letter-spacing: 0;
 }
 
 .desc {
-  color: #86868b;
-  font-size: 1.1rem;
-  line-height: 1.5;
-  margin: 0;
+  color: #475467;
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 4px 0 0;
 }
 
 .tip-card {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 1px solid #0ea5e9;
+  background: rgba(15, 107, 104, 0.06);
+  border: 1px solid rgba(15, 107, 104, 0.14);
   border-radius: 16px;
   padding: 16px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  min-height: 80px;
 }
 
 .tip-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(15, 107, 104, 0.10);
+  color: #0f6b68;
+}
+
+.tip-icon :deep(svg) {
+  width: 22px;
+  height: 22px;
 }
 
 .tip-content {
-  color: #0c4a6e;
-  font-size: 0.95rem;
-  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #475467;
+  font-size: 0.92rem;
+  line-height: 1.5;
   margin: 0;
+}
+
+.tip-content strong {
+  color: #0f172a;
 }
 
 .activation-form {
@@ -252,96 +305,129 @@ function handleResendCode() {
 
 .input-label {
   font-size: 0.95rem;
-  font-weight: 600;
-  color: #1d1d1f;
+  font-weight: 700;
+  color: #0f172a;
   margin-bottom: 4px;
 }
 
 .email-input,
 .code-input {
   width: 100%;
-  padding: 16px 20px;
-  font-size: 1.5rem;
-  font-weight: 600;
+  min-height: 56px;
+  padding: 15px 18px;
+  font-size: 1rem;
+  font-weight: 700;
   text-align: center;
-  border: 2px solid #d2d2d7;
-  border-radius: 12px;
-  background: #fff;
-  color: #1d1d1f;
-  transition: all 0.3s ease;
+  border: 1.5px solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
   outline: none;
   box-sizing: border-box;
 }
 
 .email-input:focus,
 .code-input:focus {
-  border-color: #007aff;
-  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+  border-color: #0f6b68;
+  box-shadow:
+    0 0 0 4px rgba(15, 107, 104, 0.14),
+    0 14px 34px rgba(15, 107, 104, 0.10);
 }
 
 .email-input::placeholder,
 .code-input::placeholder {
-  color: #86868b;
+  color: #98a2b3;
 }
 
 .code-input {
-  letter-spacing: 4px;
+  min-height: 70px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.3em;
 }
 
 .input-desc {
-  font-size: 0.85rem;
-  color: #86868b;
+  font-size: 0.88rem;
+  color: #667085;
   margin-top: 4px;
-  line-height: 1.4;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .help-inline {
-  font-size: 0.8rem;
-  color: #86868b;
-  margin-top: 6px;
+  font-size: 0.88rem;
+  color: #667085;
   display: inline-block;
 }
 
 .help-link-inline {
   background: none;
   border: none;
-  color: #007aff;
-  font-size: 0.8rem;
-  font-weight: 600;
+  color: #0f6b68;
+  font-size: 0.88rem;
+  font-weight: 800;
   cursor: pointer;
-  text-decoration: underline;
-  transition: color 0.3s ease;
+  text-decoration: none;
+  transition: color 180ms ease, background 180ms ease;
   padding: 0;
   margin-left: 2px;
+  border-radius: 8px;
 }
 
-.help-link-inline:hover {
-  color: #0056cc;
+.help-link-inline:hover,
+.help-link-inline:focus-visible {
+  color: #064e4b;
+  background: rgba(15, 107, 104, 0.08);
 }
 
 .activation-btn {
-  background: linear-gradient(135deg, #007aff 0%, #0056cc 100%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 58px;
+  background:
+    linear-gradient(135deg, #0f6b68 0%, #0b827d 52%, #f59e0b 100%);
   color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
-  font-size: 1.1rem;
-  font-weight: 600;
+  border-radius: 16px;
+  padding: 14px 18px;
+  font-size: 1rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease, background 180ms ease;
+  letter-spacing: 0;
   width: 100%;
   margin-top: auto;
-  margin-bottom: 16px;
+  box-shadow:
+    0 18px 42px rgba(15, 107, 104, 0.26),
+    0 10px 24px rgba(245, 158, 11, 0.20),
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+}
+
+.activation-btn :deep(svg) {
+  width: 20px;
+  height: 20px;
 }
 
 .activation-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
+  filter: saturate(1.05);
+  box-shadow:
+    0 22px 56px rgba(15, 107, 104, 0.30),
+    0 16px 34px rgba(245, 158, 11, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+}
+
+.activation-btn:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.28);
+  outline-offset: 4px;
 }
 
 .activation-btn:disabled {
-  background: #d2d2d7;
+  background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -352,16 +438,22 @@ function handleResendCode() {
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border-radius: 14px;
+  font-size: 0.92rem;
   font-weight: 500;
-  height: 60px;
+  min-height: 60px;
   justify-content: center;
 }
 
 .message-icon {
-  font-size: 1.2rem;
-  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+.message-icon :deep(svg) {
+  width: 22px;
+  height: 22px;
 }
 
 .message-text {
@@ -370,52 +462,79 @@ function handleResendCode() {
 }
 
 .error-message {
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border: 1px solid #fecaca;
-  color: #dc2626;
+  background: #fff7ed;
+  border: 1px solid rgba(234, 88, 12, 0.22);
+  color: #9a3412;
 }
 
 .success-message {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 1px solid #bbf7d0;
-  color: #16a34a;
+  background: rgba(15, 107, 104, 0.07);
+  border: 1px solid rgba(15, 107, 104, 0.18);
+  color: #0f6b68;
+}
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.95);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 480px) {
+  .already-purchased-page {
+    height: calc(100dvh - 120px);
+    padding: 10px;
+  }
+
   .content-container {
-    padding: 32px 24px;
-    gap: 16px;
+    padding: 18px 16px;
+    gap: 12px;
     max-width: 100%;
-    min-height: 400px;
-    max-height: 95vh;
+    border-radius: 20px;
   }
   
   .tip-card {
     min-height: auto;
-    padding: 12px;
+    padding: 10px;
   }
   
   .activation-form {
-    gap: 12px;
+    gap: 10px;
   }
   
   .title {
-    font-size: 1.8rem;
+    font-size: clamp(1.85rem, 10vw, 2.45rem);
   }
   
   .desc {
-    font-size: 1rem;
+    font-size: 0.94rem;
+    line-height: 1.45;
   }
   
   .email-input,
   .code-input {
-    padding: 14px 16px;
-    font-size: 1.3rem;
+    min-height: 50px;
+    padding: 12px 14px;
+  }
+
+  .code-input {
+    min-height: 56px;
+    font-size: 1.45rem;
+    letter-spacing: 0.18em;
   }
   
   .activation-btn {
-    padding: 14px 20px;
-    font-size: 1rem;
+    min-height: 50px;
+    padding: 10px 14px;
+    font-size: 0.94rem;
   }
 }
 </style> 

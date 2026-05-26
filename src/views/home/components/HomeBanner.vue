@@ -1,204 +1,358 @@
 <template>
-  <section v-if="banners.length" class="home-banner">
+  <section class="home-banner" aria-labelledby="home-hero-title">
     <div class="banner-shell">
-      <Swiper
-        class="banner-swiper"
-        :modules="swiperModules"
-        :slides-per-view="1"
-        :loop="banners.length > 1"
-        :speed="700"
-        :autoplay="banners.length > 1 ? { delay: 4500, disableOnInteraction: false } : false"
-        :pagination="{ clickable: true }"
-        :effect="'fade'"
-      >
-        <SwiperSlide v-for="banner in banners" :key="banner.id">
-          <button class="banner-slide" type="button" @click="handleClick(banner)">
-            <img
-              class="banner-image"
-              :src="getBannerImageUrl(banner)"
-              :alt="banner.image?.alternativeText || banner.remark || 'Home banner'"
-              loading="lazy"
-            />
-            <div class="banner-overlay" />
-          </button>
-        </SwiperSlide>
-      </Swiper>
+      <div class="banner-content">
+        <div class="banner-copy">
+          <span class="banner-eyebrow">
+            <Icon icon="solar:watch-round-bold-duotone" width="20" height="20" aria-hidden="true" />
+            Premium Garmin Watch Faces
+          </span>
+          <h1 id="home-hero-title" class="banner-title">
+            Make every glance feel designed.
+          </h1>
+          <p class="banner-desc">
+            Curated watch faces with gallery-grade style, crisp data layouts, and everyday battery discipline.
+          </p>
+
+          <div class="banner-actions">
+            <button class="banner-primary" type="button" @click="goToSearch">
+              Explore faces
+              <Icon icon="solar:arrow-right-up-linear" width="20" height="20" aria-hidden="true" />
+            </button>
+            <button class="banner-code" type="button" @click="goToCode">
+              <Icon icon="solar:ticket-sale-linear" width="20" height="20" aria-hidden="true" />
+              Enter code
+            </button>
+            <button class="banner-secondary" type="button" @click="goToBundles">
+              View bundles
+            </button>
+          </div>
+
+          <div class="banner-metrics" aria-label="Store highlights">
+            <span>
+              <strong>Thousands</strong>
+              watch faces
+            </span>
+            <span>
+              <strong>1 checkout</strong>
+              lifetime unlocks
+            </span>
+            <span>
+              <strong>Garmin</strong>
+              ready previews
+            </span>
+          </div>
+        </div>
+
+        <div class="banner-art" aria-hidden="true">
+          <img src="/home-hero-garmin-watch.svg" alt="" loading="eager" />
+          <span class="art-label art-label-top">
+            <Icon icon="solar:palette-round-linear" width="18" height="18" />
+            Artist series
+          </span>
+          <span class="art-label art-label-bottom">
+            <Icon icon="solar:bolt-circle-linear" width="18" height="18" />
+            Battery-aware
+          </span>
+        </div>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay, EffectFade, Pagination } from 'swiper/modules'
-import 'swiper/css'
-import 'swiper/css/effect-fade'
-import 'swiper/css/pagination'
-
-import { getActiveHomeBanners } from '@/api/website'
-import type { HomeBannerVO } from '@/types/website'
+import { Icon } from '@iconify/vue'
 
 const router = useRouter()
 
-const banners = ref<HomeBannerVO[]>([])
-
-const swiperModules = [Autoplay, Pagination, EffectFade]
-
-onMounted(async () => {
-  try {
-    const list = await getActiveHomeBanners()
-    banners.value = (list || [])
-      .slice()
-      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-  } catch (e) {
-    banners.value = []
-  }
-})
-
-const isAbsoluteUrl = (url: string) => /^https?:\/\//i.test(url)
-
-const normalizeTarget = (target?: string) => {
-  const t = (target || '').trim().toLowerCase()
-  if (!t) return '_self'
-  if (t === 'blank') return '_blank'
-  if (t === 'self') return '_self'
-  if (t === '_blank' || t === '_self') return t
-  return target
+const goToSearch = () => {
+  router.push('/search')
 }
 
-const getBannerImageUrl = (banner: HomeBannerVO) => {
-  const img = banner.image
-  if (!img) return ''
-
-  const formats = img.formats || {}
-  const preferredKeys = ['large', 'medium', 'small', 'thumbnail']
-  for (const k of preferredKeys) {
-    const u = formats[k]?.url
-    if (u) return u
-  }
-  return img.url || ''
+const goToCode = () => {
+  router.push('/code')
 }
 
-const handleClick = (banner: HomeBannerVO) => {
-  const linkUrl = (banner.linkUrl || '').trim()
-  if (!linkUrl) return
-
-  const target = normalizeTarget(banner.openTarget)
-
-  if (isAbsoluteUrl(linkUrl)) {
-    if (target === '_blank') {
-      window.open(linkUrl, '_blank', 'noopener,noreferrer')
-      return
-    }
-    window.location.href = linkUrl
-    return
-  }
-
-  // relative / internal
-  if (target === '_blank') {
-    window.open(linkUrl, '_blank', 'noopener,noreferrer')
-    return
-  }
-
-  router.push(linkUrl)
+const goToBundles = () => {
+  router.push({
+    path: '/purchase-options',
+    hash: '#bundle-subscription-card'
+  })
 }
 </script>
 
 <style scoped>
 .home-banner {
   width: 100%;
-  padding: 28px 0 14px;
-  background: transparent;
+  padding: 24px 0 18px;
+  background:
+    radial-gradient(560px 320px at 12% 4%, rgba(245, 158, 11, 0.16), transparent 70%),
+    radial-gradient(620px 360px at 88% 8%, rgba(15, 107, 104, 0.16), transparent 70%);
 }
 
 .banner-shell {
   width: min(var(--container), calc(100% - 32px));
+  min-height: 560px;
   margin: 0 auto;
-}
-
-.banner-swiper {
-  border-radius: var(--radius-lg);
+  position: relative;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 251, 250, 0.78) 48%, rgba(223, 245, 241, 0.82) 100%);
   box-shadow:
     var(--shadow-lg),
     0 1px 0 rgba(255, 255, 255, 0.7) inset;
   border: 1px solid var(--color-line);
 }
 
-.banner-slide {
-  position: relative;
-  display: block;
-  width: 100%;
-  aspect-ratio: 12 / 4.8;
-  height: auto;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-.banner-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.01);
-  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.banner-slide:hover .banner-image {
-  transform: scale(1.04);
-}
-
-.banner-overlay {
+.banner-shell::before {
+  content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
-    radial-gradient(1200px 420px at 10% 0%, rgba(15, 107, 104, 0.16) 0%, rgba(15, 107, 104, 0) 60%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0) 46%, rgba(0, 0, 0, 0.22) 100%);
+    linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.82) 42%, rgba(255, 255, 255, 0.28) 100%),
+    radial-gradient(760px 420px at 74% 50%, rgba(15, 107, 104, 0.12), transparent 64%);
   pointer-events: none;
 }
 
-:deep(.swiper-pagination) {
-  bottom: 12px !important;
+.banner-content {
+  position: relative;
+  z-index: 2;
+  min-height: 560px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.04fr) minmax(360px, 0.96fr);
+  align-items: center;
+  gap: 26px;
+  padding: 56px 56px 48px;
 }
 
-:deep(.swiper-pagination-bullet) {
-  width: 7px;
-  height: 7px;
-  background: rgba(255, 255, 255, 0.7);
-  opacity: 1;
-  margin: 0 4px !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+.banner-copy {
+  max-width: 650px;
 }
 
-:deep(.swiper-pagination-bullet-active) {
-  width: 18px;
+.banner-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-brand-strong);
+  background: rgba(223, 245, 241, 0.72);
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.banner-title {
+  margin: 18px 0;
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 6.4vw, 6.7rem);
+  font-weight: 700;
+  line-height: 0.92;
+}
+
+.banner-desc {
+  max-width: 520px;
+  margin: 0;
+  color: #475467;
+  font-size: clamp(1.04rem, 1.4vw, 1.22rem);
+  line-height: 1.62;
+}
+
+.banner-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.banner-primary,
+.banner-code,
+.banner-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.banner-primary {
+  gap: 8px;
+  padding: 0 18px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
+  box-shadow: 0 16px 34px rgba(15, 107, 104, 0.24);
+}
+
+.banner-code {
+  gap: 8px;
+  padding: 0 18px;
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  border-color: rgba(15, 107, 104, 0.18);
+}
+
+.banner-secondary {
+  padding: 0 18px;
+  color: var(--color-brand-strong);
+  background: rgba(255, 255, 255, 0.76);
+  border-color: rgba(15, 107, 104, 0.14);
+}
+
+.banner-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 34px;
+  max-width: 570px;
+}
+
+.banner-metrics span {
+  min-height: 76px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  color: #667085;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: var(--shadow-sm);
+}
+
+.banner-metrics strong {
+  color: var(--color-ink);
+  font-size: 1.04rem;
+}
+
+.banner-art {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 540px);
+}
+
+.banner-art img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  border-radius: 32px;
+  box-shadow: 0 28px 70px rgba(17, 24, 39, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.art-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--color-ink);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 14px 32px rgba(17, 24, 39, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.art-label-top {
+  top: 22px;
+  left: -20px;
+}
+
+.art-label-bottom {
+  right: -16px;
+  bottom: 30px;
 }
 
 @media (max-width: 1024px) {
+  .banner-content {
+    grid-template-columns: 1fr;
+    padding: 44px;
+  }
+
+  .banner-art {
+    justify-self: center;
+    width: min(100%, 480px);
+  }
 }
 
 @media (max-width: 768px) {
   .home-banner {
-    padding: 14px 0 8px;
+    padding: 12px 0 8px;
   }
 
   .banner-shell {
     width: calc(100% - 24px);
-  }
-
-  .banner-swiper {
+    min-height: 0;
     border-radius: var(--radius-md);
   }
 
-  .banner-slide {
+  .banner-content {
+    min-height: 0;
+    padding: 30px 20px 20px;
+    gap: 20px;
+  }
+
+  .banner-title {
+    font-size: clamp(2.6rem, 14vw, 3.55rem);
+  }
+
+  .banner-desc {
+    font-size: 1rem;
+  }
+
+  .banner-actions {
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .banner-primary,
+  .banner-code,
+  .banner-secondary {
     width: 100%;
+  }
+
+  .banner-metrics {
+    display: none;
+  }
+
+  .art-label {
+    position: absolute;
+    min-height: 34px;
+    padding: 7px 10px;
+    font-size: 0.82rem;
+  }
+
+  .art-label-top {
+    top: 12px;
+    left: 12px;
+  }
+
+  .art-label-bottom {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .banner-art img {
+    border-radius: 22px;
+  }
+
+  .banner-art {
+    width: min(100%, 310px);
+    justify-self: center;
   }
 }
 </style>

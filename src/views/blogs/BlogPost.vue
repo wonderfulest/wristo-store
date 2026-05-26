@@ -3,9 +3,15 @@
     <div class="blog-main">
       <div class="page-header">
         <div class="header-actions">
-          <button class="toc-toggle" @click="sidebarCollapsed = !sidebarCollapsed">
-            <span v-if="sidebarCollapsed">📚 Show Topics</span>
-            <span v-else>🗂️ Hide Topics</span>
+          <button
+            class="toc-toggle"
+            type="button"
+            :aria-expanded="!sidebarCollapsed"
+            @click="sidebarCollapsed = !sidebarCollapsed"
+          >
+            <Icon icon="solar:book-bookmark-line-duotone" width="18" height="18" aria-hidden="true" />
+            <span v-if="sidebarCollapsed">Topics</span>
+            <span v-else>Hide topics</span>
           </button>
           <LanguageSwitcher
             v-if="post && post.translations && post.translations.length"
@@ -36,7 +42,7 @@
           </div>
 
           <div v-else-if="error" class="state-card error">
-            <span class="state-emoji">⚠️</span>
+            <Icon icon="solar:danger-triangle-line-duotone" width="22" height="22" aria-hidden="true" />
             <div>
               <div class="state-title">Failed to load</div>
               <div class="state-desc">{{ error }}</div>
@@ -81,6 +87,7 @@ import { getBlogPostBySlug, getBlogPostByLangSlug, getBlogTocTree } from '@/api/
 import type { BlogPostVO, BlogPostTranslationVO, BlogPostTocItemVO } from '@/types'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import TreeNode from '@/components/blog/TreeNode.vue'
+import { Icon } from '@iconify/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -163,6 +170,8 @@ function setSeoLinks() {
 }
 
 onMounted(async () => {
+  sidebarCollapsed.value = window.innerWidth <= 640
+
   try {
     const slugRaw = route.params.slug
     const slug = Array.isArray(slugRaw) ? slugRaw[0] : slugRaw
@@ -274,22 +283,56 @@ async function refreshTree(lang?: string) {
 <style scoped>
 .blog-container {
   min-height: 100vh;
-  background: #fff;
+  --blog-sticky-gap: 0px;
+  --blog-toolbar-height: 60px;
+  background:
+    radial-gradient(520px 260px at 12% 0%, rgba(15, 107, 104, 0.08), transparent 70%),
+    linear-gradient(180deg, #f8fafc 0%, #fff 240px);
   /* Reset global #app text-align so this page uses default alignment */
   text-align: initial;
 }
 
-.blog-main { max-width: 1200px; margin: 0 auto; padding: 16px 20px 80px 20px; }
-.page-header { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 10px; }
-.header-actions { display: flex; align-items: center; gap: 10px; }
-.toc-toggle { appearance: none; border: 1px solid #e5e7eb; background: #ffffffcc; color: #1f2937; padding: 8px 12px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all .2s ease; }
-.toc-toggle:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.blog-main { max-width: 1200px; margin: 0 auto; padding: 18px 20px 80px 20px; }
+.page-header { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 12px; }
+.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.toc-toggle {
+  appearance: none;
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
+  color: var(--color-ink);
+  padding: 9px 13px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all .2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+.toc-toggle:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(15, 23, 42, 0.10); color: var(--color-brand-strong); }
 .toc-toggle:active { transform: translateY(0); }
+.header-actions :deep(.lang-switcher) {
+  margin: 0;
+}
 
 .layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
 .layout.collapsed { grid-template-columns: 1fr; }
 .layout.collapsed .sidebar { display: none; }
-.sidebar { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.sidebar {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 12px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  align-self: start;
+  position: sticky;
+  top: 92px;
+  max-height: calc(100dvh - 110px);
+  overflow: auto;
+}
 .toc { display: block; }
 .tree-node { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
 .toggle { appearance: none; background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 12px; padding: 2px; }
@@ -326,9 +369,6 @@ async function refreshTree(lang?: string) {
   border-color: #fed7aa;
   color: #9a3412;
 }
-.state-emoji {
-  font-size: 18px;
-}
 .state-title {
   font-weight: 700;
 }
@@ -359,7 +399,7 @@ async function refreshTree(lang?: string) {
 .title {
   font-size: 2rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   padding: 20px 24px 0 24px;
   color: #0f172a;
 }
@@ -411,7 +451,7 @@ async function refreshTree(lang?: string) {
   border-radius: 12px;
   color: #334155;
 }
-.content { background: #fff; border: 1px solid #e5e7eb; border-radius: 16px; padding: 0; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+.content { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 18px; padding: 0; box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08); overflow: hidden; }
 .content-body { padding: 18px 24px 28px 24px; color: #111827; }
 .content :deep(h1),
 .content :deep(h2),
@@ -469,16 +509,63 @@ async function refreshTree(lang?: string) {
 }
 
 @media (max-width: 640px) {
-  .blog-main { padding: 12px 12px 48px 12px; }
-  .page-header { justify-content: space-between; margin-bottom: 8px; }
-  .header-actions { gap: 8px; }
-  .toc-toggle { padding: 6px 10px; border-radius: 10px; font-size: 0.9rem; }
+  .blog-container {
+    background:
+      radial-gradient(360px 220px at 50% -40px, rgba(15, 107, 104, 0.12), transparent 70%),
+      linear-gradient(180deg, #f8fafc 0%, #fff 250px);
+  }
+  .blog-main { padding: 0 12px 44px; }
+  .page-header {
+    position: sticky;
+    top: 0;
+    z-index: 18;
+    justify-content: stretch;
+    margin: 0 -2px 8px;
+    padding: 8px 0 10px;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 0.72));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .header-actions { width: 100%; gap: 8px; justify-content: space-between; flex-wrap: nowrap; }
+  .toc-toggle {
+    min-height: 42px;
+    padding: 0 13px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    flex: 0 0 auto;
+  }
+  .header-actions :deep(.lang-switcher) {
+    min-width: 0;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    padding: 8px 10px;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .header-actions :deep(.buttons) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .header-actions :deep(.buttons::-webkit-scrollbar) {
+    display: none;
+  }
 
-  /* Make sidebar a bit narrower on small screens */
-  .layout { grid-template-columns: 220px 1fr; gap: 12px; }
+  .layout { display: block; }
   .layout.collapsed { grid-template-columns: 1fr; }
-  .sidebar { padding: 8px; border-radius: 12px; }
-  .toc { max-height: calc(100vh - 180px); overflow: auto; -webkit-overflow-scrolling: touch; }
+  .layout.collapsed .sidebar { display: none; }
+  .sidebar {
+    position: sticky;
+    top: var(--blog-toolbar-height);
+    z-index: 8;
+    max-height: min(52dvh, 420px);
+    overflow: auto;
+    padding: 10px;
+    border-radius: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.10);
+  }
+  .toc { max-height: none; overflow: visible; }
 
   /* TreeNode touch-friendly but compact */
   .tree-node { gap: 4px; margin: 1px 0; }
@@ -486,15 +573,70 @@ async function refreshTree(lang?: string) {
   .node-btn { padding: 6px 8px; font-size: 0.92rem; border-radius: 10px; }
 
   /* Article */
-  .title { font-size: 1.5rem; padding: 14px 14px 0 14px; }
-  .meta { padding: 8px 14px 4px 14px; gap: 10px; }
+  .hero {
+    margin: 0;
+    border-radius: 0;
+    aspect-ratio: 4 / 3;
+  }
+  .title {
+    font-size: clamp(1.55rem, 8vw, 2.15rem);
+    line-height: 1.12;
+    padding: 18px 16px 0;
+  }
+  .meta {
+    padding: 12px 16px 4px;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .author { width: 100%; }
   .avatar { width: 34px; height: 34px; }
-  .summary { margin: 6px 14px 0 14px; padding: 10px 12px; border-radius: 10px; }
-  .content { border-radius: 12px; }
-  .content-body { padding: 14px 14px 20px 14px; }
+  .chips {
+    width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; }
+  .summary {
+    margin: 10px 16px 0;
+    padding: 12px 13px;
+    border-radius: 14px;
+    font-size: 0.96rem;
+    line-height: 1.65;
+  }
+  .content {
+    border-radius: 18px;
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+  }
+  .content-body { padding: 16px 16px 24px; }
+  .content :deep(h1),
+  .content :deep(h2),
+  .content :deep(h3),
+  .content :deep(h4) {
+    line-height: 1.18;
+    margin: 1.25em 0 0.55em;
+  }
   .content :deep(p),
   .content :deep(ul),
-  .content :deep(ol) { font-size: 1rem; line-height: 1.7; }
+  .content :deep(ol) { font-size: 1rem; line-height: 1.78; }
   .content :deep(img) { border-radius: 10px; }
+  .content :deep(table) {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .content :deep(th),
+  .content :deep(td) {
+    min-width: 120px;
+    padding: 9px 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .blog-main { padding-left: 10px; padding-right: 10px; }
+  .title { font-size: 1.48rem; }
+  .content-body { padding-left: 14px; padding-right: 14px; }
 }
 </style>

@@ -1,5 +1,13 @@
 <template>
-  <div :class="['purchase-card', { active: isSelected }]" @click="handleSelect">
+  <div
+    :class="['purchase-card', { active: isSelected }]"
+    role="button"
+    tabindex="0"
+    :aria-pressed="isSelected"
+    @click="handleSelect"
+    @keydown.enter.prevent="handleSelect"
+    @keydown.space.prevent="handleSelect"
+  >
     <!-- 折扣和Lifetime License标签 -->
     <div v-if="cappedDiscount > 0" class="discount-badge">
       {{ cappedDiscount }}% Off
@@ -10,7 +18,10 @@
     </div>
     <!-- 名字和价格 -->
     <div class="card-header">
-      <h3 class="card-title">{{ title }}</h3>
+      <div class="title-group">
+        <span class="card-kicker">{{ type === 'bundle' ? 'Best value bundle' : 'Single item' }}</span>
+        <h3 class="card-title">{{ displayTitle }}</h3>
+      </div>
       <div class="price-info">
         <div v-if="originalPrice > currentPrice" class="price-container">
           <div class="price-group">
@@ -23,6 +34,10 @@
         </div>
       </div>
     </div>  
+    <div class="value-strip">
+      <span>{{ type === 'bundle' ? 'Lifetime bundle access' : 'Lifetime single access' }}</span>
+      <span>{{ type === 'bundle' && appCount ? `${formatCountPlus(appCount)} apps included` : 'One-time payment' }}</span>
+    </div>
     <!-- 图片 -->
     <div class="card-image">
       <div v-if="type === 'product'" class="single-image">
@@ -36,17 +51,25 @@
           </div>
         </div>
         <div class="scroll-indicator" v-if="!isMobile">
-          <span class="scroll-text">← Scroll to view all products →</span>
+          <span class="scroll-text">Scroll to view included products</span>
         </div>
         <div class="scroll-indicator" v-else>
-          <span class="scroll-text">👆 Swipe to view all products</span>
+          <span class="scroll-text">Swipe to view included products</span>
         </div>
       </div>
     </div>
     
     <!-- 详情描述 -->
     <div class="card-info">
-      <div v-if="type === 'bundle'" class="description" v-html="formattedDescription"></div>
+      <div v-if="type === 'bundle' && descriptionLines.length" class="description">
+        <p
+          v-for="(line, index) in descriptionLines"
+          :key="`${line}-${index}`"
+          :class="{ 'description-heading': index === 0 }"
+        >
+          {{ line }}
+        </p>
+      </div>
       <div v-if="type === 'bundle' && appCount" class="product-count">
         <span class="product-count-main">
           Unlock {{ formatCountPlus(appCount) }} apps
@@ -60,6 +83,7 @@
     <!-- 购买按钮 -->
     <button
       v-if="showButton"
+      type="button"
       :class="['buy-btn', type === 'bundle' ? 'buy-btn-bundle' : 'buy-btn-product']"
       @click="handleBuy"
     >
@@ -131,9 +155,22 @@ const emit = defineEmits<{
   buy: []
 }>()
 
-const formattedDescription = computed(() => {
-  if (!props.description) return ''
-  return props.description.replace(/\n/g, '<br>')
+const stripLeadingDisplayMarks = (value: string) => {
+  return value
+    .replace(/^[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D\s]+/u, '')
+    .trim()
+}
+
+const displayTitle = computed(() => stripLeadingDisplayMarks(props.title))
+
+const descriptionLines = computed(() => {
+  if (!props.description) return []
+
+  return props.description
+    .replace(/<br\s*\/?>/gi, '\n')
+    .split(/\n+/)
+    .map(line => stripLeadingDisplayMarks(line))
+    .filter(Boolean)
 })
 
 const formatCountPlus = (value?: number) => {
@@ -252,27 +289,25 @@ onUnmounted(() => {
 
 <style scoped>
 .purchase-card {
-  background-color: #f6f7fb;
+  background-color: rgba(255, 255, 255, 0.92);
   background-image:
-    radial-gradient(at 88% 40%, rgba(255, 255, 255, 0.95) 0px, transparent 85%),
-    radial-gradient(at 49% 30%, rgba(255, 255, 255, 0.90) 0px, transparent 85%),
-    radial-gradient(at 14% 26%, rgba(255, 255, 255, 0.88) 0px, transparent 85%),
-    radial-gradient(at 0% 64%, rgba(0, 122, 255, 0.16) 0px, transparent 80%),
-    radial-gradient(at 41% 94%, rgba(175, 82, 222, 0.10) 0px, transparent 80%),
-    radial-gradient(at 100% 99%, rgba(52, 199, 89, 0.10) 0px, transparent 85%);
-  border-radius: 12px;
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.92) 100%),
+    radial-gradient(circle at 85% 12%, rgba(212, 175, 55, 0.22) 0, transparent 30%),
+    radial-gradient(circle at 12% 18%, rgba(15, 23, 42, 0.08) 0, transparent 28%);
+  border-radius: 18px;
   box-shadow:
-    0 18px 44px rgba(15, 23, 42, 0.12),
+    0 18px 50px rgba(15, 23, 42, 0.10),
+    0 3px 14px rgba(15, 23, 42, 0.06),
     0 1px 0 rgba(255, 255, 255, 0.75) inset;
-  padding: 2rem;
+  padding: 28px;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(23, 23, 23, 0.10);
   cursor: pointer;
   position: relative;
-  overflow: visible;
-  margin-top: 1rem;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease;
+  overflow: hidden;
+  margin-top: 0;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
   min-height: fit-content;
   height: auto;
   backdrop-filter: blur(14px);
@@ -285,9 +320,9 @@ onUnmounted(() => {
   position: absolute;
   z-index: 0;
   inset: -1px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(255, 255, 255, 0.35) 100%);
-  opacity: 0.85;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(212, 175, 55, 0.10), rgba(255, 255, 255, 0.2));
+  opacity: 0.72;
 }
 
 .purchase-card::after {
@@ -295,41 +330,39 @@ onUnmounted(() => {
   pointer-events: none;
   position: absolute;
   z-index: 0;
-  top: 50%;
-  left: 50%;
-  width: 220%;
-  height: 10rem;
-  transform: translate(-50%, -50%) rotate(0deg);
-  transform-origin: left;
-  border-radius: 12px;
-  background-image: linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(0, 122, 255, 0.55) 40%,
-    rgba(0, 122, 255, 0.55) 60%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  opacity: 0.10;
-  animation: purchase-card-rotate 10s linear infinite;
+  inset: 0;
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.46), transparent 24%, transparent 76%, rgba(255, 255, 255, 0.54));
+  opacity: 0.56;
 }
 
 .purchase-card:hover {
   box-shadow:
-    0 22px 56px rgba(15, 23, 42, 0.16),
+    0 24px 62px rgba(15, 23, 42, 0.14),
+    0 6px 18px rgba(15, 23, 42, 0.08),
     0 1px 0 rgba(255, 255, 255, 0.82) inset;
-  transform: translateY(-6px);
-  border-color: rgba(15, 23, 42, 0.12);
+  transform: translateY(-4px);
+  border-color: rgba(212, 175, 55, 0.42);
+}
+
+.purchase-card:focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.42);
+  outline-offset: 4px;
 }
 
 .purchase-card.active {
-  border-color: rgba(0, 122, 255, 0.35);
+  border-color: rgba(212, 175, 55, 0.68);
   box-shadow:
-    0 24px 62px rgba(15, 23, 42, 0.18),
-    0 0 0 1px rgba(0, 122, 255, 0.18) inset,
-    0 0 0 4px rgba(0, 122, 255, 0.06) inset,
+    0 26px 70px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(212, 175, 55, 0.22) inset,
+    0 0 0 4px rgba(212, 175, 55, 0.10) inset,
     0 1px 0 rgba(255, 255, 255, 0.85) inset,
-    0 12px 34px rgba(0, 122, 255, 0.14);
-  transform: translateY(-4px);
+    0 12px 34px rgba(212, 175, 55, 0.18);
+  transform: translateY(-3px);
+}
+
+.purchase-card.bundle-subscription-target {
+  border-color: rgba(212, 175, 55, 0.54);
 }
 
 .purchase-card > * {
@@ -337,30 +370,20 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-@keyframes purchase-card-rotate {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
 /* 折扣标签样式 */
 .discount-badge {
   position: absolute;
   top: 0;
   left: 0;
-  background: linear-gradient(135deg, rgba(255, 59, 48, 0.95), rgba(255, 107, 107, 0.85));
+  background: linear-gradient(135deg, #b42318, #dc2626);
   color: rgba(255, 255, 255, 0.98);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 8px 16px;
-  border-top-left-radius: 12px;
-  border-bottom-right-radius: 12px;
+  padding: 8px 14px;
+  border-top-left-radius: 18px;
+  border-bottom-right-radius: 14px;
   z-index: 2;
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.35),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(180, 35, 24, 0.24);
 }
 
 /* Lifetime License 标签样式 */
@@ -368,19 +391,15 @@ onUnmounted(() => {
   position: absolute;
   top: 0;
   right: 0;
-  background: linear-gradient(135deg, rgba(255, 204, 2, 0.95), rgba(255, 176, 0, 0.85));
-  color: rgba(17, 17, 17, 0.95);
+  background: linear-gradient(135deg, #f8e7a2, #d4af37);
+  color: #171717;
   font-size: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-top-right-radius: 12px;
-  border-bottom-left-radius: 12px;
+  font-weight: 800;
+  padding: 8px 14px;
+  border-top-right-radius: 18px;
+  border-bottom-left-radius: 14px;
   z-index: 2;
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.28),
-    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 24px rgba(151, 120, 24, 0.20);
 }
 
 .discount-tip {
@@ -415,22 +434,40 @@ onUnmounted(() => {
 .card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-top: 32px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 30px;
+  margin-bottom: 16px;
+  padding-bottom: 18px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
+.title-group {
+  min-width: 0;
+  text-align: left;
+}
+
+.card-kicker {
+  display: block;
+  margin-bottom: 8px;
+  color: #7c5f12;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .card-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: rgba(15, 23, 42, 0.92);
+  font-size: 1.55rem;
+  line-height: 1.18;
+  font-weight: 800;
+  color: #171717;
   margin: 0;
 }
 
 .price-info {
   text-align: right;
+  flex-shrink: 0;
 }
 
 .price-container {
@@ -446,9 +483,10 @@ onUnmounted(() => {
 }
 
 .price {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #007aff;
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: #171717;
+  line-height: 1;
 }
 
 .original-price {
@@ -490,11 +528,30 @@ onUnmounted(() => {
 }
 
 .discounted-price {
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.98) 0%, rgba(52, 199, 89, 0.92) 100%);
+  background: linear-gradient(135deg, #171717 0%, #8a6d1d 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 14px 30px rgba(0, 122, 255, 0.18);
+  text-shadow: 0 14px 30px rgba(138, 109, 29, 0.16);
+}
+
+.value-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.value-strip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(23, 23, 23, 0.055);
+  color: #44403c;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .discount-animate {
@@ -520,15 +577,15 @@ onUnmounted(() => {
 
 /* 图片区域 */
 .card-image {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   text-align: center;
   flex-shrink: 0;
 }
 
 .single-image img {
-  width: 120px;
-  height: 120px;
-  border-radius: 12px;
+  width: 132px;
+  height: 132px;
+  border-radius: 16px;
   object-fit: cover;
   border: 1px solid rgba(15, 23, 42, 0.10);
   background: rgba(255, 255, 255, 0.70);
@@ -542,9 +599,12 @@ onUnmounted(() => {
 
 .bundle-images-scroll {
   display: flex;
-  gap: 6px;
+  gap: 10px;
   overflow-x: auto;
-  padding: 12px 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(248, 250, 252, 0.78);
+  border: 1px solid rgba(15, 23, 42, 0.07);
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -580,8 +640,8 @@ onUnmounted(() => {
   flex-shrink: 0;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.2s;
-  min-width: 80px;
+  transition: transform 180ms ease;
+  min-width: 82px;
 }
 
 .bundle-image-item:hover {
@@ -589,9 +649,9 @@ onUnmounted(() => {
 }
 
 .bundle-image-item img {
-  width: 80px;
-  height: 80px;
-  border-radius: 12px;
+  width: 82px;
+  height: 82px;
+  border-radius: 14px;
   object-fit: cover;
   /* border: 2px solid #eee; */
   background: rgba(255, 255, 255, 0.72);
@@ -608,14 +668,14 @@ onUnmounted(() => {
 }
 
 .scroll-indicator {
-  margin-top: 12px;
+  margin-top: 10px;
   text-align: center;
 }
 
 .scroll-text {
-  font-size: 0.85rem;
-  color: rgba(15, 23, 42, 0.50);
-  font-style: italic;
+  font-size: 0.82rem;
+  color: #78716c;
+  font-weight: 600;
 }
 
 /* 卡片信息 */
@@ -627,10 +687,37 @@ onUnmounted(() => {
 }
 
 .description {
-  color: rgba(15, 23, 42, 0.66);
+  color: #57534e;
   margin-bottom: 16px;
-  line-height: 1.5;
+  line-height: 1.6;
   font-size: 0.95rem;
+}
+
+.description p {
+  position: relative;
+  margin: 0 0 10px;
+  padding-left: 16px;
+}
+
+.description p::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #d4af37;
+}
+
+.description-heading {
+  padding-left: 0 !important;
+  color: #171717;
+  font-weight: 800;
+}
+
+.description-heading::before {
+  display: none;
 }
 
 .product-count {
@@ -654,15 +741,15 @@ onUnmounted(() => {
 /* 购买按钮 */
 .buy-btn {
   border: none;
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 18px 2rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  letter-spacing: 0.4px;
+  letter-spacing: 0;
   margin-top: auto;
   width: 100%;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
   flex-shrink: 0;
   min-height: 56px;
   position: relative;
@@ -670,18 +757,18 @@ onUnmounted(() => {
 }
 
 .buy-btn-bundle {
-  background: linear-gradient(135deg, rgba(0, 122, 255, 0.98) 0%, rgba(64, 156, 255, 0.94) 55%, rgba(0, 122, 255, 0.90) 100%);
+  background: linear-gradient(135deg, #171717 0%, #2f2a20 55%, #8a6d1d 100%);
   color: rgba(255, 255, 255, 0.98);
   box-shadow:
-    0 18px 42px rgba(0, 122, 255, 0.32),
+    0 18px 42px rgba(23, 23, 23, 0.22),
     0 16px 36px rgba(15, 23, 42, 0.16),
     0 0 0 1px rgba(255, 255, 255, 0.22) inset;
 }
 
 .buy-btn-product {
   background: rgba(255, 255, 255, 0.88);
-  color: rgba(0, 122, 255, 0.95);
-  border: 1px solid rgba(0, 122, 255, 0.26);
+  color: #171717;
+  border: 1px solid rgba(23, 23, 23, 0.18);
   box-shadow:
     0 12px 28px rgba(15, 23, 42, 0.10),
     0 1px 0 rgba(255, 255, 255, 0.72) inset;
@@ -691,16 +778,21 @@ onUnmounted(() => {
   transform: translateY(-2px);
 }
 
+.buy-btn:focus-visible {
+  outline: 3px solid rgba(212, 175, 55, 0.42);
+  outline-offset: 3px;
+}
+
 .buy-btn-bundle:hover {
   box-shadow:
-    0 22px 56px rgba(0, 122, 255, 0.38),
+    0 22px 56px rgba(23, 23, 23, 0.26),
     0 18px 48px rgba(15, 23, 42, 0.20),
     0 0 0 1px rgba(255, 255, 255, 0.28) inset;
 }
 
 .buy-btn-product:hover {
   background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(0, 122, 255, 0.34);
+  border-color: rgba(212, 175, 55, 0.48);
   box-shadow:
     0 16px 40px rgba(15, 23, 42, 0.12),
     0 0 0 1px rgba(0, 122, 255, 0.10) inset;
@@ -728,17 +820,33 @@ onUnmounted(() => {
   .purchase-card {
     padding: 24px 20px;
     min-height: fit-content;
-    border-radius: 12px;
+    border-radius: 16px;
     margin-top: 16px;
   }
   
   .card-header {
     flex-direction: column;
-    gap: 16px;
-    text-align: center;
+    gap: 14px;
+    text-align: left;
     margin-top: 24px;
     margin-bottom: 24px;
     padding-bottom: 18px;
+  }
+
+  .price-info {
+    text-align: left;
+  }
+
+  .price-group {
+    align-items: flex-start;
+  }
+
+  .original-price-float {
+    position: static;
+    left: 0;
+    right: auto;
+    margin-bottom: 4px;
+    transform: none;
   }
   
   .single-image img {
@@ -771,10 +879,10 @@ onUnmounted(() => {
     padding: 20px 16px 24px 16px;
     margin: 12px 0;
     min-height: fit-content;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow:
-      0 18px 50px rgba(0, 0, 0, 0.55),
-      0 -14px 22px rgba(255, 255, 255, 0.14) inset;
+      0 18px 50px rgba(15, 23, 42, 0.13),
+      0 1px 0 rgba(255, 255, 255, 0.72) inset;
     display: flex;
     flex-direction: column;
   }
@@ -788,7 +896,7 @@ onUnmounted(() => {
   
   .card-title {
     font-size: 1.3rem;
-    line-height: 1.4;
+    line-height: 1.24;
   }
   
   .price {
@@ -835,7 +943,7 @@ onUnmounted(() => {
     border-radius: 12px;
     margin-top: auto;
     margin-bottom: 0;
-    letter-spacing: 0.6px;
+    letter-spacing: 0;
   }
 }
 
@@ -936,6 +1044,17 @@ onUnmounted(() => {
   
   .bundle-image-item:hover {
     transform: none; /* 移动端禁用hover效果 */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .purchase-card,
+  .bundle-image-item,
+  .buy-btn,
+  .discount-animate,
+  .original-float-animate {
+    animation: none !important;
+    transition: none !important;
   }
 }
 </style>

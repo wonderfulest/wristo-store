@@ -6,10 +6,16 @@ import { createPageGuard } from '@/utils/guards'
 const router = createRouter({
   history: createWebHistory(),
   routes,
-  scrollBehavior(_, __, savedPosition) {
+  scrollBehavior(to, _, savedPosition) {
     // Scroll to top when navigating to a new route
     if (savedPosition) {
       return savedPosition
+    } else if (to.hash) {
+      return {
+        el: to.hash,
+        top: 24,
+        behavior: 'smooth'
+      }
     } else {
       return { top: 0 }
     }

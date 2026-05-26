@@ -48,7 +48,6 @@ defineProps<{
 .section-title {
   font-size: 32px;
   font-weight: 600;
-  letter-spacing: -0.5px;
   color: #1d1d1f;
   margin: 0;
 }

@@ -2,7 +2,7 @@
     <div class="checkout">
         <h2 class="title">Secure Checkout</h2>
         <div class="checkout-main">
-            <div class="checkout-left">
+            <div :class="['checkout-left', { 'checkout-left-bundle': isBundle }]">
                 <template v-if="isBundle">
                     <PurchaseCard
                         type="bundle"
@@ -41,30 +41,62 @@
                 </template>
             </div>
             <div class="checkout-right">
+                <div class="checkout-panel-header">
+                    <p class="checkout-eyebrow">Payment details</p>
+                    <h3>Complete your order</h3>
+                    <p>Your Garmin watch face will be delivered to this email after payment.</p>
+                </div>
                 <label class="input-label">Email for receipt</label>
                 <input
                     v-model="email"
                     :class="['input', { 'email-input-highlight': shouldHighlightEmail }]"
                     placeholder="you@example.com"
                     :disabled="isEmailLocked"
+                    type="email"
+                    autocomplete="email"
+                    aria-describedby="checkout-email-help checkout-email-error"
                 />
                 <div v-if="isEmailLocked" class="email-locked-hint">
                     Your email is locked to your current account. To use a different email, please sign out and sign in (or create a new account) with the new email, then place the order again.
                 </div>
-                <div v-else class="input-desc">Please use a real email address. It will be used to receive your order and activation benefits — and it can also be used to sign in later. Sign in (or create an account) to manage your purchases.</div>
-                <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
-                <div class="pay-method-title">Payment Method</div>
-                <div class="pay-method-note">
-                    Secure payment powered by Paddle
+                <div v-else id="checkout-email-help" class="input-desc">Please use a real email address. It will be used to receive your order and activation benefits - and it can also be used to sign in later. Sign in (or create an account) to manage your purchases.</div>
+                <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
+                <div class="payment-method-card">
+                    <div class="payment-method-copy">
+                        <div class="pay-method-title">Payment Method</div>
+                        <div class="pay-method-note">Secure payment powered by Paddle</div>
+                    </div>
+                    <el-icon class="payment-method-icon" aria-hidden="true"><CreditCard /></el-icon>
                 </div>
                 <button 
+                    type="button"
                     class="purchase-btn" 
                     @click="() => handlePayment()"
                     :disabled="loading"
+                    :aria-busy="loading"
                 >
                     <span v-if="loading" class="loading-spinner"></span>
-                    {{ loading ? 'Processing...' : 'Continue' }}
+                    <el-icon v-else class="purchase-btn-lock" aria-hidden="true"><Lock /></el-icon>
+                    <span class="purchase-btn-copy">
+                        <span class="purchase-btn-title">{{ checkoutButtonText }}</span>
+                        <span class="purchase-btn-subtitle">{{ loading ? 'Opening Paddle checkout' : 'Encrypted checkout' }}</span>
+                    </span>
+                    <el-icon v-if="!loading" class="purchase-btn-arrow" aria-hidden="true"><ArrowRight /></el-icon>
                 </button>
+                <div class="trust-list" aria-label="Checkout protections">
+                    <span>
+                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
+                        Secure payment
+                    </span>
+                    <span>
+                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
+                        Instant delivery
+                    </span>
+                    <span>
+                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
+                        Email receipt
+                    </span>
+                </div>
                 
                 <div id="result-message" style="margin-top:16px;color:#e63946;"></div>
             </div>
@@ -85,6 +117,7 @@ import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 import { checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
+import { ArrowRight, CircleCheckFilled, CreditCard, Lock } from '@element-plus/icons-vue'
 
 declare global {
   interface Window {
@@ -185,6 +218,10 @@ const productDiscount = computed(() => {
 
 const isBundleTokenFlow = computed(() => {
   return isBundle.value && !request.value?.accounttoken
+})
+
+const checkoutButtonText = computed(() => {
+  return loading.value ? 'Processing...' : 'Continue to secure payment'
 })
 
 function validateEmail(email: string) {
@@ -408,9 +445,9 @@ const handlePayment = async (isRetry = false) => {
 
 <style scoped>
 .checkout {
-    max-width: 900px;
+    max-width: 1040px;
     margin: 0 auto 80px;
-    padding: 32px 16px 0 16px;
+    padding: 32px 20px 0 20px;
     font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     min-height: 100vh;
     box-sizing: border-box;
@@ -428,43 +465,85 @@ const handlePayment = async (isRetry = false) => {
 }
 
 .title {
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: clamp(1.75rem, 3vw, 2.4rem);
+    font-weight: 800;
     margin: 32px 0 24px 0;
     text-align: center;
-    color: #1a1a1a;
+    color: #0f172a;
+    letter-spacing: 0;
 }
 
 .checkout-main {
-    display: flex;
-    gap: 48px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px;
     margin-top: 32px;
     justify-content: center;
+    align-items: flex-start;
 }
 
 .checkout-right {
-    flex: 1.2;
-    min-width: 340px;
+    width: 100%;
+    min-width: 0;
+    padding: 28px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 24px;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
+    box-shadow:
+        0 24px 70px rgba(15, 23, 42, 0.10),
+        0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.checkout-panel-header {
+    margin-bottom: 24px;
+}
+
+.checkout-eyebrow {
+    margin: 0 0 8px;
+    color: #0f6b68;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.checkout-panel-header h3 {
+    margin: 0 0 8px;
+    color: #0f172a;
+    font-size: 1.45rem;
+    line-height: 1.2;
+}
+
+.checkout-panel-header p:last-child {
+    margin: 0;
+    color: #475467;
+    font-size: 0.98rem;
+    line-height: 1.55;
 }
 
 
 .input-label {
-    font-weight: bold;
-    font-size: 1.4rem;
+    font-weight: 700;
+    font-size: 0.95rem;
     margin-bottom: 8px;
     display: block;
-    color: #1a1a1a;
+    color: #0f172a;
 }
 
 .input {
     width: 100%;
-    font-size: 1.2rem;
+    font-size: 1rem;
     padding: 16px 16px;
-    border-radius: 12px;
-    border: 1.5px solid #e5e7eb;
+    border-radius: 14px;
+    border: 1.5px solid rgba(15, 23, 42, 0.12);
     background: rgba(255, 255, 255, 0.9);
     outline: none;
-    transition: all 0.2s ease;
+    min-height: 52px;
+    color: #0f172a;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .input:disabled {
@@ -479,26 +558,26 @@ const handlePayment = async (isRetry = false) => {
 }
 
 .input:focus {
-    border-color: #2d6a4f;
-    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+    border-color: #0f6b68;
+    box-shadow: 0 0 0 4px rgba(15, 107, 104, 0.14);
 }
 
 .email-input-highlight {
-    border-color: rgba(0, 122, 255, 0.55);
+    border-color: rgba(15, 107, 104, 0.55);
     box-shadow:
-        0 0 0 4px rgba(0, 122, 255, 0.14),
-        0 14px 34px rgba(0, 122, 255, 0.18);
+        0 0 0 4px rgba(15, 107, 104, 0.12),
+        0 14px 34px rgba(15, 107, 104, 0.14);
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 251, 255, 0.92) 100%);
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(240, 253, 250, 0.92) 100%);
     animation: email-attention-pulse 2.2s ease-in-out infinite;
 }
 
 .email-input-highlight:focus {
     animation: none;
-    border-color: rgba(0, 122, 255, 0.72);
+    border-color: rgba(15, 107, 104, 0.72);
     box-shadow:
-        0 0 0 4px rgba(0, 122, 255, 0.18),
-        0 18px 44px rgba(0, 122, 255, 0.22);
+        0 0 0 4px rgba(15, 107, 104, 0.18),
+        0 18px 44px rgba(15, 107, 104, 0.18);
 }
 
 .input:disabled.email-input-highlight {
@@ -510,26 +589,24 @@ const handlePayment = async (isRetry = false) => {
     0%,
     100% {
         box-shadow:
-            0 0 0 4px rgba(0, 122, 255, 0.12),
-            0 14px 34px rgba(0, 122, 255, 0.14);
+            0 0 0 4px rgba(15, 107, 104, 0.10),
+            0 14px 34px rgba(15, 107, 104, 0.12);
     }
     50% {
         box-shadow:
-            0 0 0 6px rgba(0, 122, 255, 0.16),
-            0 18px 44px rgba(0, 122, 255, 0.20);
+            0 0 0 6px rgba(15, 107, 104, 0.14),
+            0 18px 44px rgba(15, 107, 104, 0.16);
     }
 }
 
 .input-desc {
-    color: #4a5568;
-    font-size: 0.98rem;
     padding: 10px 12px;
     margin-top: 12px;
     margin-bottom: 24px;
     border-radius: 12px;
-    border: 1px solid rgba(0, 122, 255, 0.18);
-    background: rgba(0, 122, 255, 0.06);
-    color: rgba(17, 24, 39, 0.78);
+    border: 1px solid rgba(15, 107, 104, 0.14);
+    background: rgba(15, 107, 104, 0.06);
+    color: #475467;
     font-size: 0.92rem;
     line-height: 1.5;
 }
@@ -540,71 +617,170 @@ const handlePayment = async (isRetry = false) => {
     margin-bottom: 18px;
     padding: 10px 12px;
     border-radius: 12px;
-    border: 1px solid rgba(0, 122, 255, 0.18);
-    background: rgba(0, 122, 255, 0.06);
-    color: rgba(17, 24, 39, 0.78);
-    font-size: 0.98rem;
+    border: 1px solid rgba(15, 107, 104, 0.14);
+    background: rgba(15, 107, 104, 0.06);
+    color: #475467;
+    font-size: 0.92rem;
     line-height: 1.5;
 }
 
+.payment-method-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    margin-top: 8px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.78);
+}
+
+.payment-method-copy {
+    min-width: 0;
+}
+
 .pay-method-title {
-    font-weight: bold;
-    font-size: 1.4rem;
-    margin: 24px 0 8px 0;
-    color: #1a1a1a;
+    font-weight: 800;
+    font-size: 0.98rem;
+    margin: 0 0 4px 0;
+    color: #0f172a;
 }
 
 .pay-method-note {
-    color: #2d3748;
-    font-size: 0.98rem;
-    margin-bottom: 24px;
+    color: #667085;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.payment-method-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    color: #0f6b68;
+    background: rgba(15, 107, 104, 0.10);
+}
+
+.payment-method-icon :deep(svg) {
+    width: 22px;
+    height: 22px;
 }
 
 .purchase-btn {
     width: 100%;
-    background: linear-gradient(135deg, rgba(0, 122, 255, 0.98) 0%, rgba(64, 156, 255, 0.94) 55%, rgba(0, 122, 255, 0.90) 100%);
+    background:
+        linear-gradient(135deg, #0f6b68 0%, #0b827d 52%, #f59e0b 100%);
     color: rgba(255, 255, 255, 0.98);
-    font-size: 1.2rem;
-    font-weight: 700;
-    padding: 18px 0;
-    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 14px 18px;
+    border-radius: 16px;
     border: none;
-    margin-top: 24px;
+    margin-top: 18px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 12px;
     position: relative;
     box-shadow:
-        0 18px 42px rgba(0, 122, 255, 0.30),
-        0 14px 30px rgba(15, 23, 42, 0.16),
+        0 18px 42px rgba(15, 107, 104, 0.26),
+        0 10px 24px rgba(245, 158, 11, 0.20),
         0 0 0 1px rgba(255, 255, 255, 0.22) inset;
-    letter-spacing: 0.4px;
-    min-height: 56px;
+    letter-spacing: 0;
+    min-height: 60px;
+    text-align: left;
 }
 
 .purchase-btn:hover:not(:disabled) {
     box-shadow:
-        0 22px 56px rgba(0, 122, 255, 0.36),
-        0 18px 48px rgba(15, 23, 42, 0.20),
+        0 22px 56px rgba(15, 107, 104, 0.30),
+        0 16px 34px rgba(245, 158, 11, 0.24),
         0 0 0 1px rgba(255, 255, 255, 0.28) inset;
     transform: translateY(-2px);
+    filter: saturate(1.05);
 }
 
 .purchase-btn:active:not(:disabled) {
     transform: translateY(0);
     box-shadow:
-        0 12px 30px rgba(0, 122, 255, 0.24),
-        0 10px 26px rgba(0, 0, 0, 0.30),
+        0 12px 30px rgba(15, 107, 104, 0.22),
+        0 8px 18px rgba(245, 158, 11, 0.18),
         0 0 0 1px rgba(255, 255, 255, 0.18) inset;
 }
 
+.purchase-btn:focus-visible {
+    outline: 3px solid rgba(15, 107, 104, 0.28);
+    outline-offset: 4px;
+}
+
 .purchase-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
+    background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+    cursor: progress;
     transform: none;
+    box-shadow: none;
+}
+
+.purchase-btn-lock,
+.purchase-btn-arrow {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+}
+
+.purchase-btn-lock :deep(svg),
+.purchase-btn-arrow :deep(svg) {
+    width: 22px;
+    height: 22px;
+}
+
+.purchase-btn-copy {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.purchase-btn-title {
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.purchase-btn-subtitle {
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.trust-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+    color: #475467;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.trust-list span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 28px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: rgba(15, 107, 104, 0.07);
+}
+
+.trust-list .el-icon {
+    color: #0f6b68;
 }
 
 .loading-spinner {
@@ -622,15 +798,23 @@ const handlePayment = async (isRetry = false) => {
 }
 
 .checkout-left {
-    width: 400px;
-    max-width: 100%;
+    width: 100%;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     margin-top: 0;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 0;
     box-sizing: border-box;
+}
+
+.checkout-left :deep(.purchase-card) {
+    width: 100%;
+}
+
+.checkout-left-bundle :deep(.purchase-card) {
+    max-width: none;
 }
 .card-header {
     display: flex;
@@ -803,7 +987,7 @@ const handlePayment = async (isRetry = false) => {
 /* 响应式设计 - 平板 */
 @media (max-width: 768px) {
     .checkout {
-        padding: 24px 20px 0 20px;
+        padding: 24px 20px 32px 20px;
     }
     
     .title {
@@ -812,15 +996,15 @@ const handlePayment = async (isRetry = false) => {
     }
     
     .checkout-main {
-        flex-direction: column;
-        gap: 32px;
+        grid-template-columns: 1fr;
+        gap: 24px;
         margin-top: 24px;
     }
     
     .checkout-left {
         border-left: none;
         border-top: none;
-        padding: 28px 20px;
+        padding: 0;
         width: 100%;
         max-width: 500px;
         margin: 0 auto;
@@ -833,6 +1017,7 @@ const handlePayment = async (isRetry = false) => {
         max-width: 500px;
         margin: 0 auto;
         width: 100%;
+        min-width: 0;
     }
     
     .product-image img {
@@ -849,7 +1034,7 @@ const handlePayment = async (isRetry = false) => {
 /* 手机端优化 */
 @media (max-width: 480px) {
     .checkout {
-        padding: 16px 16px 0 16px;
+        padding: 16px 16px 32px 16px;
         min-height: 100vh;
     }
     
@@ -864,20 +1049,30 @@ const handlePayment = async (isRetry = false) => {
     }
     
     .checkout-left {
-        padding: 20px 16px;
+        padding: 0;
         border-radius: 16px;
         margin: 0;
         width: 100%;
         max-width: 100%;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        box-shadow: none;
         box-sizing: border-box;
-        overflow: hidden;
+        overflow: visible;
     }
     
     .checkout-right {
         width: 100%;
         max-width: none;
         margin: 0;
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .checkout-panel-header {
+        margin-bottom: 20px;
+    }
+
+    .checkout-panel-header h3 {
+        font-size: 1.25rem;
     }
     
     .card-header {
@@ -931,29 +1126,40 @@ const handlePayment = async (isRetry = false) => {
     }
     
     .input-label {
-        font-size: 1rem;
+        font-size: 0.92rem;
     }
     
     .input {
-        font-size: 1.1rem;
+        font-size: 1rem;
         padding: 14px 16px;
     }
     
     .purchase-btn {
-        font-size: 1.1rem;
-        padding: 16px 0;
-        margin-top: 20px;
-        min-height: 52px;
+        font-size: 1rem;
+        padding: 13px 16px;
+        margin-top: 16px;
+        min-height: 58px;
     }
     
     .pay-method-title {
-        font-size: 1rem;
-        margin: 20px 0 6px 0;
+        font-size: 0.95rem;
     }
     
     .pay-method-note {
-        font-size: 0.9rem;
-        margin-bottom: 20px;
+        font-size: 0.84rem;
+    }
+
+    .payment-method-card {
+        padding: 14px;
+    }
+
+    .trust-list {
+        gap: 8px;
+    }
+
+    .trust-list span {
+        flex: 1 1 calc(50% - 8px);
+        justify-content: center;
     }
 }
 
@@ -964,7 +1170,7 @@ const handlePayment = async (isRetry = false) => {
     }
     
     .checkout-left {
-        padding: 18px 12px;
+        padding: 0;
         margin: 0;
         width: 100%;
         max-width: 100%;
@@ -992,8 +1198,12 @@ const handlePayment = async (isRetry = false) => {
     
     .purchase-btn {
         font-size: 1rem;
-        padding: 14px 0;
+        padding: 12px 14px;
         min-height: 48px;
+    }
+
+    .purchase-btn-subtitle {
+        display: none;
     }
 }
 

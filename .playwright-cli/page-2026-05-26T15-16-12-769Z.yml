@@ -1,0 +1,44 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "WRISTO" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - navigation [ref=e8]:
+          - link "Home" [ref=e9] [cursor=pointer]:
+            - /url: /
+          - button "Categories" [ref=e11] [cursor=pointer]:
+            - text: Categories
+            - img [ref=e13]
+          - link "Code" [ref=e15] [cursor=pointer]:
+            - /url: /code
+          - link "Blog" [ref=e16] [cursor=pointer]:
+            - /url: /blog
+        - generic [ref=e19] [cursor=pointer]:
+          - generic [ref=e21]: +
+          - generic [ref=e22]: Select Device
+        - button "Sign In" [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: Sign In
+    - main [ref=e27]:
+      - generic [ref=e29]:
+        - button "Hide topics" [expanded] [ref=e32] [cursor=pointer]:
+          - img [ref=e33]
+          - generic [ref=e38]: Hide topics
+        - generic [ref=e39]:
+          - complementary [ref=e40]
+          - main [ref=e41]
+    - contentinfo [ref=e42] [cursor=pointer]:
+      - generic [ref=e43]:
+        - text: © 2025 WuKong OÜ |
+        - link "Terms of Use" [ref=e44]:
+          - /url: /terms-and-conditions
+        - text: "|"
+        - link "Privacy Policy" [ref=e45]:
+          - /url: /privacy-policy
+        - text: "|"
+        - link "Contact" [ref=e46]:
+          - /url: /contact
+        - text: "|"
+  - alert [ref=e47]:
+    - img [ref=e49]
+    - paragraph [ref=e51]: Permission denied

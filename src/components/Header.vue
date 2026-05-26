@@ -91,11 +91,21 @@
     <!-- Mobile navigation menu -->
     <div class="mobile-nav" :class="{ open: isMobileMenuOpen }">
       <div class="mobile-nav-content">
+        <div class="mobile-nav-head">
+          <span class="mobile-nav-kicker">Menu</span>
+          <strong>Explore Wristo</strong>
+        </div>
         <div class="mobile-nav-links">
-          <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">Home</router-link>
+          <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">
+            <Icon icon="solar:home-2-line-duotone" width="22" height="22" aria-hidden="true" />
+            <span>Home</span>
+          </router-link>
           <div class="mobile-dropdown">
             <button class="mobile-dropdown-trigger centered" type="button" @click="toggleCategoriesDropdown">
-              <span class="dropdown-text">Categories</span>
+              <span class="dropdown-text">
+                <Icon icon="solar:widget-6-line-duotone" width="22" height="22" aria-hidden="true" />
+                <span>Categories</span>
+              </span>
               <el-icon :class="{ rotated: isCategoriesOpen }"><arrow-down /></el-icon>
             </button>
             <div class="mobile-dropdown-content" :class="{ open: isCategoriesOpen }">
@@ -111,8 +121,18 @@
             </div>
           </div>
           <!-- <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link> -->
-          <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">Code</router-link>
-          <router-link to="/top" class="mobile-nav-link" @click="closeMobileMenu">Top</router-link>
+          <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">
+            <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
+            <span>Code</span>
+          </router-link>
+          <router-link to="/blog" class="mobile-nav-link" @click="closeMobileMenu">
+            <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
+            <span>Blog</span>
+          </router-link>
+          <router-link to="/top" class="mobile-nav-link" @click="closeMobileMenu">
+            <Icon icon="solar:ranking-line-duotone" width="22" height="22" aria-hidden="true" />
+            <span>Top</span>
+          </router-link>
           
           <!-- Mobile Device Display -->
           <DeviceDisplay 
@@ -126,7 +146,8 @@
         <template v-if="!isLoggedIn">
           <div class="mobile-auth-buttons-top">
             <button class="mobile-auth-btn login" @click="handleMobileLogin">
-              Sign In
+              <Icon icon="solar:login-2-line-duotone" width="22" height="22" aria-hidden="true" />
+              <span>Sign In</span>
             </button>
           </div>
         </template>
@@ -167,6 +188,7 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { useProductStore } from '@/store/product';
 import { useRouter } from 'vue-router';
+import { Icon } from '@iconify/vue';
 import { ArrowDown, User, Document, SwitchButton } from '@element-plus/icons-vue';
 import type { Series } from '@/types/product';
 import { useUserStore } from '@/store/user';
@@ -541,13 +563,18 @@ defineExpose({
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 44px;
-  height: 44px;
-  background: none;
-  border: none;
+  width: 46px;
+  height: 46px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
+  border: 1px solid rgba(15, 107, 104, 0.12);
+  border-radius: 16px;
   cursor: pointer;
   padding: 0;
-  z-index: 31;
+  z-index: 42;
+  box-shadow:
+    0 12px 28px rgba(17, 24, 39, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 
 .mobile-menu-btn span {
@@ -557,6 +584,17 @@ defineExpose({
   border-radius: 1px;
   transition: all 0.3s ease;
   margin: 2px 0;
+}
+
+.mobile-menu-btn.active {
+  background:
+    linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
+  border-color: rgba(15, 107, 104, 0.18);
+  box-shadow: 0 16px 34px rgba(15, 107, 104, 0.22);
+}
+
+.mobile-menu-btn.active span {
+  background: #fff;
 }
 
 .mobile-menu-btn.active span:nth-child(1) {
@@ -574,57 +612,101 @@ defineExpose({
 /* Mobile navigation */
 .mobile-nav {
   position: fixed;
-  top: 72px;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 30;
+  top: 84px;
+  left: 12px;
+  right: 12px;
+  max-height: calc(100dvh - 100px);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 24px;
+  box-shadow:
+    0 28px 80px rgba(15, 23, 42, 0.22),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  transform: translateY(-14px) scale(0.98);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 220ms ease, opacity 220ms ease, visibility 220ms ease;
+  z-index: 41;
   overflow-y: auto;
+  pointer-events: none;
 }
 
 .mobile-nav.open {
-  transform: translateX(0);
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .mobile-nav-content {
-  padding: 24px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  gap: 14px;
+}
+
+.mobile-nav-head {
+  display: grid;
+  gap: 2px;
+  padding: 2px 4px 8px;
+}
+
+.mobile-nav-kicker {
+  color: var(--color-brand);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.mobile-nav-head strong {
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  line-height: 1.1;
 }
 
 .mobile-nav-links {
-  flex: 1;
+  display: grid;
+  gap: 8px;
 }
 
 .mobile-nav-link {
-  display: block;
-  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 0 14px;
   color: var(--color-ink);
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 750;
   text-decoration: none;
-  border-bottom: 1px solid var(--color-line);
-  transition: color 0.2s;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
 }
 
 .mobile-nav-link:hover {
-  color: var(--color-brand);
+  color: var(--color-brand-strong);
+  background: rgba(15, 107, 104, 0.07);
+  transform: translateY(-1px);
 }
 
 .mobile-nav-link.router-link-active {
-  color: var(--color-brand);
-  font-weight: 600;
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  border-color: rgba(15, 107, 104, 0.12);
+  box-shadow: 0 12px 28px rgba(15, 107, 104, 0.10);
 }
 
 /* Mobile dropdown */
 .mobile-dropdown {
-  border-bottom: 1px solid var(--color-line);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.62);
 }
 
 .mobile-dropdown-trigger {
@@ -632,29 +714,31 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  min-height: 50px;
+  padding: 0 14px;
   background: none;
   border: none;
   color: var(--color-ink);
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 750;
   text-align: left;
   cursor: pointer;
 }
 
 .mobile-dropdown-trigger.centered {
-  justify-content: center;
+  justify-content: space-between;
   position: relative;
 }
 
 .mobile-dropdown-trigger.centered .dropdown-text {
-  flex: 1;
-  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
 }
 
 .mobile-dropdown-trigger.centered .el-icon {
-  position: absolute;
-  right: 0;
+  position: static;
 }
 
 .mobile-dropdown-trigger .el-icon {
@@ -668,10 +752,8 @@ defineExpose({
 .mobile-dropdown-content {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease;
-  background: var(--color-surface-soft);
-  border-radius: var(--radius-sm);
-  margin: 0 -12px 12px;
+  transition: max-height 0.22s ease;
+  background: rgba(238, 245, 243, 0.82);
 }
 
 .mobile-dropdown-content.open {
@@ -680,9 +762,10 @@ defineExpose({
 
 .mobile-dropdown-link {
   display: block;
-  padding: 12px 24px;
+  padding: 11px 18px 11px 48px;
   color: var(--color-muted);
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
   transition: all 0.2s;
 }
@@ -694,9 +777,9 @@ defineExpose({
 
 /* Mobile user area */
 .mobile-user-area {
-  border-top: 1px solid var(--color-line);
-  padding-top: 24px;
-  margin-top: 24px;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  padding-top: 14px;
+  margin-top: 4px;
 }
 
 .mobile-user-info {
@@ -742,13 +825,14 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
-  background: var(--color-surface-soft);
-  border: none;
-  border-radius: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 16px;
   color: var(--color-ink);
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 750;
   cursor: pointer;
   transition: all 0.2s;
   text-align: left;
@@ -771,8 +855,8 @@ defineExpose({
 .mobile-auth-buttons-top {
   display: flex;
   gap: 12px;
-  margin-bottom: 32px;
-  padding: 0 8px;
+  margin: 2px 0 0;
+  padding: 0;
 }
 
 /* Mobile auth buttons */
@@ -783,18 +867,23 @@ defineExpose({
 }
 
 .mobile-auth-btn {
-  padding: 16px;
-  border-radius: 12px;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 16px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
   transition: all 0.2s;
   border: none;
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .mobile-auth-btn.login {
-  background: var(--color-brand);
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
   color: #fff;
   border: 1px solid var(--color-brand);
   backdrop-filter: blur(10px);
@@ -830,17 +919,22 @@ defineExpose({
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  bottom: auto;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
-  z-index: 25;
+  z-index: 40;
+  pointer-events: none;
 }
 
 .mobile-overlay.active {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 /* Responsive styles */
@@ -876,15 +970,17 @@ defineExpose({
   }
   
   .mobile-nav-content {
-    padding: 0px 16px;
+    padding: 14px;
   }
   
   .mobile-nav-link {
-    font-size: 16px;
+    min-height: 48px;
+    font-size: 15px;
   }
   
   .mobile-dropdown-trigger {
-    font-size: 16px;
+    min-height: 48px;
+    font-size: 15px;
   }
   
   .mobile-auth-buttons-top {
@@ -893,7 +989,8 @@ defineExpose({
   }
   
   .mobile-auth-btn {
-    padding: 14px;
+    min-height: 50px;
+    padding: 0 14px;
     font-size: 15px;
   }
 }

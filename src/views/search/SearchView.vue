@@ -32,6 +32,78 @@
         </span>
       </div>
     </div>
+
+    <section class="search-discovery" aria-labelledby="search-discovery-title">
+      <div class="discovery-header">
+        <div>
+          <p class="section-kicker">Explore more</p>
+          <h2 id="search-discovery-title" class="section-title">Find the right watch face faster</h2>
+        </div>
+        <button class="outline-link" type="button" @click="goToTopApps">
+          <Icon icon="mdi:chart-line" width="18" aria-hidden="true" />
+          Top apps
+        </button>
+      </div>
+
+      <div class="suggestion-panel">
+        <div class="suggestion-copy">
+          <Icon icon="mdi:magnify-scan" width="22" aria-hidden="true" />
+          <div>
+            <h3>Popular searches</h3>
+            <p>Start with a proven keyword, then refine by style, device, or everyday use.</p>
+          </div>
+        </div>
+        <div class="suggestion-chips" aria-label="Popular search suggestions">
+          <button
+            v-for="item in popularSearches"
+            :key="item"
+            class="search-chip"
+            type="button"
+            @click="submitSuggestion(item)"
+          >
+            {{ item }}
+          </button>
+        </div>
+      </div>
+
+      <div class="discovery-grid">
+        <button
+          v-for="scenario in scenarios"
+          :key="scenario.title"
+          class="scenario-card"
+          type="button"
+          @click="submitSuggestion(scenario.query)"
+        >
+          <span class="scenario-icon">
+            <Icon :icon="scenario.icon" width="22" aria-hidden="true" />
+          </span>
+          <span class="scenario-title">{{ scenario.title }}</span>
+          <span class="scenario-desc">{{ scenario.desc }}</span>
+          <span class="scenario-action">
+            Search {{ scenario.query }}
+            <Icon icon="mdi:arrow-right" width="18" aria-hidden="true" />
+          </span>
+        </button>
+      </div>
+
+      <div class="help-strip">
+        <div class="help-item">
+          <Icon icon="mdi:ticket-confirmation-outline" width="22" aria-hidden="true" />
+          <div>
+            <h3>Have an unlock code?</h3>
+            <p>Enter a 6-digit code in search and we will take you directly to activation.</p>
+          </div>
+        </div>
+        <div class="help-actions">
+          <button class="solid-link" type="button" @click="goToCode">
+            Activate code
+          </button>
+          <button class="outline-link" type="button" @click="goToBundle">
+            View bundle
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -50,6 +122,38 @@ const productStore = useProductStore()
 const loading = ref(false)
 const searchTerm = ref('')
 const searchResults = ref<ProductBaseVO[]>([])
+
+const popularSearches = [
+  'minimal',
+  'analog',
+  'digital',
+  'weather',
+  'running',
+  'galaxy',
+  'flower',
+  'daily'
+]
+
+const scenarios = [
+  {
+    icon: 'mdi:run-fast',
+    title: 'Training days',
+    desc: 'Data-forward faces for workouts, pace, and quick status checks.',
+    query: 'running'
+  },
+  {
+    icon: 'mdi:briefcase-outline',
+    title: 'Work and meetings',
+    desc: 'Clean layouts that keep time, battery, and calendar glanceable.',
+    query: 'minimal'
+  },
+  {
+    icon: 'mdi:weather-partly-cloudy',
+    title: 'Weather aware',
+    desc: 'Faces built around forecast, conditions, and outdoor planning.',
+    query: 'weather'
+  }
+]
 
 const pageNum = ref(1)
 const pageSize = ref(12)
@@ -127,6 +231,27 @@ const handleSubmit = async (term: string) => {
   }
   pageNum.value = 1
   await router.replace({ path: '/search', query: { q } })
+}
+
+const submitSuggestion = async (term: string) => {
+  searchTerm.value = term
+  pageNum.value = 1
+  await router.replace({ path: '/search', query: { q: term } })
+}
+
+const goToTopApps = () => {
+  router.push('/top')
+}
+
+const goToCode = () => {
+  router.push('/code')
+}
+
+const goToBundle = () => {
+  router.push({
+    path: '/purchase-options',
+    hash: '#bundle-subscription-card'
+  })
 }
 
 const isFetchingMore = ref(false)
@@ -289,6 +414,221 @@ onUnmounted(() => {
   padding: 0 22px;
 }
 
+.search-discovery {
+  width: min(var(--container), calc(100% - 44px));
+  margin: 18px auto 0;
+  padding: 34px 0 0;
+}
+
+.discovery-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+
+.section-kicker {
+  margin: 0 0 8px;
+  color: var(--color-brand);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.section-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.suggestion-panel,
+.scenario-card,
+.help-strip {
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--shadow-sm);
+}
+
+.suggestion-panel {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(320px, 1.15fr);
+  gap: 22px;
+  padding: 22px;
+}
+
+.suggestion-copy,
+.help-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.suggestion-copy > .iconify,
+.help-item > .iconify {
+  flex-shrink: 0;
+  color: var(--color-brand);
+}
+
+.suggestion-copy h3,
+.help-item h3 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.suggestion-copy p,
+.help-item p {
+  margin: 6px 0 0;
+  color: var(--color-muted);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.suggestion-chips {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.search-chip {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 107, 104, 0.16);
+  color: var(--color-brand-strong);
+  background: #ffffff;
+  font-size: 0.94rem;
+  font-weight: 800;
+}
+
+.search-chip:hover {
+  border-color: rgba(15, 107, 104, 0.34);
+  background: var(--color-brand-soft);
+}
+
+.discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.scenario-card {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px;
+  text-align: left;
+  color: var(--color-ink);
+}
+
+.scenario-card:hover {
+  border-color: rgba(15, 107, 104, 0.28);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.scenario-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+}
+
+.scenario-title {
+  color: var(--color-ink);
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.scenario-desc {
+  color: var(--color-muted);
+  font-size: 0.94rem;
+  line-height: 1.58;
+}
+
+.scenario-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  color: var(--color-brand);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.help-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-top: 14px;
+  padding: 22px;
+  background:
+    linear-gradient(135deg, rgba(223, 245, 241, 0.68), rgba(255, 255, 255, 0.94) 48%, rgba(255, 248, 235, 0.82));
+}
+
+.help-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.solid-link,
+.outline-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.solid-link {
+  color: #ffffff;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+.solid-link:hover {
+  color: #ffffff;
+  background: var(--color-brand-strong);
+  border-color: var(--color-brand-strong);
+}
+
+.outline-link {
+  color: var(--color-brand-strong);
+  background: #ffffff;
+  border-color: rgba(15, 107, 104, 0.16);
+  box-shadow: var(--shadow-sm);
+}
+
+.outline-link:hover {
+  background: var(--color-brand-soft);
+  border-color: rgba(15, 107, 104, 0.34);
+}
+
 .pagination-wrap {
   max-width: 1200px;
   margin: 18px auto 0;
@@ -372,6 +712,45 @@ onUnmounted(() => {
 @media (max-width: 735px) {
   .search-content {
     padding: 0 16px;
+  }
+
+  .search-discovery {
+    width: calc(100% - 32px);
+    margin-top: 8px;
+    padding-top: 28px;
+  }
+
+  .discovery-header,
+  .help-strip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .outline-link,
+  .solid-link {
+    width: 100%;
+  }
+
+  .suggestion-panel {
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .suggestion-chips {
+    justify-content: flex-start;
+  }
+
+  .discovery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .scenario-card {
+    min-height: 190px;
+  }
+
+  .help-actions {
+    flex-direction: column;
+    width: 100%;
   }
 
   .pagination-wrap {

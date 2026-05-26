@@ -1,8 +1,8 @@
 <template>
   <div class="purchase-options">
     <!-- <Logo /> -->
-    <h2 class="title">Decision Time</h2>
-    <p class="desc">✨ Unlock ALL watch faces with one purchase — enjoy them forever, no more switching hassle.</p>
+    <h2 class="title">Choose Your Watch Face Access</h2>
+    <p class="desc">Unlock every included watch face once, keep lifetime access, and skip repeated single purchases.</p>
 
     <div
       v-if="activeDiscountCode"
@@ -13,12 +13,13 @@
       <span class="banner-text">has been applied to eligible prices.</span>
     </div>
     
-    <div class="cards-container">
+    <div id="bundle-subscription-card" class="cards-container">
       <!-- 套餐卡片 -->
       <PurchaseCard
-        v-for="bundleItem in bundles"
+        v-for="(bundleItem, index) in bundles"
         :key="bundleItem.bundleId"
         v-if="bundles.length > 0"
+        :class="{ 'bundle-subscription-target': index === 0 }"
         type="bundle"
         :title="bundleItem.bundleName"
         :description="bundleItem.bundleDesc"
@@ -73,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue'
+import { onMounted, ref, computed, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import PurchaseCard from '@/components/PurchaseCard.vue'
@@ -421,6 +422,18 @@ const runDiscountChecks = () => {
   )
 }
 
+const scrollToBundleSubscriptionCard = async () => {
+  if (route.hash !== '#bundle-subscription-card') return
+
+  await nextTick()
+  window.setTimeout(() => {
+    document.getElementById('bundle-subscription-card')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    })
+  }, 80)
+}
+
 onMounted(() => {
   const shouldResetByPremiumPath = route.path === '/premium' || route.name === 'Premium'
   if (shouldResetByPremiumPath) {
@@ -438,28 +451,41 @@ onMounted(() => {
   }
 
   runDiscountChecks()
+  scrollToBundleSubscriptionCard()
 })
+
+watch(
+  () => [route.hash, bundles.value.length],
+  () => {
+    scrollToBundleSubscriptionCard()
+  }
+)
 </script>
 
 <style scoped>
 .purchase-options {
   max-width: 1400px;
   margin: 0px auto 40px;
-  padding: 32px 16px 48px;
+  padding: 40px 16px 56px;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
+  color: #171717;
 }
 
 .title {
-  font-size: 1.8rem;
-  margin-bottom: 0.5rem;
-  color: #333;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  line-height: 1.12;
+  margin: 0 0 0.7rem;
+  color: #171717;
+  font-weight: 800;
 }
 
 .desc {
-  color: #666;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
+  max-width: 680px;
+  color: #57534e;
+  margin: 0 auto 1.25rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
 }
 
 .discount-banner {
@@ -495,16 +521,40 @@ onMounted(() => {
   display: flex;
   max-width: 1400px;
   margin: 0 auto;
-  gap: 24px;
+  gap: 22px;
   justify-content: center;
   align-items: stretch;
   min-height: fit-content;
+  scroll-margin-top: 32px;
 }
 
 /* 统一卡片宽度 */
 .cards-container > * {
-  flex: 0 0 420px;
-  width: 420px;
+  flex: 1 1 380px;
+  width: min(100%, 420px);
+  max-width: 430px;
+}
+
+#bundle-subscription-card:target .bundle-subscription-target {
+  animation: bundle-target-pulse 1200ms ease-out 1;
+}
+
+@keyframes bundle-target-pulse {
+  0% {
+    box-shadow:
+      0 24px 70px rgba(15, 23, 42, 0.18),
+      0 0 0 0 rgba(245, 158, 11, 0.44);
+  }
+  60% {
+    box-shadow:
+      0 24px 70px rgba(15, 23, 42, 0.18),
+      0 0 0 12px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow:
+      0 18px 44px rgba(15, 23, 42, 0.12),
+      0 0 0 0 rgba(245, 158, 11, 0);
+  }
 }
 
 .box-container {
@@ -603,7 +653,7 @@ onMounted(() => {
   
   .cards-container > * {
     flex: none;
-    width: calc(100% - 40px);
+    width: 100%;
     max-width: 500px;
     margin-bottom: 24px;
   }
@@ -631,15 +681,15 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .purchase-options {
-    padding: 24px 16px 80px 16px;
+    padding: 28px 16px 80px 16px;
   }
   
   .cards-container {
-    padding: 0 16px;
+    padding: 0;
   }
   
   .cards-container > * {
-    width: calc(100% - 32px);
+    width: 100%;
     max-width: 450px;
   }
   
@@ -677,11 +727,11 @@ onMounted(() => {
   }
   
   .cards-container {
-    padding: 0 12px;
+    padding: 0;
   }
   
   .cards-container > * {
-    width: calc(100% - 24px);
+    width: 100%;
     max-width: 380px;
   }
   
@@ -714,11 +764,11 @@ onMounted(() => {
   }
   
   .cards-container {
-    padding: 0 8px;
+    padding: 0;
   }
   
   .cards-container > * {
-    width: calc(100% - 16px);
+    width: 100%;
     max-width: 320px;
   }
   

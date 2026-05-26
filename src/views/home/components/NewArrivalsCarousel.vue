@@ -3,9 +3,12 @@
     <div class="new-container">
       <div class="new-header">
         <div class="new-header-icon">
-          <el-icon class="new-header-icon-inner"><Plus /></el-icon>
+          <Icon class="new-header-icon-inner" icon="solar:magic-stick-3-line-duotone" width="25" height="25" aria-hidden="true" />
         </div>
-        <h2 class="new-title">New Arrivals</h2>
+        <div class="new-heading-copy">
+          <span class="new-kicker">Fresh drops</span>
+          <h2 class="new-title">New Arrivals</h2>
+        </div>
       </div>
       <div class="new-carousel-wrap">
         <div class="new-scroll" ref="scrollContainer">
@@ -34,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { Plus } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { ProductBaseVO } from '@/types';
 
@@ -180,30 +183,44 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 14px;
 }
 
 .new-header-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--color-brand-soft);
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(223, 245, 241, 0.96), rgba(255, 247, 237, 0.92));
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 14px 28px rgba(15, 107, 104, 0.12);
+  border: 1px solid rgba(15, 107, 104, 0.12);
 }
 
 .new-header-icon-inner {
   color: var(--color-brand);
-  font-size: 24px;
+}
+
+.new-heading-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.new-kicker {
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .new-title {
-  font-size: 2rem;
-  font-weight: 800;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 2.45rem;
+  font-weight: 700;
   color: var(--color-ink);
-  letter-spacing: -0.02em;
 }
 
 .new-carousel-wrap {
@@ -295,7 +312,6 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 700;
   color: var(--color-brand);
-  letter-spacing: -0.01em;
 }
 
 /* ⭐ 连续滚动核心 */
@@ -316,9 +332,8 @@ onUnmounted(() => {
   }
   
   .new-header-icon {
-    width: 36px;
-    height: 36px;
-    margin-right: 12px;
+    width: 44px;
+    height: 44px;
   }
   
   .new-header-icon-inner {
@@ -326,7 +341,7 @@ onUnmounted(() => {
   }
   
   .new-title {
-    font-size: 2rem;
+    font-size: 2.05rem;
   }
   
   .new-carousel-wrap {
@@ -359,7 +374,7 @@ onUnmounted(() => {
   }
   
   .new-title {
-    font-size: 1.75rem;
+    font-size: 1.85rem;
   }
   
   .new-carousel-wrap {

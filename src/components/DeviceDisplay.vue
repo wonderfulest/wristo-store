@@ -1,28 +1,30 @@
 <template>
-  <div class="device-display-container" :class="{ mobile: isMobile }">
-    <!-- Has Device -->
-    <div v-if="currentDevice" class="device-info selected-state" @click="handleSelectDevice">
-      <div class="device-avatar">
-        <img v-if="currentDevice.imageUrl" :src="currentDevice.imageUrl" :alt="currentDevice.displayName" />
-        <div v-else class="device-fallback">W</div>
+  <div class="device-display-root">
+    <div class="device-display-container" :class="{ mobile: isMobile }">
+      <!-- Has Device -->
+      <div v-if="currentDevice" class="device-info selected-state" @click="handleSelectDevice">
+        <div class="device-avatar">
+          <img v-if="currentDevice.imageUrl" :src="currentDevice.imageUrl" :alt="currentDevice.displayName" />
+          <div v-else class="device-fallback">W</div>
+        </div>
+        <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ currentDevice.displayName }}</div>
       </div>
-      <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ currentDevice.displayName }}</div>
+      
+      <!-- No Device -->
+      <div v-else class="device-info no-device" @click="handleSelectDevice">
+        <div class="device-avatar">
+          <div class="device-fallback">+</div>
+        </div>
+        <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">Select Device</div>
+      </div>
     </div>
     
-    <!-- No Device -->
-    <div v-else class="device-info no-device" @click="handleSelectDevice">
-      <div class="device-avatar">
-        <div class="device-fallback">+</div>
-      </div>
-      <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">Select Device</div>
-    </div>
+    <!-- Device Selector Modal -->
+    <DeviceSelector 
+      v-model="showSelector" 
+      @device-selected="onDeviceSelected"
+    />
   </div>
-  
-  <!-- Device Selector Modal -->
-  <DeviceSelector 
-    v-model="showSelector" 
-    @device-selected="onDeviceSelected"
-  />
 </template>
 
 <script setup lang="ts">
@@ -117,6 +119,10 @@ defineExpose({
 
 <style scoped>
 /* Desktop Device Display */
+.device-display-root {
+  display: inline-flex;
+}
+
 .device-display-container {
   display: flex;
   align-items: center;

@@ -14,28 +14,25 @@
         </button>
       </div>
 
-      <InfiniteCarousel
-        class="brands-swiper"
-        :items="carouselItems"
-        :size="160"
-        :space="18"
-        :speed="8000"
-        pause-on-hover
-        @click="handleCarouselClick"
-      />
+      <div class="brands-grid" aria-label="Featured brands">
+        <button
+          v-for="merchant in merchants"
+          :key="merchant.userId"
+          class="brand-card"
+          type="button"
+          @click="goToMerchant(Number(merchant.userId))"
+        >
+          <img v-if="merchant.avatar" :src="merchant.avatar" :alt="merchant.username || 'Brand avatar'" class="brand-avatar" loading="lazy" />
+          <span v-else class="brand-fallback">{{ getInitial(merchant.username) }}</span>
+        </button>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import InfiniteCarousel from '@/components/InfiniteCarousel.vue'
-
-type InfiniteCarouselItem = {
-  id: string | number
-  avatar?: string
-}
 
 import { getTopMerchants } from '@/api/merchant'
 import type { PublicMerchantVO } from '@/types/merchant'
@@ -43,21 +40,6 @@ import type { PublicMerchantVO } from '@/types/merchant'
 const router = useRouter()
 
 const merchants = ref<PublicMerchantVO[]>([])
-
-const carouselItems = computed<InfiniteCarouselItem[]>(() =>
-  (merchants.value || []).map((m) => ({
-    id: m.userId,
-    avatar: m.avatar,
-  }))
-)
-
-const merchantById = computed(() => {
-  const map = new Map<string, PublicMerchantVO>()
-  for (const m of merchants.value || []) {
-    map.set(String(m.userId), m)
-  }
-  return map
-})
 
 onMounted(async () => {
   try {
@@ -76,10 +58,8 @@ const goToMerchant = (userId: number) => {
   router.push(`/brands/${userId}`)
 }
 
-const handleCarouselClick = (item: InfiniteCarouselItem) => {
-  const m = merchantById.value.get(String(item.id))
-  if (!m) return
-  goToMerchant(Number(m.userId))
+const getInitial = (name?: string) => {
+  return (name || 'W').trim().charAt(0).toUpperCase()
 }
 </script>
 
@@ -109,10 +89,10 @@ const handleCarouselClick = (item: InfiniteCarouselItem) => {
 }
 
 .brands-title {
-  font-size: 1.6rem;
+  font-family: var(--font-display);
+  font-size: 1.9rem;
   font-weight: 700;
   color: var(--color-ink);
-  letter-spacing: -0.02em;
 }
 
 .brands-subtitle {
@@ -141,16 +121,49 @@ const handleCarouselClick = (item: InfiniteCarouselItem) => {
   background: var(--color-brand-soft);
 }
 
-.brands-swiper {
-  width: 100%;
-  padding: 14px 0 4px;
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    black 10%,
-    black 90%,
-    transparent
-  );
+.brands-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.brand-card {
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.brand-card:hover {
+  border-color: rgba(15, 107, 104, 0.24);
+  background: var(--color-brand-soft);
+  transform: translateY(-2px);
+}
+
+.brand-avatar,
+.brand-fallback {
+  width: 96px;
+  height: 96px;
+  border-radius: 999px;
+}
+
+.brand-avatar {
+  display: block;
+  object-fit: cover;
+}
+
+.brand-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  font-size: 2rem;
+  font-weight: 800;
 }
 
 @media (max-width: 768px) {
@@ -162,14 +175,30 @@ const handleCarouselClick = (item: InfiniteCarouselItem) => {
     font-size: 1.35rem;
   }
 
-  .brands-swiper {
-    padding: 12px 0 4px;
+  .brands-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .brand-card {
+    min-height: 112px;
+    padding: 12px;
+  }
+
+  .brand-avatar,
+  .brand-fallback {
+    width: 72px;
+    height: 72px;
   }
 }
 
 @media (max-width: 480px) {
   .brands-title {
     font-size: 1.75rem;
+  }
+
+  .brands-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 </style>

@@ -139,4 +139,5 @@ export interface SalesQueryDTO {
   startDate?: string
   endDate?: string
   appId?: number
+  topN?: number
 }

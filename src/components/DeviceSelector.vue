@@ -3,6 +3,7 @@
     v-model="visible"
     title="Select Your Device"
     width="min(880px, 95vw)"
+    append-to-body
     :before-close="handleClose"
     class="device-selector-dialog"
   >

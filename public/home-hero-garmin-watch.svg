@@ -1,0 +1,61 @@
+<svg width="960" height="720" viewBox="0 0 960 720" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Garmin smartwatch hero image</title>
+  <desc id="desc">A Garmin-style round smartwatch with a designed digital watch face.</desc>
+  <rect width="960" height="720" rx="44" fill="#F6FBFA"/>
+  <circle cx="728" cy="142" r="118" fill="#DFF5F1"/>
+  <circle cx="158" cy="568" r="146" fill="#FFF2D8"/>
+  <path d="M248 82C348 31 523 35 657 91C791 147 882 260 874 379C866 499 758 626 610 663C462 700 273 647 180 543C87 438 91 282 153 183C176 146 207 103 248 82Z" fill="white"/>
+  <path d="M248 82C348 31 523 35 657 91C791 147 882 260 874 379C866 499 758 626 610 663C462 700 273 647 180 543C87 438 91 282 153 183C176 146 207 103 248 82Z" stroke="#D9E7E4" stroke-width="2"/>
+  <g filter="url(#shadow)">
+    <path d="M423 63H537C551 63 562 74 562 88V175H398V88C398 74 409 63 423 63Z" fill="#151A22"/>
+    <path d="M401 545H559V633C559 647 548 658 534 658H426C412 658 401 647 401 633V545Z" fill="#151A22"/>
+    <rect x="308" y="150" width="344" height="420" rx="172" fill="#151A22"/>
+    <rect x="330" y="172" width="300" height="376" rx="150" fill="#2A3038"/>
+    <circle cx="480" cy="360" r="138" fill="#07110F"/>
+    <circle cx="480" cy="360" r="126" stroke="#122A25" stroke-width="8"/>
+    <circle cx="480" cy="360" r="104" fill="#0F6B68"/>
+    <circle cx="480" cy="360" r="92" fill="#0B1413"/>
+    <path d="M480 278L497 334H555L508 368L526 424L480 389L434 424L452 368L405 334H463L480 278Z" fill="#DFF5F1"/>
+    <path d="M395 465H565" stroke="#DFF5F1" stroke-width="10" stroke-linecap="round"/>
+    <path d="M420 496H540" stroke="#6FE2D5" stroke-width="8" stroke-linecap="round"/>
+    <text x="480" y="236" text-anchor="middle" fill="#F7FCFB" font-family="Inter, Arial, sans-serif" font-size="34" font-weight="800">GARMIN</text>
+    <text x="480" y="537" text-anchor="middle" fill="#A7B7B4" font-family="Inter, Arial, sans-serif" font-size="24" font-weight="700">10:24</text>
+    <rect x="645" y="322" width="20" height="78" rx="10" fill="#151A22"/>
+  </g>
+  <g filter="url(#softShadow)">
+    <rect x="112" y="142" width="178" height="74" rx="37" fill="white"/>
+    <path d="M149 179H180" stroke="#0F6B68" stroke-width="8" stroke-linecap="round"/>
+    <path d="M149 195H224" stroke="#A3BAB5" stroke-width="8" stroke-linecap="round"/>
+    <text x="232" y="180" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800">AMOLED</text>
+    <text x="232" y="200" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">ready</text>
+  </g>
+  <g filter="url(#softShadow)">
+    <rect x="664" y="482" width="188" height="76" rx="38" fill="white"/>
+    <circle cx="704" cy="520" r="18" fill="#DFF5F1"/>
+    <path d="M697 520H711M704 513V527" stroke="#0F6B68" stroke-width="4" stroke-linecap="round"/>
+    <text x="734" y="515" fill="#111827" font-family="Inter, Arial, sans-serif" font-size="17" font-weight="800">Garmin</text>
+    <text x="734" y="536" fill="#667085" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700">Connect IQ style</text>
+  </g>
+  <defs>
+    <filter id="shadow" x="252" y="23" width="456" height="695" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="20"/>
+      <feGaussianBlur stdDeviation="28"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0666667 0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0.24 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1" result="shape"/>
+    </filter>
+    <filter id="softShadow" x="88" y="122" width="788" height="460" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="8"/>
+      <feGaussianBlur stdDeviation="12"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0666667 0 0 0 0 0.0941176 0 0 0 0 0.137255 0 0 0 0.12 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_2"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_2" result="shape"/>
+    </filter>
+  </defs>
+</svg>

@@ -3,9 +3,12 @@
     <div class="series-container">
       <div class="series-header">
         <div class="series-header-icon">
-          <el-icon class="series-header-icon-inner"><Collection /></el-icon>
+          <Icon class="series-header-icon-inner" icon="solar:widget-6-line-duotone" width="25" height="25" aria-hidden="true" />
         </div>
-        <h2 class="series-title">Browse by Series</h2>
+        <div class="series-heading-copy">
+          <span class="series-kicker">Curated collections</span>
+          <h2 class="series-title">Browse by Series</h2>
+        </div>
       </div>
       <div class="series-grid">
         <div 
@@ -28,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { Collection } from '@element-plus/icons-vue';
+import { Icon } from '@iconify/vue';
 import type { Series } from '@/types';
 
 defineProps<{
@@ -58,27 +61,42 @@ defineEmits(['series-click']);
   align-items: center;
   margin-bottom: 40px;
   justify-content: center;
+  gap: 14px;
 }
 
 .series-header-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--color-brand-soft);
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(223, 245, 241, 0.96), rgba(255, 255, 255, 0.9));
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 16px;
+  box-shadow: 0 14px 28px rgba(15, 107, 104, 0.12);
+  border: 1px solid rgba(15, 107, 104, 0.12);
 }
 
 .series-header-icon-inner {
   color: var(--color-brand);
-  font-size: 24px;
+}
+
+.series-heading-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.series-kicker {
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .series-title {
-  font-size: 2rem;
-  font-weight: 800;
+  font-family: var(--font-display);
+  font-size: 2.45rem;
+  font-weight: 700;
   color: var(--color-ink);
   margin: 0;
 }
@@ -192,12 +210,8 @@ defineEmits(['series-click']);
     gap: 12px;
   }
 
-  .series-header-icon {
-    margin-right: 0;
-  }
-
   .series-title {
-    font-size: 1.8rem;
+    font-size: 2.05rem;
     text-align: center;
   }
 
@@ -232,7 +246,7 @@ defineEmits(['series-click']);
   }
 
   .series-title {
-    font-size: 1.6rem;
+    font-size: 1.85rem;
   }
 
   .series-grid {

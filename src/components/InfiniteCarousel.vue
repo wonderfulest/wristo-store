@@ -1,18 +1,16 @@
 <template>
   <Swiper
-    v-if="items.length"
+    v-if="renderedItems.length"
     ref="swiperRef"
     class="infinite-brand-carousel"
     :modules="modules"
-    :loop="items.length > 1"
-    :looped-slides="items.length"
-    :loop-additional-slides="items.length"
+    :loop="false"
     :slides-per-view="'auto'"
     :space-between="space"
     :free-mode="{ enabled: true, momentum: false }"
     :allow-touch-move="false"
     :speed="speed"
-    :autoplay="items.length > 1 ? {
+    :autoplay="renderedItems.length > 1 ? {
       delay: 0,
       disableOnInteraction: false,
       pauseOnMouseEnter: pauseOnHover,
@@ -20,12 +18,12 @@
     } : false"
   >
     <SwiperSlide
-      v-for="item in items"
-      :key="item.id"
+      v-for="item in renderedItems"
+      :key="item.__key"
       class="carousel-slide"
       :style="{ width: `${size}px`, height: `${size}px` }"
     >
-      <button class="carousel-btn" type="button" @click="$emit('click', item)">
+      <button class="carousel-btn" type="button" @click="$emit('click', item.__origin)">
         <img v-if="item.avatar" :src="item.avatar" class="carousel-img" loading="lazy" />
         <div v-else class="carousel-fallback">
           {{ fallbackText }}
@@ -36,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
 import { Autoplay, FreeMode } from 'swiper/modules'
 
@@ -47,7 +45,7 @@ export interface InfiniteCarouselItem {
   avatar?: string
 }
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     items: InfiniteCarouselItem[]
     size?: number
@@ -71,6 +69,22 @@ defineEmits<{
 
 const swiperRef = ref()
 const modules = [Autoplay, FreeMode]
+
+const renderedItems = computed(() => {
+  const source = props.items || []
+  if (source.length <= 1) {
+    return source.map((item) => ({ ...item, __key: `${item.id}-0`, __origin: item }))
+  }
+
+  const repeat = Math.max(1, Math.ceil(8 / source.length))
+  return Array.from({ length: repeat }).flatMap((_, groupIndex) =>
+    source.map((item) => ({
+      ...item,
+      __key: `${item.id}-${groupIndex}`,
+      __origin: item,
+    }))
+  )
+})
 </script>
 
 <style scoped>

@@ -33,7 +33,7 @@ export const getSeries = (): Promise<Series[]> => {
 
 // 获取热门商品
 export const getHotProducts = (): Promise<ProductBaseVO[]> => {
-  return instance.get('/public/products/hot?limit=18')
+  return instance.get('/public/products/hot?limit=24')
 }
 
 // 获取商品详情
