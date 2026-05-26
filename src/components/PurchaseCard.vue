@@ -44,7 +44,15 @@
         <img :src="imageUrl" :alt="title" />
       </div>
       <div v-else-if="type === 'bundle'" class="bundle-images">
-        <div class="bundle-images-scroll" ref="scrollContainer" :class="{ 'mobile-scroll': isMobile }">
+        <div
+          class="bundle-images-scroll"
+          ref="scrollContainer"
+          :class="{ 'mobile-scroll': isMobile }"
+          @mouseenter="pauseAutoScroll"
+          @mouseleave="resumeAutoScroll"
+          @focusin="pauseAutoScroll"
+          @focusout="resumeAutoScroll"
+        >
           <div v-for="item in bundleItems" :key="item.id" class="bundle-image-item">
             <img :src="item.imageUrl" :alt="item.name" />
             <!-- <div class="item-name">{{ item.name }}</div> -->
@@ -199,7 +207,8 @@ const handleBuy = (event: Event) => {
 const scrollContainer = ref<HTMLElement | null>(null)
 let autoScrollInterval: number | null = null
 let scrollDirection = 1 // 1为向右，-1为向左
-let isMobile = false
+const isMobile = ref(false)
+let autoScrollPausedByHover = false
 
 // 检测是否为移动设备
 const detectMobile = () => {
@@ -209,9 +218,13 @@ const detectMobile = () => {
 
 const startAutoScroll = () => {
   if (!scrollContainer.value || props.type !== 'bundle') return
+  if (autoScrollInterval || autoScrollPausedByHover) return
   
   // 移动端禁用自动滚动，避免与手势冲突
-  if (isMobile) return
+  if (isMobile.value) return
+
+  const container = scrollContainer.value
+  if (container.scrollWidth <= container.clientWidth) return
   
   autoScrollInterval = window.setInterval(() => {
     if (scrollContainer.value) {
@@ -247,13 +260,25 @@ const stopAutoScroll = () => {
   }
 }
 
+const pauseAutoScroll = () => {
+  if (props.type !== 'bundle') return
+  autoScrollPausedByHover = true
+  stopAutoScroll()
+}
+
+const resumeAutoScroll = () => {
+  if (props.type !== 'bundle') return
+  autoScrollPausedByHover = false
+  startAutoScroll()
+}
+
 // 移动端触摸事件处理
 const handleTouchStart = () => {
   stopAutoScroll()
 }
 
 const handleTouchEnd = () => {
-  if (!isMobile && props.type === 'bundle') {
+  if (!isMobile.value && props.type === 'bundle') {
     setTimeout(() => {
       startAutoScroll()
     }, 2000) // 2秒后重新开始自动滚动
@@ -261,15 +286,15 @@ const handleTouchEnd = () => {
 }
 
 onMounted(() => {
-  isMobile = detectMobile()
+  isMobile.value = detectMobile()
   
   if (props.type === 'bundle') {
-    if (!isMobile) {
+    if (!isMobile.value) {
       startAutoScroll()
     }
     
     // 为移动端添加触摸事件监听
-    if (scrollContainer.value && isMobile) {
+    if (scrollContainer.value && isMobile.value) {
       scrollContainer.value.addEventListener('touchstart', handleTouchStart, { passive: true })
       scrollContainer.value.addEventListener('touchend', handleTouchEnd, { passive: true })
     }
@@ -280,7 +305,7 @@ onUnmounted(() => {
   stopAutoScroll()
   
   // 清理事件监听器
-  if (scrollContainer.value && isMobile) {
+  if (scrollContainer.value && isMobile.value) {
     scrollContainer.value.removeEventListener('touchstart', handleTouchStart)
     scrollContainer.value.removeEventListener('touchend', handleTouchEnd)
   }
@@ -599,9 +624,12 @@ onUnmounted(() => {
 
 .bundle-images-scroll {
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 12px;
+  align-items: center;
+  gap: 0;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  min-height: 176px;
+  padding: 0;
   border-radius: 16px;
   background: rgba(248, 250, 252, 0.78);
   border: 1px solid rgba(15, 23, 42, 0.07);
@@ -640,12 +668,18 @@ onUnmounted(() => {
   flex-shrink: 0;
   text-align: center;
   cursor: pointer;
-  transition: transform 180ms ease;
+  transition: min-width 220ms ease, transform 220ms ease;
   min-width: 82px;
+  position: relative;
+  z-index: 0;
+  display: flex;
+  justify-content: center;
 }
 
 .bundle-image-item:hover {
-  transform: scale(1.05);
+  min-width: 164px;
+  transform: translateY(-3px);
+  z-index: 2;
 }
 
 .bundle-image-item img {
@@ -657,7 +691,18 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(15, 23, 42, 0.10);
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.12);
-  margin-bottom: 8px;
+  margin: 0;
+  transition: width 220ms ease, height 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  transform-origin: center;
+}
+
+.bundle-image-item:hover img {
+  width: 164px;
+  height: 164px;
+  border-color: rgba(212, 175, 55, 0.46);
+  box-shadow:
+    0 18px 36px rgba(15, 23, 42, 0.20),
+    0 0 0 4px rgba(212, 175, 55, 0.12);
 }
 
 .bundle-image-item .item-name {
@@ -858,6 +903,19 @@ onUnmounted(() => {
     width: 90px;
     height: 90px;
   }
+
+  .bundle-image-item {
+    min-width: 90px;
+  }
+
+  .bundle-image-item:hover {
+    min-width: 180px;
+  }
+
+  .bundle-image-item:hover img {
+    width: 180px;
+    height: 180px;
+  }
   
   .card-info {
     margin-bottom: 24px;
@@ -923,6 +981,23 @@ onUnmounted(() => {
     height: 80px;
     border-radius: 12px;
   }
+
+  .bundle-image-item {
+    min-width: 80px;
+  }
+
+  .bundle-images-scroll {
+    min-height: 172px;
+  }
+
+  .bundle-image-item:hover {
+    min-width: 160px;
+  }
+
+  .bundle-image-item:hover img {
+    width: 160px;
+    height: 160px;
+  }
   
   .card-info {
     margin-bottom: 24px;
@@ -970,6 +1045,23 @@ onUnmounted(() => {
   .bundle-image-item img {
     width: 70px;
     height: 70px;
+  }
+
+  .bundle-image-item {
+    min-width: 70px;
+  }
+
+  .bundle-images-scroll {
+    min-height: 150px;
+  }
+
+  .bundle-image-item:hover {
+    min-width: 140px;
+  }
+
+  .bundle-image-item:hover img {
+    width: 140px;
+    height: 140px;
   }
   
   .buy-btn {
@@ -1043,7 +1135,7 @@ onUnmounted(() => {
   }
   
   .bundle-image-item:hover {
-    transform: none; /* 移动端禁用hover效果 */
+    transform: translateY(-2px);
   }
 }
 

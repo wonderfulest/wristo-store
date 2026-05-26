@@ -1,0 +1,36 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "WRISTO" [ref=e7] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e8]:
+        - link "Home" [ref=e9] [cursor=pointer]:
+          - /url: /
+        - button "Categories" [ref=e11] [cursor=pointer]:
+          - text: Categories
+          - img [ref=e13]
+        - link "Code" [ref=e15] [cursor=pointer]:
+          - /url: /code
+        - link "Blog" [ref=e16] [cursor=pointer]:
+          - /url: /blog
+      - generic [ref=e19] [cursor=pointer]:
+        - generic [ref=e21]: +
+        - generic [ref=e22]: Select Device
+      - button "Sign In" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]: Sign In
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - heading "Choose Your Watch Face Access" [level=2] [ref=e29]
+      - paragraph [ref=e30]: Unlock every included watch face once, keep lifetime access, and skip repeated single purchases.
+  - contentinfo [ref=e31] [cursor=pointer]:
+    - generic [ref=e32]:
+      - text: © 2025 WuKong OÜ |
+      - link "Terms of Use" [ref=e33]:
+        - /url: /terms-and-conditions
+      - text: "|"
+      - link "Privacy Policy" [ref=e34]:
+        - /url: /privacy-policy
+      - text: "|"
+      - link "Contact" [ref=e35]:
+        - /url: /contact
+      - text: "|"

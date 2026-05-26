@@ -1,0 +1,166 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "WRISTO" [ref=e7] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e8]:
+        - link "Home" [ref=e9] [cursor=pointer]:
+          - /url: /
+        - button "Categories" [ref=e11] [cursor=pointer]:
+          - text: Categories
+          - img [ref=e13]
+        - link "Code" [ref=e15] [cursor=pointer]:
+          - /url: /code
+        - link "Blog" [ref=e16] [cursor=pointer]:
+          - /url: /blog
+      - generic [ref=e19] [cursor=pointer]:
+        - generic [ref=e21]: +
+        - generic [ref=e22]: Select Device
+      - button "Sign In" [ref=e25] [cursor=pointer]:
+        - generic [ref=e26]: Sign In
+  - main [ref=e27]:
+    - generic [ref=e28]:
+      - heading "Choose Your Watch Face Access" [level=2] [ref=e29]
+      - paragraph [ref=e30]: Unlock every included watch face once, keep lifetime access, and skip repeated single purchases.
+      - button [ref=e37] [cursor=pointer]:
+        - generic [ref=e38]: 99% Off
+        - generic [ref=e39]: Lifetime License
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - generic [ref=e42]: Best value bundle
+            - heading "Wristo Premium" [level=3] [ref=e43]
+          - generic [ref=e46]:
+            - generic: $8314.67
+            - generic [ref=e47]: $9.90
+        - generic [ref=e48]:
+          - generic [ref=e49]: Lifetime bundle access
+          - generic [ref=e50]: 3,000+ apps included
+        - generic [ref=e52]:
+          - generic [ref=e53]:
+            - img "Mountain Night" [ref=e55]
+            - img "Peekaboo Cat" [ref=e57]
+            - img "Cosmic Horizon" [ref=e59]
+            - img "Bloom Frame" [ref=e61]
+            - img "Stellar Whirl" [ref=e63]
+            - img "Snowman Cheer" [ref=e65]
+            - img "Snowy Smiles" [ref=e67]
+            - img "SimpleE01" [ref=e69]
+            - img "Mystic Mane" [ref=e71]
+            - img "Mountain Cosmos" [ref=e73]
+            - img "Tulip Sky" [ref=e75]
+            - img "Sunny Otter" [ref=e77]
+            - img "Vivid Ridges" [ref=e79]
+            - img "Minimalist Seven" [ref=e81]
+            - img "Monochrome Mountain" [ref=e83]
+            - img "Lilac Flowers" [ref=e85]
+            - img "Christmas green" [ref=e87]
+            - img "Mistletoe Bloom" [ref=e89]
+            - img "Snoopy Rock" [ref=e91]
+            - img "Gothic Bloom" [ref=e93]
+            - img "Groovy Puss" [ref=e95]
+            - img "Neon Network" [ref=e97]
+            - img "Too Simple" [ref=e99]
+            - img "Winter Haze" [ref=e101]
+            - img "Golden Flight" [ref=e103]
+            - img "DogLove" [ref=e105]
+            - img "Simple Watch04" [ref=e107]
+            - img "Lunar Ripple" [ref=e109]
+            - img "Pink Horizon" [ref=e111]
+            - img "Starry Sunflowers" [ref=e113]
+            - img "Midnight Ornament" [ref=e115]
+            - img "Grinch Christmas" [ref=e117]
+            - img "Cyber Rays" [ref=e119]
+            - img "Nature Bird" [ref=e121]
+            - img "Black Kitten" [ref=e123]
+            - img "Neon Geometry" [ref=e125]
+            - img "Christmas Fourteenth" [ref=e127]
+            - img "Poppy" [ref=e129]
+            - img "Mountain Glow" [ref=e131]
+            - img "Ornate Design" [ref=e133]
+            - img "Tiny Rabbit" [ref=e135]
+            - img "Starry Planet" [ref=e137]
+            - img "Silent Grace" [ref=e139]
+            - img "ERP014" [ref=e141]
+            - img "Red Christmas" [ref=e143]
+            - img "Line Two" [ref=e145]
+            - img "African Art" [ref=e147]
+            - img "Wild Guardian" [ref=e149]
+            - img "Frosted Texture" [ref=e151]
+            - img "Glow Ring" [ref=e153]
+            - img "ERP007" [ref=e155]
+            - img "Snowy Summit" [ref=e157]
+            - img "ERP001" [ref=e159]
+            - img "Snowy Gift" [ref=e161]
+            - img "Christmas Antlers" [ref=e163]
+            - img "Mountain Glow" [ref=e165]
+            - img "Christmas Journey" [ref=e167]
+            - img "Christmas Tree" [ref=e169]
+            - img "Golden Drops" [ref=e171]
+            - img "Blossom Branches" [ref=e173]
+            - img "Yellow Flowers" [ref=e175]
+            - img "Funny Owl" [ref=e177]
+            - img "Starry Wish" [ref=e179]
+            - img "Smart Butterfly" [ref=e181]
+            - img "Green Train" [ref=e183]
+            - img "Shy Feline" [ref=e185]
+            - img "Simple Watch03" [ref=e187]
+            - img "Nature Badge" [ref=e189]
+            - img "Love Symbols" [ref=e191]
+            - img "Christmas Two" [ref=e193]
+            - img "Panda Fun" [ref=e195]
+            - img "Rainy Paws" [ref=e197]
+            - img "Dusk Peak Hour" [ref=e199]
+            - img "Stained Glass" [ref=e201]
+            - img "Floating Flowers" [ref=e203]
+            - img "Dark Blossoms" [ref=e205]
+            - img "Hue Circle" [ref=e207]
+            - img "Leaf Circle" [ref=e209]
+            - img "Cool Skeleton" [ref=e211]
+            - img "Minimalist Two" [ref=e213]
+            - img "Pink Duck" [ref=e215]
+            - img "Christmas Sparkle" [ref=e217]
+            - img "Silent Prayer" [ref=e219]
+            - img "Aurora Cabin" [ref=e221]
+            - img "Peak Explorer" [ref=e223]
+            - img "Golden Orb" [ref=e225]
+            - img "Naughty Cat" [ref=e227]
+            - img "Blue Domes" [ref=e229]
+            - img "Global Timepiece" [ref=e231]
+            - img "Green Line" [ref=e233]
+            - img "Violet Sky" [ref=e235]
+            - img "Flower Wreath" [ref=e237]
+            - img "Panda Night" [ref=e239]
+            - img "Anime Peek" [ref=e241]
+            - img "Dawn Ridge" [ref=e243]
+            - img "Free" [ref=e245]
+            - img "Fat Tiger" [ref=e247]
+            - img "Peak Cycle" [ref=e249]
+            - img "Curious Kitten" [ref=e251]
+            - img "Line Eight" [ref=e253]
+          - generic [ref=e254]: Scroll to view included products
+        - generic [ref=e255]:
+          - generic [ref=e256]:
+            - paragraph [ref=e257]: Why Go Premium?
+            - paragraph [ref=e258]: Wristo Premium Access – One membership. Every brand. No limits.
+            - paragraph [ref=e259]: 2,000+ Premium Watch Faces – Daily, sport, fashion, minimal, and seasonal collections, all included.
+            - paragraph [ref=e260]: Lifetime Updates – All future releases are unlocked automatically, forever.
+            - paragraph [ref=e261]: Early Access Privileges – Try new designs before anyone else.
+            - paragraph [ref=e262]: Curated, Not Random – Only refined, designer-quality watch faces.
+            - paragraph [ref=e263]: Best Value, One-Time Upgrade – Premium access once, enjoy forever.
+            - paragraph [ref=e264]: Upgrade to Premium and elevate your wrist experience.
+          - generic [ref=e265]:
+            - text: Unlock 3,000+ apps
+            - generic [ref=e266]: (Value $8314.67)
+        - button "Buy Bundle for $9.90" [ref=e267]
+  - contentinfo [ref=e31] [cursor=pointer]:
+    - generic [ref=e32]:
+      - text: © 2025 WuKong OÜ |
+      - link "Terms of Use" [ref=e33]:
+        - /url: /terms-and-conditions
+      - text: "|"
+      - link "Privacy Policy" [ref=e34]:
+        - /url: /privacy-policy
+      - text: "|"
+      - link "Contact" [ref=e35]:
+        - /url: /contact
+      - text: "|"
