@@ -2,19 +2,19 @@
   <section class="feature-section">
     <div class="feature-panel">
       <div class="feature-copy">
-        <div class="feature-badge">ELEVATE YOUR GARMIN EXPERIENCE</div>
-        <h2 class="feature-title">Transform Your Watch Into A Masterpiece</h2>
+        <div class="feature-badge">{{ t('home.featureBadge') }}</div>
+        <h2 class="feature-title">{{ t('home.featureTitle') }}</h2>
         <p class="feature-desc">
-          Premium Garmin watch faces with sharp aesthetics, practical data layouts, and battery-conscious performance.
+          {{ t('home.featureDesc') }}
         </p>
 
         <div class="feature-actions">
-          <button class="feature-cta" @click="goToPurchaseOptions">Download & Unlock</button>
-          <span class="feature-note">One unlock, curated premium designs</span>
+          <button class="feature-cta" @click="goToPurchaseOptions">{{ t('home.featureCta') }}</button>
+          <span class="feature-note">{{ t('home.featureNote') }}</span>
         </div>
       </div>
 
-      <div class="feature-showcase" aria-label="Watch face benefits">
+      <div class="feature-showcase" :aria-label="t('home.featureAria')">
         <div class="watch-orbit" aria-hidden="true">
           <div class="watch-body">
             <div class="watch-screen">
@@ -34,8 +34,8 @@
               <Icon icon="solar:stars-line-duotone" width="24" height="24" aria-hidden="true" />
             </div>
             <div>
-              <div class="feature-card-title">Gallery-Level Style</div>
-              <div class="feature-card-desc">Original visual systems made to feel intentional on the wrist.</div>
+              <div class="feature-card-title">{{ t('home.featureStyleTitle') }}</div>
+              <div class="feature-card-desc">{{ t('home.featureStyleDesc') }}</div>
             </div>
           </div>
 
@@ -44,8 +44,8 @@
               <Icon icon="solar:pulse-2-line-duotone" width="24" height="24" aria-hidden="true" />
             </div>
             <div>
-              <div class="feature-card-title">Readable Health Data</div>
-              <div class="feature-card-desc">Vitals, activity, and time stay clear at a glance.</div>
+              <div class="feature-card-title">{{ t('home.featureDataTitle') }}</div>
+              <div class="feature-card-desc">{{ t('home.featureDataDesc') }}</div>
             </div>
           </div>
 
@@ -54,8 +54,8 @@
               <Icon icon="solar:battery-charge-minimalistic-line-duotone" width="24" height="24" aria-hidden="true" />
             </div>
             <div>
-              <div class="feature-card-title">Battery Balanced</div>
-              <div class="feature-card-desc">Optimized faces designed for everyday wear.</div>
+              <div class="feature-card-title">{{ t('home.featureBatteryTitle') }}</div>
+              <div class="feature-card-desc">{{ t('home.featureBatteryDesc') }}</div>
             </div>
           </div>
         </div>
@@ -67,11 +67,15 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
 
 const goToPurchaseOptions = () => {
-  router.push({ name: 'PurchaseOptions' })
+  router.push(addLocaleToPath('/purchase-options', localeStore.currentLocale))
 }
 </script>
 

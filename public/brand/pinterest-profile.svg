@@ -1,0 +1,11 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wristo Pinterest profile image</title>
+  <desc id="desc">Pinterest-ready Wristo profile image.</desc>
+  <rect width="1080" height="1080" fill="#071F1E"/>
+  <circle cx="540" cy="540" r="430" fill="#0F6B68"/>
+  <circle cx="540" cy="540" r="306" fill="#FBFDFC"/>
+  <path d="M355 540C422.4 383.2 626.7 337.3 766.7 480.3" stroke="#111827" stroke-width="68" stroke-linecap="round"/>
+  <path d="M732.8 589.6C671.8 758.6 462.9 802.6 322.5 656.5" stroke="#111827" stroke-width="68" stroke-linecap="round"/>
+  <path d="M540 351V733" stroke="#F59E0B" stroke-width="56" stroke-linecap="round"/>
+  <circle cx="540" cy="540" r="50" fill="#111827"/>
+</svg>

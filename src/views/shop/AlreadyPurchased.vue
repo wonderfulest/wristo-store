@@ -74,6 +74,7 @@
         <div class="message-text">{{ successMessage }}</div>
       </div>
     </div>
+    <SmartwatchCodeHelpModal v-model="showCodeHelpModal" />
   </div>
 </template>
 
@@ -82,6 +83,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { activatePurchase } from '@/api/pay'
 import { ElMessage } from 'element-plus'
+import SmartwatchCodeHelpModal from '@/components/SmartwatchCodeHelpModal.vue'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 import { ArrowRight, CircleCheckFilled, QuartzWatch, WarningFilled } from '@element-plus/icons-vue'
@@ -94,6 +96,7 @@ const loading = ref(false)
 const error = ref('')
 const success = ref(false)
 const successMessage = ref('')
+const showCodeHelpModal = ref(false)
 
 const isFormValid = computed(() => {
   return email.value.trim() && activationCode.value.length === 6
@@ -171,11 +174,7 @@ async function handleActivation() {
 }
 
 function handleResendCode() {
-  // Show help information about smartwatch codes
-  ElMessage.info({
-    message: 'After installing the clock face or app, there will be a short trial period. Once the trial ends, a 6-digit code will appear on your smartwatch screen for activation. If no code appears, it means the watch face has been automatically unlocked—feel free to continue using it.',
-    duration: 8000
-  })
+  showCodeHelpModal.value = true
 }
 </script>
 

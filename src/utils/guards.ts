@@ -1,4 +1,5 @@
 import type { RouteLocationNormalized, NavigationGuardNext } from 'vue-router';
+import { applySeo, getRouteSeo } from '@/seo';
 
 interface RouteMeta {
   title?: string;
@@ -7,31 +8,12 @@ interface RouteMeta {
 }
 
 export function setupPageTitle(route: RouteLocationNormalized) {
-  // Set page title from route meta or use default
   const meta = route.meta as RouteMeta;
-  const title = meta.title || 'Wristo Store';
-  document.title = title;
-  
-  // Update meta description if provided
-  if (meta.description) {
-    let descriptionTag = document.querySelector('meta[name="description"]');
-    if (!descriptionTag) {
-      descriptionTag = document.createElement('meta');
-      descriptionTag.setAttribute('name', 'description');
-      document.head.appendChild(descriptionTag);
-    }
-    descriptionTag.setAttribute('content', meta.description);
-  }
-  
-  // Add canonical URL
-  const canonicalUrl = `${window.location.origin}${route.path}`;
-  let linkTag = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
-  if (!linkTag) {
-    linkTag = document.createElement('link');
-    linkTag.rel = 'canonical';
-    document.head.appendChild(linkTag);
-  }
-  linkTag.href = canonicalUrl;
+  applySeo({
+    ...getRouteSeo(route),
+    title: meta.title || getRouteSeo(route).title,
+    description: meta.description || getRouteSeo(route).description,
+  });
 }
 
 export function createPageGuard() {

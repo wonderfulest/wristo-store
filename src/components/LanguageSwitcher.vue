@@ -1,101 +1,156 @@
 <template>
-  <div class="lang-switcher" role="navigation" aria-label="Language Switcher">
-    <span class="label">Language</span>
-    <div class="buttons">
+  <div class="lang-switcher" role="navigation" :aria-label="t('language.selector')">
+    <button class="current" type="button" :aria-expanded="isOpen" @click="isOpen = !isOpen">
+      <Icon icon="solar:global-line-duotone" width="18" height="18" aria-hidden="true" />
+      <span>{{ currentLocale.toUpperCase() }}</span>
+      <el-icon :class="{ rotated: isOpen }"><arrow-down /></el-icon>
+    </button>
+    <div class="buttons" :class="{ open: isOpen }">
       <button
-        v-for="t in normalized"
-        :key="t.lang"
-        class="pill"
-        :class="{ active: t.lang === currentLang }"
+        v-for="locale in supportedLocales"
+        :key="locale"
+        class="option"
+        :class="{ active: locale === currentLocale }"
         type="button"
-        @click="switchLanguage(t.lang)"
+        @click="switchLanguage(locale)"
       >
-        {{ t.lang.toUpperCase() }}
+        {{ locale.toUpperCase() }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { BlogPostTranslationVO } from '@/types'
-
-const props = defineProps<{ translations: BlogPostTranslationVO[] }>()
-const emit = defineEmits<{ (e: 'switch', lang: string): void }>()
+import { ArrowDown } from '@element-plus/icons-vue'
+import { Icon } from '@iconify/vue'
+import { getFaqGuidePathForLocale } from '@/content/faq-guides'
+import { useI18n } from '@/i18n'
+import { addLocaleToPath, normalizeLocale, SUPPORTED_LOCALES, useLocaleStore } from '@/store/locale'
 
 const route = useRoute()
 const router = useRouter()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
+const isOpen = ref(false)
+const supportedLocales = SUPPORTED_LOCALES
 
-const currentLang = computed(() => {
+const currentLocale = computed(() => {
   const p = route.params.lang
   const fromParam = Array.isArray(p) ? p[0] : (typeof p === 'string' ? p : undefined)
   const q = route.query.lang
   const fromQuery = Array.isArray(q) ? (q[0] ?? undefined) : (typeof q === 'string' && q ? q : undefined)
-  return fromParam || fromQuery
+  return normalizeLocale(fromParam || fromQuery || localeStore.currentLocale)
 })
 
-const normalized = computed(() => props.translations || [])
-
-function buildUrl(t: BlogPostTranslationVO): string {
-  if (t.url) return t.url
-  return `/${encodeURIComponent(t.lang)}/blog/${encodeURIComponent(t.slug)}`
-}
-
 function switchLanguage(targetLang: string) {
-  // notify parent about target language so it can refresh local state/TOC immediately
-  emit('switch', targetLang)
-  const match = normalized.value.find(t => t.lang === targetLang)
-  if (match) {
-    const url = buildUrl(match)
-    router.push(url)
-  } else {
-    router.push(`/${targetLang}/blog`)
+  localeStore.setLocale(targetLang)
+  isOpen.value = false
+
+  if (['FAQGuides', 'FAQGuidesLang', 'FAQGuide', 'FAQGuideLang'].includes(String(route.name || ''))) {
+    const nextPath = getFaqGuidePathForLocale(route.path, targetLang)
+    if (nextPath !== route.path) {
+      router.push({ path: nextPath, query: route.query, hash: route.hash })
+    }
+    return
+  }
+
+  const nextPath = addLocaleToPath(route.path, normalizeLocale(targetLang))
+  if (nextPath !== route.path) {
+    router.push({ path: nextPath, query: route.query, hash: route.hash })
   }
 }
 </script>
 
 <style scoped>
 .lang-switcher {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  margin: 6px 24px 0 24px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: linear-gradient(180deg, #ffffff, #f8fafc);
-}
-.label {
-  font-size: 0.9rem;
-  color: #64748b;
-  font-weight: 600;
+  justify-content: center;
 }
 .buttons {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  display: none;
+  min-width: 132px;
+  padding: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.buttons.open {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 4px;
 }
-.pill {
+.current,
+.option {
   appearance: none;
-  border: 1px solid #e5e7eb;
-  background: #ffffffcc;
+  border: 1px solid transparent;
   color: #334155;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 600;
+  background: transparent;
+  font-weight: 750;
+  cursor: pointer;
   transition: all .2s ease;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
-.pill:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-.pill.active {
-  color: #fff;
-  border-color: #3b82f6;
-  background: linear-gradient(180deg, #60a5fa, #3b82f6);
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+.current {
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.current:hover,
+.current:focus-visible {
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  outline: none;
+}
+.current .el-icon {
+  transition: transform .2s ease;
+}
+.current .el-icon.rotated {
+  transform: rotate(180deg);
+}
+.option {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 10px;
+  border-radius: 8px;
+  text-align: left;
+}
+.option:hover,
+.option.active {
+  color: var(--color-brand-strong);
+  background: rgba(15, 107, 104, 0.08);
 }
 @media (max-width: 640px) {
-  .lang-switcher { margin: 6px 16px 0 16px; padding: 8px 10px; }
-  .label { display: none; }
+  .lang-switcher {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .current {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(15, 23, 42, 0.06);
+  }
+  .buttons {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
+    box-shadow: none;
+    background: rgba(238, 245, 243, 0.82);
+  }
 }
 </style>

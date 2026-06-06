@@ -10,16 +10,16 @@
   >
     <!-- 折扣和Lifetime License标签 -->
     <div v-if="cappedDiscount > 0" class="discount-badge">
-      {{ cappedDiscount }}% Off
+      {{ cappedDiscount }}% {{ t('purchaseCard.off') }}
     </div>
     
     <div class="lifetime-badge">
-      Lifetime License
+      {{ t('purchaseCard.lifetimeLicense') }}
     </div>
     <!-- 名字和价格 -->
     <div class="card-header">
       <div class="title-group">
-        <span class="card-kicker">{{ type === 'bundle' ? 'Best value bundle' : 'Single item' }}</span>
+        <span class="card-kicker">{{ type === 'bundle' ? t('purchaseCard.bestValueBundle') : t('purchaseCard.singleItem') }}</span>
         <h3 class="card-title">{{ displayTitle }}</h3>
       </div>
       <div class="price-info">
@@ -35,8 +35,8 @@
       </div>
     </div>  
     <div class="value-strip">
-      <span>{{ type === 'bundle' ? 'Lifetime bundle access' : 'Lifetime single access' }}</span>
-      <span>{{ type === 'bundle' && appCount ? `${formatCountPlus(appCount)} apps included` : 'One-time payment' }}</span>
+      <span>{{ type === 'bundle' ? t('purchaseCard.lifetimeBundleAccess') : t('purchaseCard.lifetimeSingleAccess') }}</span>
+      <span>{{ type === 'bundle' && appCount ? `${formatCountPlus(appCount)} ${t('purchaseCard.appsIncluded')}` : t('purchaseCard.oneTimePayment') }}</span>
     </div>
     <!-- 图片 -->
     <div class="card-image">
@@ -59,10 +59,10 @@
           </div>
         </div>
         <div class="scroll-indicator" v-if="!isMobile">
-          <span class="scroll-text">Scroll to view included products</span>
+          <span class="scroll-text">{{ t('purchaseCard.scrollToView') }}</span>
         </div>
         <div class="scroll-indicator" v-else>
-          <span class="scroll-text">Swipe to view included products</span>
+          <span class="scroll-text">{{ t('purchaseCard.swipeToView') }}</span>
         </div>
       </div>
     </div>
@@ -80,10 +80,10 @@
       </div>
       <div v-if="type === 'bundle' && appCount" class="product-count">
         <span class="product-count-main">
-          Unlock {{ formatCountPlus(appCount) }} apps
+          {{ t('purchaseCard.unlock') }} {{ formatCountPlus(appCount) }} {{ t('purchaseCard.apps') }}
         </span>
         <span class="product-count-sub">
-          (Value <span class="product-count-original">{{ currencySymbol }}{{ appTotalPrice?.toFixed(2) }}</span>)
+          ({{ t('purchaseCard.value') }} <span class="product-count-original">{{ currencySymbol }}{{ appTotalPrice?.toFixed(2) }}</span>)
         </span>
       </div>
     </div>
@@ -102,6 +102,9 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '@/i18n'
+
+const { t } = useI18n()
 
 const getCurrencySymbol = (code?: string) => {
   const normalized = String(code || 'USD').toUpperCase()

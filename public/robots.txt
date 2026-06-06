@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /checkout
+Disallow: /checkout-subscription
+Disallow: /payment/
+Disallow: /subscription-management
+Disallow: /subscription-cancel
+Disallow: /already-purchased
+Disallow: /purchases-history
+Disallow: /user/
+Disallow: /email/
+Disallow: /preferences
+Disallow: /unsubscribe
+Disallow: /code
+Disallow: /unlock
+
+Sitemap: https://wristo.io/sitemap.xml

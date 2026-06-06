@@ -29,9 +29,9 @@
       <div v-else-if="filteredDevices.length > 0" class="device-list">
         <div
           v-for="device in filteredDevices"
-          :key="device.id"
+          :key="device.displayKey"
           class="device-item"
-          :class="{ selected: selectedDeviceId === device.id }"
+          :class="{ selected: selectedDeviceKey === device.displayKey }"
           @click="selectDevice(device)"
         >
           <div class="device-avatar">
@@ -43,7 +43,7 @@
             <div v-if="device.deviceFamily" class="device-family">{{ device.deviceFamily }}</div>
           </div>
           <div class="device-check">
-            <el-icon v-if="selectedDeviceId === device.id" class="check-icon"><Check /></el-icon>
+            <el-icon v-if="selectedDeviceKey === device.displayKey" class="check-icon"><Check /></el-icon>
           </div>
         </div>
       </div>
@@ -88,16 +88,26 @@ const visible = ref(false)
 const loading = ref(false)
 const confirmLoading = ref(false)
 const deviceList = ref<GarminDeviceBaseVO[]>([])
-const selectedDeviceId = ref<number | null>(null)
+const selectedDevice = ref<DisplayGarminDeviceBaseVO | null>(null)
+const selectedDeviceKey = computed(() => selectedDevice.value?.displayKey || null)
 const query = ref('')
 const countdown = ref<number | null>(null)
 let countdownTimer: number | null = null
 
+interface DisplayGarminDeviceBaseVO extends GarminDeviceBaseVO {
+  displayKey: string
+  originalDisplayName: string
+}
+
+const displayDevices = computed(() => {
+  return deviceList.value.flatMap(expandDeviceDisplayNames)
+})
+
 // Filtered list by fuzzy query
 const filteredDevices = computed(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return deviceList.value
-  return deviceList.value.filter(d => {
+  if (!q) return displayDevices.value
+  return displayDevices.value.filter(d => {
     const name = (d.displayName || '').toLowerCase()
     const family = (d.deviceFamily || '').toLowerCase()
     // simple fuzzy: all query chars appear in order in name, or substring match on name/family
@@ -126,7 +136,7 @@ watch(visible, (newValue) => {
   emit('update:modelValue', newValue)
   if (!newValue) {
     // Reset state when dialog closes
-    selectedDeviceId.value = null
+    selectedDevice.value = null
     stopCountdown()
     countdown.value = null
   }
@@ -147,29 +157,34 @@ const loadDeviceList = async () => {
 }
 
 // Select device
-const selectDevice = (device: GarminDeviceBaseVO) => {
-  selectedDeviceId.value = device.id
+const selectDevice = (device: DisplayGarminDeviceBaseVO) => {
+  selectedDevice.value = device
   startCountdown()
 }
 
 // Confirm selection
 const confirmSelection = async () => {
-  if (!selectedDeviceId.value) return
+  if (!selectedDevice.value) return
   
   confirmLoading.value = true
   try {
+    const selected = selectedDevice.value
     // Get device details
-    const deviceDetail = await getDeviceDetail(selectedDeviceId.value)
+    const deviceDetail = await getDeviceDetail(selected.id)
+    const displayDeviceDetail = {
+      ...deviceDetail,
+      displayName: selected.displayName
+    }
     
     // Save to localStorage
-    localStorage.setItem('selectedDevice', JSON.stringify(deviceDetail))
+    localStorage.setItem('selectedDevice', JSON.stringify(displayDeviceDetail))
 
-    console.log('Device selected:', deviceDetail)
+    console.log('Device selected:', displayDeviceDetail)
     // If user is logged in, bind device on server side
-    if (userStore.userInfo && deviceDetail?.deviceId) {
-      console.log('Binding device for current user:', deviceDetail.deviceId)
+    if (userStore.userInfo && displayDeviceDetail?.deviceId) {
+      console.log('Binding device for current user:', displayDeviceDetail.deviceId)
       try {
-        await bindDevice({ deviceId: String(deviceDetail.deviceId) })
+        await bindDevice({ deviceId: String(displayDeviceDetail.deviceId) })
         // After binding, refresh local user info so watchModel / deviceId stays in sync
         await userStore.getUserInfo()
       } catch (e) {
@@ -180,7 +195,7 @@ const confirmSelection = async () => {
     }
     
     // Emit selection event
-    emit('device-selected', deviceDetail)
+    emit('device-selected', displayDeviceDetail)
     
     // Close dialog
     handleClose()
@@ -224,6 +239,37 @@ function stopCountdown() {
     clearInterval(countdownTimer)
     countdownTimer = null
   }
+}
+
+function expandDeviceDisplayNames(device: GarminDeviceBaseVO): DisplayGarminDeviceBaseVO[] {
+  const displayNames = splitDeviceDisplayName(device.displayName)
+  return displayNames.map((displayName, index) => ({
+    ...device,
+    displayName,
+    originalDisplayName: device.displayName,
+    displayKey: `${device.id}:${index}:${displayName}`
+  }))
+}
+
+function splitDeviceDisplayName(displayName: string): string[] {
+  const parts = displayName.split('/').map(part => part.trim()).filter(Boolean)
+  if (parts.length <= 1) return [displayName]
+
+  const prefix = inferDeviceDisplayPrefix(parts[0])
+  return parts.map((part, index) => {
+    if (index === 0 || !prefix || part.startsWith(prefix)) return part
+    return `${prefix} ${part}`
+  })
+}
+
+function inferDeviceDisplayPrefix(firstPart: string): string {
+  const closingParenIndex = firstPart.lastIndexOf(')')
+  if (closingParenIndex >= 0 && closingParenIndex < firstPart.length - 1) {
+    return firstPart.slice(0, closingParenIndex + 1).trim()
+  }
+
+  const familyMatch = firstPart.match(/^(MARQ|Forerunner|fēnix|fenix|epix|Venu|vívoactive|vivoactive|Instinct|Approach|Descent|Enduro|tactix|quatix|D2)\b/i)
+  return familyMatch?.[0] || ''
 }
 
 onBeforeUnmount(() => {
@@ -382,18 +428,17 @@ onBeforeUnmount(() => {
   color: #1f2937;
   font-weight: 600;
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .device-family {
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 400;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .device-check {

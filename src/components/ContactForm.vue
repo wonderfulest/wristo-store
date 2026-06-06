@@ -1,48 +1,48 @@
 <template>
   <div class="contact-form-container">
     <div class="contact-header">
-      <h2>Still need help?</h2>
-      <p>Please contact us via the following methods:</p>
+      <h2>{{ t('contact.formTitle') }}</h2>
+      <p>{{ t('contact.formSubtitle') }}</p>
     </div>
     <div class="contact-methods">
       <div class="contact-method">
         <div class="method-icon">📧</div>
         <div class="method-content">
-          <span class="method-label">Email</span>
+          <span class="method-label">{{ t('contact.methodEmail') }}</span>
           <a href="mailto:support@wristo.io" class="method-link">support@wristo.io</a>
         </div>
       </div>
       <div class="contact-method">
         <div class="method-icon">💬</div>
         <div class="method-content">
-          <span class="method-label">Message</span>
-          <span class="method-desc">Leave a message below, we will reply as soon as possible.</span>
+          <span class="method-label">{{ t('contact.methodMessage') }}</span>
+          <span class="method-desc">{{ t('contact.methodMessageDesc') }}</span>
         </div>
       </div>
     </div>
     <div class="contact-form">
       <div v-if="!userEmail" class="email-input-group">
-        <label class="email-label">Your Email</label>
+        <label class="email-label">{{ t('contact.yourEmail') }}</label>
         <input 
           type="email" 
           v-model="email"
-          placeholder="Enter your email address"
+          :placeholder="t('contact.emailPlaceholder')"
           class="email-input"
           :class="{ 'email-input-error': email && !isValidEmail(email) }"
         />
         <div v-if="email && !isValidEmail(email)" class="email-error">
-          Please enter a valid email address
+          {{ t('contact.invalidEmail') }}
         </div>
       </div>
       <textarea 
-        placeholder="Please enter your question or feedback..." 
+        :placeholder="t('contact.messagePlaceholder')" 
         v-model="message"
         class="contact-textarea"
         rows="6"
       ></textarea>
       <button class="contact-send-btn" @click="sendMessage" :disabled="loading">
         <span class="send-icon">{{ loading ? '⏳' : '📤' }}</span>
-        <span>{{ loading ? 'Sending...' : 'Send Message' }}</span>
+        <span>{{ loading ? t('contact.sending') : t('contact.send') }}</span>
       </button>
     </div>
     <div v-if="showMessage" class="message-alert" :class="messageType">
@@ -56,6 +56,7 @@
 import { ref, computed } from 'vue'
 import { useUserStore } from '@/store/user'
 import { sendContactMessage } from '@/api/contact'
+import { useI18n } from '@/i18n'
 
 const message = ref('')
 const email = ref('')
@@ -65,6 +66,7 @@ const messageType = ref<'success' | 'error'>('success')
 const loading = ref(false)
 
 const userStore = useUserStore()
+const { t } = useI18n()
 
 const userEmail = computed(() => userStore.userInfo?.email || '')
 
@@ -91,12 +93,12 @@ function showAlert(text: string, type: 'success' | 'error' = 'success') {
 
 async function sendMessage() {
   if (!message.value.trim()) {
-    showAlert('Please enter your question or feedback', 'error')
+    showAlert(t('contact.needMessage'), 'error')
     return
   }
   
   if (!userEmail.value && !email.value.trim()) {
-    showAlert('Please enter your email address', 'error')
+    showAlert(t('contact.needEmail'), 'error')
     return
   }
   
@@ -104,7 +106,7 @@ async function sendMessage() {
   
   // 校验邮箱格式
   if (!userEmail.value && !isValidEmail(finalEmail)) {
-    showAlert('Please enter a valid email address', 'error')
+    showAlert(t('contact.invalidEmail'), 'error')
     return
   }
   
@@ -115,12 +117,12 @@ async function sendMessage() {
       content: message.value
     })
     
-    showAlert('Message sent successfully! We will reply as soon as possible.')
+    showAlert(t('contact.sent'))
     message.value = ''
     email.value = ''
     emit('send', message.value, finalEmail)
   } catch (error) {
-    showAlert('Failed to send message. Please try again.', 'error')
+    showAlert(t('contact.failed'), 'error')
   } finally {
     loading.value = false
   }

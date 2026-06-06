@@ -1,0 +1,11 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wristo mark</title>
+  <desc id="desc">Circular Wristo watch face mark.</desc>
+  <rect width="512" height="512" rx="112" fill="#071F1E"/>
+  <circle cx="256" cy="256" r="202" fill="#0F6B68"/>
+  <circle cx="256" cy="256" r="146" fill="#FBFDFC"/>
+  <path d="M168 256C200 181.2 297.4 159.3 364.1 227.5" stroke="#111827" stroke-width="32" stroke-linecap="round"/>
+  <path d="M347.9 279.6C318.8 360.2 219.2 381.1 152.3 311.5" stroke="#111827" stroke-width="32" stroke-linecap="round"/>
+  <path d="M256 166V349" stroke="#F59E0B" stroke-width="26" stroke-linecap="round"/>
+  <circle cx="256" cy="256" r="24" fill="#111827"/>
+</svg>

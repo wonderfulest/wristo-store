@@ -1,16 +1,16 @@
 <template>
   <div class="code-input-page">
     <div class="content-container">
-      <Logo />
+      <img class="code-logo" src="/logo.svg" alt="Wristo" />
       <div class="header-section">
-        <p class="eyebrow">Unlock your watch face</p>
-        <h1 class="title">Enter your 6-digit code</h1>
-        <p class="desc">Type the six numbers shown on your Garmin watch.</p>
+        <p class="eyebrow">{{ t('code.eyebrow') }}</p>
+        <h1 class="title">{{ t('code.title') }}</h1>
+        <p class="desc">{{ t('code.desc') }}</p>
       </div>
 
       <form class="code-form" @submit.prevent="handleContinue">
         <div class="input-group">
-          <label class="input-label" for="watch-code">6-digit code</label>
+          <label class="input-label" for="watch-code">{{ t('code.label') }}</label>
           <input 
             id="watch-code"
             v-model="code" 
@@ -26,10 +26,10 @@
             @input="handleInput"
           />
           <div id="watch-code-help" class="input-desc">
-            Enter numbers only.
+            {{ t('code.helpNumbers') }}
             <span class="help-inline">
-              Not seeing your code? 
-              <button type="button" class="help-link-inline" @click="handleLearnMore">Learn more</button>
+              {{ t('code.helpQuestion') }}
+              <button type="button" class="help-link-inline" @click="handleLearnMore">{{ t('code.learnMore') }}</button>
             </span>
           </div>
         </div>
@@ -48,16 +48,16 @@
           v-if="showCouponInput"
           class="input-group"
         >
-          <label class="input-label">Coupon (optional)</label>
+          <label class="input-label">{{ t('code.couponLabel') }}</label>
           <input
             v-model="coupon"
             type="text"
-            placeholder="Enter coupon code if you have one"
+            :placeholder="t('code.couponPlaceholder')"
             class="code-input coupon-input"
             @input="handleInput"
           />
           <div class="input-desc">
-            If you received a special coupon or invite code, enter it here.
+            {{ t('code.couponHelp') }}
           </div>
         </div>
         
@@ -75,22 +75,23 @@
           <div class="btn-with-note">
             <button type="button" class="btn outline" @click="handleAlreadyPurchased">
               <el-icon aria-hidden="true"><Lock /></el-icon>
-              <span>Already Purchased</span>
+              <span>{{ t('code.alreadyPurchased') }}</span>
             </button>
-            <div class="helper-note">For users who already purchased bundle or this watch face.</div>
+            <div class="helper-note">{{ t('code.alreadyPurchasedHelp') }}</div>
           </div>
           <div class="btn-with-note">
             <button type="submit" class="btn primary" :disabled="loading" :aria-busy="loading">
               <span v-if="loading" class="loading-spinner"></span>
               <el-icon v-else aria-hidden="true"><ArrowRight /></el-icon>
-              <span>{{ loading ? 'Checking code...' : 'Continue' }}</span>
+              <span>{{ loading ? t('code.checking') : t('code.continue') }}</span>
             </button>
-            <div class="helper-note">For users who do not have a bundle or have not purchased this watch face yet.</div>
+            <div class="helper-note">{{ t('code.continueHelp') }}</div>
           </div>
         </div>
         
       </form>
     </div>
+    <SmartwatchCodeHelpModal v-model="showCodeHelpModal" />
   </div>
 </template>
 
@@ -100,8 +101,9 @@ import { useRouter, useRoute } from 'vue-router'
 import { purchaseByCode, checkPurchaseByToken, continuePurchase } from '@/api/pay'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
-import Logo from '@/components/Logo.vue'
-import { ElMessageBox } from 'element-plus'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useI18n } from '@/i18n'
+import SmartwatchCodeHelpModal from '@/components/SmartwatchCodeHelpModal.vue'
 import type { PurchaseData } from '@/types/purchase'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 import { ArrowRight, CircleCheckFilled, Lock, WarningFilled } from '@element-plus/icons-vue'
@@ -112,10 +114,15 @@ const error = ref('')
 const success = ref('')
 const loading = ref(false)
 const showCouponInput = ref(false)
+const showCodeHelpModal = ref(false)
 const router = useRouter()
 const route = useRoute()
 const store = useShopOptionsStore()
 const userStore = useUserStore()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
+
+const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 
 // 检查用户是否已登录
 const isLoggedIn = computed(() => !!userStore.userInfo)
@@ -124,20 +131,20 @@ const isLoggedIn = computed(() => !!userStore.userInfo)
 const handleAutoUnlock = (purchaseResult: CheckPurchaseResponse) => {
   if (purchaseResult.subscription) {
     // 通过订阅计划激活
-    const subscriptionName = purchaseResult.subscription.name || 'Subscription Plan'
-    success.value = `Your purchase has been successfully activated through ${subscriptionName}!`
+    const subscriptionName = purchaseResult.subscription.name || t('code.subscriptionPlan')
+    success.value = t('code.successSubscription').replace('{name}', subscriptionName)
   } else if (purchaseResult.purchase) {
     // 通过产品购买激活
-    success.value = 'Your purchase has been successfully activated through product purchase!'
+    success.value = t('code.successPurchase')
   } else {
     // 默认激活成功消息
-    success.value = 'Your purchase has been successfully activated!'
+    success.value = t('code.successDefault')
   }
 }
 
 const handleContinue = async () => {
   if (code.value.length !== 6) {
-    error.value = 'Please enter a 6-digit code.'
+    error.value = t('code.errorLength')
     return
   }
   error.value = ''
@@ -167,17 +174,17 @@ const handleContinue = async () => {
       // 将口令码保存到全局 discountCode，后续 PurchaseOptions / Checkout 统一使用
       store.setDiscountCode(coupon.value.trim())
       router.push({
-        name: 'PurchaseOptions',
+        path: localizedPath('/purchase-options'),
         query: { discountCode: coupon.value.trim() }
       })
     } else {
-      router.push({ name: 'PurchaseOptions' })
+      router.push(localizedPath('/purchase-options'))
     }
   } catch (e: unknown) {
     if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof (e as any).msg === 'string') {
       error.value = (e as any).msg
     } else {
-      error.value = 'Network error, please try again later.'
+      error.value = t('code.errorNetwork')
     }
   } finally {
     loading.value = false
@@ -207,16 +214,11 @@ const handleInput = () => {
 }
 
 const handleAlreadyPurchased = () => {
-  router.push({ path: '/already-purchased', query: { code: code.value || '' } })
+  router.push({ path: localizedPath('/already-purchased'), query: { code: code.value || '' } })
 }
 
 const handleLearnMore = () => {
-  // Show help information about smartwatch codes
-  ElMessageBox.alert('After installing the clock face or app, there will be a short trial period. Once the trial ends, a 6-digit code will appear on your smartwatch screen for activation. If no code appears, it means the watch face has been automatically unlocked—feel free to continue using it.', {
-    title: 'Smartwatch Code',
-    confirmButtonText: 'OK',
-    showClose: false
-  })
+  showCodeHelpModal.value = true
 }
 
 // 如果 URL 中带有 _ptxn，则请求后端获取 6 位代码并自动继续
@@ -239,7 +241,7 @@ onMounted(async () => {
     // 保护性处理，只保留前6位数字
     const six = (codeStr || '').toString().replace(/\D/g, '').slice(0, 6)
     if (!six || six.length !== 6) {
-      error.value = 'Failed to retrieve a valid 6-digit code. Please try again.'
+      error.value = t('code.errorInvalidRetrieved')
       return
     }
     code.value = six
@@ -249,7 +251,7 @@ onMounted(async () => {
     }, 100)
   } catch (err) {
     console.error('continuePurchase failed', err)
-    error.value = 'Failed to continue purchase. Please try again.'
+    error.value = t('code.errorContinuePurchase')
   } finally {
     loading.value = false
   }
@@ -1199,27 +1201,35 @@ onMounted(async () => {
   }
 }
 
-/* Simplified single-card code entry */
+/* Refined single-card code entry */
 .code-input-page {
   align-items: center;
   justify-content: center;
+  padding: 28px 20px;
 }
 
 .content-container {
   display: flex;
-  max-width: 520px;
+  max-width: 560px;
   width: 100%;
-  gap: 24px;
-  padding: 36px;
+  gap: 22px;
+  padding: 40px 42px 36px;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 24px;
+  border-radius: 22px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.94));
   box-shadow:
-    0 24px 70px rgba(15, 23, 42, 0.10),
+    0 24px 70px rgba(15, 23, 42, 0.11),
     0 1px 0 rgba(255, 255, 255, 0.9) inset;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+.code-logo {
+  display: block;
+  width: 86px;
+  height: auto;
+  margin: 0 auto 4px;
 }
 
 .header-section {
@@ -1228,20 +1238,29 @@ onMounted(async () => {
 }
 
 .eyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: #0f6b68;
+  letter-spacing: 0.04em;
 }
 
 .title {
-  max-width: 11ch;
+  max-width: 16ch;
   margin: 0 auto;
-  font-size: clamp(2.2rem, 6vw, 3.65rem);
-  line-height: 0.96;
+  color: #0f172a;
+  font-size: clamp(1.9rem, 4vw, 2.55rem);
+  line-height: 1.04;
+  font-weight: 820;
+  letter-spacing: 0;
 }
 
 .desc {
-  max-width: 26rem;
-  margin: 14px auto 0;
+  max-width: 25rem;
+  margin: 12px auto 0;
+  color: #475467;
   font-size: 1rem;
+  line-height: 1.55;
 }
 
 .code-form {
@@ -1256,107 +1275,144 @@ onMounted(async () => {
 }
 
 .input-group {
-  gap: 10px;
+  gap: 9px;
 }
 
 .input-label {
+  color: #0f172a;
+  font-size: 0.98rem;
+  font-weight: 750;
   text-align: center;
 }
 
 .code-input {
-  min-height: 76px;
-  font-size: 2.35rem;
-  letter-spacing: 0.34em;
+  min-height: 72px;
+  padding: 14px 20px;
+  border-radius: 18px;
+  font-size: 2rem;
+  letter-spacing: 0.24em;
+  line-height: 1;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
 }
 
 .input-desc {
+  color: #667085;
+  font-size: 0.88rem;
+  line-height: 1.45;
   text-align: center;
 }
 
-.button-group {
+.help-inline {
+  display: block;
   margin-top: 4px;
+}
+
+.button-group {
+  gap: 12px;
+  margin-top: 2px;
+  padding-top: 4px;
 }
 
 .helper-note {
   display: none;
 }
 
+.btn {
+  min-height: 56px;
+  border-radius: 16px;
+  padding: 13px 16px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 @media (max-width: 768px) {
   .code-input-page {
-    padding: 20px;
-    height: calc(100dvh - 120px);
-    min-height: auto;
-    overflow: hidden;
+    min-height: calc(100dvh - 72px);
+    padding: 22px 18px;
+    overflow: visible;
   }
 
   .content-container {
     max-width: 100%;
-    padding: 28px 22px;
-    border-radius: 22px;
+    padding: 34px 26px 30px;
+    border-radius: 20px;
+  }
+
+  .code-logo {
+    width: 82px;
   }
 
   .title {
-    font-size: clamp(2rem, 12vw, 3.1rem);
+    font-size: clamp(1.85rem, 8vw, 2.35rem);
   }
 
   .code-input {
-    min-height: 70px;
-    font-size: 1.9rem;
-    letter-spacing: 0.28em;
+    min-height: 68px;
+    font-size: 1.8rem;
+    letter-spacing: 0.2em;
   }
 }
 
 @media (max-width: 480px) {
   .code-input-page {
-    padding: 10px;
+    padding: 16px 12px;
   }
 
   .content-container {
-    padding: 18px 16px;
-    gap: 14px;
+    gap: 18px;
+    padding: 26px 18px 22px;
+  }
+
+  .code-logo {
+    width: 78px;
   }
 
   .title {
-    font-size: clamp(1.8rem, 10vw, 2.45rem);
+    font-size: clamp(1.7rem, 8.4vw, 2.05rem);
   }
 
   .desc {
-    margin-top: 8px;
-    font-size: 0.94rem;
+    margin-top: 10px;
+    font-size: 0.95rem;
   }
 
   .code-input {
-    min-height: 56px;
-    font-size: 1.45rem;
-    letter-spacing: 0.18em;
+    min-height: 62px;
+    padding: 12px 14px;
+    font-size: 1.48rem;
+    letter-spacing: 0.15em;
   }
 
   .button-group {
-    flex-direction: row;
-    gap: 10px;
-    padding-top: 0;
+    flex-direction: column;
+    gap: 11px;
   }
 
   .btn {
-    min-height: 50px;
-    padding: 10px 12px;
-    font-size: 0.92rem;
+    min-height: 52px;
+    padding: 12px 14px;
+    font-size: 0.96rem;
   }
 }
 
 @media (max-width: 360px) {
   .content-container {
-    padding: 16px 14px;
+    padding: 22px 14px 18px;
+  }
+
+  .code-logo {
+    width: 72px;
   }
 
   .code-input {
     font-size: 1.32rem;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
   }
 
   .btn {
-    font-size: 0.84rem;
-    padding: 9px 8px;
+    font-size: 0.9rem;
+    padding: 11px 10px;
   }
 }
 </style>

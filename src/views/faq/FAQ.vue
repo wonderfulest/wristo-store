@@ -57,9 +57,10 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { cardQuestions, questionsByCategory } from '@/config/faq-data'
 import ContactForm from '@/components/ContactForm.vue'
+import { applySeo, faqPageSchema, getRouteSeo } from '@/seo'
 
 const allQuestions = computed(() => {
   return Object.entries(questionsByCategory).flatMap(([category, qs]) =>
@@ -68,6 +69,7 @@ const allQuestions = computed(() => {
 })
 
 const search = ref('')
+const route = useRoute()
 const openIndex = ref<number[]>([])
 const questionRefs = ref<Record<number, HTMLElement | null>>({})
 const showMoreMap = ref<Record<string, boolean>>({})
@@ -96,6 +98,16 @@ function setQuestionRef(index: number, el: HTMLElement | null) {
 }
 
 onMounted(() => {
+  applySeo({
+    ...getRouteSeo(route),
+    jsonLd: [
+      faqPageSchema(allQuestions.value.map((item) => ({
+        question: item.q,
+        answer: item.a,
+      }))),
+    ],
+  })
+
   // 每个分类下第一个问题默认展开
   const indices: number[] = []
   const allQ = allQuestions.value

@@ -1,7 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from './routes'
 import { useUserStore } from '@/store/user'
+import { getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { createPageGuard } from '@/utils/guards'
+import { getPreferredFaqGuidePath } from '@/content/faq-guides'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -31,6 +33,23 @@ router.beforeEach((to, from, next) => {
   pageGuard(to, from, () => {
     // Handle authentication
     const userStore = useUserStore()
+    const localeStore = useLocaleStore()
+    const routeLang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+    const normalizedRouteLang = getRouteLocaleParam(routeLang)
+    if (normalizedRouteLang && normalizedRouteLang !== localeStore.currentLocale) {
+      localeStore.setLocale(normalizedRouteLang)
+    }
+    localeStore.syncDocumentLang()
+
+    const shouldApplyFaqLocale = ['FAQGuides', 'FAQGuide'].includes(String(to.name || ''))
+    const preferredFaqPath = shouldApplyFaqLocale
+      ? getPreferredFaqGuidePath(to.path, localeStore.currentLocale)
+      : to.path
+    if (shouldApplyFaqLocale && preferredFaqPath !== to.path) {
+      next({ path: preferredFaqPath, query: to.query, hash: to.hash, replace: true })
+      return
+    }
+
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
     const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
     const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI

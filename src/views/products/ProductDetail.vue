@@ -12,10 +12,12 @@
       </div>
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
-        <div class="product-title">{{ product?.name }}</div>
+        <h1 class="product-title">{{ product?.name }}</h1>
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
-        <!-- <div class="product-section-title" v-if="product?.description">Product Details</div> -->
-        <!-- <div class="product-desc" v-if="product?.description" v-html="product?.description"></div> -->
+        <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
+          <h2 id="product-summary-title" class="product-section-title">Product Details</h2>
+          <div class="product-desc" v-html="product.description"></div>
+        </section>
         <div v-if="product?.garminStoreUrl" class="install-section">
           <div class="install-title">Install on your Garmin device</div>
           <div class="install-subtitle">Choose your preferred installation method</div>
@@ -107,6 +109,7 @@ import { Download, Lock, Share } from '@element-plus/icons-vue'
 import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
+import { applySeo, productSeo } from '@/seo'
 
 const route = useRoute()
 const router = useRouter()
@@ -293,6 +296,9 @@ onMounted(async () => {
   if (Array.isArray(productId)) productId = productId[0]
   if (productId) {
     product.value = await productStore.getProductDetail(productId) as ProductVO
+    if (product.value?.appId) {
+      applySeo(productSeo(product.value, route.path))
+    }
     
     // 恢复页面状态（如果用户从外部链接返回）
     try {
@@ -543,13 +549,9 @@ onMounted(async () => {
 .device-name {
   font-size: 0.98rem;
   color: var(--color-ink);
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* allow text to squeeze/wrap up to 2 lines */
-  -webkit-box-orient: vertical;
   line-height: 1.2;
   min-width: 0;
-  line-clamp: 2; /* standard property for compatibility */
+  overflow-wrap: anywhere;
   word-break: break-word;
   flex: 1 1 auto;
 }

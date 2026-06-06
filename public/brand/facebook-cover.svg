@@ -1,0 +1,18 @@
+<svg width="820" height="312" viewBox="0 0 820 312" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wristo Facebook cover</title>
+  <desc id="desc">Facebook cover image for Wristo watch face design.</desc>
+  <rect width="820" height="312" fill="#071F1E"/>
+  <circle cx="704" cy="58" r="220" fill="#0F6B68" opacity=".22"/>
+  <circle cx="110" cy="278" r="190" fill="#F59E0B" opacity=".08"/>
+  <g transform="translate(64 70)">
+    <circle cx="86" cy="86" r="80" fill="#0F6B68"/>
+    <circle cx="86" cy="86" r="58" fill="#FBFDFC"/>
+    <path d="M51 86C63.8 56.1 102.8 47.3 129.4 74.6" stroke="#111827" stroke-width="13" stroke-linecap="round"/>
+    <path d="M123 95.4C111.4 127.6 71.6 136 44.8 108.2" stroke="#111827" stroke-width="13" stroke-linecap="round"/>
+    <path d="M86 50V124" stroke="#F59E0B" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="86" cy="86" r="10" fill="#111827"/>
+  </g>
+  <text x="260" y="138" fill="#FBFDFC" font-family="DM Sans, Inter, Arial, sans-serif" font-size="62" font-weight="800" letter-spacing="6">WRISTO</text>
+  <text x="264" y="179" fill="#F59E0B" font-family="DM Sans, Inter, Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="3">WATCH FACE DESIGN</text>
+  <text x="264" y="219" fill="#DFF5F1" font-family="DM Sans, Inter, Arial, sans-serif" font-size="18" font-weight="500">Premium Garmin watch faces with sharp data layouts.</text>
+</svg>

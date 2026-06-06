@@ -2,7 +2,9 @@
   <header class="header-bar">
     <div class="header-inner">
       <div class="logo-area">
-        <router-link to="/" class="logo-text">WRISTO</router-link>
+        <router-link :to="localizedPath('/')" class="logo-link" aria-label="Wristo home">
+          <img class="logo-image" src="/brand/wristo-logo-horizontal.svg" alt="Wristo" />
+        </router-link>
       </div>
       
       <!-- Mobile menu button -->
@@ -20,10 +22,10 @@
       
       <!-- Desktop navigation -->
       <nav class="nav-area desktop-nav">
-        <router-link to="/" class="nav-link">Home</router-link>
+        <router-link :to="localizedPath('/')" class="nav-link">{{ t('nav.home') }}</router-link>
         <el-dropdown @command="handleSelectSeries" trigger="hover">
           <span class="nav-link dropdown-trigger">
-            Categories
+            {{ t('nav.categories') }}
             <el-icon style="margin-left: 4px"><arrow-down /></el-icon>
           </span>
           <template #dropdown>
@@ -39,9 +41,10 @@
           </template>
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
-        <router-link to="/code" class="nav-link">Code</router-link>
+        <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
-        <router-link to="/blog" class="nav-link">Blog</router-link>
+        <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
+        <LanguageSwitcher />
       </nav>
       
       <!-- Current Device Display -->
@@ -58,21 +61,21 @@
           <el-dropdown @command="handleUserMenuCommand" trigger="click">
             <div class="user-avatar-container">
               <img :src="userAvatar" class="user-avatar" alt="user avatar" />
-              <span v-if="isSubscribed" class="premium-badge">Premium</span>
+              <span v-if="isSubscribed" class="premium-badge">{{ t('nav.premium') }}</span>
             </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="info">
                   <el-icon><User /></el-icon>
-                  <span>User Info</span>
+                  <span>{{ t('nav.userInfo') }}</span>
                 </el-dropdown-item>
                 <el-dropdown-item command="purchase-records">
                   <el-icon><Document /></el-icon>
-                  <span>Purchases</span>
+                  <span>{{ t('nav.purchases') }}</span>
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
-                  <span>Logout</span>
+                  <span>{{ t('nav.logout') }}</span>
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -81,7 +84,7 @@
         <template v-else>
           <div class="auth-buttons">
             <button class="auth-btn login-btn" @click="goToLogin">
-              <span>Sign In</span>
+              <span>{{ t('nav.signIn') }}</span>
             </button>
           </div>
         </template>
@@ -92,19 +95,19 @@
     <div class="mobile-nav" :class="{ open: isMobileMenuOpen }">
       <div class="mobile-nav-content">
         <div class="mobile-nav-head">
-          <span class="mobile-nav-kicker">Menu</span>
-          <strong>Explore Wristo</strong>
+          <span class="mobile-nav-kicker">{{ t('nav.menu') }}</span>
+          <strong>{{ t('nav.explore') }}</strong>
         </div>
         <div class="mobile-nav-links">
-          <router-link to="/" class="mobile-nav-link" @click="closeMobileMenu">
+          <router-link :to="localizedPath('/')" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:home-2-line-duotone" width="22" height="22" aria-hidden="true" />
-            <span>Home</span>
+            <span>{{ t('nav.home') }}</span>
           </router-link>
           <div class="mobile-dropdown">
             <button class="mobile-dropdown-trigger centered" type="button" @click="toggleCategoriesDropdown">
               <span class="dropdown-text">
                 <Icon icon="solar:widget-6-line-duotone" width="22" height="22" aria-hidden="true" />
-                <span>Categories</span>
+                <span>{{ t('nav.categories') }}</span>
               </span>
               <el-icon :class="{ rotated: isCategoriesOpen }"><arrow-down /></el-icon>
             </button>
@@ -112,7 +115,7 @@
               <router-link 
                 v-for="series in seriesList"
                 :key="series.id"
-                :to="`/categories/${series.slug}`"
+                :to="localizedPath(`/categories/${series.slug}`)"
                 class="mobile-dropdown-link"
                 @click="closeMobileMenu"
               >
@@ -121,17 +124,20 @@
             </div>
           </div>
           <!-- <router-link to="/faq" class="mobile-nav-link" @click="closeMobileMenu">FAQ</router-link> -->
-          <router-link to="/code" class="mobile-nav-link" @click="closeMobileMenu">
+          <router-link :to="localizedPath('/code')" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
-            <span>Code</span>
+            <span>{{ t('nav.code') }}</span>
           </router-link>
-          <router-link to="/blog" class="mobile-nav-link" @click="closeMobileMenu">
+          <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
-            <span>Blog</span>
+            <span>{{ t('nav.faq') }}</span>
           </router-link>
-          <router-link to="/top" class="mobile-nav-link" @click="closeMobileMenu">
+          <div class="mobile-language-row">
+            <LanguageSwitcher />
+          </div>
+          <router-link :to="localizedPath('/top')" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:ranking-line-duotone" width="22" height="22" aria-hidden="true" />
-            <span>Top</span>
+            <span>{{ t('nav.top') }}</span>
           </router-link>
           
           <!-- Mobile Device Display -->
@@ -147,7 +153,7 @@
           <div class="mobile-auth-buttons-top">
             <button class="mobile-auth-btn login" @click="handleMobileLogin">
               <Icon icon="solar:login-2-line-duotone" width="22" height="22" aria-hidden="true" />
-              <span>Sign In</span>
+              <span>{{ t('nav.signIn') }}</span>
             </button>
           </div>
         </template>
@@ -157,21 +163,21 @@
             <div class="mobile-user-info">
               <div class="mobile-avatar-container">
                 <img :src="userAvatar" class="mobile-user-avatar" alt="user avatar" />
-                <span v-if="isSubscribed" class="mobile-premium-badge">Premium</span>
+                <span v-if="isSubscribed" class="mobile-premium-badge">{{ t('nav.premium') }}</span>
               </div>
             </div>
             <div class="mobile-user-actions">
               <button class="mobile-action-btn" @click="handleUserMenuCommand('info'); closeMobileMenu()">
                 <el-icon><User /></el-icon>
-                <span>User Info</span>
+                <span>{{ t('nav.userInfo') }}</span>
               </button>
               <button class="mobile-action-btn" @click="handleUserMenuCommand('purchase-records'); closeMobileMenu()">
                 <el-icon><Document /></el-icon>
-                <span>Purchases</span>
+                <span>{{ t('nav.purchases') }}</span>
               </button>
               <button class="mobile-action-btn logout" @click="handleUserMenuCommand('logout'); closeMobileMenu()">
                 <el-icon><SwitchButton /></el-icon>
-                <span>Logout</span>
+                <span>{{ t('nav.logout') }}</span>
               </button>
             </div>
           </template>
@@ -194,11 +200,17 @@ import type { Series } from '@/types/product';
 import { useUserStore } from '@/store/user';
 import type { GarminDeviceVO } from '@/types';
 import DeviceDisplay from './DeviceDisplay.vue';
+import LanguageSwitcher from './LanguageSwitcher.vue';
+import { buildFaqGuidePath } from '@/content/faq-guides';
+import { addLocaleToPath, useLocaleStore } from '@/store/locale';
+import { useI18n } from '@/i18n';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
 const router = useRouter();
 const userStore = useUserStore();
+const localeStore = useLocaleStore();
+const { t } = useI18n();
 const isLoggedIn = ref(false);
 const userAvatar = ref('https://cdn.wristo.io/test/avatar/561aae25-41bd-47ab-974e-7231f5a850e8.png');
 
@@ -209,12 +221,18 @@ const isCategoriesOpen = ref(false);
 // Device selection state
 const selectedDevice = ref<GarminDeviceVO | null>(null);
 
+const faqPath = computed(() => {
+  return buildFaqGuidePath(localeStore.currentLocale, undefined)
+})
+
+const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
+
 const loadSeries = async () => {
   seriesList.value = await productStore.getSeries();
 };
 
 const handleSelectSeries = (slug: string) => {
-  router.push(`/categories/${slug}`);
+  router.push(localizedPath(`/categories/${slug}`));
 };
 
 const updateUserInfo = () => {
@@ -237,23 +255,23 @@ const isSubscribed = computed(() => {
 const handleUserMenuCommand = (command: string) => {
   switch (command) {
     case 'info':
-      router.push('/user/profile');
+      router.push(localizedPath('/user/profile'));
       break;
     case 'subscription':
-      router.push('/subscription');
+      router.push(localizedPath('/subscription'));
       break;
     case 'purchase-records':
-      router.push('/user/purchase-records');
+      router.push(localizedPath('/user/purchase-records'));
       break;
     case 'orders':
-      router.push('/user/orders');
+      router.push(localizedPath('/user/orders'));
       break;
     case 'cart':
-      router.push('/user/cart');
+      router.push(localizedPath('/user/cart'));
       break;
     case 'logout':
       userStore.logout();
-      router.push('/');
+      router.push(localizedPath('/'));
       break;
   }
 };
@@ -305,6 +323,7 @@ const handleMobileLogin = () => {
 onMounted(() => {
   loadSeries();
   updateUserInfo();
+  localeStore.syncDocumentLang();
 });
 
 // 监听 userInfo 变化
@@ -360,15 +379,22 @@ defineExpose({
   height: 72px;
   padding: 0 24px;
 }
-.logo-area .logo-text {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: var(--color-ink);
-  letter-spacing: 4px;
+.logo-link {
+  display: inline-flex;
+  align-items: center;
+  width: 132px;
+  height: 40px;
   text-decoration: none;
+}
+
+.logo-image {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .nav-area {
   display: flex;
+  align-items: center;
   gap: 8px;
 }
 .nav-link {
@@ -701,6 +727,10 @@ defineExpose({
   box-shadow: 0 12px 28px rgba(15, 107, 104, 0.10);
 }
 
+.mobile-language-row {
+  padding: 0;
+}
+
 /* Mobile dropdown */
 .mobile-dropdown {
   border: 1px solid rgba(15, 23, 42, 0.06);
@@ -943,9 +973,9 @@ defineExpose({
     padding: 0 16px;
   }
   
-  .logo-area .logo-text {
-    font-size: 1.5rem;
-    letter-spacing: 3px;
+  .logo-link {
+    width: 126px;
+    height: 38px;
   }
   
   .desktop-nav,
@@ -964,9 +994,9 @@ defineExpose({
     padding: 0 12px;
   }
   
-  .logo-area .logo-text {
-    font-size: 1.3rem;
-    letter-spacing: 2px;
+  .logo-link {
+    width: 116px;
+    height: 36px;
   }
   
   .mobile-nav-content {

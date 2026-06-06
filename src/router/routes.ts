@@ -1,6 +1,9 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { SUPPORTED_LOCALES } from '@/store/locale'
 
-const routes: RouteRecordRaw[] = [
+const langPattern = SUPPORTED_LOCALES.join('|')
+
+const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'home',
@@ -89,6 +92,16 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/faq',
+    name: 'FAQGuides',
+    component: () => import('@/views/blogs/BlogPost.vue'),
+  },
+  {
+    path: `/:lang(${langPattern})/faq`,
+    name: 'FAQGuidesLang',
+    component: () => import('@/views/blogs/BlogPost.vue'),
+  },
+  {
+    path: '/faq/support',
     name: 'FAQ',
     component: () => import('@/views/faq/FAQ.vue'),
   },
@@ -96,6 +109,16 @@ const routes: RouteRecordRaw[] = [
     path: '/faq/checkout',
     name: 'CheckoutHelp',
     component: () => import('@/views/faq/CheckoutHelp.vue')
+  },
+  {
+    path: `/:lang(${langPattern})/faq/:slug`,
+    name: 'FAQGuideLang',
+    component: () => import('@/views/blogs/BlogPost.vue'),
+  },
+  {
+    path: '/faq/:slug',
+    name: 'FAQGuide',
+    component: () => import('@/views/blogs/BlogPost.vue'),
   },
  
   {
@@ -210,33 +233,79 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/email/PreferencesSuccess.vue')
   },
   /**
-   * Blog Post
+   * Legacy Blog redirects
    */
   {
     path: '/:lang/blog/:slug',
     name: 'BlogPostLang',
-    component: () => import('@/views/blogs/BlogPost.vue')
+    redirect: (to) => {
+      const lang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+      const slug = Array.isArray(to.params.slug) ? to.params.slug[0] : to.params.slug
+      return `/${encodeURIComponent(String(lang))}/faq/${encodeURIComponent(String(slug))}`
+    }
   },
   {
     path: '/:lang/blog',
     name: 'BlogTreeLang',
-    component: () => import('@/views/blogs/BlogPost.vue')
+    redirect: (to) => {
+      const lang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+      return `/${encodeURIComponent(String(lang))}/faq`
+    }
   },
   {
     path: '/blog/:slug',
     name: 'BlogPost',
-    component: () => import('@/views/blogs/BlogPost.vue')
+    redirect: (to) => {
+      const slug = Array.isArray(to.params.slug) ? to.params.slug[0] : to.params.slug
+      return `/faq/${encodeURIComponent(String(slug))}`
+    }
   },
   {
     path: '/blog',
     name: 'BlogTree',
-    component: () => import('@/views/blogs/BlogPost.vue')
+    redirect: '/faq'
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: () => import('@/views/NotFound.vue')
   },
+]
+
+function withLanguagePrefix(route: RouteRecordRaw): RouteRecordRaw | null {
+  if (route.path === '/:pathMatch(.*)*') return null
+  if (route.path.startsWith('/:lang')) return null
+  if (route.path === '/faq' || route.path === '/faq/:slug') return null
+  if (route.path === '/unlock') return null
+  if (route.path.startsWith('/blog')) return null
+
+  const childPath = route.path === '/' ? '' : route.path.replace(/^\//, '')
+  const localizedPath = childPath ? `/:lang(${langPattern})/${childPath}` : `/:lang(${langPattern})`
+  const name = typeof route.name === 'string' ? `${route.name}Localized` : undefined
+
+  return {
+    ...route,
+    path: localizedPath,
+    name,
+  }
+}
+
+const localizedRoutes = baseRoutes
+  .map(withLanguagePrefix)
+  .filter((route): route is RouteRecordRaw => Boolean(route))
+
+const fallbackRoute = baseRoutes.find((route) => route.path === '/:pathMatch(.*)*')
+const nonFallbackBaseRoutes = baseRoutes.filter((route) => route.path !== '/:pathMatch(.*)*')
+
+const routes: RouteRecordRaw[] = [
+  ...localizedRoutes,
+  ...nonFallbackBaseRoutes,
+  {
+    path: `/:lang(${langPattern})/:pathMatch(.*)*`,
+    name: 'NotFoundLocalized',
+    component: () => import('@/views/NotFound.vue')
+  },
+  ...(fallbackRoute ? [fallbackRoute] : []),
 ]
 
 export default routes

@@ -5,41 +5,41 @@
         <div class="banner-copy">
           <span class="banner-eyebrow">
             <Icon icon="solar:watch-round-bold-duotone" width="20" height="20" aria-hidden="true" />
-            Premium Garmin Watch Faces
+            {{ t('home.heroEyebrow') }}
           </span>
           <h1 id="home-hero-title" class="banner-title">
-            Make every glance feel designed.
+            {{ t('home.heroTitle') }}
           </h1>
           <p class="banner-desc">
-            Curated watch faces with gallery-grade style, crisp data layouts, and everyday battery discipline.
+            {{ t('home.heroDesc') }}
           </p>
 
           <div class="banner-actions">
             <button class="banner-primary" type="button" @click="goToSearch">
-              Explore faces
+              {{ t('home.heroExplore') }}
               <Icon icon="solar:arrow-right-up-linear" width="20" height="20" aria-hidden="true" />
             </button>
             <button class="banner-code" type="button" @click="goToCode">
               <Icon icon="solar:ticket-sale-linear" width="20" height="20" aria-hidden="true" />
-              Enter code
+              {{ t('home.heroCode') }}
             </button>
             <button class="banner-secondary" type="button" @click="goToBundles">
-              View bundles
+              {{ t('home.heroBundles') }}
             </button>
           </div>
 
-          <div class="banner-metrics" aria-label="Store highlights">
+          <div class="banner-metrics" :aria-label="t('home.heroHighlights')">
             <span>
-              <strong>Thousands</strong>
-              watch faces
+              <strong>{{ t('home.heroMetricFacesValue') }}</strong>
+              {{ t('home.heroMetricFacesLabel') }}
             </span>
             <span>
-              <strong>1 checkout</strong>
-              lifetime unlocks
+              <strong>{{ t('home.heroMetricCheckoutValue') }}</strong>
+              {{ t('home.heroMetricCheckoutLabel') }}
             </span>
             <span>
-              <strong>Garmin</strong>
-              ready previews
+              <strong>{{ t('home.heroMetricGarminValue') }}</strong>
+              {{ t('home.heroMetricGarminLabel') }}
             </span>
           </div>
         </div>
@@ -48,11 +48,11 @@
           <img src="/home-hero-garmin-watch.svg" alt="" loading="eager" />
           <span class="art-label art-label-top">
             <Icon icon="solar:palette-round-linear" width="18" height="18" />
-            Artist series
+            {{ t('home.heroArtSeries') }}
           </span>
           <span class="art-label art-label-bottom">
             <Icon icon="solar:bolt-circle-linear" width="18" height="18" />
-            Battery-aware
+            {{ t('home.heroArtBattery') }}
           </span>
         </div>
       </div>
@@ -63,20 +63,24 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
 
 const goToSearch = () => {
-  router.push('/search')
+  router.push(addLocaleToPath('/search', localeStore.currentLocale))
 }
 
 const goToCode = () => {
-  router.push('/code')
+  router.push(addLocaleToPath('/code', localeStore.currentLocale))
 }
 
 const goToBundles = () => {
   router.push({
-    path: '/purchase-options',
+    path: addLocaleToPath('/purchase-options', localeStore.currentLocale),
     hash: '#bundle-subscription-card'
   })
 }

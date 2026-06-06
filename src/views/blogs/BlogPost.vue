@@ -10,14 +10,9 @@
             @click="sidebarCollapsed = !sidebarCollapsed"
           >
             <Icon icon="solar:book-bookmark-line-duotone" width="18" height="18" aria-hidden="true" />
-            <span v-if="sidebarCollapsed">Topics</span>
-            <span v-else>Hide topics</span>
+            <span v-if="sidebarCollapsed">{{ uiText.topics }}</span>
+            <span v-else>{{ uiText.hideTopics }}</span>
           </button>
-          <LanguageSwitcher
-            v-if="post && post.translations && post.translations.length"
-            :translations="post.translations"
-            @switch="refreshTree"
-          />
         </div>
       </div>
 
@@ -38,13 +33,13 @@
         <main class="content">
           <div v-if="loading" class="state-card loading">
             <span class="spinner" />
-            <span>Loading article…</span>
+            <span>{{ uiText.loading }}</span>
           </div>
 
           <div v-else-if="error" class="state-card error">
             <Icon icon="solar:danger-triangle-line-duotone" width="22" height="22" aria-hidden="true" />
             <div>
-              <div class="state-title">Failed to load</div>
+              <div class="state-title">{{ uiText.failedTitle }}</div>
               <div class="state-desc">{{ error }}</div>
             </div>
           </div>
@@ -81,20 +76,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getBlogPostBySlug, getBlogPostByLangSlug, getBlogTocTree } from '@/api/blog'
+import { DEFAULT_FAQ_GUIDE_LANG, buildFaqGuidePath, getDefaultFaqGuidePost, getFaqGuidePathForLocale } from '@/content/faq-guides'
 import type { BlogPostVO, BlogPostTranslationVO, BlogPostTocItemVO } from '@/types'
-import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import TreeNode from '@/components/blog/TreeNode.vue'
 import { Icon } from '@iconify/vue'
+import { applySeo, blogSeo } from '@/seo'
+import { normalizeLocale, useLocaleStore } from '@/store/locale'
 
 const route = useRoute()
 const router = useRouter()
+const localeStore = useLocaleStore()
 const loading = ref(true)
 const error = ref('')
 const post = ref<BlogPostVO | null>(null)
-const createdSeoLinks: HTMLLinkElement[] = []
 // toc state
 const tree = ref<BlogPostTocItemVO[]>([])
 const activeNodeId = ref<number | undefined>(undefined)
@@ -105,13 +102,30 @@ const currentLang = computed(() => {
   const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
   const langQ = route.query.lang
   const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
-  return langParam || queryLang
+  return langParam || queryLang || localeStore.currentLocale
+})
+
+const uiText = computed(() => {
+  if (currentLang.value === 'zh') {
+    return {
+      topics: 'FAQ 主题',
+      hideTopics: '隐藏主题',
+      loading: '正在加载 FAQ 指南...',
+      failedTitle: '加载失败',
+    }
+  }
+  return {
+    topics: 'FAQ topics',
+    hideTopics: 'Hide topics',
+    loading: 'Loading FAQ guide...',
+    failedTitle: 'Failed to load',
+  }
 })
 
 const firstTr = computed<BlogPostTranslationVO | null>(() => {
   if (!post.value?.translations?.length) return null
   const match = post.value.translations.find(t => currentLang.value && t.lang === currentLang.value)
-  return match || post.value.translations[0]
+  return match || post.value.translations.find(t => t.lang === DEFAULT_FAQ_GUIDE_LANG) || post.value.translations[0]
 })
 
 const formattedDate = computed(() => {
@@ -126,47 +140,12 @@ const formattedDate = computed(() => {
 
 function buildTranslationUrl(t: BlogPostTranslationVO): string {
   if (t.url) return t.url
-  // Fallback build: /:lang/blog/:slug
-  return `/${encodeURIComponent(t.lang)}/blog/${encodeURIComponent(t.slug)}`
+  return buildFaqGuidePath(t.lang, t.slug)
 }
 
-function ensureLink(rel: string, href: string): HTMLLinkElement {
-  const link = document.createElement('link')
-  link.rel = rel
-  link.href = href
-  document.head.appendChild(link)
-  createdSeoLinks.push(link)
-  return link
-}
-
-function setSeoLinks() {
-  if (!post.value || !post.value.translations?.length) return
-  // clear previous
-  for (const el of createdSeoLinks) {
-    if (el.parentNode) el.parentNode.removeChild(el)
-  }
-  createdSeoLinks.length = 0
-  const origin = window.location.origin
-  const currentPath = window.location.pathname
-
-  // canonical: prefer exact match for current lang+slug if present
-  const currentLang = typeof route.params.lang === 'string' ? route.params.lang : undefined
-  let canonicalHref = origin + currentPath
-  if (currentLang) {
-    const match = post.value.translations.find(t => t.lang === currentLang)
-    if (match) canonicalHref = origin + buildTranslationUrl(match)
-  }
-  ensureLink('canonical', canonicalHref)
-
-  // alternates for each translation
-  for (const t of post.value.translations) {
-    ensureLink('alternate', origin + buildTranslationUrl(t))
-      .setAttribute('hreflang', t.lang)
-  }
-  // x-default -> default to first translation or current path without lang
-  const xDefault = origin + (post.value.translations[0] ? buildTranslationUrl(post.value.translations[0]) : currentPath)
-  const xDefaultEl = ensureLink('alternate', xDefault)
-  xDefaultEl.setAttribute('hreflang', 'x-default')
+function setBlogSeo() {
+  if (!post.value || !firstTr.value) return
+  applySeo(blogSeo(post.value, firstTr.value, buildTranslationUrl(firstTr.value)))
 }
 
 onMounted(async () => {
@@ -181,17 +160,20 @@ onMounted(async () => {
     const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
 
     console.debug('[BlogPost] onMounted: params', { slug, langParam, queryLang })
+    const activeLang = langParam || queryLang || localeStore.currentLocale
     if (slug) {
-       if (langParam) {
+      if (langParam) {
         post.value = await getBlogPostByLangSlug(langParam, slug || '')
       } else {
-        post.value = await getBlogPostBySlug(slug || '', queryLang)
+        post.value = await getBlogPostBySlug(slug || '', activeLang)
       }
+    } else {
+      post.value = getDefaultFaqGuidePost(activeLang)
     }
-    setSeoLinks()
-    console.debug('[BlogPost] onMounted: will refreshTree', { lang: langParam || queryLang, route: route.fullPath })
+    setBlogSeo()
+    console.debug('[BlogPost] onMounted: will refreshTree', { lang: activeLang, route: route.fullPath })
     try {
-      await refreshTree(langParam || queryLang || undefined)
+      await refreshTree(activeLang)
       console.debug('[BlogPost] onMounted: refreshTree done', { size: tree.value.length, activeId: activeNodeId.value })
     } catch (e) {
       console.error('[BlogPost] onMounted: refreshTree failed', e)
@@ -214,14 +196,18 @@ watch(() => route.fullPath, async () => {
     const langQ = route.query.lang
     const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
 
+    const activeLang = langParam || queryLang || localeStore.currentLocale
     if (slug) {
       if (langParam) {
         post.value = await getBlogPostByLangSlug(langParam, slug || '')
       } else {
-        post.value = await getBlogPostBySlug(slug || '', queryLang)
+        post.value = await getBlogPostBySlug(slug || '', activeLang)
       }
+    } else {
+      post.value = getDefaultFaqGuidePost(activeLang)
     }
-    setSeoLinks()
+    setBlogSeo()
+    await refreshTree(activeLang)
   } catch (e: any) {
     error.value = e?.msg || e?.message || 'Unknown error'
   } finally {
@@ -229,25 +215,19 @@ watch(() => route.fullPath, async () => {
   }
 })
 
-onBeforeUnmount(() => {
-  // Clean up injected SEO link tags
-  for (const el of createdSeoLinks) {
-    if (el.parentNode) el.parentNode.removeChild(el)
-  }
-  createdSeoLinks.length = 0
-})
-
 function handleSelect(n: BlogPostTocItemVO) {
   activeNodeId.value = n.id
   const p = n.post
   if (p && (p.url || p.slug)) {
-    const lang = currentLang.value
-    if (p.url) {
-      router.push(p.url)
-    } else if (lang && p.slug) {
-      router.push(`/${encodeURIComponent(lang)}/blog/${encodeURIComponent(p.slug)}`)
+    const lang = normalizeLocale(currentLang.value)
+    localeStore.setLocale(lang)
+    const localizedSlug = p.translations?.find(t => t.lang === lang && t.slug)?.slug
+    if (localizedSlug) {
+      router.push(buildFaqGuidePath(lang, localizedSlug))
     } else if (p.slug) {
-      router.push(`/blog/${encodeURIComponent(p.slug)}`)
+      router.push(buildFaqGuidePath(lang, p.slug))
+    } else if (p.url) {
+      router.push(getFaqGuidePathForLocale(p.url, lang))
     }
   }
 }
@@ -261,10 +241,11 @@ async function refreshTree(lang?: string) {
   const findNode = (nodes: BlogPostTocItemVO[]): BlogPostTocItemVO | null => {
     for (const n of nodes) {
       const p = n.post
+      if (p?.id && post.value?.id && p.id === post.value.id) return n
       if (p?.url && p.url === path) return n
       if (p?.slug) {
-        if (useLang && path === `/${encodeURIComponent(useLang)}/blog/${encodeURIComponent(p.slug)}`) return n
-        if (!useLang && path === `/blog/${encodeURIComponent(p.slug)}`) return n
+        if (useLang && path === buildFaqGuidePath(useLang, p.slug)) return n
+        if (!useLang && path === buildFaqGuidePath(undefined, p.slug)) return n
       }
       if (n.children?.length) {
         const r = findNode(n.children)

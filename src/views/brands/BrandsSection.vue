@@ -3,18 +3,18 @@
     <div class="brands-container">
       <div class="brands-header">
         <div class="brands-header-left">
-          <h2 class="brands-title">Find your favorite brands</h2>
+          <h2 class="brands-title">{{ t('home.brandsTitle') }}</h2>
           <div class="brands-subtitle">
-            Explore the official watch faces from your favorite brands.
+            {{ t('home.brandsSubtitle') }}
           </div>
         </div>
 
         <button class="brands-more" type="button" @click="goToBrands">
-          MORE
+          {{ t('home.brandsMore') }}
         </button>
       </div>
 
-      <div class="brands-grid" aria-label="Featured brands">
+      <div class="brands-grid" :aria-label="t('home.brandsAria')">
         <button
           v-for="merchant in merchants"
           :key="merchant.userId"
@@ -36,8 +36,12 @@ import { useRouter } from 'vue-router'
 
 import { getTopMerchants } from '@/api/merchant'
 import type { PublicMerchantVO } from '@/types/merchant'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
 
 const merchants = ref<PublicMerchantVO[]>([])
 
@@ -51,11 +55,11 @@ onMounted(async () => {
 })
 
 const goToBrands = () => {
-  router.push('/brands')
+  router.push(addLocaleToPath('/brands', localeStore.currentLocale))
 }
 
 const goToMerchant = (userId: number) => {
-  router.push(`/brands/${userId}`)
+  router.push(addLocaleToPath(`/brands/${userId}`, localeStore.currentLocale))
 }
 
 const getInitial = (name?: string) => {

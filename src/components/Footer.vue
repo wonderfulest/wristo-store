@@ -9,9 +9,9 @@
     <!-- 桌面端布局 -->
     <div v-if="!isExpanded && !isMobile" class="footer-main desktop-layout">
       © 2025 WuKong OÜ |
-      <a href="/terms-and-conditions">Terms of Use</a> |
-      <a href="/privacy-policy">Privacy Policy</a> |
-      <a href="/contact">Contact</a> |
+      <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a> |
+      <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a> |
+      <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a> |
       <!-- <a href="/faq">FAQ</a> -->
     </div>
     
@@ -19,29 +19,29 @@
     <div v-if="!isExpanded && isMobile" class="footer-main mobile-layout">
       <div class="mobile-footer-header">
         <div class="drag-indicator"></div>
-        <span class="footer-title">Quick Links</span>
+        <span class="footer-title">{{ t('footer.quickLinks') }}</span>
       </div>
       
       <div class="mobile-footer-content">
         <div class="footer-actions">
-          <a href="/faq" class="footer-action" aria-label="Help">
+          <a :href="localizedPath('/faq/support')" class="footer-action" :aria-label="t('footer.help')">
             <div class="action-icon">?</div>
-            <span>Help</span>
+            <span>{{ t('footer.help') }}</span>
           </a>
           
-          <a href="/terms-and-conditions" class="footer-action" aria-label="Terms">
+          <a :href="localizedPath('/terms-and-conditions')" class="footer-action" :aria-label="t('footer.terms')">
             <div class="action-icon">T</div>
-            <span>Terms</span>
+            <span>{{ t('footer.terms') }}</span>
           </a>
           
-          <a href="mailto:support@wristo.io" class="footer-action" aria-label="Support">
+          <a href="mailto:support@wristo.io" class="footer-action" :aria-label="t('footer.support')">
             <div class="action-icon">@</div>
-            <span>Support</span>
+            <span>{{ t('footer.support') }}</span>
           </a>
           
-          <button @click="scrollToTop" class="footer-action" type="button" aria-label="Back to top">
+          <button @click="scrollToTop" class="footer-action" type="button" :aria-label="t('footer.top')">
             <div class="action-icon">↑</div>
-            <span>Top</span>
+            <span>{{ t('footer.top') }}</span>
           </button>
         </div>
         
@@ -52,27 +52,27 @@
     </div>
     <transition name="footer-expand">
       <div v-if="isExpanded" class="footer-detail">
-        <div class="footer-detail-title">© 2025 WuKong OÜ. All Rights Reserved</div>
+        <div class="footer-detail-title">© 2025 WuKong OÜ. {{ t('footer.rights') }}</div>
         <div class="footer-detail-block">
-          <strong>Address:</strong><br>
+          <strong>{{ t('footer.address') }}:</strong><br>
           Harju maakond, Tallinn, Kesklinna linnaosa, Ahtri tn 12, 15551, Estonia
         </div>
         <div class="footer-detail-block">
-          <strong>Email:</strong>
+          <strong>{{ t('footer.email') }}:</strong>
           <a href="mailto:support@wristo.io">support@wristo.io</a>
         </div>
         <div class="footer-detail-block">
-          <strong>Privacy Policy:</strong>
-          <a href="/privacy-policy" target="_blank">View Details</a>
+          <strong>{{ t('footer.privacy') }}:</strong>
+          <a :href="localizedPath('/privacy-policy')" target="_blank">{{ t('footer.viewDetails') }}</a>
         </div>
         <!-- <div class="footer-detail-block">
           <strong>Contact us on SLACK:</strong>
           <a href="https://join.slack.com/t/wristo/shared_invite/zt-37oujfc82-w6vpl_hzGNYYmsmN5vNOzg" target="_blank">Join Slack Channel</a>
         </div> -->
         <div class="footer-detail-links">
-          <a href="/terms-and-conditions">Terms of Use</a> |
-          <a href="/privacy-policy">Privacy Policy</a> |
-          <a href="/contact">Contact</a> |
+          <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a> |
+          <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a> |
+          <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a> |
           <!-- <a href="/faq">FAQ</a> -->
         </div>
       </div>
@@ -83,11 +83,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useI18n } from '@/i18n'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 
 const isExpanded = ref(false)
 const isVisible = ref(true)
 const isMobile = ref(false)
+const localeStore = useLocaleStore()
+const { t } = useI18n()
 let ticking = false
+
+const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 
 // 滚动到顶部功能
 const scrollToTop = () => {

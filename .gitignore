@@ -7,19 +7,58 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+.pnp
+.pnp.js
+
+# Build output
 dist
 dist-ssr
 *.local
 
+# Vite cache
+.vite/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Environment variables
+.env*.local
+.env.development
+.env.production
+.env.staging
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
-.DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
 tmp/
+temp/
+
+# Test coverage
+coverage/
+*.lcov
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# Debug
+.npm
+.eslintcache
+.stylelintcache
+.playwright-cli/

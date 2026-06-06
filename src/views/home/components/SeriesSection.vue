@@ -6,8 +6,8 @@
           <Icon class="series-header-icon-inner" icon="solar:widget-6-line-duotone" width="25" height="25" aria-hidden="true" />
         </div>
         <div class="series-heading-copy">
-          <span class="series-kicker">Curated collections</span>
-          <h2 class="series-title">Browse by Series</h2>
+          <span class="series-kicker">{{ t('home.seriesKicker') }}</span>
+          <h2 class="series-title">{{ t('home.seriesTitle') }}</h2>
         </div>
       </div>
       <div class="series-grid">
@@ -33,6 +33,9 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import type { Series } from '@/types';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 defineProps<{
   seriesList: Series[];

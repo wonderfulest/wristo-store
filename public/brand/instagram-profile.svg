@@ -1,0 +1,11 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wristo Instagram profile image</title>
+  <desc id="desc">Instagram-ready Wristo profile image.</desc>
+  <rect width="1080" height="1080" fill="#FBFDFC"/>
+  <circle cx="540" cy="540" r="444" fill="#0F6B68"/>
+  <circle cx="540" cy="540" r="312" fill="#FBFDFC"/>
+  <path d="M352 540C420.5 380.6 628.1 334 770.4 479.6" stroke="#111827" stroke-width="70" stroke-linecap="round"/>
+  <path d="M735.9 590.4C673.9 762.2 461.5 807 318.8 658.5" stroke="#111827" stroke-width="70" stroke-linecap="round"/>
+  <path d="M540 348V736" stroke="#F59E0B" stroke-width="58" stroke-linecap="round"/>
+  <circle cx="540" cy="540" r="52" fill="#111827"/>
+</svg>

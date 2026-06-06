@@ -7,13 +7,13 @@
             <Icon class="hot-header-icon-inner" icon="solar:fire-bold-duotone" width="25" height="25" />
           </div>
           <div class="hot-heading-copy">
-            <span class="hot-kicker">Most wanted</span>
-            <h2 class="hot-title">Trending Now</h2>
-            <p class="hot-subtitle">Popular Garmin watch faces shoppers keep coming back to.</p>
+            <span class="hot-kicker">{{ t('home.hotKicker') }}</span>
+            <h2 class="hot-title">{{ t('home.hotTitle') }}</h2>
+            <p class="hot-subtitle">{{ t('home.hotSubtitle') }}</p>
           </div>
         </div>
         <button class="hot-more" type="button" @click="$emit('more-click')">
-          More
+          {{ t('home.hotMore') }}
           <Icon icon="solar:arrow-right-linear" width="18" height="18" aria-hidden="true" />
         </button>
       </div>
@@ -33,7 +33,7 @@
             <div class="hot-card-footer">
               <span class="hot-price">${{ product.price.toFixed(2) }}</span>
               <span class="hot-cta">
-                View
+                {{ t('home.hotView') }}
                 <Icon icon="solar:arrow-right-linear" width="17" height="17" aria-hidden="true" />
               </span>
             </div>
@@ -48,6 +48,9 @@
 import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import type { ProductBaseVO } from '@/types';
+import { useI18n } from '@/i18n';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   hotProducts: ProductBaseVO[];

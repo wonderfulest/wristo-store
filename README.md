@@ -25,18 +25,18 @@ wristo.io/
 ├── /subscription-management   → Subscription Management (Deprecated)
 ├── /subscription-cancel       → Subscription Cancel (Deprecated)
 │
-├──-------------------- Blog --------------------
-├── /blog    → 博客首页
-│    ├── /zh/blog/...
-│    ├── /en/blog/...
-│    ├── /fr/blog/...
+├──-------------------- FAQ Guides --------------------
+├── /faq    → FAQ guides
+│    ├── /zh/faq/...
+│    ├── /en/faq/...
+│    ├── /fr/faq/...
 │    └── ...
 │
 ├──-------------------- Guides --------------------
 ├── /uninstall-guide           → Uninstall Guide
 ├── /contact                   → Contact
 ├── /newsletter                → Newsletter
-├── /faq                       → FAQ
+├── /faq/support               → Support FAQ
 ├── /faq/checkout              → Checkout Help
 │
 ├──-------------------- System --------------------
@@ -63,4 +63,3 @@ npm run build
 2. 验证成功后跳转到购买选项页面 (`/purchase-options`)
 3. 用户选择 Bundle 或单个产品后跳转到结账页面 (`/checkout`)
 4. 用户完成 Paddle 支付后跳转到成功页面 (`/payment/success`)
-

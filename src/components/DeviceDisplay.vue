@@ -15,7 +15,7 @@
         <div class="device-avatar">
           <div class="device-fallback">+</div>
         </div>
-        <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">Select Device</div>
+        <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ t('device.select') }}</div>
       </div>
     </div>
     
@@ -33,6 +33,7 @@ import { useUserStore } from '@/store/user'
 import type { GarminDeviceVO } from '@/types'
 import DeviceSelector from './DeviceSelector.vue'
 import type { GarminDeviceVO as ApiGarminDeviceVO } from '@/api/device'
+import { useI18n } from '@/i18n'
 
 interface Props {
   selectedDevice?: GarminDeviceVO | null
@@ -54,6 +55,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
+const { t } = useI18n()
 
 const userStore = useUserStore()
 const showSelector = ref(false)
@@ -121,11 +123,13 @@ defineExpose({
 /* Desktop Device Display */
 .device-display-root {
   display: inline-flex;
+  max-width: 100%;
 }
 
 .device-display-container {
   display: flex;
   align-items: center;
+  max-width: 100%;
 }
 
 .device-info {
@@ -138,6 +142,7 @@ defineExpose({
   border-radius: 999px;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
+  max-width: 100%;
 }
 
 .device-info.selected-state {
@@ -183,10 +188,12 @@ defineExpose({
 .device-name {
   font-size: 0.85rem;
   color: var(--color-ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-weight: 500;
+  line-height: 1.25;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* No Device State */

@@ -1,0 +1,17 @@
+<svg width="720" height="180" viewBox="0 0 720 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wristo primary logo</title>
+  <desc id="desc">Wristo watch face design logo with circular dial mark and wordmark.</desc>
+  <rect width="720" height="180" rx="32" fill="#FBFDFC"/>
+  <g transform="translate(42 26)">
+    <circle cx="64" cy="64" r="60" fill="#0F6B68"/>
+    <circle cx="64" cy="64" r="43" fill="#FBFDFC"/>
+    <path d="M38 64C47.6 41.6 76.8 35.1 96.8 55.5" stroke="#111827" stroke-width="9" stroke-linecap="round"/>
+    <path d="M91.4 71.1C82.7 95.3 52.8 101.6 32.7 80.7" stroke="#111827" stroke-width="9" stroke-linecap="round"/>
+    <path d="M64 37V93" stroke="#F59E0B" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="64" cy="64" r="7" fill="#111827"/>
+  </g>
+  <g transform="translate(196 44)">
+    <text x="0" y="52" fill="#111827" font-family="DM Sans, Inter, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="6">WRISTO</text>
+    <text x="4" y="91" fill="#0F6B68" font-family="DM Sans, Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="3">WATCH FACE DESIGN</text>
+  </g>
+</svg>

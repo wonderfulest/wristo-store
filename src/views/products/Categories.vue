@@ -36,6 +36,7 @@ import { useProductStore } from '@/store/product'
 import { getProductsByCategory } from '@/api/product'
 import type { PageResult, ProductBaseVO, Series } from '@/types'
 import ProductCard from '@/components/ProductCard.vue'
+import { absoluteUrl, applySeo } from '@/seo'
 
 const route = useRoute()
 const router = useRouter()
@@ -78,6 +79,8 @@ const fetchSeriesAndProducts = async (reset = true) => {
       } else {
         products.value = [...products.value, ...(response.list || [])]
       }
+
+      applyCategorySeo()
       
       // 检查是否还有更多数据
       hasMore.value = (response.list?.length || 0) === pageSize
@@ -153,6 +156,35 @@ const handleScroll = () => {
 
 const goToProduct = (product: ProductBaseVO) => {
   router.push({ name: 'product-detail', params: { id: product.appId } })
+}
+
+const applyCategorySeo = () => {
+  if (!series.value) return
+  const path = route.path
+  applySeo({
+    title: `${series.value.name} Garmin Watch Faces | Wristo`,
+    description: `Browse ${series.value.name} Garmin watch faces and Connect IQ apps on Wristo.`,
+    path,
+    image: series.value.image,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: `${series.value.name} Garmin Watch Faces`,
+        description: `Wristo collection page for ${series.value.name} Garmin watch faces.`,
+        url: absoluteUrl(path),
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: products.value.slice(0, 24).map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: absoluteUrl(`/product/${product.appId}`),
+            name: product.name,
+          })),
+        },
+      },
+    ],
+  })
 }
 
 onMounted(() => {

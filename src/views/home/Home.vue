@@ -34,29 +34,29 @@
     <button
       class="bundle-subscription-card"
       type="button"
-      aria-label="View bundle subscription offer"
+      :aria-label="t('home.bundleAria')"
       @click="goToBundleSubscription"
     >
       <span class="bundle-card-copy">
         <span class="bundle-eyebrow">
           <Icon icon="mdi:watch-variant" width="18" height="18" aria-hidden="true" />
-          Bundle access
+          {{ t('home.bundleEyebrow') }}
         </span>
         <span id="bundle-subscription-title" class="bundle-title">
-          Unlock the full watch face collection in one purchase
+          {{ t('home.bundleTitle') }}
         </span>
         <span class="bundle-desc">
-          Get the best-value bundle with lifetime access, app previews, and one checkout path.
+          {{ t('home.bundleDesc') }}
         </span>
       </span>
 
       <span class="bundle-card-meta" aria-hidden="true">
         <span class="bundle-metric">
-          <strong>All-in-one</strong>
-          <span>Bundle offer</span>
+          <strong>{{ t('home.bundleMetric') }}</strong>
+          <span>{{ t('home.bundleOffer') }}</span>
         </span>
         <span class="bundle-cta">
-          View bundle
+          {{ t('home.bundleCta') }}
           <Icon icon="mdi:arrow-right" width="20" height="20" />
         </span>
       </span>
@@ -75,9 +75,13 @@ import BrandsSection from '@/views/brands/BrandsSection.vue';
 import FeatureSection from '@/views/home/components/FeatureSection.vue';
 import SeriesSection from '@/views/home/components/SeriesSection.vue';
 import HotProductsSection from '@/views/home/components/HotProductsSection.vue';
+import { addLocaleToPath, useLocaleStore } from '@/store/locale';
+import { useI18n } from '@/i18n';
 
 const productStore = useProductStore();
 const router = useRouter();
+const localeStore = useLocaleStore();
+const { t } = useI18n();
 
 const searchTerm = ref('');
 const seriesList = ref<Series[]>([]);
@@ -86,12 +90,13 @@ const hotProducts = ref<ProductBaseVO[]>([]);
 const handleSubmitSearch = async (term: string) => {
   const q = term.trim()
   searchTerm.value = term
-  await router.push(q ? { path: '/search', query: { q } } : { path: '/search' })
+  const searchPath = addLocaleToPath('/search', localeStore.currentLocale)
+  await router.push(q ? { path: searchPath, query: { q } } : { path: searchPath })
 }
 
 const goToBundleSubscription = () => {
   router.push({
-    path: '/purchase-options',
+    path: addLocaleToPath('/purchase-options', localeStore.currentLocale),
     hash: '#bundle-subscription-card'
   })
 }
@@ -109,15 +114,15 @@ onMounted(async () => {
 });
 
 const goToProduct = (product: ProductBaseVO) => {
-  router.push({ name: 'product-detail', params: { id: product.appId } });
+  router.push(addLocaleToPath(`/product/${product.appId}`, localeStore.currentLocale));
 };
 
 const goToTopApps = () => {
-  router.push('/top');
+  router.push(addLocaleToPath('/top', localeStore.currentLocale));
 };
 
 const goToSeries = (series: Series) => {
-  router.push(`/categories/${series.slug}`);
+  router.push(addLocaleToPath(`/categories/${series.slug}`, localeStore.currentLocale));
 };
 </script>
 

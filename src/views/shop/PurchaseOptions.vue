@@ -1,16 +1,16 @@
 <template>
   <div class="purchase-options">
     <!-- <Logo /> -->
-    <h2 class="title">Choose Your Watch Face Access</h2>
-    <p class="desc">Unlock every included watch face once, keep lifetime access, and skip repeated single purchases.</p>
+    <h2 class="title">{{ t('purchase.title') }}</h2>
+    <p class="desc">{{ t('purchase.desc') }}</p>
 
     <div
       v-if="activeDiscountCode"
       class="discount-banner"
     >
-      <span class="badge-label">Coupon</span>
+      <span class="badge-label">{{ t('purchase.coupon') }}</span>
       <span class="code-text">{{ activeDiscountCode }}</span>
-      <span class="banner-text">has been applied to eligible prices.</span>
+      <span class="banner-text">{{ t('purchase.couponApplied') }}</span>
     </div>
     
     <div id="bundle-subscription-card" class="cards-container">
@@ -21,8 +21,8 @@
         v-if="bundles.length > 0"
         :class="{ 'bundle-subscription-target': index === 0 }"
         type="bundle"
-        :title="bundleItem.bundleName"
-        :description="bundleItem.bundleDesc"
+        :title="localizedBundleTitle(bundleItem)"
+        :description="localizedBundleDescription(bundleItem)"
         :bundle-items="getBundleItems(bundleItem)"
         :price-id="getPriceIdForBundle(bundleItem)"
         :original-price="getBundleOriginalPrice(bundleItem)"
@@ -31,7 +31,7 @@
         :is-selected="isBundleSelected(bundleItem)"
         :currency-code="getCurrencyCodeForBundle(bundleItem)"
         :animate-discount="shouldAnimateDiscount(getPriceIdForBundle(bundleItem))"
-        :button-text="`Buy Bundle for ${formatPrice(getBundleCurrentPrice(bundleItem), getCurrencyCodeForBundle(bundleItem))}`"
+        :button-text="buyBundleText(bundleItem)"
         @select="() => selectBundle(bundleItem)"
         @buy="() => handleBuyBundle(bundleItem)"
         :app-count="bundleItem.appCount"
@@ -52,7 +52,7 @@
         :is-selected="isProductSelected"
         :currency-code="productCurrencyCode"
         :animate-discount="shouldAnimateDiscount(getPriceIdForProduct(product))"
-        :button-text="`Buy for ${formatPrice(productCurrentPrice, productCurrencyCode)}`"
+        :button-text="buyProductText"
         @select="selectProduct"
         @buy="handleBuyProduct"
       />
@@ -81,10 +81,12 @@ import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
 import { checkDiscount, getBundlesForPurchase } from '@/api/purchase'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
 const route = useRoute()
 const store = useShopOptionsStore()
+const { t } = useI18n()
 
 // 订阅计划相关
 const selectedPlan = ref<SubscriptionPlan | null>(null)
@@ -175,6 +177,26 @@ const formatPrice = (amount: number, currencyCode?: string) => {
   const safe = Number.isFinite(Number(amount)) ? Number(amount) : 0
   return `${symbol}${safe.toFixed(2)}`
 }
+
+const isWristoPremiumBundle = (bundleItem: Bundle) => {
+  return String(bundleItem.bundleName || '').toLowerCase().includes('wristo premium')
+}
+
+const localizedBundleTitle = (bundleItem: Bundle) => {
+  return isWristoPremiumBundle(bundleItem) ? t('purchase.premiumBundleName') : bundleItem.bundleName
+}
+
+const localizedBundleDescription = (bundleItem: Bundle) => {
+  return isWristoPremiumBundle(bundleItem) ? t('purchase.premiumBundleDesc') : bundleItem.bundleDesc
+}
+
+const buyBundleText = (bundleItem: Bundle) => {
+  return `${t('purchase.buyBundleFor')} ${formatPrice(getBundleCurrentPrice(bundleItem), getCurrencyCodeForBundle(bundleItem))}`
+}
+
+const buyProductText = computed(() => {
+  return `${t('purchase.buyFor')} ${formatPrice(productCurrentPrice.value, productCurrencyCode.value)}`
+})
 
 const normalizePercentageValue = (value?: number) => {
   const n = Number(value)
