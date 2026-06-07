@@ -3,7 +3,7 @@
     <div class="header-inner">
       <div class="logo-area">
         <router-link :to="localizedPath('/')" class="logo-link" aria-label="Wristo home">
-          <img class="logo-image" src="/brand/wristo-logo-horizontal.svg" alt="Wristo" />
+          <img class="logo-image" src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-logo-horizontal.svg" alt="Wristo" />
         </router-link>
       </div>
       

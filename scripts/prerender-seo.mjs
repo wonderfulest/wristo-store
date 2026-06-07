@@ -356,7 +356,7 @@ function applyBuildTimeFallbackSeo(route, html) {
   const product = productPreviewByRoute.get(route)
   if (!product?.name) return html
 
-  const image = product.heroFile?.url || product.garminImageUrl || `${siteUrl}/logo.svg`
+  const image = product.heroFile?.url || product.garminImageUrl || 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-og-cover-1200x630.png'
   const title = `${product.name} Garmin Watch Face | Wristo`
   const description = truncate(
     stripHtml(product.description) ||

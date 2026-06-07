@@ -1,5 +1,5 @@
 <template>
-  <img src="/logo.svg" alt="logo"  class="logo"/>
+  <img src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-logo-horizontal.svg" alt="Wristo" class="logo" />
 </template>
 
 <script setup lang="ts">
@@ -8,11 +8,10 @@
 
 <style scoped>
 .logo {
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: #191919;
-  text-align: center;
-  height: 120px;
+  display: block;
+  width: 230px;
+  max-width: 70vw;
+  height: auto;
 }
 .logo-bold {
   font-weight: 700;

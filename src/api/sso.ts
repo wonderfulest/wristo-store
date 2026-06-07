@@ -3,7 +3,6 @@ import instance from '@/config/axios'
 export interface SsoTokenRequestDto {
   code: string
   clientId: string
-  clientSecret: string
   redirectUri: string
 }
 

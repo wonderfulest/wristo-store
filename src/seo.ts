@@ -8,7 +8,8 @@ export const SITE_NAME = 'Wristo'
 export const DEFAULT_SITE_URL = 'https://wristo.io'
 export const DEFAULT_DESCRIPTION =
   'Discover premium Garmin watch faces, bundles, and setup guides from Wristo.'
-export const DEFAULT_IMAGE = '/logo.svg'
+export const BRAND_LOGO_URL = 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-og-cover-1200x630.png'
+export const DEFAULT_IMAGE = BRAND_LOGO_URL
 
 export type JsonLdObject = Record<string, unknown>
 
@@ -326,7 +327,7 @@ function articleSchema(post: BlogPostVO, translation: BlogPostTranslationVO, pat
       name: SITE_NAME,
       logo: {
         '@type': 'ImageObject',
-        url: absoluteUrl('/logo.svg'),
+        url: BRAND_LOGO_URL,
       },
     },
     mainEntityOfPage: absoluteUrl(path),
@@ -339,7 +340,7 @@ function organizationSchema(): JsonLdObject {
     '@type': 'Organization',
     name: SITE_NAME,
     url: siteUrl(),
-    logo: absoluteUrl('/logo.svg'),
+    logo: BRAND_LOGO_URL,
     sameAs: [
       'https://www.facebook.com/wristo',
       'https://www.instagram.com/wristo',

@@ -165,7 +165,7 @@ import DeviceDisplay from '@/components/DeviceDisplay.vue'
 const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL?.replace(/\/login\/?$/, '').replace(/\/auth\/?$/, '') || ''
 
 // Default avatar image shown when userInfo.avatar is empty
-const defaultAvatar = '/logo.svg'
+const defaultAvatar = 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-social-profile-1080.png'
 
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)

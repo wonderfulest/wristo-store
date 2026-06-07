@@ -1,7 +1,7 @@
 <template>
   <div class="code-input-page">
     <div class="content-container">
-      <img class="code-logo" src="/logo.svg" alt="Wristo" />
+      <img class="code-logo" src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-logo-horizontal.svg" alt="Wristo" />
       <div class="header-section">
         <p class="eyebrow">{{ t('code.eyebrow') }}</p>
         <h1 class="title">{{ t('code.title') }}</h1>

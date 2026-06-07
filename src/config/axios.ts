@@ -3,9 +3,11 @@ import { ElMessage } from 'element-plus'
 import { BizErrorCode } from '@/constant/errorCode'
 import { useUserStore } from '@/store/user'
 import type { ApiResponse } from '@/types'
+import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 
 const instance = axios.create({
   baseURL: '/api', // 走 vite 代理
+  withCredentials: true,
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
@@ -63,18 +65,18 @@ instance.interceptors.response.use(
   error => {
     const reqUrl: string = error.config?.url || ''
     const isPublicApi = reqUrl.includes('/public/')
-    if (error.response?.status === 403) {
+    const status = error.response?.status
+    if (status === 401 || status === 403) {
       if (isPublicApi) {
         // 对公开接口不做登录重定向，仅提示错误
         const msg = error.response?.data?.msg || 'Permission denied'
         ElMessage.error(msg)
       } else {
+        const userStore = useUserStore()
+        userStore.token = ''
+        userStore.userInfo = null
         ElMessage.error('登录已过期，请重新登录')
-        setTimeout(() => {
-          const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
-          const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
-          window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`  
-        }, 3000)
+        redirectToSsoLogin('store', 1000)
       }
     } else {
       const msg = error.response?.data?.msg || '网络错误，请稍后重试'
