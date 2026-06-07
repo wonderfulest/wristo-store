@@ -2,7 +2,7 @@
   <div class="lang-switcher" role="navigation" :aria-label="t('language.selector')">
     <button class="current" type="button" :aria-expanded="isOpen" @click="isOpen = !isOpen">
       <Icon icon="solar:global-line-duotone" width="18" height="18" aria-hidden="true" />
-      <span>{{ currentLocale.toUpperCase() }}</span>
+      <span>{{ getLanguageLabel(currentLocale) }}</span>
       <el-icon :class="{ rotated: isOpen }"><arrow-down /></el-icon>
     </button>
     <div class="buttons" :class="{ open: isOpen }">
@@ -14,7 +14,7 @@
         type="button"
         @click="switchLanguage(locale)"
       >
-        {{ locale.toUpperCase() }}
+        {{ getLanguageLabel(locale) }}
       </button>
     </div>
   </div>
@@ -35,6 +35,14 @@ const localeStore = useLocaleStore()
 const { t } = useI18n()
 const isOpen = ref(false)
 const supportedLocales = SUPPORTED_LOCALES
+const languageLabels: Record<string, string> = {
+  de: 'Deutsch',
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  it: 'Italiano',
+  zh: '中文',
+}
 
 const currentLocale = computed(() => {
   const p = route.params.lang
@@ -61,6 +69,10 @@ function switchLanguage(targetLang: string) {
     router.push({ path: nextPath, query: route.query, hash: route.hash })
   }
 }
+
+function getLanguageLabel(locale: string) {
+  return languageLabels[normalizeLocale(locale)]
+}
 </script>
 
 <style scoped>
@@ -76,7 +88,7 @@ function switchLanguage(targetLang: string) {
   right: 0;
   z-index: 50;
   display: none;
-  min-width: 132px;
+  min-width: 164px;
   padding: 8px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 12px;
@@ -107,6 +119,7 @@ function switchLanguage(targetLang: string) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
 }
 .current:hover,
 .current:focus-visible {
@@ -126,6 +139,7 @@ function switchLanguage(targetLang: string) {
   padding: 0 10px;
   border-radius: 8px;
   text-align: left;
+  white-space: nowrap;
 }
 .option:hover,
 .option.active {
