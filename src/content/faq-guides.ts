@@ -1,8 +1,11 @@
 import { faqGuidePosts, faqGuideTocTree } from './faq-guides.generated'
 import type { BlogPostTocItemVO, BlogPostTranslationVO, BlogPostVO } from '@/types'
-import { DEFAULT_LOCALE, normalizeLocale } from '@/store/locale'
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, normalizeLocale } from '@/store/locale'
 
 export const DEFAULT_FAQ_GUIDE_LANG = 'en'
+const localePattern = SUPPORTED_LOCALES.join('|')
+const faqPathPattern = new RegExp(`^/(?:(${localePattern})/)?faq(?:/([^/?#]+))?/?$`)
+const localizedFaqPathPattern = new RegExp(`^/(${localePattern})/faq(?:/|$)`)
 
 export const supportedFaqGuideLangs = Array.from(
   new Set(
@@ -29,6 +32,15 @@ export function getDefaultFaqGuidePost(lang?: string): BlogPostVO | null {
   return firstPost ? localizePostRoutes(firstPost) : null
 }
 
+export function getDefaultFaqGuidePathForLocale(targetLang: string): string {
+  const lang = normalizeLocale(targetLang)
+  const post = getDefaultFaqGuidePost(DEFAULT_FAQ_GUIDE_LANG)
+  const fallbackTranslation =
+    post?.translations?.find((translation) => translation.lang === DEFAULT_FAQ_GUIDE_LANG && translation.slug) ||
+    post?.translations?.find((translation) => translation.slug)
+  return buildFaqGuidePath(lang, fallbackTranslation?.slug)
+}
+
 export function getFaqGuideTocTree(lang?: string): BlogPostTocItemVO[] {
   return localizeTree(faqGuideTocTree, lang)
 }
@@ -51,7 +63,7 @@ export function buildFaqGuidePath(lang: string | undefined, slug: string | undef
 
 export function getFaqGuidePathForLocale(path: string, targetLang: string): string {
   const lang = normalizeLocale(targetLang)
-  const match = path.match(/^\/(?:(de|en|es|fr|it|zh)\/)?faq(?:\/([^/?#]+))?\/?$/)
+  const match = path.match(faqPathPattern)
   if (!match) return path
 
   const currentLang = match[1]
@@ -64,12 +76,19 @@ export function getFaqGuidePathForLocale(path: string, targetLang: string): stri
     return buildFaqGuidePath(lang, targetTranslation.slug)
   }
 
+  const defaultTranslation = post?.translations?.find(
+    (translation) => translation.lang === DEFAULT_FAQ_GUIDE_LANG && translation.slug,
+  )
+  if (defaultTranslation?.slug) {
+    return buildFaqGuidePath(lang, defaultTranslation.slug)
+  }
+
   return buildFaqGuidePath(lang, undefined)
 }
 
 export function getPreferredFaqGuidePath(path: string, preferredLang: string): string {
   const lang = normalizeLocale(preferredLang)
-  if (lang === DEFAULT_LOCALE || path.match(/^\/(de|en|es|fr|it|zh)\/faq(?:\/|$)/)) return path
+  if (lang === DEFAULT_LOCALE || path.match(localizedFaqPathPattern)) return path
   return getFaqGuidePathForLocale(path, lang)
 }
 
@@ -83,12 +102,16 @@ export function blogUrlToFaqUrl(url: string | undefined): string | undefined {
 }
 
 function findPostBySlug(slug: string, lang?: string): BlogPostVO | null {
+  let fallbackPost: BlogPostVO | null = null
   for (const post of getDisplayablePosts()) {
     const translations = post.translations || []
     if (lang && translations.some((translation) => translation.lang === lang && translation.slug === slug)) return post
+    if (lang && translations.some((translation) => translation.lang === DEFAULT_FAQ_GUIDE_LANG && translation.slug === slug)) {
+      fallbackPost = post
+    }
     if (!lang && (post.slug === slug || translations.some((translation) => translation.slug === slug))) return post
   }
-  return null
+  return fallbackPost
 }
 
 function getDisplayablePosts(): BlogPostVO[] {

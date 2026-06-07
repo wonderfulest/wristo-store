@@ -1,6 +1,21 @@
 import { defineStore } from 'pinia'
 
-export const SUPPORTED_LOCALES = ['en', 'zh', 'de', 'es', 'fr', 'it'] as const
+export const SUPPORTED_LOCALES = [
+  'en',
+  'de',
+  'es',
+  'fr',
+  'it',
+  'pt-br',
+  'nl',
+  'pl',
+  'sv',
+  'da',
+  'cs',
+  'zh',
+  'ja',
+  'ko',
+] as const
 export type SupportedLocale = typeof SUPPORTED_LOCALES[number]
 
 export const DEFAULT_LOCALE: SupportedLocale = 'en'

@@ -36,11 +36,19 @@ const { t } = useI18n()
 const isOpen = ref(false)
 const supportedLocales = SUPPORTED_LOCALES
 const languageLabels: Record<string, string> = {
+  cs: 'Cestina',
+  da: 'Dansk',
   de: 'Deutsch',
   en: 'English',
   es: 'Español',
   fr: 'Français',
   it: 'Italiano',
+  ja: '日本語',
+  ko: '한국어',
+  nl: 'Nederlands',
+  pl: 'Polski',
+  'pt-br': 'Português',
+  sv: 'Svenska',
   zh: '中文',
 }
 
@@ -71,7 +79,8 @@ function switchLanguage(targetLang: string) {
 }
 
 function getLanguageLabel(locale: string) {
-  return languageLabels[normalizeLocale(locale)]
+  const normalized = normalizeLocale(locale)
+  return languageLabels[normalized] || languageLabels.en
 }
 </script>
 
@@ -89,6 +98,8 @@ function getLanguageLabel(locale: string) {
   z-index: 50;
   display: none;
   min-width: 164px;
+  max-height: min(420px, calc(100vh - 96px));
+  overflow-y: auto;
   padding: 8px;
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 12px;
@@ -162,6 +173,7 @@ function getLanguageLabel(locale: string) {
   .buttons {
     position: static;
     width: 100%;
+    max-height: min(360px, calc(100vh - 180px));
     margin-top: 8px;
     box-shadow: none;
     background: rgba(238, 245, 243, 0.82);

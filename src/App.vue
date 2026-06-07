@@ -1,17 +1,40 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { ElConfigProvider } from 'element-plus'
+import cs from 'element-plus/dist/locale/cs.mjs'
+import da from 'element-plus/dist/locale/da.mjs'
 import de from 'element-plus/dist/locale/de.mjs'
 import en from 'element-plus/dist/locale/en.mjs'
 import es from 'element-plus/dist/locale/es.mjs'
 import fr from 'element-plus/dist/locale/fr.mjs'
 import it from 'element-plus/dist/locale/it.mjs'
+import ja from 'element-plus/dist/locale/ja.mjs'
+import ko from 'element-plus/dist/locale/ko.mjs'
+import nl from 'element-plus/dist/locale/nl.mjs'
+import pl from 'element-plus/dist/locale/pl.mjs'
+import ptBr from 'element-plus/dist/locale/pt-br.mjs'
+import sv from 'element-plus/dist/locale/sv.mjs'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import Layout from './components/Layout.vue'
 import { useLocaleStore, type SupportedLocale } from './store/locale'
 
 const localeStore = useLocaleStore()
-const elementLocales = { de, en, es, fr, it, zh: zhCn } satisfies Record<SupportedLocale, typeof en>
+const elementLocales = {
+  cs,
+  da,
+  de,
+  en,
+  es,
+  fr,
+  it,
+  ja,
+  ko,
+  nl,
+  pl,
+  'pt-br': ptBr,
+  sv,
+  zh: zhCn,
+} satisfies Record<SupportedLocale, typeof en>
 const elementLocale = computed(() => elementLocales[localeStore.currentLocale] || en)
 </script>
 

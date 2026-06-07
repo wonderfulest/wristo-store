@@ -75,12 +75,20 @@ async function main() {
 
 async function discoverRoutes() {
   const routes = []
-  const [categories, hotProducts, newProducts, searchedProducts, faqGuideRoutes] = await Promise.all([
+  const [
+    categories,
+    hotProducts,
+    newProducts,
+    searchedProducts,
+    faqGuideRoutes,
+    localizedStaticRoutes,
+  ] = await Promise.all([
     safeApiGet('/public/categories/all'),
     safeApiGet('/public/products/hot?limit=60'),
     safeApiGet('/public/products/new?limit=60'),
     safeApiGet('/public/products/search/v2?keyword=&pageNum=1&pageSize=100'),
     loadFaqGuideRoutes(),
+    loadLocalizedStaticRoutes(),
   ])
 
   for (const category of asList(categories)) {
@@ -97,8 +105,32 @@ async function discoverRoutes() {
   }
 
   routes.push(...faqGuideRoutes)
+  routes.push(...localizedStaticRoutes)
 
   return routes.filter(Boolean)
+}
+
+async function loadLocalizedStaticRoutes() {
+  const locales = await loadSupportedLocales()
+  const routes = []
+  for (const locale of locales) {
+    for (const route of staticRoutes) {
+      routes.push(route === '/' ? `/${locale}` : `/${locale}${route}`)
+    }
+  }
+  return routes
+}
+
+async function loadSupportedLocales() {
+  try {
+    const source = await readFile(path.join(rootDir, 'src/store/locale.ts'), 'utf8')
+    const match = source.match(/SUPPORTED_LOCALES\s*=\s*\[([\s\S]*?)\]\s+as const/)
+    if (!match) throw new Error('SUPPORTED_LOCALES not found')
+    return [...match[1].matchAll(/'([^']+)'/g)].map((item) => item[1]).filter(Boolean)
+  } catch (error) {
+    console.warn(`[seo] Locale discovery failed: ${error.message}`)
+    return ['en']
+  }
 }
 
 async function loadFaqGuideRoutes() {

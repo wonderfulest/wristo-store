@@ -79,7 +79,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getBlogPostBySlug, getBlogPostByLangSlug, getBlogTocTree } from '@/api/blog'
-import { DEFAULT_FAQ_GUIDE_LANG, buildFaqGuidePath, getDefaultFaqGuidePost, getFaqGuidePathForLocale } from '@/content/faq-guides'
+import {
+  DEFAULT_FAQ_GUIDE_LANG,
+  buildFaqGuidePath,
+  getDefaultFaqGuidePathForLocale,
+  getDefaultFaqGuidePost,
+  getFaqGuidePathForLocale,
+} from '@/content/faq-guides'
 import type { BlogPostVO, BlogPostTranslationVO, BlogPostTocItemVO } from '@/types'
 import TreeNode from '@/components/blog/TreeNode.vue'
 import { Icon } from '@iconify/vue'
@@ -148,28 +154,51 @@ function setBlogSeo() {
   applySeo(blogSeo(post.value, firstTr.value, buildTranslationUrl(firstTr.value)))
 }
 
+function isFaqGuideMissing(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error || '')
+  return message.includes('FAQ guide not found')
+}
+
+function redirectToDefaultFaq(activeLang: string) {
+  const nextPath = getDefaultFaqGuidePathForLocale(activeLang)
+  if (nextPath && nextPath !== route.path) {
+    router.replace({ path: nextPath, query: route.query, hash: route.hash })
+  }
+}
+
+async function loadCurrentPost() {
+  const slugRaw = route.params.slug
+  const slug = Array.isArray(slugRaw) ? slugRaw[0] : slugRaw
+  const langParamRaw = route.params.lang
+  const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
+  const langQ = route.query.lang
+  const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
+
+  const activeLang = langParam || queryLang || localeStore.currentLocale
+  try {
+    if (slug) {
+      post.value = langParam
+        ? await getBlogPostByLangSlug(langParam, slug || '')
+        : await getBlogPostBySlug(slug || '', activeLang)
+    } else {
+      post.value = getDefaultFaqGuidePost(activeLang)
+    }
+  } catch (e) {
+    if (isFaqGuideMissing(e)) {
+      post.value = getDefaultFaqGuidePost(DEFAULT_FAQ_GUIDE_LANG)
+      redirectToDefaultFaq(activeLang)
+      return activeLang
+    }
+    throw e
+  }
+  return activeLang
+}
+
 onMounted(async () => {
   sidebarCollapsed.value = window.innerWidth <= 640
 
   try {
-    const slugRaw = route.params.slug
-    const slug = Array.isArray(slugRaw) ? slugRaw[0] : slugRaw
-    const langParamRaw = route.params.lang
-    const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
-    const langQ = route.query.lang
-    const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
-
-    console.debug('[BlogPost] onMounted: params', { slug, langParam, queryLang })
-    const activeLang = langParam || queryLang || localeStore.currentLocale
-    if (slug) {
-      if (langParam) {
-        post.value = await getBlogPostByLangSlug(langParam, slug || '')
-      } else {
-        post.value = await getBlogPostBySlug(slug || '', activeLang)
-      }
-    } else {
-      post.value = getDefaultFaqGuidePost(activeLang)
-    }
+    const activeLang = await loadCurrentPost()
     setBlogSeo()
     console.debug('[BlogPost] onMounted: will refreshTree', { lang: activeLang, route: route.fullPath })
     try {
@@ -189,23 +218,7 @@ watch(() => route.fullPath, async () => {
   loading.value = true
   error.value = ''
   try {
-    const slugRaw = route.params.slug
-    const slug = Array.isArray(slugRaw) ? slugRaw[0] : slugRaw
-    const langParamRaw = route.params.lang
-    const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
-    const langQ = route.query.lang
-    const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
-
-    const activeLang = langParam || queryLang || localeStore.currentLocale
-    if (slug) {
-      if (langParam) {
-        post.value = await getBlogPostByLangSlug(langParam, slug || '')
-      } else {
-        post.value = await getBlogPostBySlug(slug || '', activeLang)
-      }
-    } else {
-      post.value = getDefaultFaqGuidePost(activeLang)
-    }
+    const activeLang = await loadCurrentPost()
     setBlogSeo()
     await refreshTree(activeLang)
   } catch (e: any) {
