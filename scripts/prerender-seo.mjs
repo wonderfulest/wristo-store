@@ -121,7 +121,16 @@ async function loadFaqGuideRoutes() {
 }
 
 async function prerenderRoutes(routes) {
-  const browser = await chromium.launch({ headless: true })
+  const shellHtml = await readFile(path.join(distDir, 'index.html'), 'utf8')
+  let browser
+  try {
+    browser = await chromium.launch({ headless: true })
+  } catch (error) {
+    console.warn(`[seo] Browser prerender unavailable: ${error.message}`)
+    await writeFallbackRouteHtml(routes, shellHtml)
+    return
+  }
+
   const page = await browser.newPage({ viewport: { width: 1366, height: 900 } })
   page.setDefaultTimeout(8000)
   page.setDefaultNavigationTimeout(12000)
@@ -164,8 +173,6 @@ async function prerenderRoutes(routes) {
     console.warn(`[seo] page error: ${error.message}`)
   })
 
-  const shellHtml = await readFile(path.join(distDir, 'index.html'), 'utf8')
-
   for (const [index, route] of routes.entries()) {
     try {
       console.log(`[seo] Prerender ${index + 1}/${routes.length}: ${route}`)
@@ -183,6 +190,13 @@ async function prerenderRoutes(routes) {
   }
 
   await browser.close()
+}
+
+async function writeFallbackRouteHtml(routes, shellHtml) {
+  for (const route of routes) {
+    await writeRouteHtml(route, ensureDoctype(applyBuildTimeFallbackSeo(route, shellHtml)))
+  }
+  console.warn(`[seo] Wrote fallback SEO HTML for ${routes.length} routes.`)
 }
 
 async function writeSitemap(routes) {
