@@ -16,7 +16,7 @@
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">Product Details</h2>
-          <div class="product-desc" v-html="product.description"></div>
+          <div class="product-desc" v-html="renderedProductDescription"></div>
         </section>
         <div v-if="product?.garminStoreUrl" class="install-section">
           <div class="install-title">Install on your Garmin device</div>
@@ -167,6 +167,118 @@ const displayedDevices = computed(() => {
   if (showAllDevices.value) return list
   return list.slice(0, maxVisibleDevices)
 })
+
+const renderedProductDescription = computed(() => {
+  return renderProductDescription(product.value?.description || '')
+})
+
+const escapeHtml = (value: string) => {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+const renderInlineMarkdown = (value: string) => {
+  return escapeHtml(value)
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(
+      /(https?:\/\/[^\s<]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    )
+}
+
+const isChipSectionTitle = (value: string) => {
+  return /metrics|data types|date|time|goal|charts/i.test(value)
+}
+
+const renderProductDescription = (description: string) => {
+  const lines = description
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .split('\n')
+
+  const html: string[] = []
+  let paragraph: string[] = []
+  let list: string[] = []
+  let chips: string[] = []
+  let collectingChips = false
+
+  const flushParagraph = () => {
+    if (!paragraph.length) return
+    html.push(`<p>${renderInlineMarkdown(paragraph.join(' '))}</p>`)
+    paragraph = []
+  }
+
+  const flushList = () => {
+    if (!list.length) return
+    html.push(`<ul>${list.map((item) => `<li>${renderInlineMarkdown(item)}</li>`).join('')}</ul>`)
+    list = []
+  }
+
+  const flushChips = () => {
+    if (!chips.length) return
+    html.push(
+      `<div class="detail-chip-grid">${chips
+        .map((item) => `<span>${renderInlineMarkdown(item)}</span>`)
+        .join('')}</div>`
+    )
+    chips = []
+  }
+
+  const flushAll = () => {
+    flushParagraph()
+    flushList()
+    flushChips()
+  }
+
+  lines.forEach((rawLine) => {
+    const line = rawLine.trim()
+
+    if (!line) {
+      flushParagraph()
+      flushList()
+      return
+    }
+
+    const heading = line.match(/^(#{1,6})\s+(.+)$/)
+    if (heading) {
+      flushAll()
+      const level = heading[1].length <= 1 ? 'h3' : 'h4'
+      const title = heading[2].trim()
+      collectingChips = isChipSectionTitle(title)
+      html.push(`<${level}>${renderInlineMarkdown(title)}</${level}>`)
+      return
+    }
+
+    const bullet = line.match(/^[-*+]\s+(.+)$/)
+    const numbered = line.match(/^\d+\.\s+(.+)$/)
+    if (bullet || numbered) {
+      flushParagraph()
+      flushChips()
+      list.push((bullet?.[1] || numbered?.[1] || '').trim())
+      return
+    }
+
+    if (collectingChips && line.length <= 64 && !/[.!?。！？]$/.test(line)) {
+      flushParagraph()
+      flushList()
+      chips.push(line)
+      return
+    }
+
+    flushList()
+    flushChips()
+    paragraph.push(line)
+  })
+
+  flushAll()
+
+  return html.join('')
+}
 
 const saveQRCode = async () => {
   try {
@@ -459,17 +571,115 @@ onMounted(async () => {
   box-shadow: 0 4px 18px 0 rgba(0,0,0,0.08);
 }
 .product-section-title {
-  font-size: 1.15rem;
-  font-weight: bold;
-  margin: 38px 0 18px 0;
-  color: #111;
-  letter-spacing: 0.5px;
+  font-size: 1.18rem;
+  font-weight: 800;
+  margin: 0 0 18px 0;
+  color: var(--color-ink);
+  letter-spacing: 0;
+}
+.product-summary {
+  width: 100%;
+  max-width: 560px;
+  margin: 6px 0 32px 0;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 .product-desc {
-  font-size: 1.08rem;
-  color: #444;
-  line-height: 1.7;
-  max-width: 480px;
+  font-size: 1rem;
+  color: var(--color-muted);
+  line-height: 1.72;
+  max-width: 100%;
+}
+.product-desc :deep(h3),
+.product-desc :deep(h4) {
+  color: var(--color-ink);
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+.product-desc :deep(h3) {
+  margin: 24px 0 12px;
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+.product-desc :deep(h4) {
+  margin: 20px 0 10px;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+.product-desc :deep(h3:first-child),
+.product-desc :deep(h4:first-child),
+.product-desc :deep(p:first-child) {
+  margin-top: 0;
+}
+.product-desc :deep(p) {
+  margin: 0 0 14px;
+}
+.product-desc :deep(strong) {
+  color: var(--color-ink);
+  font-weight: 800;
+}
+.product-desc :deep(a) {
+  color: var(--color-brand);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+.product-desc :deep(a:hover) {
+  color: var(--color-brand-strong);
+}
+.product-desc :deep(code) {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.92em;
+}
+.product-desc :deep(ul) {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  list-style: none;
+}
+.product-desc :deep(li) {
+  position: relative;
+  padding-left: 20px;
+  color: var(--color-muted);
+}
+.product-desc :deep(li::before) {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.78em;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  transform: translateY(-50%);
+}
+.product-desc :deep(.detail-chip-grid) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.product-desc :deep(.detail-chip-grid span) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 .install-section {
   margin: 0 0 32px 0;

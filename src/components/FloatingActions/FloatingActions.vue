@@ -6,8 +6,17 @@
         type="button"
         @click="handleClick"
         aria-label="Back to top"
+        title="Back to top"
       >
-        Top
+        <svg
+          class="fab-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M12 19V5" />
+          <path d="M5 12l7-7 7 7" />
+        </svg>
       </button>
 
       <slot />
@@ -58,31 +67,26 @@ const handleClick = () => {
 .fab-btn {
   pointer-events: auto;
 
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
   border-radius: 999px;
-  border: 1px solid rgba(0, 122, 255, 0.25);
+  border: 1px solid rgba(15, 107, 104, 0.22);
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  background: linear-gradient(
-    135deg,
-    rgba(0, 122, 255, 0.96),
-    rgba(64, 156, 255, 0.92)
-  );
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 
-  color: #fff;
-  font-weight: 800;
-  font-size: 15px;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
+  color: var(--color-brand-strong);
 
   cursor: pointer;
   box-shadow:
-    0 18px 42px rgba(0, 122, 255, 0.26),
-    0 12px 28px rgba(15, 23, 42, 0.14);
+    0 16px 34px rgba(17, 24, 39, 0.12),
+    0 8px 18px rgba(15, 107, 104, 0.14);
 
   transition:
     transform 0.18s ease,
@@ -94,25 +98,37 @@ const handleClick = () => {
 
 .fab-btn:hover {
   transform: translateY(-2px);
+  border-color: rgba(15, 107, 104, 0.42);
+  background: var(--color-brand);
+  color: #fff;
   box-shadow:
-    0 22px 52px rgba(0, 122, 255, 0.32),
-    0 16px 32px rgba(15, 23, 42, 0.20);
+    0 20px 44px rgba(17, 24, 39, 0.16),
+    0 12px 26px rgba(15, 107, 104, 0.24);
 }
 
 .fab-btn:active {
-  transform: scale(0.96) translateY(0);
+  transform: translateY(0);
   box-shadow:
-    0 12px 32px rgba(0, 122, 255, 0.22),
-    0 8px 18px rgba(15, 23, 42, 0.18);
+    0 10px 24px rgba(17, 24, 39, 0.12),
+    0 6px 14px rgba(15, 107, 104, 0.18);
 }
 
 .fab-btn:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.9);
-  outline-offset: 2px;
+  outline: 3px solid rgba(15, 107, 104, 0.22);
+  outline-offset: 3px;
   box-shadow:
-    0 0 0 3px rgba(0, 122, 255, 0.35),
-    0 18px 42px rgba(0, 122, 255, 0.26),
-    0 12px 28px rgba(15, 23, 42, 0.14);
+    0 16px 34px rgba(17, 24, 39, 0.12),
+    0 8px 18px rgba(15, 107, 104, 0.14);
+}
+
+.fab-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 @media (min-width: 768px) {
