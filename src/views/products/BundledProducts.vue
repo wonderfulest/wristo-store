@@ -18,7 +18,17 @@
           />
           <div class="product-info">
             <div class="product-name">{{ product.name }}</div>
-            <a :href="product.garminStoreUrl" target="_blank" class="garmin-link">Garmin Store</a>
+            <router-link
+              :to="toGarminStoreBridge({
+                url: product.garminStoreUrl,
+                name: product.name,
+                imageUrl: product.heroFile?.url || product.garminImageUrl,
+                sourcePath: route.fullPath,
+              })"
+              class="garmin-link"
+            >
+              Garmin Store
+            </router-link>
           </div>
           <div class="qrcode">
             <qrcode-vue :value="product.garminStoreUrl" :size="72" :level="'M'" class="qrcode-img" />
@@ -34,6 +44,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
 import { getBundleById } from '@/api/bundle'
+import { toGarminStoreBridge } from '@/utils/garminStore'
 
 const route = useRoute()
 const router = useRouter()
@@ -151,4 +162,4 @@ onMounted(async () => {
   font-size: 1.2em;
   margin: 40px 0;
 }
-</style> 
+</style>

@@ -41,6 +41,11 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/products/ProductDetail.vue')
   },
   {
+    path: '/garmin-store',
+    name: 'GarminStoreBridge',
+    component: () => import('@/views/GarminStoreBridge.vue')
+  },
+  {
     path: '/bundle/:id',
     name: 'bundle-detail',
     component: () => import('@/views/products/BundleDetail.vue')

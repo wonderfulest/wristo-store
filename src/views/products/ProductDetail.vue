@@ -110,6 +110,7 @@ import { useProductStore } from '@/store/product'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
+import { toGarminStoreBridge } from '@/utils/garminStore'
 
 const route = useRoute()
 const router = useRouter()
@@ -130,17 +131,12 @@ const handleDownload = () => {
       console.warn('Failed to save page state:', error)
     }
     
-    // 在新标签页打开外部链接
-    const newWindow = window.open(product.value.garminStoreUrl, '_blank')
-    
-    // 确保新窗口成功打开
-    if (!newWindow) {
-      ElMessage.error('Please allow popups for this site to open Garmin Store')
-      return
-    }
-    
-    // 给用户反馈
-    ElMessage.success('Opening Garmin Connect IQ Store...')
+    router.push(toGarminStoreBridge({
+      url: product.value.garminStoreUrl,
+      name: product.value.name,
+      imageUrl: product.value.heroFile?.url || product.value.garminImageUrl,
+      sourcePath: route.fullPath,
+    }))
   } else {
     ElMessage.error('Download link is not available')
   }

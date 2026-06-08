@@ -219,17 +219,20 @@
               <el-table-column label="" width="200" align="center">
                 <template #default="scope">
                   <div class="cell-links">
-                    <a
+                    <router-link
                       v-if="scope.row.product?.garminStoreUrl"
-                      :href="scope.row.product.garminStoreUrl"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      :to="toGarminStoreBridge({
+                        url: scope.row.product.garminStoreUrl,
+                        name: scope.row.product?.name,
+                        imageUrl: scope.row.product?.heroFile?.url || scope.row.product?.garminImageUrl,
+                        sourcePath: route.fullPath,
+                      })"
                       class="cell-link-btn"
                       :aria-label="`Open ${scope.row.product?.name || 'product'} in Garmin store`"
                     >
                       <Icon icon="mdi:storefront-outline" width="14" aria-hidden="true" />
                       Store
-                    </a>
+                    </router-link>
                     <button
                       v-if="scope.row.product?.designId"
                       class="cell-link-btn outline"
@@ -287,16 +290,19 @@
                 </div>
               </div>
               <div class="m-card-footer">
-                <a
+                <router-link
                   v-if="item.product?.garminStoreUrl"
-                  :href="item.product.garminStoreUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  :to="toGarminStoreBridge({
+                    url: item.product.garminStoreUrl,
+                    name: item.product?.name,
+                    imageUrl: item.product?.heroFile?.url || item.product?.garminImageUrl,
+                    sourcePath: route.fullPath,
+                  })"
                   class="m-action-btn"
                 >
                   <Icon icon="mdi:storefront-outline" width="16" aria-hidden="true" />
                   App Store
-                </a>
+                </router-link>
                 <button
                   v-if="item.product?.designId"
                   class="m-action-btn outline"
@@ -353,12 +359,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getPurchaseRecords } from '@/api/pay'
 import type { PurchaseRecord } from '@/types'
 import { ElMessage } from 'element-plus'
+import { toGarminStoreBridge } from '@/utils/garminStore'
 
 const router = useRouter()
+const route = useRoute()
 const records = ref<PurchaseRecord[]>([])
 const isLoading = ref(true)
 

@@ -33,11 +33,10 @@
       </div>
     </div>
 
-    <section class="search-discovery" aria-labelledby="search-discovery-title">
+    <section class="search-discovery">
       <div class="discovery-header">
         <div>
           <p class="section-kicker">Explore more</p>
-          <h2 id="search-discovery-title" class="section-title">Find the right watch face faster</h2>
         </div>
         <button class="outline-link" type="button" @click="goToTopApps">
           <Icon icon="mdi:chart-line" width="18" aria-hidden="true" />
@@ -125,7 +124,6 @@ const searchResults = ref<ProductBaseVO[]>([])
 
 const popularSearches = [
   'minimal',
-  'analog',
   'digital',
   'weather',
   'running',
