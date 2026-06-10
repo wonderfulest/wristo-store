@@ -8,6 +8,7 @@
       v-if="showFloatingActions"
       always-visible
     />
+    <FaqAgentChat />
     <Footer />
   </div>
 </template>
@@ -18,6 +19,7 @@ import { useRoute } from 'vue-router'
 import Header from './Header.vue'
 import Footer from './Footer.vue'
 import FloatingActions from '@/components/FloatingActions/FloatingActions.vue'
+import FaqAgentChat from '@/components/FaqAgentChat.vue'
 
 const route = useRoute()
 
