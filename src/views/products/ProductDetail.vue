@@ -14,6 +14,16 @@
       <div class="product-info-wrap">
         <h1 class="product-title">{{ product?.name }}</h1>
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
+        <button
+          v-if="product?.appId"
+          type="button"
+          class="product-btn product-btn-cart"
+          :class="{ active: isInCart }"
+          @click="toggleCart"
+        >
+          {{ isInCart ? 'Remove from Cart' : 'Add to Cart' }}
+          <el-icon class="btn-icon"><ShoppingCart /></el-icon>
+        </button>
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">Product Details</h2>
           <div class="product-desc" v-html="renderedProductDescription"></div>
@@ -105,8 +115,9 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Download, Lock, Share } from '@element-plus/icons-vue'
+import { Download, Lock, Share, ShoppingCart } from '@element-plus/icons-vue'
 import { useProductStore } from '@/store/product'
+import { useCartStore } from '@/store/cart'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
@@ -115,8 +126,18 @@ import { toGarminStoreBridge } from '@/utils/garminStore'
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const cartStore = useCartStore()
 const product = ref<ProductVO | null>(null)
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
+
+const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
+
+const toggleCart = () => {
+  if (!product.value?.appId) return
+  const removing = cartStore.hasItem(product.value.appId)
+  cartStore.toggle(product.value)
+  ElMessage.success(removing ? 'Removed from cart' : 'Added to cart')
+}
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
@@ -524,6 +545,21 @@ onMounted(async () => {
 }
 .product-btn-download:hover {
   background: var(--color-brand-strong);
+}
+.product-btn-cart {
+  width: 340px;
+  height: 56px;
+  margin-bottom: 26px;
+  color: var(--color-brand);
+  background: #fff;
+  border: 1px solid rgba(15, 107, 104, 0.24);
+  box-shadow: var(--shadow-sm);
+}
+.product-btn-cart:hover,
+.product-btn-cart.active {
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  border-color: rgba(15, 107, 104, 0.34);
 }
 .product-btn-unlock {
   background: var(--color-brand);

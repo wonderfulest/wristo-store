@@ -214,6 +214,11 @@ const baseRoutes: RouteRecordRaw[] = [
     name: 'PurchaseRecords',
     component: () => import('@/views/user-center/PurchaseRecords.vue')
   },
+  {
+    path: '/user/cart',
+    name: 'CartListPage',
+    component: () => import('@/views/user-center/CartListPage.vue')
+  },
   /**
    * Email Settings
    */

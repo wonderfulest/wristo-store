@@ -73,6 +73,10 @@
                   <el-icon><Document /></el-icon>
                   <span>{{ t('nav.purchases') }}</span>
                 </el-dropdown-item>
+                <el-dropdown-item command="cart">
+                  <el-icon><ShoppingCart /></el-icon>
+                  <span>{{ t('nav.cart') }}</span>
+                </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
                   <span>{{ t('nav.logout') }}</span>
@@ -175,6 +179,10 @@
                 <el-icon><Document /></el-icon>
                 <span>{{ t('nav.purchases') }}</span>
               </button>
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('cart'); closeMobileMenu()">
+                <el-icon><ShoppingCart /></el-icon>
+                <span>{{ t('nav.cart') }}</span>
+              </button>
               <button class="mobile-action-btn logout" @click="handleUserMenuCommand('logout'); closeMobileMenu()">
                 <el-icon><SwitchButton /></el-icon>
                 <span>{{ t('nav.logout') }}</span>
@@ -195,7 +203,7 @@ import { ref, onMounted, watch, computed } from 'vue';
 import { useProductStore } from '@/store/product';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
-import { ArrowDown, User, Document, SwitchButton } from '@element-plus/icons-vue';
+import { ArrowDown, User, Document, ShoppingCart, SwitchButton } from '@element-plus/icons-vue';
 import type { Series } from '@/types/product';
 import { useUserStore } from '@/store/user';
 import type { GarminDeviceVO } from '@/types';

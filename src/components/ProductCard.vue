@@ -1,5 +1,22 @@
 <template>
-  <button class="product-card" type="button" @click="handleClick">
+  <article
+    class="product-card"
+    role="button"
+    tabindex="0"
+    @click="handleClick"
+    @keydown.enter.prevent="handleClick"
+    @keydown.space.prevent="handleClick"
+  >
+    <button
+      class="cart-toggle"
+      type="button"
+      :class="{ active: isInCart }"
+      :title="isInCart ? 'Remove from cart' : 'Add to cart'"
+      :aria-label="isInCart ? 'Remove from cart' : 'Add to cart'"
+      @click.stop="toggleCart"
+    >
+      <el-icon><ShoppingCart /></el-icon>
+    </button>
     <div class="product-img-wrap">
       <img 
         :src="product?.heroFile?.url || product?.garminImageUrl" 
@@ -11,27 +28,42 @@
       <div class="product-name">{{ product?.name }}</div>
       <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
     </div>
-  </button>
+  </article>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { ShoppingCart } from '@element-plus/icons-vue'
+import { useCartStore } from '@/store/cart'
 
 const props = defineProps<{
   product: any
 }>()
 
 const router = useRouter()
+const cartStore = useCartStore()
+
+const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
 
 const handleClick = () => {
   if (props.product?.appId) {
     router.push({ name: 'product-detail', params: { id: props.product.appId } })
   }
 }
+
+const toggleCart = () => {
+  if (!props.product?.appId) return
+  const removing = cartStore.hasItem(props.product.appId)
+  cartStore.toggle(props.product)
+  ElMessage.success(removing ? 'Removed from cart' : 'Added to cart')
+}
 </script>
 
 <style scoped>
 .product-card {
+  position: relative;
   background: #fff;
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -45,6 +77,32 @@ const handleClick = () => {
   width: 100%;
   padding: 0;
   text-align: left;
+}
+
+.cart-toggle {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-muted);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
+}
+
+.cart-toggle:hover,
+.cart-toggle.active {
+  color: var(--color-brand);
+  border-color: rgba(15, 107, 104, 0.28);
+  background: var(--color-brand-soft);
 }
 
 .product-card:hover {

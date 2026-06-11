@@ -10,11 +10,20 @@ import CartList from './CartList.vue'
 
 <style scoped>
 .cart-list-page {
-  max-width: 600px;
-  margin: 40px auto;
-  background: #fff;
-  border-radius: 24px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.06);
-  padding: 32px 24px;
+  width: min(100% - 32px, 860px);
+  margin: 48px auto 88px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 32px;
+}
+
+@media (max-width: 640px) {
+  .cart-list-page {
+    width: min(100% - 24px, 860px);
+    margin: 28px auto 64px;
+    padding: 20px;
+  }
 }
 </style> 
