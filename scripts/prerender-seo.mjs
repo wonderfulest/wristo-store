@@ -3,13 +3,25 @@ import { spawn } from 'node:child_process'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
+import { loadEnv } from 'vite'
 
 const rootDir = process.cwd()
+const workspaceEnvDir = path.resolve(rootDir, '..')
+const envMode = process.env.VITE_WRISTO_MODE || process.env.MODE || (process.env.NODE_ENV === 'development' ? 'development' : 'prod')
+const rootEnv = loadEnv(envMode, workspaceEnvDir, '')
+for (const [key, value] of Object.entries(rootEnv)) {
+  if (process.env[key] === undefined) {
+    process.env[key] = value
+  }
+}
+if (process.env.VITE_WRISTO_SITE_URL === undefined && process.env.VITE_WRISTO_STORE_URL) {
+  process.env.VITE_WRISTO_SITE_URL = process.env.VITE_WRISTO_STORE_URL
+}
 const distDir = path.join(rootDir, 'dist')
-const siteUrl = trimTrailingSlash(process.env.VITE_SITE_URL || 'https://wristo.io')
+const siteUrl = trimTrailingSlash(process.env.VITE_WRISTO_SITE_URL || 'https://wristo.io')
 const apiBase = trimTrailingSlash(
-  process.env.VITE_PUBLIC_API_BASE_URL ||
-    process.env.VITE_API_BASE_URL ||
+  process.env.VITE_WRISTO_PUBLIC_API_BASE_URL ||
+    process.env.VITE_WRISTO_API_BASE_URL ||
     'https://api.wristo.io/api',
 )
 const previewPort = Number(process.env.PRERENDER_PORT || 4177)

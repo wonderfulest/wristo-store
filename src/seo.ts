@@ -112,7 +112,7 @@ const noindexPrefixes = [
 ]
 
 export function siteUrl(): string {
-  const envUrl = import.meta.env.VITE_SITE_URL as string | undefined
+  const envUrl = import.meta.env.VITE_WRISTO_SITE_URL as string | undefined
   if (envUrl) return trimTrailingSlash(envUrl)
   if (typeof window !== 'undefined' && window.location.origin) return window.location.origin
   return DEFAULT_SITE_URL

@@ -162,7 +162,7 @@ import { bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DeviceDisplay from '@/components/DeviceDisplay.vue'
 
-const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL?.replace(/\/login\/?$/, '').replace(/\/auth\/?$/, '') || ''
+const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL?.replace(/\/login\/?$/, '').replace(/\/auth\/?$/, '') || ''
 
 // Default avatar image shown when userInfo.avatar is empty
 const defaultAvatar = 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-social-profile-1080.png'
@@ -214,7 +214,7 @@ const handleSave = async () => {
   })
   editMode.value = false
 }
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+const googleClientId = import.meta.env.VITE_WRISTO_GOOGLE_CLIENT_ID || ''
 let googleScriptLoaded = false
 
 const loadGoogleScript = (): Promise<void> => {

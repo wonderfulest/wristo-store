@@ -19,7 +19,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const clientId = 'store'
-const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
 
 onMounted(async () => {
   const code = route.query.code as string
@@ -40,8 +40,8 @@ onMounted(async () => {
     router.replace('/')
   } catch (e: any) {
     error.value = e?.response?.data?.msg || e.message || 'Request failed'
-    const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
-    const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+    const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL
+    const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
     window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
   } finally {
     loading.value = false

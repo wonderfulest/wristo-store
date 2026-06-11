@@ -251,13 +251,13 @@ function loadPaddle() {
     if (typeof window !== "undefined" && !window.Paddle) {
         const script = document.createElement("script")
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js"
-        console.log('import.meta.env.VITE_PADDLE_ENVIRONMENT', import.meta.env.VITE_PADDLE_ENVIRONMENT)
-        console.log('import.meta.env.VITE_PADDLE_CLIENT_TOKEN', import.meta.env.VITE_PADDLE_CLIENT_TOKEN)
+        console.log('import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT', import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT)
+        console.log('import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN', import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN)
         script.async = true
         script.onload = () => {
-            window.Paddle.Environment.set(import.meta.env.VITE_PADDLE_ENVIRONMENT)
+            window.Paddle.Environment.set(import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT)
             window.Paddle.Initialize({ 
-                token: import.meta.env.VITE_PADDLE_CLIENT_TOKEN,
+                token: import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN,
                 eventCallback: async function(data: any) {
                     console.log('Paddle event:', data)
                     if (data.name === 'checkout.completed') {

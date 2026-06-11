@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build && node scripts/prerender-seo.mjs",
-    "build:app": "vue-tsc -b && vite build",
+    "build": "vue-tsc -b && vite build --mode prod && node scripts/prerender-seo.mjs",
+    "build:app": "vue-tsc -b && vite build --mode prod",
     "seo:prerender": "node scripts/prerender-seo.mjs",
     "preview": "vite preview"
   },

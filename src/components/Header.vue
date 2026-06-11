@@ -277,8 +277,8 @@ const handleUserMenuCommand = (command: string) => {
 };
 
 const goToLogin = () => {
-  const ssoBaseUrl = import.meta.env.VITE_SSO_LOGIN_URL
-  const redirectUri = import.meta.env.VITE_SSO_REDIRECT_URI
+  const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL
+  const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
   const loginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
   
   // 移动端兼容性更好的跳转方式
