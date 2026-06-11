@@ -4,6 +4,7 @@ import { useUserStore } from '@/store/user'
 import { getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { createPageGuard } from '@/utils/guards'
 import { getPreferredFaqGuidePath } from '@/content/faq-guides'
+import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -51,12 +52,9 @@ router.beforeEach((to, from, next) => {
     }
 
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-    const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL
-    const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
-    const ssoLoginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
 
     if (requiresAuth && !userStore.userInfo) {
-      window.location.href = ssoLoginUrl
+      redirectToSsoLogin('store')
       return
     }
     

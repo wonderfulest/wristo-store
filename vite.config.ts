@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
   return {
     envDir,
     define: {
-      'import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI': JSON.stringify(env.VITE_WRISTO_SSO_REDIRECT_URI || ''),
+      'import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI': JSON.stringify(env.VITE_WRISTO_STORE_SSO_REDIRECT_URI || ''),
       'import.meta.env.VITE_WRISTO_SSO_LOGIN_URL': JSON.stringify(joinUrl(env.VITE_WRISTO_SSO_URL, 'login')),
       'import.meta.env.VITE_WRISTO_SSO_SIGNUP_URL': JSON.stringify(joinUrl(env.VITE_WRISTO_SSO_URL, 'register')),
       'import.meta.env.VITE_WRISTO_GOOGLE_CLIENT_ID': JSON.stringify(env.VITE_WRISTO_GOOGLE_CLIENT_ID || ''),

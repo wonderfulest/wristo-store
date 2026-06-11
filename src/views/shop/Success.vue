@@ -61,6 +61,7 @@ import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
+import { buildSsoLoginUrl, buildSsoSignupUrl } from '@/utils/ssoRedirect'
 // import Logo from '@/components/Logo.vue'
 
 const router = useRouter()
@@ -118,15 +119,11 @@ function goHome() {
 }
 
 function goToRegister() {
-    const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_SIGNUP_URL
-    const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
-    window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}&mode=signup`
+    window.location.href = buildSsoSignupUrl('store', { mode: 'signup' })
 }
 
 function goToLogin() {
-    const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL
-    const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
-    window.location.href = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
+    window.location.href = buildSsoLoginUrl('store')
 }
 </script>
 

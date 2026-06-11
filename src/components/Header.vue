@@ -204,6 +204,7 @@ import LanguageSwitcher from './LanguageSwitcher.vue';
 import { buildFaqGuidePath } from '@/content/faq-guides';
 import { addLocaleToPath, useLocaleStore } from '@/store/locale';
 import { useI18n } from '@/i18n';
+import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -277,9 +278,7 @@ const handleUserMenuCommand = (command: string) => {
 };
 
 const goToLogin = () => {
-  const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL
-  const redirectUri = import.meta.env.VITE_WRISTO_SSO_REDIRECT_URI
-  const loginUrl = `${ssoBaseUrl}?client=store&redirect_uri=${encodeURIComponent(redirectUri)}`
+  const loginUrl = buildSsoLoginUrl('store')
   
   // 移动端兼容性更好的跳转方式
   if (/Mobi|Android/i.test(navigator.userAgent)) {
