@@ -17,7 +17,7 @@
               <button class="slide-btn" type="button" @click="$emit('product-click', product.__origin)">
                 <div class="product-circle-img">
                   <img
-                    :src="product.heroFile?.url || product.garminImageUrl"
+                    :src="getProductImageUrl(product)"
                     :alt="product.name"
                     class="circle-img"
                     loading="lazy"
@@ -40,6 +40,7 @@
 import { Icon } from '@iconify/vue';
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import type { ProductBaseVO } from '@/types';
+import { getProductImageUrl } from '@/utils/productImage'
 
 const props = defineProps<{
   newProducts: ProductBaseVO[];

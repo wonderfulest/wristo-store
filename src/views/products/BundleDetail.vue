@@ -31,7 +31,7 @@
             @click="handleProductClick(product)"
           >
             <div class="product-img-wrap">
-              <img :src="product.garminImageUrl" :alt="product.name" class="product-img" />
+              <img :src="getProductImageUrl(product)" :alt="product.name" class="product-img" />
             </div>
             <div class="product-info">
               <div class="product-name">{{ product.name }}</div>
@@ -57,6 +57,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getBundleById } from '@/api/bundle'
 import type { Bundle, ProductBaseVO } from '@/types/product'
+import { getProductImageUrl } from '@/utils/productImage'
 
 
 const route = useRoute()

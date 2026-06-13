@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { ProductBaseVO, ProductVO } from '@/types/product'
+import { getProductImageUrl } from '@/utils/productImage'
 
 export interface CartItem {
   appId: number
@@ -18,15 +19,11 @@ interface State {
   items: CartItem[]
 }
 
-const getProductImage = (product: CartProduct) => {
-  return product.heroFile?.url || product.garminImageUrl || ''
-}
-
 const toCartItem = (product: CartProduct): CartItem => ({
   appId: product.appId,
   name: product.name,
   price: product.price ?? 0,
-  imageUrl: getProductImage(product),
+  imageUrl: getProductImageUrl(product),
   garminStoreUrl: product.garminStoreUrl,
   designId: product.designId,
   quantity: 1,

@@ -11,7 +11,7 @@
       <div class="products-list">
         <div v-for="product in bundle?.products || []" :key="product.appId" class="product-item">
           <img
-            :src="product.heroFile?.url || product.garminImageUrl"
+            :src="getProductImageUrl(product)"
             class="product-img"
             :alt="product.name"
             @click="goToProduct(product.appId)"
@@ -22,7 +22,7 @@
               :to="toGarminStoreBridge({
                 url: product.garminStoreUrl,
                 name: product.name,
-                imageUrl: product.heroFile?.url || product.garminImageUrl,
+                imageUrl: getProductImageUrl(product),
                 sourcePath: route.fullPath,
               })"
               class="garmin-link"
@@ -45,6 +45,7 @@ import { useRoute, useRouter } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'
 import { getBundleById } from '@/api/bundle'
 import { toGarminStoreBridge } from '@/utils/garminStore'
+import { getProductImageUrl } from '@/utils/productImage'
 
 const route = useRoute()
 const router = useRouter()

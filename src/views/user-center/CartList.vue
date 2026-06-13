@@ -39,7 +39,7 @@
             size="small"
             controls-position="right"
             aria-label="Quantity"
-            @change="(value) => updateQuantity(item.appId, value)"
+            @change="updateQuantity(item.appId, $event)"
           />
           <button type="button" class="remove-btn" title="Remove" @click="cartStore.remove(item.appId)">
             <el-icon><Delete /></el-icon>

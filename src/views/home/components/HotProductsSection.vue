@@ -26,7 +26,7 @@
           @click="$emit('product-click', product)"
         >
           <div class="hot-img-wrap">
-            <img :src="product.garminImageUrl" :alt="product.name" class="hot-img" />
+            <img :src="getProductImageUrl(product)" :alt="product.name" class="hot-img" />
           </div>
           <div class="hot-card-body">
             <div class="hot-name">{{ product.name }}</div>
@@ -49,6 +49,7 @@ import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
 import type { ProductBaseVO } from '@/types';
 import { useI18n } from '@/i18n';
+import { getProductImageUrl } from '@/utils/productImage'
 
 const { t } = useI18n();
 
