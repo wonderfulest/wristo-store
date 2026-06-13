@@ -29,293 +29,107 @@
       <div v-else-if="records.length > 0" class="records-content">
         <div class="summary-grid" aria-label="Purchase summary">
           <div class="summary-item">
-            <span class="summary-label">Total records</span>
+            <Icon icon="solar:receipt-list-line-duotone" width="22" aria-hidden="true" />
+            <span class="summary-label">Records</span>
             <strong class="summary-value">{{ records.length }}</strong>
           </div>
           <div class="summary-item">
-            <span class="summary-label">Paid amount</span>
+            <Icon icon="solar:wallet-money-line-duotone" width="22" aria-hidden="true" />
+            <span class="summary-label">Paid</span>
             <strong class="summary-value">{{ totalSpendLabel }}</strong>
           </div>
           <div class="summary-item">
+            <Icon icon="solar:box-line-duotone" width="22" aria-hidden="true" />
             <span class="summary-label">Bundles</span>
             <strong class="summary-value">{{ bundleRecords.length }}</strong>
           </div>
           <div class="summary-item">
+            <Icon icon="solar:watch-round-line-duotone" width="22" aria-hidden="true" />
             <span class="summary-label">Products</span>
             <strong class="summary-value">{{ productRecords.length }}</strong>
           </div>
         </div>
 
-        <div class="sections-wrapper">
-
-        <!-- Section: Bundle Purchases -->
-        <div v-if="bundleRecords.length > 0" class="section">
-          <div class="section-label">
-            <div>
-              <span class="section-label-text">Bundle purchases</span>
-              <p class="section-help">Multi-product unlocks and collection purchases.</p>
+        <div class="record-list" aria-label="Purchase records">
+          <article v-for="item in sortedRecords" :key="item.transactionId || item.id" class="record-row">
+            <div class="record-media" :class="{ bundle: item.isBundle }">
+              <img
+                v-if="!item.isBundle && getRecordImageUrl(item)"
+                :src="getRecordImageUrl(item)"
+                :alt="getRecordTitle(item)"
+                class="record-thumb"
+                loading="lazy"
+              />
+              <Icon v-else :icon="getRecordIcon(item)" width="24" aria-hidden="true" />
             </div>
-            <span class="section-count">{{ bundleRecords.length }}</span>
-          </div>
 
-          <!-- Desktop Table -->
-          <div class="section-card desktop-only">
-            <el-table
-              :data="bundleRecords"
-              class="apple-table"
-              header-cell-class-name="apple-th"
-              cell-class-name="apple-td"
-              :row-class-name="tableRowClass"
-              :border="false"
-              :stripe="false"
-            >
-              <el-table-column prop="createdAt" label="Date" width="170" align="left">
-                <template #default="scope">
-                  <span class="cell-date">{{ formatDate(scope.row.createdAt) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="bundle.bundleName" label="Name" min-width="160" align="left">
-                <template #default="scope">
-                  <span class="cell-name">{{ scope.row.bundle?.bundleName || 'Bundle' }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="total" label="Amount" width="140" align="right">
-                <template #default="scope">
-                  <span class="cell-amount">{{ formatAmount(scope.row) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="paymentMethod" label="Method" width="120" align="center">
-                <template #default="scope">
-                  <span class="cell-pill">{{ scope.row.paymentMethod }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="statusDesc" label="Status" width="110" align="center">
-                <template #default="scope">
-                  <span :class="['cell-status', getStatusClass(scope.row.status)]">
-                    {{ scope.row.statusDesc }}
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column label="" width="100" align="center">
-                <template #default="scope">
-                  <button
-                    v-if="scope.row.bundle?.bundleId"
-                    class="cell-link-btn"
-                    type="button"
-                    :aria-label="`View bundle ${scope.row.bundle?.bundleName || 'purchase'}`"
-                    @click="navigateToBundle(scope.row.bundle.bundleId)"
-                  >
-                    <Icon icon="mdi:open-in-new" width="14" aria-hidden="true" />
-                    View
-                  </button>
-                </template>
-              </el-table-column>
-              <el-table-column prop="transactionId" label="Transaction" min-width="260" align="left">
-                <template #default="scope">
-                  <span class="cell-txn">{{ scope.row.transactionId }}</span>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-
-          <!-- Mobile Cards -->
-          <div class="mobile-cards">
-            <div v-for="item in bundleRecords" :key="item.transactionId" class="m-card">
-              <div class="m-card-top">
-                <div class="m-card-name">
-                  <Icon icon="mdi:package-variant-closed" width="18" aria-hidden="true" />
-                  <span>{{ item.bundle?.bundleName || 'Bundle' }}</span>
-                </div>
-                <span :class="['m-card-status', getStatusClass(item.status)]">{{ item.statusDesc }}</span>
+            <div class="record-main">
+              <div class="record-title-line">
+                <strong class="record-title">{{ getRecordTitle(item) }}</strong>
+                <span :class="['status-badge', getStatusClass(item.status)]" :title="item.statusDesc">
+                  <Icon :icon="getStatusIcon(item.status)" width="14" aria-hidden="true" />
+                  {{ getStatusLabel(item) }}
+                </span>
               </div>
-              <div class="m-card-body">
-                <div class="m-row">
-                  <span class="m-label">Date</span>
-                  <span class="m-value">{{ formatDate(item.createdAt) }}</span>
-                </div>
-                <div class="m-row">
-                  <span class="m-label">Amount</span>
-                  <span class="m-value m-amount">
-                    {{ formatAmount(item) }}
-                  </span>
-                </div>
-                <div class="m-row">
-                  <span class="m-label">Payment</span>
-                  <span class="m-value">{{ item.paymentMethod }}</span>
-                </div>
-                <div class="m-row">
-                  <span class="m-label">Transaction</span>
-                  <span class="m-value m-mono">{{ item.transactionId }}</span>
-                </div>
-              </div>
-              <div v-if="item.bundle?.bundleId" class="m-card-footer">
-                <button class="m-action-btn" type="button" @click="navigateToBundle(item.bundle.bundleId)">
-                  <Icon icon="mdi:open-in-new" width="16" aria-hidden="true" />
-                  View Bundle
-                </button>
+              <div class="record-meta">
+                <span class="kind-badge">
+                  <Icon :icon="getRecordIcon(item)" width="14" aria-hidden="true" />
+                  {{ getRecordKindLabel(item) }}
+                </span>
+                <span class="meta-chip" :title="formatFullDate(item.createdAt)">
+                  <Icon icon="solar:calendar-minimalistic-line-duotone" width="14" aria-hidden="true" />
+                  {{ formatDate(item.createdAt) }}
+                </span>
+                <span class="meta-chip" :title="item.paymentMethod || 'Payment method'">
+                  <Icon :icon="getPaymentIcon(item.paymentMethod)" width="14" aria-hidden="true" />
+                  {{ formatPaymentMethod(item.paymentMethod) }}
+                </span>
+                <span v-if="item.transactionId" class="txn-chip" :title="item.transactionId">
+                  #{{ formatTransactionId(item.transactionId) }}
+                </span>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- Section: Product Purchases -->
-        <div v-if="productRecords.length > 0" class="section">
-          <div class="section-label">
-            <div>
-              <span class="section-label-text">Product purchases</span>
-              <p class="section-help">Individual watch faces, apps, and direct unlocks.</p>
-            </div>
-            <span class="section-count">{{ productRecords.length }}</span>
-          </div>
-
-          <!-- Desktop Table -->
-          <div class="section-card desktop-only">
-            <el-table
-              :data="productRecords"
-              class="apple-table"
-              header-cell-class-name="apple-th"
-              cell-class-name="apple-td"
-              :row-class-name="tableRowClass"
-              :border="false"
-              :stripe="false"
-            >
-              <el-table-column prop="createdAt" label="Date" width="170" align="left">
-                <template #default="scope">
-                  <span class="cell-date">{{ formatDate(scope.row.createdAt) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column label="" width="56" align="center">
-                <template #default="scope">
-                  <img
-                    v-if="getProductImageUrl(scope.row.product)"
-                    :src="getProductImageUrl(scope.row.product)"
-                    :alt="scope.row.product?.name || 'Purchased product'"
-                    class="cell-thumb"
-                  />
-                </template>
-              </el-table-column>
-              <el-table-column prop="product.name" label="Name" min-width="140" align="left">
-                <template #default="scope">
-                  <span class="cell-name">{{ scope.row.product?.name || 'Product' }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="total" label="Amount" width="140" align="right">
-                <template #default="scope">
-                  <span class="cell-amount">{{ formatAmount(scope.row) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="paymentMethod" label="Method" width="120" align="center">
-                <template #default="scope">
-                  <span class="cell-pill">{{ scope.row.paymentMethod }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="statusDesc" label="Status" width="110" align="center">
-                <template #default="scope">
-                  <span :class="['cell-status', getStatusClass(scope.row.status)]">
-                    {{ scope.row.statusDesc }}
-                  </span>
-                </template>
-              </el-table-column>
-              <el-table-column label="" width="200" align="center">
-                <template #default="scope">
-                  <div class="cell-links">
-                    <router-link
-                      v-if="scope.row.product?.garminStoreUrl"
-                      :to="toGarminStoreBridge({
-                        url: scope.row.product.garminStoreUrl,
-                        name: scope.row.product?.name,
-                        imageUrl: getProductImageUrl(scope.row.product),
-                        sourcePath: route.fullPath,
-                      })"
-                      class="cell-link-btn"
-                      :aria-label="`Open ${scope.row.product?.name || 'product'} in Garmin store`"
-                    >
-                      <Icon icon="mdi:storefront-outline" width="14" aria-hidden="true" />
-                      Store
-                    </router-link>
-                    <button
-                      v-if="scope.row.product?.designId"
-                      class="cell-link-btn outline"
-                      type="button"
-                      :aria-label="`View ${scope.row.product?.name || 'product'} details`"
-                      @click="navigateToProduct(scope.row.product.appId)"
-                    >
-                      <Icon icon="mdi:arrow-right" width="14" aria-hidden="true" />
-                      Details
-                    </button>
-                  </div>
-                </template>
-              </el-table-column>
-              <el-table-column prop="transactionId" label="Transaction" min-width="260" align="left">
-                <template #default="scope">
-                  <span class="cell-txn">{{ scope.row.transactionId }}</span>
-                </template>
-              </el-table-column>
-            </el-table>
-          </div>
-
-          <!-- Mobile Cards -->
-          <div class="mobile-cards">
-            <div v-for="item in productRecords" :key="item.transactionId" class="m-card">
-              <div class="m-card-top">
-                <div class="m-card-name with-img">
-                  <img
-                    v-if="getProductImageUrl(item.product)"
-                    :src="getProductImageUrl(item.product)"
-                    :alt="item.product?.name || 'Purchased product'"
-                    class="m-thumb"
-                  />
-                  <span>{{ item.product?.name || 'Product' }}</span>
-                </div>
-                <span :class="['m-card-status', getStatusClass(item.status)]">{{ item.statusDesc }}</span>
-              </div>
-              <div class="m-card-body">
-                <div class="m-row">
-                  <span class="m-label">Date</span>
-                  <span class="m-value">{{ formatDate(item.createdAt) }}</span>
-                </div>
-                <div class="m-row">
-                  <span class="m-label">Amount</span>
-                  <span class="m-value m-amount">
-                    {{ formatAmount(item) }}
-                  </span>
-                </div>
-                <div class="m-row">
-                  <span class="m-label">Payment</span>
-                  <span class="m-value">{{ item.paymentMethod }}</span>
-                </div>
-                <div class="m-row">
-                  <span class="m-label">Transaction</span>
-                  <span class="m-value m-mono">{{ item.transactionId }}</span>
-                </div>
-              </div>
-              <div class="m-card-footer">
+            <div class="record-side">
+              <strong class="record-amount">{{ formatAmount(item) }}</strong>
+              <div class="record-actions" aria-label="Record actions">
                 <router-link
                   v-if="item.product?.garminStoreUrl"
                   :to="toGarminStoreBridge({
                     url: item.product.garminStoreUrl,
                     name: item.product?.name,
-                    imageUrl: getProductImageUrl(item.product),
+                    imageUrl: getRecordImageUrl(item),
                     sourcePath: route.fullPath,
                   })"
-                  class="m-action-btn"
+                  class="icon-action"
+                  :aria-label="`Open ${getRecordTitle(item)} in Garmin store`"
+                  title="Garmin store"
                 >
-                  <Icon icon="mdi:storefront-outline" width="16" aria-hidden="true" />
-                  App Store
+                  <Icon icon="solar:shop-line-duotone" width="18" aria-hidden="true" />
                 </router-link>
                 <button
-                  v-if="item.product?.designId"
-                  class="m-action-btn outline"
+                  v-if="item.isBundle && item.bundle?.bundleId"
+                  class="icon-action primary"
                   type="button"
+                  :aria-label="`View ${getRecordTitle(item)}`"
+                  title="Bundle"
+                  @click="navigateToBundle(item.bundle.bundleId)"
+                >
+                  <Icon icon="solar:arrow-right-up-linear" width="18" aria-hidden="true" />
+                </button>
+                <button
+                  v-if="!item.isBundle && item.product?.appId"
+                  class="icon-action primary"
+                  type="button"
+                  :aria-label="`View ${getRecordTitle(item)} details`"
+                  title="Details"
                   @click="navigateToProduct(item.product.appId)"
                 >
-                  <Icon icon="mdi:arrow-right" width="16" aria-hidden="true" />
-                  Details
+                  <Icon icon="solar:arrow-right-up-linear" width="18" aria-hidden="true" />
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+          </article>
         </div>
       </div>
 
@@ -398,6 +212,12 @@ const productRecords = computed(() => {
   return records.value.filter(record => !record.isBundle)
 })
 
+const sortedRecords = computed(() => {
+  return [...records.value].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+})
+
 const paidRecords = computed(() => {
   return records.value.filter(record => record.status === 1)
 })
@@ -411,7 +231,21 @@ const totalSpendLabel = computed(() => {
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) {
+    return '--'
+  }
   return d.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  })
+}
+
+const formatFullDate = (dateStr: string) => {
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) {
+    return dateStr || 'Unknown date'
+  }
+  return d.toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -429,7 +263,64 @@ const getStatusClass = (status: number) => {
   return status === 1 ? 'success' : 'failed'
 }
 
-const tableRowClass = () => 'table-row'
+const getStatusLabel = (record: PurchaseRecord) => {
+  if (record.status === 1) {
+    return 'Paid'
+  }
+  return record.statusDesc || 'Failed'
+}
+
+const getStatusIcon = (status: number) => {
+  return status === 1 ? 'solar:check-circle-bold-duotone' : 'solar:close-circle-bold-duotone'
+}
+
+const getRecordTitle = (record: PurchaseRecord) => {
+  if (record.isBundle) {
+    return record.bundle?.bundleName || 'Bundle'
+  }
+  return record.product?.name || 'Product'
+}
+
+const getRecordKindLabel = (record: PurchaseRecord) => {
+  return record.isBundle ? 'Bundle' : 'App'
+}
+
+const getRecordIcon = (record: PurchaseRecord) => {
+  return record.isBundle ? 'solar:box-line-duotone' : 'solar:watch-round-line-duotone'
+}
+
+const getRecordImageUrl = (record: PurchaseRecord) => {
+  return record.product ? getProductImageUrl(record.product) : ''
+}
+
+const formatTransactionId = (transactionId: string) => {
+  if (!transactionId) {
+    return ''
+  }
+  return transactionId.length > 10 ? transactionId.slice(-8).toUpperCase() : transactionId
+}
+
+const formatPaymentMethod = (paymentMethod: string) => {
+  if (!paymentMethod) {
+    return 'Pay'
+  }
+  const normalized = paymentMethod.replace(/[_-]+/g, ' ').trim()
+  if (!normalized) {
+    return 'Pay'
+  }
+  return normalized.length > 12 ? normalized.slice(0, 12) : normalized
+}
+
+const getPaymentIcon = (paymentMethod: string) => {
+  const normalized = (paymentMethod || '').toLowerCase()
+  if (normalized.includes('paypal')) {
+    return 'simple-icons:paypal'
+  }
+  if (normalized.includes('card') || normalized.includes('visa') || normalized.includes('master')) {
+    return 'solar:card-2-line-duotone'
+  }
+  return 'solar:wallet-2-line-duotone'
+}
 
 onMounted(async () => {
   try {
@@ -471,7 +362,6 @@ onMounted(async () => {
 }
 
 .page-kicker,
-.section-label-text,
 .summary-label {
   margin: 0;
   color: var(--color-brand);
@@ -499,9 +389,7 @@ onMounted(async () => {
 }
 
 .profile-link,
-.empty-action,
-.cell-link-btn,
-.m-action-btn {
+.empty-action {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
@@ -530,7 +418,7 @@ onMounted(async () => {
 }
 
 .records-content,
-.sections-wrapper {
+.record-list {
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -543,12 +431,21 @@ onMounted(async () => {
 }
 
 .summary-item {
-  min-height: 108px;
-  padding: 18px;
+  min-height: 104px;
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  align-items: start;
+  gap: 8px 12px;
+  padding: 16px;
   background: var(--color-surface);
   border: 1px solid var(--color-line);
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
+}
+
+.summary-item > svg {
+  grid-row: span 2;
+  color: var(--color-brand);
 }
 
 .summary-label {
@@ -558,50 +455,14 @@ onMounted(async () => {
 
 .summary-value {
   display: block;
-  margin-top: 12px;
   color: var(--color-ink);
-  font-size: 1.7rem;
+  font-size: 1.55rem;
   font-weight: 800;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
 
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.section-label {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.section-help {
-  margin: 4px 0 0;
-  color: var(--color-muted);
-  font-size: 0.875rem;
-}
-
-.section-count {
-  min-width: 34px;
-  min-height: 28px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 10px;
-  color: var(--color-brand-strong);
-  background: var(--color-brand-soft);
-  border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.section-card,
-.m-card,
+.record-list,
 .empty-card,
 .tip-card,
 .loading-panel {
@@ -611,256 +472,198 @@ onMounted(async () => {
   box-shadow: var(--shadow-sm);
 }
 
-.section-card {
+.record-list {
+  gap: 0;
   overflow: hidden;
 }
 
-.apple-table {
-  font-size: 0.875rem;
-}
-
-.apple-table :deep(.el-table__inner-wrapper::before) {
-  display: none;
-}
-
-.apple-table :deep(.el-table__header-wrapper) {
+.record-row {
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
   border-bottom: 1px solid rgba(17, 24, 39, 0.08);
-}
-
-:deep(.apple-th) {
-  background: #fbfdfc !important;
-  color: var(--color-muted) !important;
-  font-size: 0.75rem !important;
-  font-weight: 800 !important;
-  letter-spacing: 0 !important;
-  text-transform: uppercase !important;
-  border: none !important;
-  padding: 12px 16px !important;
-}
-
-:deep(.apple-th .cell) {
-  overflow: visible;
-  white-space: nowrap;
-  word-break: normal;
-}
-
-:deep(.apple-td) {
-  padding: 14px 16px !important;
-  border-bottom: 1px solid rgba(17, 24, 39, 0.08) !important;
-  vertical-align: middle !important;
-}
-
-:deep(.apple-td .cell) {
-  overflow: visible;
-  line-height: 1.4;
-}
-
-:deep(.table-row) {
   transition: background 180ms ease;
 }
 
-:deep(.table-row:hover) {
-  background: rgba(15, 107, 104, 0.04) !important;
+.record-row:last-child {
+  border-bottom: 0;
 }
 
-:deep(.table-row:last-child .apple-td) {
-  border-bottom: none !important;
+.record-row:hover {
+  background: rgba(15, 107, 104, 0.035);
 }
 
-.cell-date,
-.cell-txn {
-  color: var(--color-muted);
-  font-size: 0.8125rem;
-}
-
-.cell-name {
-  color: var(--color-ink);
-  font-size: 0.9375rem;
-  font-weight: 700;
-}
-
-.cell-thumb,
-.m-thumb {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  object-fit: cover;
+.record-media {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  color: var(--color-brand);
   background: var(--color-surface-soft);
   border: 1px solid rgba(17, 24, 39, 0.08);
   border-radius: 8px;
+  overflow: hidden;
 }
 
-.cell-thumb {
-  display: block;
-  margin: 0 auto;
+.record-media.bundle {
+  background: var(--color-brand-soft);
 }
 
-.cell-amount {
+.record-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.record-main {
+  min-width: 0;
+}
+
+.record-title-line {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-title {
+  min-width: 0;
   color: var(--color-ink);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   font-weight: 800;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cell-pill,
-.cell-status,
-.m-card-status {
+.record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.kind-badge,
+.meta-chip,
+.txn-chip,
+.status-badge {
+  min-height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 26px;
-  padding: 3px 10px;
+  gap: 5px;
+  padding: 3px 9px;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.cell-pill {
+.kind-badge {
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+}
+
+.meta-chip {
   color: #475467;
   background: #f2f4f7;
 }
 
-.cell-status.success,
-.m-card-status.success {
+.txn-chip {
+  color: var(--color-subtle);
+  background: #f8faf9;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-badge {
+  flex-shrink: 0;
+  padding-inline: 8px;
+}
+
+.status-badge.success {
   color: #027a48;
   background: #ecfdf3;
 }
 
-.cell-status.failed,
-.m-card-status.failed {
+.status-badge.failed {
   color: #b42318;
   background: #fef3f2;
 }
 
-.cell-links {
+.record-side {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.record-amount {
+  color: var(--color-ink);
+  font-size: 0.98rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.record-actions {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 8px;
 }
 
-.cell-link-btn,
-.m-action-btn,
+.icon-action {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--color-brand-strong);
+  background: #fff;
+  border: 1px solid rgba(15, 107, 104, 0.16);
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.icon-action.primary {
+  color: #fff;
+  background: var(--color-brand);
+}
+
+.icon-action:hover {
+  border-color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  transform: translateY(-1px);
+}
+
+.icon-action.primary:hover {
+  background: var(--color-brand-strong);
+  color: #fff;
+}
+
 .empty-action {
   padding: 0 14px;
   color: #fff;
   background: var(--color-brand);
 }
 
-.cell-link-btn:hover,
-.m-action-btn:hover,
 .empty-action:hover {
   border-color: var(--color-brand-strong);
   background: var(--color-brand-strong);
   color: #fff;
   transform: translateY(-1px);
-}
-
-.cell-link-btn.outline,
-.m-action-btn.outline {
-  color: var(--color-brand-strong);
-  background: #fff;
-}
-
-.cell-link-btn.outline:hover,
-.m-action-btn.outline:hover {
-  background: var(--color-brand-soft);
-  color: var(--color-brand-strong);
-}
-
-.cell-txn {
-  display: inline-block;
-  max-width: 100%;
-  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-  word-break: break-all;
-}
-
-.mobile-cards {
-  display: none;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.m-card {
-  overflow: hidden;
-}
-
-.m-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px;
-}
-
-.m-card-name {
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--color-ink);
-  font-size: 0.9375rem;
-  font-weight: 800;
-}
-
-.m-card-name span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.m-card-body {
-  padding: 0 16px 4px;
-}
-
-.m-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 11px 0;
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
-}
-
-.m-label {
-  flex-shrink: 0;
-  color: var(--color-muted);
-  font-size: 0.875rem;
-}
-
-.m-value {
-  min-width: 0;
-  color: var(--color-ink);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-align: right;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.m-value.m-amount {
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.m-value.m-mono {
-  color: var(--color-muted);
-  font-family: "SF Mono", Monaco, Menlo, Consolas, monospace;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  white-space: normal;
-  word-break: break-all;
-}
-
-.m-card-footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 14px 16px 16px;
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
 }
 
 .empty-card {
@@ -1016,16 +819,35 @@ onMounted(async () => {
     width: 100%;
   }
 
-  .desktop-only {
-    display: none !important;
-  }
-
-  .mobile-cards {
-    display: flex;
-  }
-
-  .section-label {
+  .record-row {
+    grid-template-columns: 48px minmax(0, 1fr);
     align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .record-media {
+    width: 48px;
+    height: 48px;
+  }
+
+  .record-title-line {
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .record-title {
+    white-space: normal;
+  }
+
+  .record-side {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr auto;
+    padding-left: 60px;
+  }
+
+  .record-actions {
+    gap: 6px;
   }
 
   .loading-grid {
@@ -1035,19 +857,38 @@ onMounted(async () => {
 
 @media (max-width: 520px) {
   .summary-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .summary-item {
-    min-height: 92px;
+    min-height: 88px;
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 
-  .m-card-top {
+  .summary-item > svg {
+    grid-row: auto;
+  }
+
+  .summary-value {
+    font-size: 1.35rem;
+  }
+
+  .record-title-line {
     flex-direction: column;
+    gap: 8px;
   }
 
-  .m-card-status {
-    align-self: flex-start;
+  .record-meta {
+    gap: 6px;
+  }
+
+  .record-side {
+    padding-left: 0;
+  }
+
+  .txn-chip {
+    display: none;
   }
 }
 </style>

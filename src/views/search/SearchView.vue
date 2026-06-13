@@ -4,35 +4,47 @@
     <SearchSection
       class="search-section-standalone"
       :initialSearchTerm="searchTerm"
-      placeholder="Search styles, features, keywords or activate code"
+      :placeholder="t('search.placeholder')"
       :total="total"
       @search="handleSearch"
       @submit="handleSubmit"
     />
 
     <div class="search-content">
-      <div v-if="loading" class="state-card">Loading results...</div>
+      <div v-if="loading" class="state-card">{{ t('search.loading') }}</div>
 
       <div v-else-if="shouldShowEmpty" class="state-card">
-        <div class="state-title">No results</div>
-        <div class="state-subtitle">Try a different keyword or a broader style.</div>
+        <div class="state-title">{{ t('search.emptyTitle') }}</div>
+        <div class="state-subtitle">{{ t('search.emptySubtitle') }}</div>
         <button class="state-studio-btn" type="button" @click="openStudio">
           <Icon icon="mdi:creation-outline" width="18" aria-hidden="true" />
-          Create one in Studio
+          {{ t('search.createInStudio') }}
         </button>
       </div>
 
       <SearchResultsSection v-else :search-results="searchResults" />
 
+      <div v-if="showDesktopPagination" class="pagination-wrap">
+        <el-pagination
+          v-model:current-page="pageNum"
+          background
+          :page-size="pageSize"
+          :page-count="maxPages"
+          :total="limitedTotal"
+          layout="prev, pager, next"
+          @current-change="handlePageChange"
+        />
+      </div>
+
       <div
-        v-if="searchResults.length > 0 && !canLoadMore"
+        v-if="showMobileEndState"
         class="infinite-footer"
       >
         <span v-if="reachedHardLimit">
-          You have reached the first 10 pages of results. Try refining your search to narrow things down.
+          {{ t('search.limitReached') }}
         </span>
         <span v-else-if="reachedBackendEnd">
-          You have reached the end of the results.
+          {{ t('search.endReached') }}
         </span>
       </div>
     </div>
@@ -40,11 +52,11 @@
     <section class="search-discovery">
       <div class="discovery-header">
         <div>
-          <p class="section-kicker">Explore more</p>
+          <p class="section-kicker">{{ t('search.exploreMore') }}</p>
         </div>
         <button class="outline-link" type="button" @click="goToTopApps">
           <Icon icon="mdi:chart-line" width="18" aria-hidden="true" />
-          Top apps
+          {{ t('search.topApps') }}
         </button>
       </div>
 
@@ -52,11 +64,11 @@
         <div class="suggestion-copy">
           <Icon icon="mdi:magnify-scan" width="22" aria-hidden="true" />
           <div>
-            <h3>Popular searches</h3>
-            <p>Start with a proven keyword, then refine by style, device, or everyday use.</p>
+            <h3>{{ t('search.popularTitle') }}</h3>
+            <p>{{ t('search.popularDesc') }}</p>
           </div>
         </div>
-        <div class="suggestion-chips" aria-label="Popular search suggestions">
+        <div class="suggestion-chips" :aria-label="t('search.popularAria')">
           <button
             v-for="item in popularSearches"
             :key="item"
@@ -83,7 +95,7 @@
           <span class="scenario-title">{{ scenario.title }}</span>
           <span class="scenario-desc">{{ scenario.desc }}</span>
           <span class="scenario-action">
-            Search {{ scenario.query }}
+            {{ t('search.scenarioAction') }} {{ scenario.query }}
             <Icon icon="mdi:arrow-right" width="18" aria-hidden="true" />
           </span>
         </button>
@@ -93,16 +105,16 @@
         <div class="help-item">
           <Icon icon="mdi:ticket-confirmation-outline" width="22" aria-hidden="true" />
           <div>
-            <h3>Have an unlock code?</h3>
-            <p>Enter a 6-digit code in search and we will take you directly to activation.</p>
+            <h3>{{ t('search.unlockTitle') }}</h3>
+            <p>{{ t('search.unlockDesc') }}</p>
           </div>
         </div>
         <div class="help-actions">
           <button class="solid-link" type="button" @click="goToCode">
-            Activate code
+            {{ t('search.activateCode') }}
           </button>
           <button class="outline-link" type="button" @click="goToBundle">
-            View bundle
+            {{ t('search.viewBundle') }}
           </button>
         </div>
       </div>
@@ -118,12 +130,16 @@ import SearchResultsSection from '@/views/home/components/SearchResultsSection.v
 import { useProductStore } from '@/store/product'
 import type { ProductBaseVO } from '@/types'
 import { openStudio } from '@/utils/studio'
+import { addLocaleToPath } from '@/store/locale'
+import { useI18n } from '@/i18n'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const { locale, t } = useI18n()
 
 const loading = ref(false)
+const isMobile = ref(false)
 const searchTerm = ref('')
 const searchResults = ref<ProductBaseVO[]>([])
 
@@ -137,26 +153,28 @@ const popularSearches = [
   'daily'
 ]
 
-const scenarios = [
+const localizedPath = (path: string) => addLocaleToPath(path, locale.value)
+
+const scenarios = computed(() => [
   {
     icon: 'mdi:run-fast',
-    title: 'Training days',
-    desc: 'Data-forward faces for workouts, pace, and quick status checks.',
+    title: t('search.trainingTitle'),
+    desc: t('search.trainingDesc'),
     query: 'running'
   },
   {
     icon: 'mdi:briefcase-outline',
-    title: 'Work and meetings',
-    desc: 'Clean layouts that keep time, battery, and calendar glanceable.',
+    title: t('search.workTitle'),
+    desc: t('search.workDesc'),
     query: 'minimal'
   },
   {
     icon: 'mdi:weather-partly-cloudy',
-    title: 'Weather aware',
-    desc: 'Faces built around forecast, conditions, and outdoor planning.',
+    title: t('search.weatherTitle'),
+    desc: t('search.weatherDesc'),
     query: 'weather'
   }
-]
+])
 
 const pageNum = ref(1)
 const pageSize = ref(12)
@@ -164,6 +182,11 @@ const total = ref(0)
 const pages = ref(0)
 
 const maxPages = computed(() => Math.min(pages.value || 0, 10))
+const limitedTotal = computed(() => Math.min(total.value, pageSize.value * 10))
+const hasSearchQuery = computed(() => searchTerm.value.trim().length >= 2)
+const showDesktopPagination = computed(() => {
+  return !isMobile.value && hasSearchQuery.value && maxPages.value > 1 && searchResults.value.length > 0
+})
 
 const queryFromRoute = computed(() => {
   const q = route.query.q
@@ -178,9 +201,16 @@ const shouldShowEmpty = computed(() => {
 const runSearch = async (term: string) => {
   const q = term.trim()
   if (q.length < 2) {
-    searchResults.value = []
-    total.value = 0
-    pages.value = 0
+    loading.value = true
+    try {
+      const list = await productStore.getHotProducts(pageSize.value)
+      searchResults.value = list.slice(0, pageSize.value)
+      total.value = searchResults.value.length
+      pages.value = searchResults.value.length > 0 ? 1 : 0
+      pageNum.value = 1
+    } finally {
+      loading.value = false
+    }
     return
   }
 
@@ -200,7 +230,7 @@ const runSearch = async (term: string) => {
 const syncFromRoute = async () => {
   const q = queryFromRoute.value.trim()
   if (/^\d{6}$/.test(q)) {
-    await router.replace({ path: '/code', query: { code: q } })
+    await router.replace({ path: localizedPath('/code'), query: { code: q } })
     return
   }
   pageNum.value = 1
@@ -219,40 +249,40 @@ watch(
 const handleSearch = async (term: string) => {
   const q = term.trim()
   if (/^\d{6}$/.test(q)) {
-    await router.replace({ path: '/code', query: { code: q } })
+    await router.replace({ path: localizedPath('/code'), query: { code: q } })
     return
   }
   pageNum.value = 1
-  await router.replace({ path: '/search', query: { q: term } })
+  await router.replace({ path: localizedPath('/search'), query: { q: term } })
 }
 
 const handleSubmit = async (term: string) => {
   const q = term.trim()
   if (/^\d{6}$/.test(q)) {
-    await router.push({ path: '/code', query: { code: q } })
+    await router.push({ path: localizedPath('/code'), query: { code: q } })
     return
   }
   pageNum.value = 1
-  await router.replace({ path: '/search', query: { q } })
+  await router.replace({ path: localizedPath('/search'), query: { q } })
 }
 
 const submitSuggestion = async (term: string) => {
   searchTerm.value = term
   pageNum.value = 1
-  await router.replace({ path: '/search', query: { q: term } })
+  await router.replace({ path: localizedPath('/search'), query: { q: term } })
 }
 
 const goToTopApps = () => {
-  router.push('/top')
+  router.push(localizedPath('/top'))
 }
 
 const goToCode = () => {
-  router.push('/code')
+  router.push(localizedPath('/code'))
 }
 
 const goToBundle = () => {
   router.push({
-    path: '/purchase-options',
+    path: localizedPath('/purchase-options'),
     hash: '#bundle-subscription-card'
   })
 }
@@ -260,9 +290,9 @@ const goToBundle = () => {
 const isFetchingMore = ref(false)
 
 const canLoadMore = computed(() => {
-  const q = searchTerm.value.trim()
+  if (!isMobile.value) return false
   if (loading.value || isFetchingMore.value) return false
-  if (q.length < 2) return false
+  if (!hasSearchQuery.value) return false
   if (pageNum.value >= maxPages.value) return false
   return true
 })
@@ -275,6 +305,10 @@ const reachedHardLimit = computed(() => {
 const reachedBackendEnd = computed(() => {
   // All backend pages have been loaded (<= 10 pages total)
   return pages.value > 0 && pageNum.value >= pages.value && !reachedHardLimit.value
+})
+
+const showMobileEndState = computed(() => {
+  return isMobile.value && searchResults.value.length > 0 && !canLoadMore.value && (reachedHardLimit.value || reachedBackendEnd.value)
 })
 
 const loadNextPage = async () => {
@@ -297,6 +331,20 @@ const loadNextPage = async () => {
   } finally {
     isFetchingMore.value = false
   }
+}
+
+const handlePageChange = async (page: number) => {
+  if (!hasSearchQuery.value) return
+  pageNum.value = Math.min(Math.max(page, 1), 10)
+  await runSearch(searchTerm.value)
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
+const updateViewportMode = () => {
+  if (typeof window === 'undefined') return
+  isMobile.value = window.matchMedia('(max-width: 735px)').matches
 }
 
 const handleScroll = () => {
@@ -333,6 +381,8 @@ let scrollHost: Window | HTMLElement | null = null
 
 onMounted(() => {
   if (typeof window === 'undefined' || typeof document === 'undefined') return
+  updateViewportMode()
+  window.addEventListener('resize', updateViewportMode, { passive: true })
 
   const layoutMain = document.querySelector('.layout-main') as HTMLElement | null
 
@@ -346,6 +396,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', updateViewportMode)
+  }
+
   if (!scrollHost) return
 
   if (scrollHost instanceof Window) {
@@ -360,15 +414,12 @@ onUnmounted(() => {
 
 <style scoped>
 .search-page {
-  min-height: 100vh;
-  padding-bottom: 72px;
+  min-height: 0;
+  padding-bottom: 0;
 }
 
 .search-section-standalone {
   width: 100%;
-}
-
-.search-section-standalone :deep(.search-section) {
   min-height: auto;
   background: transparent;
   border-bottom: none;
@@ -439,7 +490,7 @@ onUnmounted(() => {
 
 .search-discovery {
   width: min(var(--container), calc(100% - 44px));
-  margin: 18px auto 0;
+  margin: 18px auto 56px;
   padding: 34px 0 0;
 }
 
@@ -747,6 +798,7 @@ onUnmounted(() => {
   .search-discovery {
     width: calc(100% - 32px);
     margin-top: 8px;
+    margin-bottom: 40px;
     padding-top: 28px;
   }
 

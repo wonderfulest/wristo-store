@@ -22,8 +22,13 @@ export const getNewProducts = (): Promise<ProductBaseVO[]> => {
 }
 
 // 获取系列列表
-export const getHotSeries = (): Promise<Series[]> => {
-  return instance.get('/public/categories/hot?limit=8&populate=image')
+export const getHotSeries = (limit = 8): Promise<Series[]> => {
+  return instance.get('/public/categories/hot', {
+    params: {
+      limit,
+      populate: 'image'
+    }
+  })
 }
 
 // 获取系列列表
@@ -32,8 +37,10 @@ export const getSeries = (): Promise<Series[]> => {
 }
 
 // 获取热门商品
-export const getHotProducts = (): Promise<ProductBaseVO[]> => {
-  return instance.get('/public/products/hot?limit=24')
+export const getHotProducts = (limit = 24): Promise<ProductBaseVO[]> => {
+  return instance.get('/public/products/hot', {
+    params: { limit }
+  })
 }
 
 // 获取商品详情

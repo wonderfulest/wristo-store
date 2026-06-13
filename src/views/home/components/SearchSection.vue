@@ -27,6 +27,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useI18n } from '@/i18n'
 
 const props = withDefaults(
   defineProps<{
@@ -44,6 +45,7 @@ const props = withDefaults(
 
 const searchTerm = ref(props.initialSearchTerm || '')
 const emit = defineEmits(['search', 'submit']);
+const { t } = useI18n()
 
 let debounceTimer: number | undefined
 
@@ -55,11 +57,11 @@ const displayCount = computed(() => {
   if (total < 0) return ''
 
   if (total < 100) {
-    return `${total} items`
+    return `${total} ${t('search.items')}`
   }
 
   const bucket = Math.floor(total / 100) * 100
-  return `${bucket}+ items`
+  return `${bucket}+ ${t('search.items')}`
 })
 
 const emitSearch = (value: string) => {

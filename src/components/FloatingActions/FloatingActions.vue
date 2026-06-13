@@ -2,6 +2,26 @@
   <Teleport to="body">
     <div class="floating-actions" v-show="visible">
       <button
+        v-if="cartStore.count"
+        class="fab-btn fab-cart"
+        type="button"
+        @click="openCart"
+        :aria-label="t('cart.floatingAria')"
+        :title="t('cart.viewCart')"
+      >
+        <span class="fab-count">{{ cartStore.count }}</span>
+        <svg
+          class="fab-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path d="M6 7h15l-1.5 8.5H8L6 4H3" />
+          <path d="M9 20h.01" />
+          <path d="M18 20h.01" />
+        </svg>
+      </button>
+      <button
         class="fab-btn fab-top"
         type="button"
         @click="handleClick"
@@ -26,6 +46,10 @@
 
 <script setup lang="ts">
 import { useScrollVisibility } from './useScrollVisibility'
+import { useRouter } from 'vue-router'
+import { useCartStore } from '@/store/cart'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useI18n } from '@/i18n'
 
 const props = withDefaults(
   defineProps<{
@@ -41,6 +65,14 @@ const props = withDefaults(
 const { visible, scrollToTop } = useScrollVisibility(props.threshold, {
   alwaysVisible: props.alwaysVisible
 })
+const router = useRouter()
+const cartStore = useCartStore()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
+
+const openCart = () => {
+  router.push(addLocaleToPath('/user/cart', localeStore.currentLocale))
+}
 
 const handleClick = () => {
   console.log('[FloatingActions] Button clicked')
@@ -65,6 +97,7 @@ const handleClick = () => {
 }
 
 .fab-btn {
+  position: relative;
   pointer-events: auto;
 
   width: 48px;
@@ -129,6 +162,36 @@ const handleClick = () => {
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.fab-cart {
+  background: var(--color-brand);
+  border-color: rgba(15, 107, 104, 0.42);
+  color: #fff;
+}
+
+.fab-cart:hover {
+  background: var(--color-brand-strong);
+  color: #fff;
+}
+
+.fab-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: #111827;
+  border: 2px solid #fff;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 @media (min-width: 768px) {

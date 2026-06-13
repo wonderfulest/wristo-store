@@ -171,7 +171,10 @@ const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/top',
     name: 'TopApps',
-    component: () => import('@/views/shop/TopApps.vue')
+    component: () => import('@/views/shop/TopApps.vue'),
+    meta: {
+      contentSizedMain: true
+    }
   },
   {
     path: '/creators',

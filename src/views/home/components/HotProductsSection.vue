@@ -18,12 +18,15 @@
         </button>
       </div>
       <div class="hot-grid">
-        <button
+        <article
           v-for="product in visibleProducts"
           :key="product.appId" 
-          type="button"
           class="hot-item" 
-          @click="$emit('product-click', product)"
+          role="button"
+          tabindex="0"
+          @click="handleProductClick(product)"
+          @keydown.enter.prevent="handleProductClick(product)"
+          @keydown.space.prevent="handleProductClick(product)"
         >
           <div class="hot-img-wrap">
             <img :src="getProductImageUrl(product)" :alt="product.name" class="hot-img" />
@@ -32,13 +35,19 @@
             <div class="hot-name">{{ product.name }}</div>
             <div class="hot-card-footer">
               <span class="hot-price">${{ product.price.toFixed(2) }}</span>
-              <span class="hot-cta">
-                {{ t('home.hotView') }}
-                <Icon icon="solar:arrow-right-linear" width="17" height="17" aria-hidden="true" />
-              </span>
+              <button
+                class="hot-cart-toggle"
+                type="button"
+                :class="{ active: cartStore.hasItem(product.appId) }"
+                :title="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
+                :aria-label="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
+                @click.stop="toggleCart(product)"
+              >
+                <Icon icon="solar:cart-3-line-duotone" width="19" height="19" aria-hidden="true" />
+              </button>
             </div>
           </div>
-        </button>
+        </article>
       </div>
     </div>
   </section>
@@ -46,24 +55,50 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
+import { ElMessage } from 'element-plus';
 import type { ProductBaseVO } from '@/types';
 import { useI18n } from '@/i18n';
 import { getProductImageUrl } from '@/utils/productImage'
+import { useCartStore } from '@/store/cart'
+import { useLocaleStore } from '@/store/locale'
+import { showAddedToCartMessage } from '@/utils/cartFeedback'
 
 const { t } = useI18n();
+const router = useRouter()
+const cartStore = useCartStore()
+const localeStore = useLocaleStore()
 
 const props = defineProps<{
   hotProducts: ProductBaseVO[];
 }>();
 
-defineEmits(['product-click', 'more-click']);
+const emit = defineEmits(['product-click', 'more-click']);
 
 const visibleProducts = computed(() => {
   const rowSize = 6
   const count = Math.floor((props.hotProducts?.length || 0) / rowSize) * rowSize
   return (props.hotProducts || []).slice(0, count)
 });
+
+const handleProductClick = (product: ProductBaseVO) => {
+  emit('product-click', product)
+}
+
+const toggleCart = (product: ProductBaseVO) => {
+  if (!product?.appId) return
+  const removing = cartStore.hasItem(product.appId)
+  cartStore.toggle(product)
+  if (removing) {
+    ElMessage.success(t('cart.removed'))
+    return
+  }
+  showAddedToCartMessage(router, localeStore.currentLocale, {
+    added: t('cart.added'),
+    viewCart: t('cart.viewCart'),
+  })
+}
 </script>
 
 <style scoped>
@@ -211,7 +246,7 @@ const visibleProducts = computed(() => {
     0 14px 34px rgba(17, 24, 39, 0.08),
     0 1px 0 rgba(255, 255, 255, 0.86) inset;
   color: var(--color-ink);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .hot-item:hover,
@@ -231,7 +266,7 @@ const visibleProducts = computed(() => {
 .hot-img-wrap {
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 18px;
+  border-radius: 50%;
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.98), transparent 46%),
@@ -239,25 +274,23 @@ const visibleProducts = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+  transition: transform 300ms ease, box-shadow 300ms ease;
+  transform-origin: center;
   flex-shrink: 0;
 }
 
 .hot-item:hover .hot-img-wrap {
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.06);
+  box-shadow: 0 16px 42px rgba(17, 24, 39, 0.16);
 }
 
 .hot-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 18px;
+  border-radius: 50%;
   display: block;
-  transition: transform 300ms ease;
-}
-
-.hot-item:hover .hot-img {
-  transform: scale(1.04);
 }
 
 .hot-card-body {
@@ -311,20 +344,27 @@ const visibleProducts = computed(() => {
   background: var(--color-brand);
 }
 
-.hot-cta {
+.hot-cart-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-height: 34px;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.92);
   color: var(--color-muted);
-  font-size: 0.9rem;
-  font-weight: 750;
-  white-space: nowrap;
-  transition: color 180ms ease;
+  box-shadow: var(--shadow-sm);
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
 }
 
-.hot-item:hover .hot-cta {
-  color: var(--color-brand-strong);
+.hot-cart-toggle:hover,
+.hot-cart-toggle.active {
+  color: var(--color-brand);
+  border-color: rgba(15, 107, 104, 0.28);
+  background: var(--color-brand-soft);
 }
 
 /* Responsive adjustments */

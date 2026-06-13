@@ -60,6 +60,16 @@
       
       <!-- Desktop user area -->
       <div class="user-area desktop-user">
+        <router-link
+          v-if="cartStore.count"
+          :to="localizedPath('/user/cart')"
+          class="header-cart-link"
+          :aria-label="t('cart.headerAria')"
+          :title="t('cart.viewCart')"
+        >
+          <el-icon><ShoppingCart /></el-icon>
+          <span class="header-cart-count">{{ cartStore.count }}</span>
+        </router-link>
         <template v-if="isLoggedIn">
           <el-dropdown @command="handleUserMenuCommand" trigger="click">
             <div class="user-avatar-container">
@@ -147,6 +157,16 @@
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.faq') }}</span>
           </router-link>
+          <router-link
+            v-if="cartStore.count"
+            :to="localizedPath('/user/cart')"
+            class="mobile-nav-link mobile-cart-link"
+            @click="closeMobileMenu"
+          >
+            <el-icon><ShoppingCart /></el-icon>
+            <span>{{ t('nav.cart') }}</span>
+            <span class="mobile-cart-count">{{ cartStore.count }}</span>
+          </router-link>
           <div class="mobile-language-row">
             <LanguageSwitcher />
           </div>
@@ -221,6 +241,7 @@ import { Icon } from '@iconify/vue';
 import { ArrowDown, User, Document, ShoppingCart, SwitchButton } from '@element-plus/icons-vue';
 import type { Series } from '@/types/product';
 import { useUserStore } from '@/store/user';
+import { useCartStore } from '@/store/cart';
 import type { GarminDeviceVO } from '@/types';
 import DeviceDisplay from './DeviceDisplay.vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
@@ -234,6 +255,7 @@ const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
 const router = useRouter();
 const userStore = useUserStore();
+const cartStore = useCartStore();
 const localeStore = useLocaleStore();
 const { t } = useI18n();
 const isLoggedIn = ref(false);
@@ -456,8 +478,50 @@ defineExpose({
 .user-area {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin-left: 16px;
+}
+
+.header-cart-link {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--color-brand-strong);
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.header-cart-link:hover {
+  color: var(--color-brand-strong);
+  border-color: rgba(15, 107, 104, 0.32);
+  background: var(--color-brand-soft);
+  transform: translateY(-1px);
+}
+
+.header-cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: #111827;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  border: 2px solid #fff;
 }
 
 /* Current Device Display */
@@ -770,6 +834,26 @@ defineExpose({
   background: var(--color-brand-soft);
   border-color: rgba(15, 107, 104, 0.12);
   box-shadow: 0 12px 28px rgba(15, 107, 104, 0.10);
+}
+
+.mobile-cart-link {
+  background: rgba(15, 107, 104, 0.08);
+  border-color: rgba(15, 107, 104, 0.14);
+}
+
+.mobile-cart-count {
+  margin-left: auto;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: #111827;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .mobile-language-row {

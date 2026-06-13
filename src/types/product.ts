@@ -210,6 +210,7 @@ export interface Series {
   hero?: ImageVO | null
   banner?: ImageVO | null
   image?: string | null
+  representativeProduct?: ProductBaseVO | null
 }
 
 // Top sales summary for apps

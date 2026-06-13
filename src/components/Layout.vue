@@ -1,7 +1,10 @@
 <template>
   <div class="layout-root">
     <Header />
-    <main class="layout-main">
+    <main
+      class="layout-main"
+      :class="{ 'layout-main--content-sized': contentSizedMain }"
+    >
       <slot />
     </main>
     <FloatingActions
@@ -24,6 +27,7 @@ import FaqAgentChat from '@/components/FaqAgentChat.vue'
 const route = useRoute()
 
 const showFloatingActions = computed(() => route.meta.showFloatingActions === true)
+const contentSizedMain = computed(() => route.meta.contentSizedMain === true)
 </script>
 
 <style scoped>
@@ -48,6 +52,10 @@ const showFloatingActions = computed(() => route.meta.showFloatingActions === tr
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+.layout-main--content-sized {
+  flex: 0 0 auto;
 }
 
 /* 移动端宽度修复 */

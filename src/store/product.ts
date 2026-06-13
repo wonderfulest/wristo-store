@@ -8,8 +8,36 @@ import type { ProductBaseVO, ProductVO, Series, PageResult } from '@/types'
 const withSeriesImage = (list: Series[]) => {
   return (list || []).map((s) => ({
     ...s,
-    image: s.image ?? s.hero?.url ?? s.banner?.url ?? null,
+    image: s.representativeProduct?.heroFile?.url
+      ?? s.representativeProduct?.garminImageUrl
+      ?? s.image
+      ?? s.hero?.url
+      ?? s.banner?.url
+      ?? null,
   }))
+}
+
+const getRepresentativeProductKey = (series: Series) => {
+  const appId = series.representativeProduct?.appId
+  return appId != null ? `app:${appId}` : null
+}
+
+const uniqueByRepresentativeProduct = (list: Series[]) => {
+  const usedProductKeys = new Set<string>()
+  const uniqueList: Series[] = []
+
+  for (const series of list || []) {
+    const productKey = getRepresentativeProductKey(series)
+    if (productKey) {
+      if (usedProductKeys.has(productKey)) {
+        continue
+      }
+      usedProductKeys.add(productKey)
+    }
+    uniqueList.push(series)
+  }
+
+  return uniqueList
 }
 
 interface State {
@@ -80,10 +108,10 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async getHotSeries() {
+    async getHotSeries(limit = 8) {
       try {
-        const response: Series[] = await getHotSeries()
-        this.hotSeries = withSeriesImage(response || [])
+        const response: Series[] = await getHotSeries(limit * 3)
+        this.hotSeries = uniqueByRepresentativeProduct(withSeriesImage(response || [])).slice(0, limit)
         return this.hotSeries
       } catch (error) {
         console.error('获取热门系列失败:', error)
@@ -102,9 +130,9 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async getHotProducts() {
+    async getHotProducts(limit = 24) {
       try {
-        const response: ProductBaseVO[] = await getHotProducts()
+        const response: ProductBaseVO[] = await getHotProducts(limit)
         this.hotProducts = response || []
         return this.hotProducts
       } catch (error) {

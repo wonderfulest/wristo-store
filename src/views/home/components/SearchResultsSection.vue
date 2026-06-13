@@ -27,7 +27,7 @@ defineProps<{
 <style scoped>
 .search-results-section {
   width: 100%;
-  padding: 80px 0;
+  padding: 30px 0 18px;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -60,22 +60,15 @@ defineProps<{
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 30px;
-  padding: 0 10px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px;
+  padding: 8px 10px 10px;
+  overflow: visible;
 }
 
 .product-item {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 18px;
-  overflow: hidden;
-  background: #ffffff;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-
-.product-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  min-width: 0;
+  overflow: visible;
 }
 
 /* Responsive Design */
@@ -85,14 +78,14 @@ defineProps<{
   }
   
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
   }
 }
 
 @media (max-width: 735px) {
   .search-results-section {
-    padding: 60px 0;
+    padding: 26px 0 12px;
   }
   
   .section-header {
@@ -107,8 +100,8 @@ defineProps<{
   }
   
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
     padding: 0;
   }
 }
@@ -116,6 +109,10 @@ defineProps<{
 @media (max-width: 480px) {
   .search-results-container {
     padding: 0 16px;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
   }
   
   .section-title {

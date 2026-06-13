@@ -33,7 +33,7 @@
           :class="{ active: isInCart }"
           @click="toggleCart"
         >
-          {{ isInCart ? 'Remove from Cart' : 'Add to Cart' }}
+          {{ isInCart ? t('cart.goToCart') : 'Add to Cart' }}
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
         <button
@@ -79,9 +79,9 @@
             </div>
             <div class="install-or">or</div>
             <div class="button-section">
-              <div class="button-title">You will be redirected to Garmin Connect IQ Store in your browser.</div>
+              <div class="button-title">Need the Garmin website anyway? You will confirm three times before leaving Wristo.</div>
               <button class="product-btn product-btn-download" @click="handleDownload">
-                Download 
+                Website option
                 <!-- <span class="icon-download-svg" v-html="DownloadSvg"></span> -->
               </button>
             </div>
@@ -150,16 +150,20 @@ import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
-import { getRouteLocaleParam } from '@/store/locale'
+import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { getProductImageUrl } from '@/utils/productImage'
 import { openStudioDesignCopy } from '@/utils/studio'
 import { useCartCheckout } from '@/composables/useCartCheckout'
+import { useI18n } from '@/i18n'
+import { showAddedToCartMessage } from '@/utils/cartFeedback'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const cartStore = useCartStore()
+const localeStore = useLocaleStore()
 const { loading: checkoutLoading, checkout } = useCartCheckout()
+const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
@@ -171,9 +175,15 @@ const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
 
 const toggleCart = () => {
   if (!product.value?.appId) return
-  const removing = cartStore.hasItem(product.value.appId)
+  if (cartStore.hasItem(product.value.appId)) {
+    router.push(addLocaleToPath('/user/cart', localeStore.currentLocale))
+    return
+  }
   cartStore.toggle(product.value)
-  ElMessage.success(removing ? 'Removed from cart' : 'Added to cart')
+  showAddedToCartMessage(router, localeStore.currentLocale, {
+    added: t('cart.added'),
+    viewCart: t('cart.viewCart'),
+  })
 }
 
 const handleBuyNow = () => {

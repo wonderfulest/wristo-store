@@ -11,7 +11,8 @@
           <p class="eyebrow">Garmin Connect IQ</p>
           <h1>{{ productName }}</h1>
           <p class="summary">
-            Wristo keeps this step on-site first. Garmin blocks embedded store pages, so install opens only after your confirmation.
+            Use your phone camera or Garmin Connect IQ app to scan the QR code. Wristo keeps
+            Garmin installs on mobile first so your watch can sync through the app.
           </p>
         </div>
       </div>
@@ -20,14 +21,21 @@
         <div class="qr-wrap">
           <qrcode-vue :value="garminUrl" :size="164" :level="'M'" class="qr-code" />
         </div>
+        <div class="qr-copy">
+          <strong>Scan with your phone</strong>
+          <span>Opening Garmin in a desktop browser is not recommended.</span>
+        </div>
         <div class="actions">
-          <button class="primary-action" type="button" @click="openGarminStore">
-            Open Garmin Store
-          </button>
           <button class="secondary-action" type="button" @click="goBack">
             Back to Wristo
           </button>
+          <button class="danger-action" type="button" @click="confirmGarminStoreOpen">
+            {{ openButtonLabel }}
+          </button>
         </div>
+        <p v-if="confirmationCount > 0" class="confirmation-note" aria-live="polite">
+          Confirmation {{ confirmationCount }} of {{ REQUIRED_CONFIRMATIONS }} complete. Scan the QR code instead unless you specifically need Garmin's website.
+        </p>
       </div>
 
       <div v-else class="action-panel invalid">
@@ -41,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import QrcodeVue from 'qrcode.vue'
@@ -49,6 +57,8 @@ import { isAllowedGarminStoreUrl } from '@/utils/garminStore'
 
 const route = useRoute()
 const router = useRouter()
+const REQUIRED_CONFIRMATIONS = 3
+const confirmationCount = ref(0)
 
 const queryValue = (value: unknown) => {
   if (Array.isArray(value)) return value[0] || ''
@@ -60,14 +70,31 @@ const imageUrl = computed(() => queryValue(route.query.image))
 const sourcePath = computed(() => queryValue(route.query.from))
 const productName = computed(() => queryValue(route.query.name) || 'Wristo Garmin app')
 const isValidUrl = computed(() => isAllowedGarminStoreUrl(garminUrl.value))
+const remainingConfirmations = computed(() => REQUIRED_CONFIRMATIONS - confirmationCount.value)
+const openButtonLabel = computed(() => {
+  if (remainingConfirmations.value <= 1) return 'Final confirm: open Garmin website'
+  if (confirmationCount.value === 0) return 'I still want Garmin website'
+  return `Confirm again (${remainingConfirmations.value} left)`
+})
 
-const openGarminStore = () => {
+watch(garminUrl, () => {
+  confirmationCount.value = 0
+})
+
+const confirmGarminStoreOpen = () => {
   if (!isValidUrl.value) {
     ElMessage.error('Garmin Store link is unavailable')
     return
   }
 
+  confirmationCount.value += 1
+  if (confirmationCount.value < REQUIRED_CONFIRMATIONS) {
+    ElMessage.warning('Please scan the QR code with your phone for Garmin Connect IQ installation.')
+    return
+  }
+
   window.open(garminUrl.value, '_blank', 'noopener,noreferrer')
+  confirmationCount.value = 0
 }
 
 const goBack = () => {
@@ -185,6 +212,24 @@ h1 {
   display: block;
 }
 
+.qr-copy {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  color: #123331;
+}
+
+.qr-copy strong {
+  font-size: 18px;
+}
+
+.qr-copy span,
+.confirmation-note {
+  color: #526563;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .actions {
   width: 100%;
   display: grid;
@@ -192,7 +237,8 @@ h1 {
 }
 
 .primary-action,
-.secondary-action {
+.secondary-action,
+.danger-action {
   width: 100%;
   min-height: 46px;
   border-radius: 6px;
@@ -219,6 +265,21 @@ h1 {
 
 .secondary-action:hover {
   background: #f5f8f7;
+}
+
+.danger-action {
+  background: #fff8f2;
+  color: #8a3b13;
+  border-color: rgba(138, 59, 19, 0.24);
+}
+
+.danger-action:hover {
+  background: #ffefe1;
+}
+
+.confirmation-note {
+  margin: -8px 0 0;
+  text-align: center;
 }
 
 .invalid {

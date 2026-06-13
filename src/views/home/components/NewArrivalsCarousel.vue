@@ -14,7 +14,14 @@
         <div class="new-scroll" ref="scrollContainer">
           <div class="new-scroll-track">
             <div v-for="product in loopProducts" :key="`${product.appId}-${product.__loopKey}`" class="new-slide">
-              <button class="slide-btn" type="button" @click="$emit('product-click', product.__origin)">
+              <article
+                class="slide-card"
+                role="button"
+                tabindex="0"
+                @click="handleProductClick(product.__origin)"
+                @keydown.enter.prevent="handleProductClick(product.__origin)"
+                @keydown.space.prevent="handleProductClick(product.__origin)"
+              >
                 <div class="product-circle-img">
                   <img
                     :src="getProductImageUrl(product)"
@@ -25,9 +32,21 @@
                 </div>
                 <div class="product-info">
                   <div class="product-name">{{ product.name }}</div>
-                  <div class="product-price">${{ product.price.toFixed(2) }}</div>
+                  <div class="product-footer">
+                    <div class="product-price">${{ product.price.toFixed(2) }}</div>
+                    <button
+                      class="cart-toggle"
+                      type="button"
+                      :class="{ active: cartStore.hasItem(product.appId) }"
+                      :title="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
+                      :aria-label="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
+                      @click.stop="toggleCart(product.__origin)"
+                    >
+                      <Icon icon="solar:cart-3-line-duotone" width="19" height="19" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
-              </button>
+              </article>
             </div>
           </div>
         </div>
@@ -38,15 +57,25 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
+import { useRouter } from 'vue-router'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import type { ProductBaseVO } from '@/types';
 import { getProductImageUrl } from '@/utils/productImage'
+import { useCartStore } from '@/store/cart'
+import { useLocaleStore } from '@/store/locale'
+import { useI18n } from '@/i18n'
+import { showAddedToCartMessage } from '@/utils/cartFeedback'
 
 const props = defineProps<{
   newProducts: ProductBaseVO[];
 }>();
 
-defineEmits(['product-click']);
+const emit = defineEmits(['product-click']);
+const router = useRouter()
+const cartStore = useCartStore()
+const localeStore = useLocaleStore()
+const { t } = useI18n()
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const isMobile = ref(false)
@@ -66,6 +95,24 @@ const loopProducts = computed(() => {
     ...props.newProducts.map(p => ({ ...p, __loopKey: 'b', __origin: p })),
   ]
 })
+
+const handleProductClick = (product: ProductBaseVO) => {
+  emit('product-click', product)
+}
+
+const toggleCart = (product: ProductBaseVO) => {
+  if (!product?.appId) return
+  const removing = cartStore.hasItem(product.appId)
+  cartStore.toggle(product)
+  if (removing) {
+    ElMessage.success(t('cart.removed'))
+    return
+  }
+  showAddedToCartMessage(router, localeStore.currentLocale, {
+    added: t('cart.added'),
+    viewCart: t('cart.viewCart'),
+  })
+}
 
 const normalizeLoopScroll = () => {
   const el = scrollContainer.value
@@ -254,7 +301,7 @@ onUnmounted(() => {
   padding: 0;
 }
 
-.slide-btn {
+.slide-card {
   width: 100%;
   border: none;
   background: transparent;
@@ -263,7 +310,7 @@ onUnmounted(() => {
   border-radius: var(--radius-md);
 }
 
-.slide-btn:active {
+.slide-card:active {
   transform: scale(0.99);
 }
 
@@ -282,7 +329,7 @@ onUnmounted(() => {
   transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.slide-btn:hover .product-circle-img {
+.slide-card:hover .product-circle-img {
   transform: scale(1.03);
   box-shadow: 0 14px 44px rgba(0, 0, 0, 0.16);
 }
@@ -313,6 +360,36 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 700;
   color: var(--color-brand);
+}
+
+.product-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.cart-toggle {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-muted);
+  box-shadow: var(--shadow-sm);
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.cart-toggle:hover,
+.cart-toggle.active {
+  color: var(--color-brand);
+  border-color: rgba(15, 107, 104, 0.28);
+  background: var(--color-brand-soft);
 }
 
 /* ⭐ 连续滚动核心 */

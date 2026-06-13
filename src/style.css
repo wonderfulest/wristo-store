@@ -114,6 +114,30 @@ img {
   background: rgba(15, 107, 104, 0.18);
 }
 
+.cart-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cart-message-action {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-brand-strong);
+  font-size: 0.92rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  box-shadow: none;
+}
+
+.cart-message-action:hover {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-brand);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

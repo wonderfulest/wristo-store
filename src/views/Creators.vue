@@ -5,25 +5,25 @@
         <div class="hero-copy">
           <p class="eyebrow">
             <Icon icon="solar:watch-round-bold-duotone" width="19" height="19" aria-hidden="true" />
-            For Garmin watch face designers
+            {{ t('creators.heroEyebrow') }}
           </p>
           <h1 id="creators-title" class="hero-title">
-            Publish your watch faces with a clear path from free releases to paid revenue.
+            {{ t('creators.heroTitle') }}
           </h1>
           <p class="hero-subtitle">
-            Wristo gives independent Garmin creators a focused storefront, a purpose-built studio, and transparent growth rules based on real user demand.
+            {{ t('creators.heroSubtitle') }}
           </p>
-          <div class="hero-actions" aria-label="Creator actions">
+          <div class="hero-actions" :aria-label="t('creators.actionsAria')">
             <button class="btn-primary" type="button" @click="handleStart">
               <Icon icon="solar:arrow-right-up-linear" width="20" height="20" aria-hidden="true" />
-              Start in Wristo Studio
+              {{ t('creators.startStudio') }}
             </button>
             <button class="btn-secondary" type="button" @click="handleViewPath">
               <Icon icon="solar:map-arrow-right-linear" width="20" height="20" aria-hidden="true" />
-              View growth path
+              {{ t('creators.viewGrowthPath') }}
             </button>
           </div>
-          <div class="hero-metrics" aria-label="Creator program highlights">
+          <div class="hero-metrics" :aria-label="t('creators.metricsAria')">
             <div v-for="metric in heroMetrics" :key="metric.label" class="metric-item">
               <strong>{{ metric.value }}</strong>
               <span>{{ metric.label }}</span>
@@ -31,11 +31,11 @@
           </div>
         </div>
 
-        <div class="hero-visual" aria-label="Wristo creator workspace preview">
+        <div class="hero-visual" :aria-label="t('creators.previewAria')">
           <div class="creator-console">
             <div class="console-header">
-              <span class="console-kicker">Creator dashboard</span>
-              <span class="console-status">Live preview</span>
+              <span class="console-kicker">{{ t('creators.consoleKicker') }}</span>
+              <span class="console-status">{{ t('creators.consoleStatus') }}</span>
             </div>
             <div class="watch-showcase">
               <div class="watch-frame">
@@ -46,8 +46,8 @@
                 </div>
               </div>
               <div class="showcase-copy">
-                <span>Minimal analog set</span>
-                <strong>Ready to publish</strong>
+                <span>{{ t('creators.showcaseName') }}</span>
+                <strong>{{ t('creators.showcaseStatus') }}</strong>
               </div>
             </div>
             <div class="console-grid">
@@ -59,7 +59,7 @@
             </div>
             <div class="console-progress">
               <div class="progress-label">
-                <span>User validation</span>
+                <span>{{ t('creators.validationLabel') }}</span>
                 <strong>68%</strong>
               </div>
               <span class="progress-track"><span class="progress-fill"></span></span>
@@ -72,8 +72,8 @@
     <main class="creators-main">
       <section class="value-band" aria-labelledby="creator-value-title">
         <div class="section-heading">
-          <p class="section-kicker">What creators get</p>
-          <h2 id="creator-value-title">A platform that makes publishing predictable.</h2>
+          <p class="section-kicker">{{ t('creators.valueKicker') }}</p>
+          <h2 id="creator-value-title">{{ t('creators.valueTitle') }}</h2>
         </div>
         <div class="value-grid">
           <article v-for="item in valueProps" :key="item.title" class="value-card">
@@ -89,13 +89,13 @@
       <section id="creator-growth-roadmap" class="roadmap-band" aria-labelledby="roadmap-title">
         <div class="roadmap-heading">
           <div class="section-heading">
-            <p class="section-kicker">Creator growth roadmap</p>
-            <h2 id="roadmap-title">Four stages, no hidden review queue.</h2>
+            <p class="section-kicker">{{ t('creators.roadmapKicker') }}</p>
+            <h2 id="roadmap-title">{{ t('creators.roadmapTitle') }}</h2>
             <p>
-              Start with free work, use real downloads and feedback to prove demand, then unlock paid publishing when your audience is ready.
+              {{ t('creators.roadmapSubtitle') }}
             </p>
           </div>
-          <div class="stage-tabs" role="tablist" aria-label="Creator stages">
+          <div class="stage-tabs" role="tablist" :aria-label="t('creators.stagesAria')">
             <button
               v-for="stage in stages"
               :id="`stage-tab-${stage.id}`"
@@ -121,7 +121,7 @@
           :aria-labelledby="`stage-tab-${currentStage.id}`"
         >
           <div class="stage-panel-copy">
-            <p class="stage-label">Stage {{ currentStage.id }}</p>
+            <p class="stage-label">{{ t('creators.stageLabel') }} {{ currentStage.id }}</p>
             <h3>{{ currentStage.title }}</h3>
             <p>{{ currentStage.description }}</p>
           </div>
@@ -142,11 +142,11 @@
         <div class="path-controls">
           <button class="btn-quiet" type="button" :disabled="activeStage === 1" @click="handlePrevStage">
             <Icon icon="solar:arrow-left-linear" width="19" height="19" aria-hidden="true" />
-            Previous
+            {{ t('creators.previous') }}
           </button>
-          <span class="path-count">Stage {{ activeStage }} of {{ stages.length }}</span>
+          <span class="path-count">{{ stageCountText }}</span>
           <button class="btn-quiet" type="button" :disabled="activeStage === stages.length" @click="handleNextStage">
-            Next
+            {{ t('creators.next') }}
             <Icon icon="solar:arrow-right-linear" width="19" height="19" aria-hidden="true" />
           </button>
         </div>
@@ -154,8 +154,8 @@
 
       <section class="principles-band" aria-labelledby="principles-title">
         <div class="section-heading">
-          <p class="section-kicker">Platform rules</p>
-          <h2 id="principles-title">Built for trust before scale.</h2>
+          <p class="section-kicker">{{ t('creators.principlesKicker') }}</p>
+          <h2 id="principles-title">{{ t('creators.principlesTitle') }}</h2>
         </div>
         <div class="principles-layout">
           <article v-for="principle in principles" :key="principle.title" class="principle-card">
@@ -168,15 +168,15 @@
 
       <section class="promise-band" aria-labelledby="promise-title">
         <div class="promise-copy">
-          <p class="section-kicker">Wristo's promise</p>
-          <h2 id="promise-title">You design. Users choose. Wristo amplifies the value.</h2>
+          <p class="section-kicker">{{ t('creators.promiseKicker') }}</p>
+          <h2 id="promise-title">{{ t('creators.promiseTitle') }}</h2>
           <p>
-            We will not ban creators because early sales are low, blur rules after launch, or force every successful creator to monetize.
+            {{ t('creators.promiseBody') }}
           </p>
         </div>
         <button class="btn-primary" type="button" @click="handleStart">
           <Icon icon="solar:magic-stick-3-bold-duotone" width="20" height="20" aria-hidden="true" />
-          Join for free
+          {{ t('creators.joinFree') }}
         </button>
       </section>
     </main>
@@ -186,118 +186,123 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useI18n } from '@/i18n'
 
 const studioUrl = import.meta.env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io/'
+const { t } = useI18n()
 
-const heroMetrics = [
-  { value: 'Free', label: 'to start' },
-  { value: '1,000', label: 'downloads can unlock paid publishing' },
-  { value: '$100', label: 'monthly review threshold for inactive paid work' },
-]
+const heroMetrics = computed(() => [
+  { value: t('creators.metricFreeValue'), label: t('creators.metricFreeLabel') },
+  { value: t('creators.metricDownloadsValue'), label: t('creators.metricDownloadsLabel') },
+  { value: t('creators.metricRevenueValue'), label: t('creators.metricRevenueLabel') },
+])
 
-const consoleStats = [
-  { icon: 'solar:download-minimalistic-line-duotone', label: 'Downloads', value: '1.8k' },
-  { icon: 'solar:star-line-duotone', label: 'Feedback', value: '4.8' },
-  { icon: 'solar:wallet-money-line-duotone', label: 'Revenue', value: 'Ready' },
-]
+const consoleStats = computed(() => [
+  { icon: 'solar:download-minimalistic-line-duotone', label: t('creators.statDownloads'), value: '1.8k' },
+  { icon: 'solar:star-line-duotone', label: t('creators.statFeedback'), value: '4.8' },
+  { icon: 'solar:wallet-money-line-duotone', label: t('creators.statRevenue'), value: t('creators.statRevenueValue') },
+])
 
-const valueProps = [
+const valueProps = computed(() => [
   {
     icon: 'solar:palette-round-line-duotone',
-    title: 'Design tools that fit the device',
-    description: 'Create and iterate Garmin watch faces with a studio built around compact screens, previews, and publishing flow.',
+    title: t('creators.valueToolsTitle'),
+    description: t('creators.valueToolsDesc'),
   },
   {
     icon: 'solar:chart-square-line-duotone',
-    title: 'Growth based on real signals',
-    description: 'Downloads, user feedback, and consistent updates define progress. No private favoritism or subjective gatekeeping.',
+    title: t('creators.valueSignalsTitle'),
+    description: t('creators.valueSignalsDesc'),
   },
   {
     icon: 'solar:shop-line-duotone',
-    title: 'A storefront for long-term value',
-    description: 'Keep free works visible, add paid works when unlocked, and build a catalog that can keep improving over time.',
+    title: t('creators.valueStorefrontTitle'),
+    description: t('creators.valueStorefrontDesc'),
   },
-]
+])
 
-const stages = [
+const stages = computed(() => [
   {
     id: 1,
-    shortTitle: 'Free creator',
-    title: 'Free creator',
-    description: 'Join Wristo, publish free watch faces, and learn what users actually download.',
+    shortTitle: t('creators.stage1Short'),
+    title: t('creators.stage1Title'),
+    description: t('creators.stage1Desc'),
     points: [
-      'Use the full design toolset',
-      'Publish free watch faces with no quantity limit',
-      'Update your work whenever you improve it',
-      'Earn platform exposure and real user downloads',
+      t('creators.stage1Point1'),
+      t('creators.stage1Point2'),
+      t('creators.stage1Point3'),
+      t('creators.stage1Point4'),
     ],
-    note: 'There is no time limit at this stage. Slow, careful creators still have room to build.',
+    note: t('creators.stage1Note'),
     noteIcon: 'solar:leaf-line-duotone',
   },
   {
     id: 2,
-    shortTitle: 'Validation',
-    title: 'User validation',
-    description: 'When your work starts to resonate, Wristo uses measurable demand to unlock the next step.',
+    shortTitle: t('creators.stage2Short'),
+    title: t('creators.stage2Title'),
+    description: t('creators.stage2Desc'),
     points: [
-      'Any single work reaches 1,000 downloads',
-      'Or all works together reach 10,000 downloads',
-      'Downloads, feedback, and updates are the core signals',
-      'Paid publishing unlocks automatically when criteria are met',
+      t('creators.stage2Point1'),
+      t('creators.stage2Point2'),
+      t('creators.stage2Point3'),
+      t('creators.stage2Point4'),
     ],
-    note: 'No application form and no manual review queue. The path is visible before you start.',
+    note: t('creators.stage2Note'),
     noteIcon: 'solar:bolt-circle-line-duotone',
   },
   {
     id: 3,
-    shortTitle: 'Pro creator',
-    title: 'Pro creator',
-    description: 'Add monetization when you are ready, while keeping free publishing as part of your strategy.',
+    shortTitle: t('creators.stage3Short'),
+    title: t('creators.stage3Title'),
+    description: t('creators.stage3Desc'),
     points: [
-      'Publish paid watch faces',
-      'Mix free and paid works in one catalog',
-      'View download and revenue data',
-      'Join platform revenue settlement',
+      t('creators.stage3Point1'),
+      t('creators.stage3Point2'),
+      t('creators.stage3Point3'),
+      t('creators.stage3Point4'),
     ],
-    note: 'Charging is your choice. Wristo will not force every successful design to become paid.',
+    note: t('creators.stage3Note'),
     noteIcon: 'solar:wallet-money-line-duotone',
   },
   {
     id: 4,
-    shortTitle: 'Sustainable',
-    title: 'Sustainable creator',
-    description: 'Keep creating over the long term with stable permissions and rules that protect the catalog.',
+    shortTitle: t('creators.stage4Short'),
+    title: t('creators.stage4Title'),
+    description: t('creators.stage4Desc'),
     points: [
-      'Your account remains available as long as you create',
-      'Free publishing rights stay valid',
-      'Historical works remain visible',
-      'Paused paid publishing can unlock again with new creations',
+      t('creators.stage4Point1'),
+      t('creators.stage4Point2'),
+      t('creators.stage4Point3'),
+      t('creators.stage4Point4'),
     ],
-    note: 'If paid-only work is inactive for 3 to 6 months with monthly revenue under $100, new paid publishing may pause temporarily.',
+    note: t('creators.stage4Note'),
     noteIcon: 'solar:refresh-circle-line-duotone',
   },
-]
+])
 
-const principles = [
+const principles = computed(() => [
   {
     icon: 'solar:shield-check-line-duotone',
-    title: 'No surprise penalties',
-    description: 'Low early sales do not mean account bans, removed free works, or hidden demotion.',
+    title: t('creators.principlePenaltyTitle'),
+    description: t('creators.principlePenaltyDesc'),
   },
   {
     icon: 'solar:document-text-line-duotone',
-    title: 'Rules stay public',
-    description: 'Eligibility and review rules are published in advance and designed to remain stable over time.',
+    title: t('creators.principleRulesTitle'),
+    description: t('creators.principleRulesDesc'),
   },
   {
     icon: 'solar:users-group-rounded-line-duotone',
-    title: 'Creators keep agency',
-    description: 'You decide when to stay free, when to charge, and how to shape your catalog for users.',
+    title: t('creators.principleAgencyTitle'),
+    description: t('creators.principleAgencyDesc'),
   },
-]
+])
 
 const activeStage = ref(1)
-const currentStage = computed(() => stages.find((stage) => stage.id === activeStage.value) || stages[0])
+const currentStage = computed(() => stages.value.find((stage) => stage.id === activeStage.value) || stages.value[0])
+const stageCountText = computed(() => t('creators.stageCount')
+  .replace('{current}', String(activeStage.value))
+  .replace('{total}', String(stages.value.length)))
 
 const handleStart = () => {
   window.open(studioUrl, '_blank', 'noopener')
@@ -311,7 +316,7 @@ const handleViewPath = () => {
 }
 
 const handleNextStage = () => {
-  if (activeStage.value < stages.length) {
+  if (activeStage.value < stages.value.length) {
     activeStage.value += 1
   }
 }
