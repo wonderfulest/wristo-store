@@ -14,51 +14,134 @@
     <div v-if="!cartStore.items.length" class="empty-state">
       <el-icon><ShoppingCart /></el-icon>
       <h2>Your cart is empty</h2>
-      <p>Save watch faces here while browsing. Checkout will be added later.</p>
+      <p>Save watch faces here while browsing, then complete checkout with your Wristo account email.</p>
       <button type="button" class="browse-btn" @click="goHome">Browse watch faces</button>
     </div>
 
-    <div v-else class="cart-items">
-      <article v-for="item in cartStore.items" :key="item.appId" class="cart-item">
-        <button type="button" class="item-main" @click="goProduct(item.appId)">
-          <span class="item-image">
-            <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" />
-            <span v-else class="item-fallback">W</span>
-          </span>
-          <span class="item-info">
-            <strong>{{ item.name }}</strong>
-            <span>${{ item.price.toFixed(2) }}</span>
-          </span>
-        </button>
-
-        <div class="item-actions">
-          <el-input-number
-            :model-value="item.quantity"
-            :min="1"
-            :max="99"
-            size="small"
-            controls-position="right"
-            aria-label="Quantity"
-            @change="updateQuantity(item.appId, $event)"
-          />
-          <button type="button" class="remove-btn" title="Remove" @click="cartStore.remove(item.appId)">
-            <el-icon><Delete /></el-icon>
+    <div v-else class="cart-layout">
+      <div class="cart-items">
+        <article v-for="item in cartStore.items" :key="item.appId" class="cart-item" :class="{ purchased: isPurchased(item.appId) }">
+          <button type="button" class="item-main" @click="goProduct(item.appId)">
+            <span class="item-image">
+              <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" />
+              <span v-else class="item-fallback">W</span>
+            </span>
+            <span class="item-info">
+              <span class="item-title-row">
+                <strong>{{ item.name }}</strong>
+                <span v-if="isPurchased(item.appId)" class="purchased-badge">Purchased</span>
+              </span>
+              <span>${{ item.price.toFixed(2) }}</span>
+              <span v-if="purchaseConflict(item.appId)?.message" class="purchase-warning">
+                {{ purchaseConflict(item.appId)?.message }}
+              </span>
+            </span>
           </button>
+
+          <div class="item-actions">
+            <span class="quantity-fixed">Qty 1</span>
+            <button type="button" class="remove-btn" title="Remove" @click="removeItem(item.appId)">
+              <el-icon><Delete /></el-icon>
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <aside class="checkout-panel" aria-label="Checkout summary">
+        <div class="checkout-row">
+          <span>Items</span>
+          <strong>{{ cartStore.count }}</strong>
         </div>
-      </article>
+        <div class="checkout-row">
+          <span>Subtotal</span>
+          <strong>{{ formatMoney(cartSubtotal) }}</strong>
+        </div>
+        <div v-if="cartDiscount.rate > 0" class="checkout-row discount-row">
+          <span>{{ cartDiscount.label }}</span>
+          <strong>-{{ formatMoney(cartDiscount.amount) }}</strong>
+        </div>
+        <p v-else class="discount-hint">
+          {{ firstDiscountHint.prefix }}<strong class="discount-saving">{{ firstDiscountHint.emphasis }}</strong>{{ firstDiscountHint.suffix }}
+        </p>
+        <p v-if="nextDiscountHint" class="discount-hint">
+          {{ nextDiscountHint.prefix }}<strong class="discount-saving">{{ nextDiscountHint.emphasis }}</strong>{{ nextDiscountHint.suffix }}
+        </p>
+        <button type="button" class="recommend-search-btn" @click="goRecommendedSearch">
+          <el-icon><Search /></el-icon>
+          <span>Add more apps</span>
+        </button>
+        <div class="checkout-row total-row">
+          <span>Estimated total</span>
+          <strong>{{ formatMoney(cartEstimatedTotal) }}</strong>
+        </div>
+        <div class="email-lock">
+          <span>Checkout email</span>
+          <strong>{{ checkoutEmail }}</strong>
+        </div>
+        <button type="button" class="checkout-btn" :disabled="loading || checking" @click="handleCheckout">
+          <el-icon><CreditCard /></el-icon>
+          <span>{{ checkoutButtonText }}</span>
+        </button>
+      </aside>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Delete, ShoppingCart } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { CreditCard, Delete, Search, ShoppingCart } from '@element-plus/icons-vue'
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useUserStore } from '@/store/user'
+import { useCartCheckout } from '@/composables/useCartCheckout'
+import { checkCartPurchases } from '@/api/purchase'
+import type { CartPurchaseCheckItemVO } from '@/api/purchase'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const localeStore = useLocaleStore()
+const userStore = useUserStore()
+const { loading, checkout } = useCartCheckout()
+const checking = ref(false)
+const purchaseConflicts = ref<Record<number, CartPurchaseCheckItemVO>>({})
+
+const checkoutEmail = computed(() => userStore.userInfo?.email || 'Sign in required')
+const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
+const discountEligibleCount = computed(() => cartStore.items.filter((item) => Number(item.price || 0) > 0).length)
+const cartDiscountRate = computed(() => {
+  const count = discountEligibleCount.value
+  if (count >= 5) return 20
+  if (count >= 3) return 15
+  if (count >= 2) return 10
+  return 0
+})
+const cartDiscount = computed(() => {
+  const rate = cartDiscountRate.value
+  const amount = rate > 0 ? Math.round(cartSubtotal.value * rate) / 100 : 0
+  return {
+    rate,
+    amount,
+    label: rate > 0 ? `Bundle SAVE ${rate}%` : 'Buy more, save more',
+  }
+})
+const cartEstimatedTotal = computed(() => Math.max(0, cartSubtotal.value - cartDiscount.value.amount))
+const discountHint = (prefix: string, emphasis: string, suffix = '.') => ({ prefix, emphasis, suffix })
+const firstDiscountHint = discountHint('Add one more app to ', 'SAVE 10%')
+const nextDiscountHint = computed(() => {
+  const count = discountEligibleCount.value
+  if (count === 2) return discountHint('Add one more app to ', 'SAVE 15%')
+  if (count === 3 || count === 4) return discountHint(`${5 - count} more ${count === 4 ? 'app' : 'apps'} unlocks `, '20% off')
+  return null
+})
+const checkoutButtonText = computed(() => {
+  if (checking.value) return 'Checking cart...'
+  if (loading.value) return 'Opening checkout...'
+  return 'Checkout'
+})
+
+const formatMoney = (amount: number) => `$${amount.toFixed(2)}`
 
 const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 
@@ -70,8 +153,51 @@ const goProduct = (appId: number) => {
   router.push(localizedPath(`/product/${appId}`))
 }
 
-const updateQuantity = (appId: number, value: number | undefined) => {
-  cartStore.setQuantity(appId, value ?? 1)
+const goRecommendedSearch = () => {
+  router.push(localizedPath('/search'))
+}
+
+const purchaseConflict = (appId: number) => purchaseConflicts.value[appId]
+
+const isPurchased = (appId: number) => Boolean(purchaseConflict(appId)?.purchased)
+
+const removeItem = (appId: number) => {
+  cartStore.remove(appId)
+  const nextConflicts = { ...purchaseConflicts.value }
+  delete nextConflicts[appId]
+  purchaseConflicts.value = nextConflicts
+}
+
+const cartCheckoutItems = () => cartStore.items.map((item) => ({ appId: item.appId, quantity: 1 }))
+
+const handleCheckout = async () => {
+  const items = cartCheckoutItems()
+  if (!items.length) {
+    checkout(items)
+    return
+  }
+  if (!userStore.userInfo?.email) {
+    checkout(items)
+    return
+  }
+
+  checking.value = true
+  try {
+    const checkResult = await checkCartPurchases({ items })
+    purchaseConflicts.value = Object.fromEntries(
+      (checkResult.items || [])
+        .filter((item) => item.purchased)
+        .map((item) => [item.appId, item])
+    )
+    if (checkResult.hasPurchasedItems) {
+      ElMessage.warning('Some items are already purchased. Please remove them before checkout.')
+      return
+    }
+  } finally {
+    checking.value = false
+  }
+
+  checkout(items, () => cartStore.clear())
 }
 </script>
 
@@ -157,6 +283,13 @@ h1 {
   font-weight: 800;
 }
 
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 22px;
+  align-items: flex-start;
+}
+
 .cart-items {
   display: flex;
   flex-direction: column;
@@ -173,6 +306,11 @@ h1 {
   border-radius: var(--radius-md);
   background: #fff;
   box-shadow: var(--shadow-sm);
+}
+
+.cart-item.purchased {
+  border-color: rgba(180, 35, 24, 0.28);
+  background: #fffafa;
 }
 
 .item-main {
@@ -228,15 +366,53 @@ h1 {
   -webkit-box-orient: vertical;
 }
 
-.item-info span {
+.item-title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+.item-info > span:not(.item-title-row):not(.purchase-warning),
+.item-title-row strong {
   color: var(--color-brand);
   font-weight: 800;
+}
+
+.item-title-row strong {
+  color: var(--color-ink);
+}
+
+.purchased-badge {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: rgba(180, 35, 24, 0.1);
+  color: #b42318;
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.purchase-warning {
+  color: #b42318;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .item-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.quantity-fixed {
+  min-width: 58px;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
 }
 
 .remove-btn {
@@ -249,6 +425,113 @@ h1 {
   border-radius: 999px;
   border: 1px solid var(--color-line);
   color: #b42318;
+}
+
+.checkout-panel {
+  position: sticky;
+  top: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.checkout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+}
+
+.checkout-row strong {
+  color: var(--color-ink);
+}
+
+.discount-row {
+  color: #087443;
+}
+
+.discount-row strong {
+  color: #087443;
+}
+
+.discount-hint {
+  margin: -6px 0 0;
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.discount-saving {
+  color: #d92d20;
+  font-weight: 900;
+}
+
+.recommend-search-btn {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-line);
+  background: #fff;
+  color: var(--color-brand);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.recommend-search-btn:hover {
+  border-color: rgba(15, 107, 104, 0.28);
+  background: var(--color-brand-soft);
+}
+
+.total-row {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-line);
+}
+
+.total-row strong {
+  color: var(--color-brand);
+  font-size: 1.35rem;
+}
+
+.email-lock {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-brand-soft);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+}
+
+.email-lock strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+.checkout-btn {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: #fff;
+  font-weight: 800;
+}
+
+.checkout-btn:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 
 @media (max-width: 640px) {
@@ -264,6 +547,14 @@ h1 {
 
   .item-actions {
     justify-content: space-between;
+  }
+
+  .cart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .checkout-panel {
+    position: static;
   }
 }
 </style>

@@ -333,7 +333,7 @@
       </div>
 
       <!-- Tip -->
-      <div class="tip-card">
+      <div v-if="!isLoggedIn" class="tip-card">
         <Icon icon="mdi:lightbulb-outline" width="18" class="tip-icon" />
         <span>
           We recommend you
@@ -365,11 +365,14 @@ import type { PurchaseRecord } from '@/types'
 import { ElMessage } from 'element-plus'
 import { toGarminStoreBridge } from '@/utils/garminStore'
 import { getProductImageUrl } from '@/utils/productImage'
+import { useUserStore } from '@/store/user'
 
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const records = ref<PurchaseRecord[]>([])
 const isLoading = ref(true)
+const isLoggedIn = computed(() => !!userStore.userInfo)
 
 const navigateToBundle = (bundleId: number | string) => {
   router.push(`/bundle/${String(bundleId)}`)

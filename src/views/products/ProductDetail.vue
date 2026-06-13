@@ -19,6 +19,16 @@
         <button
           v-if="product?.appId"
           type="button"
+          class="product-btn product-btn-buy"
+          :disabled="checkoutLoading"
+          @click="handleBuyNow"
+        >
+          {{ checkoutLoading ? 'Opening checkout...' : 'Buy now' }}
+          <el-icon class="btn-icon"><CreditCard /></el-icon>
+        </button>
+        <button
+          v-if="product?.appId"
+          type="button"
           class="product-btn product-btn-cart"
           :class="{ active: isInCart }"
           @click="toggleCart"
@@ -127,6 +137,7 @@ import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
+  CreditCard,
   Download,
   Lock,
   MagicStick,
@@ -142,11 +153,13 @@ import { toGarminStoreBridge } from '@/utils/garminStore'
 import { getRouteLocaleParam } from '@/store/locale'
 import { getProductImageUrl } from '@/utils/productImage'
 import { openStudioDesignCopy } from '@/utils/studio'
+import { useCartCheckout } from '@/composables/useCartCheckout'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const cartStore = useCartStore()
+const { loading: checkoutLoading, checkout } = useCartCheckout()
 const product = ref<ProductVO | null>(null)
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
@@ -161,6 +174,11 @@ const toggleCart = () => {
   const removing = cartStore.hasItem(product.value.appId)
   cartStore.toggle(product.value)
   ElMessage.success(removing ? 'Removed from cart' : 'Added to cart')
+}
+
+const handleBuyNow = () => {
+  if (!product.value?.appId) return
+  checkout([{ appId: product.value.appId, quantity: 1 }])
 }
 
 const handleDownload = () => {
@@ -605,6 +623,22 @@ onMounted(async () => {
 }
 .product-btn-download:hover {
   background: var(--color-brand-strong);
+}
+.product-btn-buy {
+  width: 340px;
+  height: 56px;
+  margin-bottom: 14px;
+  color: #fff;
+  background: var(--color-brand);
+  box-shadow: 0 16px 34px rgba(15, 107, 104, 0.22);
+}
+.product-btn-buy:hover:not(:disabled) {
+  background: var(--color-brand-strong);
+  transform: translateY(-1px);
+}
+.product-btn-buy:disabled {
+  cursor: wait;
+  opacity: 0.72;
 }
 .product-btn-cart {
   width: 340px;

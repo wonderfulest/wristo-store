@@ -38,7 +38,9 @@ onMounted(async () => {
     userStore.token = res.accessToken
     // Fetch and save user information
     await userStore.getUserInfo()
-    router.replace('/')
+    const returnPath = sessionStorage.getItem('wristo:sso:return-path') || '/'
+    sessionStorage.removeItem('wristo:sso:return-path')
+    router.replace(returnPath)
   } catch (e: any) {
     error.value = e?.response?.data?.msg || e.message || 'Request failed'
     redirectToSsoLogin('store')

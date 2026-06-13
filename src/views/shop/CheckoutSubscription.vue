@@ -305,7 +305,18 @@ function loadPaddle() {
                                 window.location.href = '/payment/success'
                             }, 1000)
                         } catch (error) {
-                            ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Error')
+                            console.warn('Payment completed but purchase sync failed:', error)
+                            store.setOrder({
+                                referenceId: eventData.data.id || `PADDLE_${Date.now()}`,
+                                productName: subscription.value.name,
+                                amount: subscription.value.discountPrice || subscription.value.originalPrice,
+                                paymentSource: 'paddle',
+                                currencyCode: 'USD',
+                                paddleOrder: eventData.data
+                            })
+                            setTimeout(() => {
+                                window.location.href = '/payment/success'
+                            }, 1000)
                         }
                     }
                     if (data.name === 'checkout.closed') {

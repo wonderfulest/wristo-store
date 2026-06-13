@@ -62,6 +62,13 @@ export function redirectToSsoLogin(client: string, delay = 0) {
   }
   isRedirectingToSso = true
 
+  try {
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+    sessionStorage.setItem('wristo:sso:return-path', currentPath || '/')
+  } catch (e) {
+    console.warn('Failed to save SSO return path:', e)
+  }
+
   clearLocalAuthState()
 
   window.setTimeout(() => {

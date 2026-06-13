@@ -15,6 +15,51 @@ export interface CheckDiscountResponseVO {
   }
 }
 
+export interface CartCheckoutItemRequest {
+  appId: number
+  quantity: number
+}
+
+export interface CartCheckoutRequest {
+  items: CartCheckoutItemRequest[]
+}
+
+export interface CartCheckoutItemVO {
+  appId: number
+  name: string
+  priceId: string
+  amount: number
+  quantity: number
+}
+
+export interface CartCheckoutResponseVO {
+  transactionId: string
+  currencyCode: string
+  subtotal: number
+  discountRate: number
+  discountAmount: number
+  estimatedTotal: number
+  discountLabel: string
+  grandTotal: number
+  items: CartCheckoutItemVO[]
+}
+
+export interface CartPurchaseCheckItemVO {
+  appId: number
+  name: string
+  purchased: boolean
+  purchaseType?: 'app' | 'bundle' | string
+  purchaseRecordId?: number
+  bundleId?: number
+  bundleName?: string
+  message?: string
+}
+
+export interface CartPurchaseCheckResponseVO {
+  hasPurchasedItems: boolean
+  items: CartPurchaseCheckItemVO[]
+}
+
 export const getBundlesForPurchase = (): Promise<Bundle[]> => {
   return instance.get('/public/purchase/bundles')
 }
@@ -29,6 +74,14 @@ export const purchaseCallback = (data: PurchaseCallbackRequest): Promise<Purchas
 
 export const checkDiscount = (data: CheckDiscountRequest): Promise<CheckDiscountResponseVO> => {
   return instance.post('/public/purchase/check-discount', data)
+}
+
+export const createCartCheckout = (data: CartCheckoutRequest): Promise<CartCheckoutResponseVO> => {
+  return instance.post('/purchase/cart/checkout', data)
+}
+
+export const checkCartPurchases = (data: CartCheckoutRequest): Promise<CartPurchaseCheckResponseVO> => {
+  return instance.post('/purchase/cart/check', data)
 }
 
 // Top apps by sales for last 7 days

@@ -301,7 +301,10 @@ function loadPaddle() {
                                 window.location.href = '/payment/success'
                             }, 1000)
                         } catch (error) {
-                            ElMessageBox.alert('Payment completed but sync failed. Please contact support.', 'Error')
+                            console.warn('Payment completed but purchase sync failed:', error)
+                            setTimeout(() => {
+                                window.location.href = '/payment/success'
+                            }, 1000)
                         }
                     }
                     if (data.name === 'checkout.closed') {

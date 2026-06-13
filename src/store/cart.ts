@@ -36,8 +36,8 @@ export const useCartStore = defineStore('cart', {
   }),
 
   getters: {
-    count: (state) => state.items.reduce((total, item) => total + item.quantity, 0),
-    totalPrice: (state) => state.items.reduce((total, item) => total + item.price * item.quantity, 0),
+    count: (state) => state.items.length,
+    totalPrice: (state) => state.items.reduce((total, item) => total + item.price, 0),
     hasItem: (state) => (appId?: number | string | null) => {
       if (appId === undefined || appId === null) return false
       return state.items.some((item) => item.appId === Number(appId))
@@ -49,7 +49,7 @@ export const useCartStore = defineStore('cart', {
       if (!product?.appId) return
       const existing = this.items.find((item) => item.appId === Number(product.appId))
       if (existing) {
-        existing.quantity += 1
+        existing.quantity = 1
         existing.addedAt = new Date().toISOString()
         return
       }
@@ -60,10 +60,10 @@ export const useCartStore = defineStore('cart', {
       this.items = this.items.filter((item) => item.appId !== Number(appId))
     },
 
-    setQuantity(appId: number | string, quantity: number) {
+    setQuantity(appId: number | string, _quantity: number) {
       const item = this.items.find((entry) => entry.appId === Number(appId))
       if (!item) return
-      item.quantity = Math.max(1, Math.floor(quantity || 1))
+      item.quantity = 1
     },
 
     toggle(product: CartProduct) {
