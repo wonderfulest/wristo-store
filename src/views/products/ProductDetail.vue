@@ -26,6 +26,15 @@
           {{ isInCart ? 'Remove from Cart' : 'Add to Cart' }}
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
+        <button
+          v-if="product?.designId"
+          type="button"
+          class="product-btn product-btn-studio"
+          @click="handleCustomizeInStudio"
+        >
+          Customize in Studio
+          <el-icon class="btn-icon"><MagicStick /></el-icon>
+        </button>
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">Product Details</h2>
           <div class="product-desc" v-html="renderedProductDescription"></div>
@@ -120,6 +129,7 @@ import { ElMessage } from 'element-plus'
 import {
   Download,
   Lock,
+  MagicStick,
   Share,
   ShoppingCart,
 } from '@element-plus/icons-vue'
@@ -131,6 +141,7 @@ import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
 import { getRouteLocaleParam } from '@/store/locale'
 import { getProductImageUrl } from '@/utils/productImage'
+import { openStudioDesignCopy } from '@/utils/studio'
 
 const route = useRoute()
 const router = useRouter()
@@ -183,6 +194,16 @@ const handleUnlock = () => {
 
 const handleAlreadyPurchased = () => {
   router.push('/already-purchased')
+}
+
+const handleCustomizeInStudio = () => {
+  const designId = product.value?.designId?.trim()
+  if (!designId) {
+    ElMessage.error('Studio design is not available')
+    return
+  }
+
+  openStudioDesignCopy(designId)
 }
 
 // QR Code functionality
@@ -599,6 +620,19 @@ onMounted(async () => {
   color: var(--color-brand-strong);
   background: var(--color-brand-soft);
   border-color: rgba(15, 107, 104, 0.34);
+}
+.product-btn-studio {
+  width: 340px;
+  height: 56px;
+  margin-bottom: 26px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
+  border: 1px solid rgba(15, 107, 104, 0.22);
+  box-shadow: 0 14px 30px rgba(15, 107, 104, 0.18);
+}
+.product-btn-studio:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(15, 107, 104, 0.22);
 }
 .product-btn-unlock {
   background: var(--color-brand);

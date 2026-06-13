@@ -150,6 +150,24 @@
         </div>
       </div>
 
+      <!-- Section: Studio -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Studio</span>
+        </div>
+
+        <button class="studio-card" type="button" @click="openStudio">
+          <span class="studio-icon" aria-hidden="true">
+            <Icon icon="solar:magic-stick-3-bold-duotone" width="24" />
+          </span>
+          <span class="studio-copy">
+            <strong>Open Wristo Studio</strong>
+            <span>Create and manage Garmin watch face designs.</span>
+          </span>
+          <Icon icon="mdi:chevron-right" width="20" class="chevron" />
+        </button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -161,6 +179,7 @@ import { uploadUserAvatar } from '@/api/files'
 import { bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/api/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DeviceDisplay from '@/components/DeviceDisplay.vue'
+import { openStudio } from '@/utils/studio'
 
 const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL?.replace(/\/login\/?$/, '').replace(/\/auth\/?$/, '') || ''
 
@@ -471,6 +490,58 @@ watch(() => userStore.userInfo, (val) => {
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.04);
+}
+
+.studio-card {
+  width: 100%;
+  min-height: 86px;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(15, 107, 104, 0.08), rgba(245, 158, 11, 0.08)),
+    #fff;
+  box-shadow: 0 0.5px 0 rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  text-align: left;
+}
+
+.studio-card:hover {
+  background:
+    linear-gradient(135deg, rgba(15, 107, 104, 0.12), rgba(245, 158, 11, 0.12)),
+    #fff;
+}
+
+.studio-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  color: #0f6b68;
+  background: rgba(15, 107, 104, 0.1);
+}
+
+.studio-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.studio-copy strong {
+  color: #1d1d1f;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.studio-copy span {
+  color: #86868b;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 /* ===== Row ===== */

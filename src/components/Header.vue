@@ -42,6 +42,9 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
+        <button class="nav-link nav-button" type="button" @click="openStudio">
+          {{ t('nav.studio') }}
+        </button>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
         <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
         <LanguageSwitcher />
@@ -76,6 +79,10 @@
                 <el-dropdown-item command="cart">
                   <el-icon><ShoppingCart /></el-icon>
                   <span>{{ t('nav.cart') }}</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="studio">
+                  <Icon icon="solar:magic-stick-3-bold-duotone" width="16" height="16" aria-hidden="true" />
+                  <span>{{ t('nav.studio') }}</span>
                 </el-dropdown-item>
                 <el-dropdown-item divided command="logout">
                   <el-icon><SwitchButton /></el-icon>
@@ -132,6 +139,10 @@
             <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.code') }}</span>
           </router-link>
+          <button class="mobile-nav-link mobile-nav-button" type="button" @click="handleOpenStudio">
+            <Icon icon="solar:magic-stick-3-line-duotone" width="22" height="22" aria-hidden="true" />
+            <span>{{ t('nav.studio') }}</span>
+          </button>
           <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.faq') }}</span>
@@ -183,6 +194,10 @@
                 <el-icon><ShoppingCart /></el-icon>
                 <span>{{ t('nav.cart') }}</span>
               </button>
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('studio'); closeMobileMenu()">
+                <Icon icon="solar:magic-stick-3-bold-duotone" width="18" height="18" aria-hidden="true" />
+                <span>{{ t('nav.studio') }}</span>
+              </button>
               <button class="mobile-action-btn logout" @click="handleUserMenuCommand('logout'); closeMobileMenu()">
                 <el-icon><SwitchButton /></el-icon>
                 <span>{{ t('nav.logout') }}</span>
@@ -213,6 +228,7 @@ import { buildFaqGuidePath } from '@/content/faq-guides';
 import { addLocaleToPath, useLocaleStore } from '@/store/locale';
 import { useI18n } from '@/i18n';
 import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
+import { openStudio } from '@/utils/studio';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -278,6 +294,9 @@ const handleUserMenuCommand = (command: string) => {
     case 'cart':
       router.push(localizedPath('/user/cart'));
       break;
+    case 'studio':
+      openStudio();
+      break;
     case 'logout':
       userStore.logout();
       router.push(localizedPath('/'));
@@ -325,6 +344,11 @@ const toggleCategoriesDropdown = () => {
 const handleMobileLogin = () => {
   closeMobileMenu();
   goToLogin();
+};
+
+const handleOpenStudio = () => {
+  closeMobileMenu();
+  openStudio();
 };
 
 onMounted(() => {
@@ -412,6 +436,12 @@ defineExpose({
   padding: 10px 12px;
   border-radius: 999px;
   transition: color 0.18s ease, background 0.18s ease;
+}
+.nav-button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
 }
 .nav-link:hover,
 .nav-link.router-link-active {
@@ -719,6 +749,14 @@ defineExpose({
   border: 1px solid transparent;
   border-radius: 16px;
   transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.mobile-nav-button {
+  width: 100%;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
 }
 
 .mobile-nav-link:hover {

@@ -16,6 +16,10 @@
       <div v-else-if="shouldShowEmpty" class="state-card">
         <div class="state-title">No results</div>
         <div class="state-subtitle">Try a different keyword or a broader style.</div>
+        <button class="state-studio-btn" type="button" @click="openStudio">
+          <Icon icon="mdi:creation-outline" width="18" aria-hidden="true" />
+          Create one in Studio
+        </button>
       </div>
 
       <SearchResultsSection v-else :search-results="searchResults" />
@@ -113,6 +117,7 @@ import SearchSection from '@/views/home/components/SearchSection.vue'
 import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue'
 import { useProductStore } from '@/store/product'
 import type { ProductBaseVO } from '@/types'
+import { openStudio } from '@/utils/studio'
 
 const route = useRoute()
 const router = useRouter()
@@ -412,6 +417,26 @@ onUnmounted(() => {
   padding: 0 22px;
 }
 
+.state-studio-btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--color-brand);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(15, 107, 104, 0.18);
+}
+
+.state-studio-btn:hover {
+  background: var(--color-brand-strong);
+}
+
 .search-discovery {
   width: min(var(--container), calc(100% - 44px));
   margin: 18px auto 0;
@@ -699,12 +724,19 @@ onUnmounted(() => {
 
 .state-card {
   margin: 18px 0 0;
-  padding: 18px 20px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, rgba(249, 250, 251, 0.9), rgba(243, 244, 246, 0.9));
-  border: 1px solid #e5e7eb;
-  color: #111827;
-  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px dashed rgba(15, 107, 104, 0.2);
+  color: var(--color-muted);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
 }
 
 @media (max-width: 735px) {
@@ -768,14 +800,17 @@ onUnmounted(() => {
 }
 
 .state-title {
-  font-size: 16px;
-  font-weight: 600;
+  color: var(--color-ink);
+  font-size: 1.25rem;
+  font-weight: 800;
 }
 
 .state-subtitle {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #6b7280;
+  max-width: 360px;
+  margin-top: 0;
+  color: var(--color-muted);
+  font-size: 0.96rem;
+  line-height: 1.55;
 }
 
 @media (max-width: 735px) {
