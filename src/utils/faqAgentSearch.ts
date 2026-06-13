@@ -1,6 +1,5 @@
 import { questionsByCategory } from '@/config/faq-data'
-import { faqGuidePosts } from '@/content/faq-guides.generated'
-import { buildFaqGuidePath, DEFAULT_FAQ_GUIDE_LANG } from '@/content/faq-guides'
+import { buildFaqGuidePath, DEFAULT_FAQ_GUIDE_LANG, getFaqGuidePosts } from '@/content/faq-guides'
 import { normalizeLocale, type SupportedLocale } from '@/store/locale'
 
 export type FaqAgentSourceType = 'support-faq' | 'guide'
@@ -97,7 +96,7 @@ function buildSupportFaqDocuments(): FaqAgentDocument[] {
 }
 
 function buildGuideDocuments(): FaqAgentDocument[] {
-  return faqGuidePosts.flatMap((post) =>
+  return getFaqGuidePosts().flatMap((post) =>
     (post.translations || [])
       .filter((translation) => translation.lang && translation.slug && translation.contentHtml)
       .map((translation) => {

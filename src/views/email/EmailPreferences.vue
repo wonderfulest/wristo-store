@@ -1,264 +1,184 @@
 <template>
-  <div class="preferences-page">
-    <div class="page-container">
-      <!-- Header Section -->
-      <div class="page-header">
-        <div class="header-icon">
-          <div class="icon-circle">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M3 8L10.89 13.26C11.2187 13.4793 11.6049 13.5963 12 13.5963C12.3951 13.5963 12.7813 13.4793 13.11 13.26L21 8M5 19H19C19.5304 19 20.0391 18.7893 20.4142 18.4142C20.7893 18.0391 21 17.5304 21 17V7C21 6.46957 20.7893 5.96086 20.4142 5.58579C20.0391 5.21071 19.5304 5 19 5H5C4.46957 5 3.96086 5.21071 3.58579 5.58579C3.21071 5.96086 3 6.46957 3 7V17C3 17.5304 3.21071 18.0391 3.58579 18.4142C3.96086 18.7893 4.46957 19 5 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <main class="preferences-page">
+    <div class="page-shell">
+      <header class="page-hero">
+        <div class="hero-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 7.5L10.98 12.15C11.59 12.56 12.41 12.56 13.02 12.15L20 7.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5.5 18.5H18.5C19.33 18.5 20 17.83 20 17V7C20 6.17 19.33 5.5 18.5 5.5H5.5C4.67 5.5 4 6.17 4 7V17C4 17.83 4.67 18.5 5.5 18.5Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="hero-copy">
+          <p class="eyebrow">Wristo Store</p>
+          <h1>Email Preferences</h1>
+          <p>Customize your email notifications</p>
+        </div>
+      </header>
+
+      <section class="status-stack" aria-live="polite" aria-atomic="true">
+        <div v-if="loading" class="notice notice-loading">
+          <span class="spinner"></span>
+          <span>Loading preferences...</span>
+        </div>
+
+        <div v-if="error" class="notice notice-error" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 8.5V13M12 16.5H12.01M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>{{ error }}</span>
+        </div>
+
+        <div v-if="!loading && isUnsubscribed" class="notice notice-warning">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 9V13M12 17H12.01M10.29 4.86L2.82 17.5C2.23 18.5 2.95 19.75 4.11 19.75H19.89C21.05 19.75 21.77 18.5 21.18 17.5L13.71 4.86C13.13 3.88 10.87 3.88 10.29 4.86Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>You are currently unsubscribed from marketing emails.</span>
+        </div>
+      </section>
+
+      <form v-if="!loading" class="preferences-panel" @submit.prevent="handleSave">
+        <section class="account-card" aria-labelledby="email-section-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Account</p>
+              <h2 id="email-section-title">Email address</h2>
+            </div>
+            <span class="summary-pill">{{ enabledOptionalCount }} optional on</span>
+          </div>
+
+          <label class="email-field">
+            <span>Notification email</span>
+            <input
+              v-model="emailModel"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="your@email.com"
+              :aria-invalid="!!emailError"
+              :aria-describedby="emailError ? 'email-error' : 'email-help'"
+              :class="{ 'input-error': emailError }"
+            />
+          </label>
+          <p id="email-help" class="field-help">We use this address to load and save your notification choices.</p>
+          <p v-if="emailError" id="email-error" class="field-error" role="alert">{{ emailError }}</p>
+        </section>
+
+        <section class="required-card" aria-labelledby="required-section-title">
+          <div class="section-heading compact">
+            <div>
+              <p class="section-kicker">Always on</p>
+              <h2 id="required-section-title">Essential notifications</h2>
+            </div>
+            <span class="required-pill">Required</span>
+          </div>
+
+          <div class="required-grid">
+            <div v-for="item in requiredItems" :key="item.title" class="required-item">
+              <span class="required-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <div>
+                <h3>{{ item.title }}</h3>
+                <p>{{ item.description }}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          v-for="section in preferenceSections"
+          :key="section.title"
+          class="preference-section"
+          :aria-labelledby="section.id"
+        >
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">{{ section.kicker }}</p>
+              <h2 :id="section.id">{{ section.title }}</h2>
+              <p>{{ section.description }}</p>
+            </div>
+          </div>
+
+          <div class="preference-list">
+            <label
+              v-for="item in section.items"
+              :key="item.key"
+              class="preference-row"
+              :class="{ selected: form[item.key] }"
+            >
+              <span class="preference-copy">
+                <span class="preference-title">{{ item.title }}</span>
+                <span class="preference-description">{{ item.description }}</span>
+              </span>
+              <span class="switch-shell">
+                <input
+                  v-model="form[item.key]"
+                  class="switch-input"
+                  type="checkbox"
+                  :aria-label="item.title"
+                />
+                <span class="switch-track" aria-hidden="true">
+                  <span class="switch-thumb"></span>
+                </span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <footer class="actions-section">
+          <div class="save-summary">
+            <strong>{{ enabledOptionalCount }} of {{ optionalPreferenceCount }}</strong>
+            <span>optional email categories enabled</span>
+          </div>
+
+          <button type="submit" class="save-button" :disabled="saving || !isFormValid">
+            <span v-if="saving" class="button-spinner"></span>
+            <span>{{ saving ? 'Saving...' : 'Save Preferences' }}</span>
+          </button>
+
+          <div v-if="success" class="notice notice-success inline-success" role="status">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 12L11 14L15.5 9.5M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-          </div>
-        </div>
-        <div class="header-content">
-          <h1 class="page-title">Email Preferences</h1>
-          <p class="page-subtitle">Customize your email notifications</p>
-        </div>
-      </div>
-
-      <!-- Status Messages -->
-      <div v-if="loading" class="status-message loading">
-        <div class="spinner"></div>
-        <span>Loading preferences...</span>
-      </div>
-      
-      <div v-if="error" class="status-message error">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>{{ error }}</span>
-      </div>
-
-      <div v-if="!loading && isUnsubscribed" class="status-message error">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <span>You are currently unsubscribed from marketing emails.</span>
-      </div>
-
-      <!-- Main Content -->
-      <div v-if="!loading" class="content-wrapper">
-        <form @submit.prevent="handleSave" class="preferences-form">
-          <!-- Email Input Section -->
-          <div class="section email-section">
-            <div class="section-header">
-              <h2 class="section-title">Email Address</h2>
-              <p class="section-desc">Enter the email address for your notifications</p>
-            </div>
-            <div class="input-wrapper">
-              <input 
-                type="email" 
-                v-model="emailModel" 
-                placeholder="your@email.com"
-                class="email-input"
-                :class="{ 'input-error': emailError }"
-              />
-              <div v-if="emailError" class="input-error-text">{{ emailError }}</div>
-            </div>
+            <span>Preferences saved successfully</span>
           </div>
 
-          <!-- System Notifications -->
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">System Notifications</h2>
-              <p class="section-desc">Essential emails that cannot be disabled</p>
-            </div>
-            <div class="preferences-list">
-              <div class="preference-item disabled">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">System notifications</span>
-                    <span class="preference-badge required">Required</span>
-                  </div>
-                  <p class="preference-desc">Critical account and security updates</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <div class="toggle enabled disabled"></div>
-                </div>
-              </div>
-              
-              <div class="preference-item disabled">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Purchase receipts</span>
-                    <span class="preference-badge required">Required</span>
-                  </div>
-                  <p class="preference-desc">Order confirmations and billing receipts</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <div class="toggle enabled disabled"></div>
-                </div>
-              </div>
-              
-              <div class="preference-item disabled">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">License & activation updates</span>
-                    <span class="preference-badge required">Required</span>
-                  </div>
-                  <p class="preference-desc">License keys and activation information</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <div class="toggle enabled disabled"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <router-link :to="{ name: 'PrivacyPolicy' }" class="privacy-link">
+            Privacy Policy
+          </router-link>
+        </footer>
+      </form>
 
-          <!-- Marketing & Promotions -->
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">Marketing & Promotions</h2>
-              <p class="section-desc">Product updates, deals, and promotional content</p>
-            </div>
-            <div class="preferences-list">
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Weekly newsletter</span>
-                  </div>
-                  <p class="preference-desc">Top apps, faces and product news</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.weeklyNewsletter" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.weeklyNewsletter }"></div>
-                </div>
-              </label>
-              
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Exclusive promotions</span>
-                  </div>
-                  <p class="preference-desc">Limited-time deals and discounts</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.exclusivePromotions" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.exclusivePromotions }"></div>
-                </div>
-              </label>
-              
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Bundle offers</span>
-                  </div>
-                  <p class="preference-desc">Curated bundles and savings</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.bundleOffers" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.bundleOffers }"></div>
-                </div>
-              </label>
-              
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Creator spotlight</span>
-                  </div>
-                  <p class="preference-desc">Featured designers and collections</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.creatorSpotlight" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.creatorSpotlight }"></div>
-                </div>
-              </label>
-              
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Personalized recommendations</span>
-                  </div>
-                  <p class="preference-desc">Suggestions tailored to your interests</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.personalizedRecommendations" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.personalizedRecommendations }"></div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Community & Educational -->
-          <div class="section">
-            <div class="section-header">
-              <h2 class="section-title">Community & Educational</h2>
-              <p class="section-desc">Platform updates and community content</p>
-            </div>
-            <div class="preferences-list">
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Design updates</span>
-                  </div>
-                  <p class="preference-desc">New design drops and improvements</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.designUpdates" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.designUpdates }"></div>
-                </div>
-              </label>
-              
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Platform announcements</span>
-                  </div>
-                  <p class="preference-desc">Important platform news and releases</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.platformAnnouncements" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.platformAnnouncements }"></div>
-                </div>
-              </label>
-              
-              <label class="preference-item">
-                <div class="preference-content">
-                  <div class="preference-main">
-                    <span class="preference-title">Surveys & feedback</span>
-                  </div>
-                  <p class="preference-desc">Help us improve Wristo products</p>
-                </div>
-                <div class="toggle-wrapper">
-                  <input type="checkbox" v-model="form.surveysFeedback" class="toggle-input" />
-                  <div class="toggle" :class="{ enabled: form.surveysFeedback }"></div>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="actions-section">
-            <button type="submit" class="save-button" :disabled="saving || !isFormValid">
-              <span v-if="saving" class="button-spinner"></span>
-              <span>{{ saving ? 'Saving...' : 'Save Preferences' }}</span>
-            </button>
-            <div v-if="success" class="status-message success actions-success">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>Preferences saved successfully</span>
-            </div>
-            <router-link :to="{ name: 'PrivacyPolicy' }" class="privacy-link">
-              Privacy Policy
-            </router-link>
-          </div>
-        </form>
-      </div>
-
-      <!-- Footer -->
-      <div class="page-footer">
+      <footer class="page-footer">
         <p>Unsubscribe stops marketing emails. You may still receive essential system emails.</p>
-      </div>
+      </footer>
     </div>
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useUserStore } from '@/store/user'
 import { getPreferences, setPreferences } from '@/api/email-preferences'
+import { useUserStore } from '@/store/user'
+
+type PreferenceKey =
+  | 'weeklyNewsletter'
+  | 'exclusivePromotions'
+  | 'bundleOffers'
+  | 'creatorSpotlight'
+  | 'personalizedRecommendations'
+  | 'designUpdates'
+  | 'platformAnnouncements'
+  | 'surveysFeedback'
+
+type PreferenceItem = {
+  key: PreferenceKey
+  title: string
+  description: string
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -273,17 +193,14 @@ const userEmail = computed(() => userStore.userInfo?.email || '')
 const queryEmail = computed((): string => (route.query.email as string) || '')
 
 const form = reactive({
-  // required system notifications (display-only in UI but we store as 1)
   systemNotifications: true,
   purchaseReceipts: true,
   licenseUpdates: true,
-  // marketing & promotions
   weeklyNewsletter: true,
   exclusivePromotions: true,
   bundleOffers: false,
   creatorSpotlight: false,
   personalizedRecommendations: true,
-  // community & educational
   designUpdates: false,
   platformAnnouncements: true,
   surveysFeedback: false,
@@ -291,6 +208,94 @@ const form = reactive({
 
 const emailModel = ref(queryEmail.value || userEmail.value)
 const emailError = ref('')
+
+const requiredItems = [
+  {
+    title: 'System notifications',
+    description: 'Critical account and security updates',
+  },
+  {
+    title: 'Purchase receipts',
+    description: 'Order confirmations and billing receipts',
+  },
+  {
+    title: 'License & activation updates',
+    description: 'License keys and activation information',
+  },
+]
+
+const preferenceSections: Array<{
+  id: string
+  kicker: string
+  title: string
+  description: string
+  items: PreferenceItem[]
+}> = [
+  {
+    id: 'marketing-section-title',
+    kicker: 'Marketing',
+    title: 'Deals and product ideas',
+    description: 'Choose the promotional emails that are useful to you.',
+    items: [
+      {
+        key: 'weeklyNewsletter',
+        title: 'Weekly newsletter',
+        description: 'Top apps, watch faces, and product news',
+      },
+      {
+        key: 'exclusivePromotions',
+        title: 'Exclusive promotions',
+        description: 'Limited-time deals and discounts',
+      },
+      {
+        key: 'bundleOffers',
+        title: 'Bundle offers',
+        description: 'Curated bundles and savings',
+      },
+      {
+        key: 'creatorSpotlight',
+        title: 'Creator spotlight',
+        description: 'Featured designers and collections',
+      },
+      {
+        key: 'personalizedRecommendations',
+        title: 'Personalized recommendations',
+        description: 'Suggestions tailored to your interests',
+      },
+    ],
+  },
+  {
+    id: 'community-section-title',
+    kicker: 'Community',
+    title: 'Updates and feedback',
+    description: 'Stay close to new releases and help shape Wristo.',
+    items: [
+      {
+        key: 'designUpdates',
+        title: 'Design updates',
+        description: 'New design drops and improvements',
+      },
+      {
+        key: 'platformAnnouncements',
+        title: 'Platform announcements',
+        description: 'Important platform news and releases',
+      },
+      {
+        key: 'surveysFeedback',
+        title: 'Surveys & feedback',
+        description: 'Help us improve Wristo products',
+      },
+    ],
+  },
+]
+
+const optionalPreferenceKeys = preferenceSections.flatMap((section) => section.items.map((item) => item.key))
+
+const optionalPreferenceCount = computed(() => optionalPreferenceKeys.length)
+
+const enabledOptionalCount = computed(() => {
+  return optionalPreferenceKeys.filter((key) => form[key]).length
+})
 
 const isFormValid = computed(() => {
   return emailModel.value && /\S+@\S+\.\S+/.test(emailModel.value)
@@ -303,13 +308,11 @@ const load = async () => {
     const effectiveEmail = queryEmail.value || userEmail.value
     if (effectiveEmail) {
       const prefs = await getPreferences(effectiveEmail)
-      console.log('EmailPreferences.vue:load', prefs)
       if (prefs) {
         isUnsubscribed.value = !!prefs.isUnsubscribed
         form.systemNotifications = true
         form.purchaseReceipts = !!prefs.purchaseReceipts
         form.licenseUpdates = !!prefs.licenseUpdates
-        // If globally unsubscribed, default marketing toggles to false for clarity
         const unsub = !!prefs.isUnsubscribed
         form.weeklyNewsletter = unsub ? false : !!prefs.weeklyNewsletter
         form.exclusivePromotions = unsub ? false : !!prefs.exclusivePromotions
@@ -355,7 +358,6 @@ const handleSave = async () => {
       isUnsubscribed: 0,
     })
     success.value = true
-    // Navigate to success page shortly after showing inline success message
     setTimeout(() => {
       router.push({ name: 'PreferencesSuccess', query: { email: emailModel.value } })
     }, 800)
@@ -370,356 +372,591 @@ onMounted(load)
 </script>
 
 <style scoped>
-/* Apple UI Design System */
 .preferences-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+  background:
+    radial-gradient(circle at top left, rgba(0, 122, 255, 0.12), transparent 34rem),
+    linear-gradient(180deg, #f7f8fb 0%, #eef1f5 100%);
+  color: #17202a;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.page-container {
-  max-width: 640px;
+.page-shell {
+  width: min(100% - 32px, 760px);
   margin: 0 auto;
-  padding: 20px 16px;
+  padding: 48px 0 40px;
 }
 
-/* Header */
-.page-header {
-  display: flex;
+.page-hero {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
-.header-icon {
-  flex-shrink: 0;
+.hero-mark {
+  display: grid;
+  width: 60px;
+  height: 60px;
+  place-items: center;
+  border: 1px solid rgba(30, 64, 175, 0.18);
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0f62fe, #15b8a6);
+  color: #fff;
+  box-shadow: 0 18px 38px rgba(15, 98, 254, 0.2);
 }
 
-.icon-circle {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #007aff, #5856d6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  box-shadow: 0 3px 14px rgba(0, 122, 255, 0.25);
+.hero-mark svg {
+  width: 32px;
+  height: 32px;
 }
 
-.header-content {
-  flex: 1;
+.hero-copy {
+  min-width: 0;
 }
 
-.page-title {
-  font-size: 24px;
+.eyebrow,
+.section-kicker {
+  margin: 0 0 4px;
+  color: #0f766e;
+  font-size: 12px;
   font-weight: 700;
-  color: #1d1d1f;
-  margin: 0 0 2px 0;
-  letter-spacing: -0.3px;
+  text-transform: uppercase;
 }
 
-.page-subtitle {
-  font-size: 14px;
-  color: #86868b;
+.hero-copy h1 {
   margin: 0;
-  font-weight: 400;
+  color: #101828;
+  font-size: 36px;
+  font-weight: 760;
+  line-height: 1.12;
 }
 
-/* Status Messages */
-.status-message {
+.hero-copy p:last-child {
+  max-width: 42rem;
+  margin: 8px 0 0;
+  color: #5f6b7a;
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.status-stack {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.notice {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 48px;
   padding: 12px 14px;
-  border-radius: 10px;
-  margin-bottom: 14px;
-  font-weight: 500;
+  border: 1px solid;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
 }
 
-.status-message.loading {
-  background: rgba(0, 122, 255, 0.1);
-  color: #007aff;
-  border: 1px solid rgba(0, 122, 255, 0.2);
+.notice svg {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
 }
 
-.status-message.success {
-  background: rgba(52, 199, 89, 0.1);
-  color: #34c759;
-  border: 1px solid rgba(52, 199, 89, 0.2);
+.notice-loading {
+  border-color: rgba(15, 98, 254, 0.18);
+  background: #eef5ff;
+  color: #0f62fe;
 }
 
-.status-message.error {
-  background: rgba(255, 59, 48, 0.1);
-  color: #ff3b30;
-  border: 1px solid rgba(255, 59, 48, 0.2);
+.notice-success {
+  border-color: rgba(16, 185, 129, 0.22);
+  background: #ecfdf5;
+  color: #047857;
 }
 
-.spinner {
+.notice-warning {
+  border-color: rgba(217, 119, 6, 0.24);
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.notice-error {
+  border-color: rgba(220, 38, 38, 0.22);
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.spinner,
+.button-spinner {
   width: 16px;
   height: 16px;
   border: 2px solid currentColor;
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  border-top-color: transparent;
+  border-radius: 999px;
+  animation: spin 0.85s linear infinite;
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Content */
-.content-wrapper {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: saturate(180%) blur(20px);
-  border-radius: 16px;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+.preferences-panel {
   overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.12);
 }
 
-.preferences-form {
-  display: flex;
-  flex-direction: column;
+.account-card,
+.required-card,
+.preference-section,
+.actions-section {
+  padding: 24px;
 }
 
-/* Sections */
-.section { border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
-
-.section:last-of-type {
-  border-bottom: none;
+.account-card,
+.required-card,
+.preference-section {
+  border-bottom: 1px solid #e8edf3;
 }
 
-.section-header { padding: 16px 16px 8px 16px; }
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin: 0 0 2px 0;
-  letter-spacing: -0.2px;
-}
-
-.section-desc { font-size: 13px; color: #86868b; margin: 0; line-height: 1.3; }
-
-/* Email Section */
-.email-section .section-header {
-  padding-bottom: 10px;
-  text-align: center;
-}
-
-.input-wrapper {
-  padding: 0 16px 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.email-input {
-  width: 100%;
-  max-width: 420px;
-  height: 44px;
-  border: 1.2px solid #d1d1d6;
-  border-radius: 12px;
-  padding: 0 14px;
-  font-size: 16px;
-  text-align: center;
-  background: #fff;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-
-.email-input:focus {
-  outline: none;
-  border-color: #007aff;
-  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.12);
-}
-
-.email-input.input-error {
-  border-color: #ff3b30;
-  box-shadow: 0 0 0 4px rgba(255, 59, 48, 0.1);
-}
-
-.input-error-text {
-  color: #ff3b30;
-  font-size: 13px;
-  margin-top: 6px;
-  font-weight: 500;
-  text-align: center;
-}
-
-/* Preferences List */
-.preferences-list { padding: 0 16px 12px 16px; }
-
-.preference-item {
+.section-heading {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
-.preference-item:last-child {
-  border-bottom: none;
+.section-heading.compact {
+  margin-bottom: 14px;
 }
 
-.preference-item:not(.disabled):hover {
-  background: rgba(0, 122, 255, 0.02);
+.section-heading h2 {
+  margin: 0;
+  color: #101828;
+  font-size: 20px;
+  font-weight: 730;
+  line-height: 1.25;
 }
 
-.preference-item.disabled {
-  cursor: default;
-  opacity: 0.6;
+.section-heading p:not(.section-kicker) {
+  margin: 6px 0 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.preference-content {
-  flex: 1;
+.summary-pill,
+.required-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 750;
 }
 
-.preference-main { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
-
-.preference-title { font-size: 15px; font-weight: 600; color: #1d1d1f; }
-
-.preference-badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
-
-.preference-badge.required {
-  background: rgba(255, 149, 0, 0.1);
-  color: #ff9500;
+.summary-pill {
+  background: #e6fffb;
+  color: #0f766e;
 }
 
-.preference-desc { font-size: 13px; color: #86868b; margin: 0; line-height: 1.35; }
-
-/* Toggle Switch */
-.toggle-wrapper {
-  position: relative;
-  flex-shrink: 0;
+.required-pill {
+  background: #fff7ed;
+  color: #c2410c;
 }
 
-.toggle-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+.email-field {
+  display: grid;
+  gap: 8px;
+  color: #344054;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.toggle {
-  width: 44px;
-  height: 26px;
-  background: #e5e5ea;
-  border-radius: 14px;
-  position: relative;
-  transition: all 0.25s ease;
-  cursor: pointer;
-}
-
-.toggle::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 22px;
-  height: 22px;
-  background: white;
-  border-radius: 50%;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.toggle.enabled {
-  background: #34c759;
-}
-
-.toggle.enabled::after { transform: translateX(18px); }
-
-.toggle.disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-/* Actions */
-.actions-section { padding: 16px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
-
-.save-button {
+.email-field input {
   width: 100%;
-  height: 44px;
-  background: linear-gradient(135deg, #007aff, #5856d6);
-  color: white;
-  border: none;
-  border-radius: 10px;
+  min-height: 52px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  background: #fff;
+  color: #101828;
   font-size: 16px;
   font-weight: 600;
+  line-height: 1.4;
+  padding: 0 14px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.email-field input::placeholder {
+  color: #98a2b3;
+  font-weight: 500;
+}
+
+.email-field input:focus {
+  border-color: #0f62fe;
+  box-shadow: 0 0 0 4px rgba(15, 98, 254, 0.14);
+  outline: none;
+}
+
+.email-field input.input-error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+.field-help,
+.field-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.field-help {
+  color: #667085;
+}
+
+.field-error {
+  color: #b91c1c;
+  font-weight: 650;
+}
+
+.required-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.required-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 12px;
+  align-items: start;
+  min-height: 56px;
+  padding: 12px;
+  border: 1px solid #e8edf3;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.required-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 10px;
+  background: #dffcf8;
+  color: #0f766e;
+}
+
+.required-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.required-item h3 {
+  margin: 0;
+  color: #17202a;
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.required-item p {
+  margin: 3px 0 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.preference-list {
+  display: grid;
+  gap: 10px;
+}
+
+.preference-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  min-height: 68px;
+  padding: 14px;
+  border: 1px solid #e8edf3;
+  border-radius: 14px;
+  background: #fff;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background-color 180ms ease;
+}
+
+.preference-row:hover {
+  border-color: rgba(15, 98, 254, 0.28);
+  background: #fbfdff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.07);
+}
+
+.preference-row:active {
+  transform: scale(0.995);
+}
+
+.preference-row.selected {
+  border-color: rgba(15, 118, 110, 0.32);
+  background: #f7fffd;
+}
+
+.preference-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.preference-title {
+  color: #17202a;
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.preference-description {
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.switch-shell {
+  position: relative;
+  display: grid;
+  width: 56px;
+  height: 44px;
+  place-items: center;
+}
+
+.switch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.switch-track {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: #d7dee8;
+  transition: background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, 0.22);
+  transition: transform 180ms ease;
+}
+
+.switch-input:checked + .switch-track {
+  background: #0f766e;
+  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+}
+
+.switch-input:checked + .switch-track .switch-thumb {
+  transform: translateX(20px);
+}
+
+.switch-input:focus-visible + .switch-track {
+  outline: 3px solid rgba(15, 98, 254, 0.34);
+  outline-offset: 3px;
+}
+
+.actions-section {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+  background: #f8fafc;
+}
+
+.save-summary {
+  display: grid;
+  gap: 2px;
+}
+
+.save-summary strong {
+  color: #101828;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.save-summary span {
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.save-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-width: 188px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0f62fe, #0f766e);
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 760;
+  line-height: 1;
+  transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease;
 }
 
 .save-button:hover:not(:disabled) {
+  box-shadow: 0 14px 28px rgba(15, 98, 254, 0.24);
   transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.3);
+}
+
+.save-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.save-button:focus-visible,
+.privacy-link:focus-visible {
+  outline: 3px solid rgba(15, 98, 254, 0.34);
+  outline-offset: 3px;
 }
 
 .save-button:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
+  opacity: 0.54;
   transform: none;
 }
 
 .button-spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+  color: #fff;
+}
+
+.inline-success {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .privacy-link {
-  color: #007aff;
+  justify-self: end;
+  color: #0f62fe;
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
-  font-size: 15px;
-  font-weight: 500;
-  transition: opacity 0.2s ease;
 }
 
 .privacy-link:hover {
-  opacity: 0.7;
+  text-decoration: underline;
 }
 
-/* Footer */
-.page-footer { text-align: center; margin-top: 20px; padding: 0 16px; }
+.page-footer {
+  max-width: 620px;
+  margin: 18px auto 0;
+  text-align: center;
+}
 
 .page-footer p {
-  font-size: 14px;
-  color: #86868b;
   margin: 0;
-  line-height: 1.5;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.55;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .page-container { padding: 16px 12px; }
-  .page-header { margin-bottom: 16px; gap: 10px; }
-  .page-title { font-size: 20px; }
-  .page-subtitle { font-size: 13px; }
-  .icon-circle { width: 40px; height: 40px; border-radius: 10px; }
-  .section-header, .input-wrapper, .preferences-list, .actions-section { padding-left: 12px; padding-right: 12px; }
-  .section-title { font-size: 15px; }
-  .section-desc { font-size: 12px; }
-  .email-input { height: 40px; font-size: 14px; }
-  .preferences-list { padding-bottom: 8px; }
-  .preference-item { padding: 8px 0; gap: 10px; }
-  .preference-title { font-size: 14px; }
-  .preference-desc { font-size: 12px; }
-  .toggle { width: 40px; height: 24px; }
-  .toggle::after { width: 20px; height: 20px; }
-  .toggle.enabled::after { transform: translateX(16px); }
-  .save-button { height: 42px; font-size: 15px; }
-  .status-message { padding: 10px 12px; margin-bottom: 10px; }
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100% - 24px, 760px);
+    padding: 28px 0 32px;
+  }
+
+  .page-hero {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    text-align: center;
+  }
+
+  .hero-mark {
+    margin: 0 auto;
+  }
+
+  .hero-copy h1 {
+    font-size: 30px;
+  }
+
+  .hero-copy p:last-child {
+    font-size: 16px;
+  }
+
+  .preferences-panel {
+    border-radius: 16px;
+  }
+
+  .account-card,
+  .required-card,
+  .preference-section,
+  .actions-section {
+    padding: 18px 14px;
+  }
+
+  .section-heading {
+    display: grid;
+    gap: 10px;
+  }
+
+  .summary-pill,
+  .required-pill {
+    justify-self: start;
+  }
+
+  .preference-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .switch-shell {
+    justify-self: start;
+  }
+
+  .actions-section {
+    grid-template-columns: 1fr;
+  }
+
+  .save-button {
+    width: 100%;
+  }
+
+  .privacy-link {
+    justify-self: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>

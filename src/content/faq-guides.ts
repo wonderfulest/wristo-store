@@ -3,6 +3,8 @@ import type { BlogPostTocItemVO, BlogPostTranslationVO, BlogPostVO } from '@/typ
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES, normalizeLocale } from '@/store/locale'
 
 export const DEFAULT_FAQ_GUIDE_LANG = 'en'
+const hiddenFaqGuideSectionTitles = new Set(['Design & Tutorials', 'Watchface Picks', 'Updates'])
+const hiddenFaqGuidePostIds = collectHiddenFaqGuidePostIds(faqGuideTocTree)
 const localePattern = SUPPORTED_LOCALES.join('|')
 const faqPathPattern = new RegExp(`^/(?:(${localePattern})/)?faq(?:/([^/?#]+))?/?$`)
 const localizedFaqPathPattern = new RegExp(`^/(${localePattern})/faq(?:/|$)`)
@@ -53,6 +55,10 @@ export function getFaqGuideRoutes(): string[] {
     }
   }
   return [...routes]
+}
+
+export function getFaqGuidePosts(): BlogPostVO[] {
+  return getDisplayablePosts().map((post) => localizePostRoutes(post))
 }
 
 export function buildFaqGuidePath(lang: string | undefined, slug: string | undefined): string {
@@ -115,21 +121,42 @@ function findPostBySlug(slug: string, lang?: string): BlogPostVO | null {
 }
 
 function getDisplayablePosts(): BlogPostVO[] {
-  return faqGuidePosts.filter((post) => post.translations?.some((translation) => translation.slug && translation.contentHtml))
+  return faqGuidePosts.filter(
+    (post) =>
+      !hiddenFaqGuidePostIds.has(post.id) &&
+      post.translations?.some((translation) => translation.slug && translation.contentHtml),
+  )
 }
 
 function localizeTree(nodes: BlogPostTocItemVO[], lang?: string): BlogPostTocItemVO[] {
-  return nodes.map((node) => {
+  return nodes.flatMap((node) => {
+    if (hiddenFaqGuideSectionTitles.has(node.title) || (node.post?.id && hiddenFaqGuidePostIds.has(node.post.id))) {
+      return []
+    }
+
     const post = node.post ? localizePostRoutes(node.post) : null
     const localizedPost = post ? selectPostTranslation(post, lang) : null
-    return {
+    return [{
       ...node,
       title: localizedPost?.title || node.title,
       linkUrl: node.linkUrl ? blogUrlToFaqUrl(node.linkUrl) || node.linkUrl : node.linkUrl,
       post,
       children: localizeTree(node.children || [], lang),
-    }
+    }]
   })
+}
+
+function collectHiddenFaqGuidePostIds(nodes: BlogPostTocItemVO[]): Set<number> {
+  const ids = new Set<number>()
+
+  const visit = (node: BlogPostTocItemVO, hidden: boolean) => {
+    const isHidden = hidden || hiddenFaqGuideSectionTitles.has(node.title)
+    if (isHidden && node.post?.id) ids.add(node.post.id)
+    for (const child of node.children || []) visit(child, isHidden)
+  }
+
+  for (const node of nodes) visit(node, false)
+  return ids
 }
 
 function localizePostRoutes(post: BlogPostVO): BlogPostVO {

@@ -27,6 +27,7 @@ const apiBase = trimTrailingSlash(
 const previewPort = Number(process.env.PRERENDER_PORT || 4177)
 const previewUrl = `http://127.0.0.1:${previewPort}`
 const maxPrerenderRoutes = Number(process.env.MAX_PRERENDER_ROUTES || 80)
+const hiddenFaqGuideSectionTitles = new Set(['Design & Tutorials', 'Watchface Picks', 'Updates'])
 
 const staticRoutes = [
   '/',
@@ -149,10 +150,12 @@ async function loadFaqGuideRoutes() {
   try {
     const snapshotPath = path.join(rootDir, 'src/content/faq-guides.generated.json')
     const snapshot = JSON.parse(await readFile(snapshotPath, 'utf8'))
+    const hiddenPostIds = collectHiddenFaqGuidePostIds(asList(snapshot?.tocTree))
     const routes = ['/faq']
     for (const post of asList(snapshot?.posts)) {
+      if (hiddenPostIds.has(post?.id)) continue
       for (const translation of asList(post?.translations)) {
-        if (translation?.lang && translation?.slug) {
+        if (translation?.lang && translation?.slug && translation?.contentHtml) {
           routes.push(`/${encodeURIComponent(translation.lang)}/faq/${encodeURIComponent(translation.slug)}`)
         }
       }
@@ -162,6 +165,19 @@ async function loadFaqGuideRoutes() {
     console.warn(`[seo] Static FAQ guide route discovery failed: ${error.message}`)
     return ['/faq']
   }
+}
+
+function collectHiddenFaqGuidePostIds(nodes) {
+  const ids = new Set()
+
+  const visit = (node, hidden) => {
+    const isHidden = hidden || hiddenFaqGuideSectionTitles.has(node?.title)
+    if (isHidden && node?.post?.id) ids.add(node.post.id)
+    for (const child of asList(node?.children)) visit(child, isHidden)
+  }
+
+  for (const node of nodes) visit(node, false)
+  return ids
 }
 
 async function prerenderRoutes(routes) {
