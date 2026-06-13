@@ -44,7 +44,7 @@
         type="product"
         :title="product.name"
         :description="product.description"
-        :image-url="product.garminImageUrl"
+        :image-url="getProductImageUrl(product)"
         :price-id="getPriceIdForProduct(product)"
         :original-price="productOriginalPrice"
         :current-price="productCurrentPrice"
@@ -82,6 +82,7 @@ import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
 import { checkDiscount, getBundlesForPurchase } from '@/api/purchase'
 import { useI18n } from '@/i18n'
+import { getProductImageUrl } from '@/utils/productImage'
 
 const router = useRouter()
 const route = useRoute()
@@ -302,7 +303,7 @@ const getBundleItems = (bundleItem: Bundle) => {
   return bundleItem.products.map(p => ({
     id: String(p.appId),
     name: p.name,
-    imageUrl: p.garminImageUrl
+    imageUrl: getProductImageUrl(p)
   }))
 }
 

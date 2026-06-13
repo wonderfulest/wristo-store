@@ -27,7 +27,7 @@
                         type="product"
                         :title="(product as ProductVO).name"
                         :description="(product as ProductVO).description"
-                        :image-url="(product as ProductVO).garminImageUrl"
+                        :image-url="getProductImageUrl(product as ProductVO)"
                         :original-price="productOriginalPrice"
                         :current-price="productCurrentPrice"
                         :discount="productDiscount"
@@ -118,6 +118,7 @@ import { checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 import { ArrowRight, CircleCheckFilled, CreditCard, Lock } from '@element-plus/icons-vue'
+import { getProductImageUrl } from '@/utils/productImage'
 
 declare global {
   interface Window {
@@ -168,7 +169,7 @@ const bundleItemsForCard = computed(() => {
     return (product.value as Bundle).products.map(p => ({
         id: String(p.appId),
         name: p.name,
-        imageUrl: p.garminImageUrl,
+        imageUrl: getProductImageUrl(p),
     }))
 })
 

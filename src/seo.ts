@@ -3,6 +3,7 @@ import type { BlogPostVO, BlogPostTranslationVO, ProductVO } from '@/types'
 import { blogUrlToFaqUrl, buildFaqGuidePath } from '@/content/faq-guides'
 import { DEFAULT_LOCALE, getRouteLocaleParam, stripLocaleFromPath } from '@/store/locale'
 import { translate } from '@/i18n'
+import { getProductImageUrl } from '@/utils/productImage'
 
 export const SITE_NAME = 'Wristo'
 export const DEFAULT_SITE_URL = 'https://wristo.io'
@@ -231,7 +232,7 @@ export function applySeo(config: SeoConfig): void {
 }
 
 export function productSeo(product: ProductVO, path: string): SeoConfig {
-  const image = product.heroFile?.url || product.garminImageUrl
+  const image = getProductImageUrl(product)
   const description = stripHtml(product.description) ||
     `${product.name} is a Garmin Connect IQ watch face from Wristo with supported-device installation guidance.`
 
@@ -281,12 +282,13 @@ export function faqPageSchema(items: Array<{ question: string; answer: string }>
 
 function productSchema(product: ProductVO, path: string): JsonLdObject {
   const price = typeof product.price === 'number' ? product.price.toFixed(2) : undefined
+  const image = getProductImageUrl(product)
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     description: stripHtml(product.description) || `Garmin Connect IQ watch face: ${product.name}`,
-    image: [absoluteUrl(product.heroFile?.url || product.garminImageUrl)].filter(Boolean),
+    image: image ? [absoluteUrl(image)] : [],
     sku: String(product.appId),
     brand: {
       '@type': 'Brand',

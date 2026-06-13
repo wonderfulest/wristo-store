@@ -1,74 +1,98 @@
 <template>
   <section class="home-banner" aria-labelledby="home-hero-title">
-    <div class="banner-shell">
-      <div class="banner-content">
+    <div
+      class="banner-shell"
+      @mouseenter="pauseCarousel"
+      @mouseleave="resumeCarousel"
+      @focusin="pauseCarousel"
+      @focusout="resumeCarousel"
+    >
+      <div class="banner-content" :class="activeSlide.themeClass">
         <div class="banner-copy">
           <span class="banner-eyebrow">
-            <Icon icon="solar:watch-round-bold-duotone" width="20" height="20" aria-hidden="true" />
-            {{ t('home.heroEyebrow') }}
+            <Icon :icon="activeSlide.eyebrowIcon" width="20" height="20" aria-hidden="true" />
+            {{ t(activeSlide.eyebrowKey) }}
           </span>
           <h1 id="home-hero-title" class="banner-title">
-            {{ t('home.heroTitle') }}
+            {{ t(activeSlide.titleKey) }}
           </h1>
           <p class="banner-desc">
-            {{ t('home.heroDesc') }}
+            {{ t(activeSlide.descKey) }}
           </p>
 
           <div class="banner-actions">
-            <button class="banner-primary" type="button" @click="goToSearch">
-              {{ t('home.heroExplore') }}
-              <Icon icon="solar:arrow-right-up-linear" width="20" height="20" aria-hidden="true" />
+            <button class="banner-primary" type="button" @click="activeSlide.primaryAction">
+              {{ t(activeSlide.primaryLabelKey) }}
+              <Icon :icon="activeSlide.primaryIcon" width="20" height="20" aria-hidden="true" />
             </button>
-            <button class="banner-code" type="button" @click="goToCode">
-              <Icon icon="solar:ticket-sale-linear" width="20" height="20" aria-hidden="true" />
-              {{ t('home.heroCode') }}
+            <button class="banner-code" type="button" @click="activeSlide.secondaryAction">
+              <Icon :icon="activeSlide.secondaryIcon" width="20" height="20" aria-hidden="true" />
+              {{ t(activeSlide.secondaryLabelKey) }}
             </button>
-            <button class="banner-secondary" type="button" @click="goToBundles">
-              {{ t('home.heroBundles') }}
+            <button class="banner-secondary" type="button" @click="activeSlide.tertiaryAction">
+              {{ t(activeSlide.tertiaryLabelKey) }}
             </button>
           </div>
 
           <div class="banner-metrics" :aria-label="t('home.heroHighlights')">
             <span>
-              <strong>{{ t('home.heroMetricFacesValue') }}</strong>
-              {{ t('home.heroMetricFacesLabel') }}
+              <strong>{{ t(activeSlide.metricOneValueKey) }}</strong>
+              {{ t(activeSlide.metricOneLabelKey) }}
             </span>
             <span>
-              <strong>{{ t('home.heroMetricCheckoutValue') }}</strong>
-              {{ t('home.heroMetricCheckoutLabel') }}
+              <strong>{{ t(activeSlide.metricTwoValueKey) }}</strong>
+              {{ t(activeSlide.metricTwoLabelKey) }}
             </span>
             <span>
-              <strong>{{ t('home.heroMetricGarminValue') }}</strong>
-              {{ t('home.heroMetricGarminLabel') }}
+              <strong>{{ t(activeSlide.metricThreeValueKey) }}</strong>
+              {{ t(activeSlide.metricThreeLabelKey) }}
             </span>
           </div>
         </div>
 
         <div class="banner-art" aria-hidden="true">
-          <img src="/home-hero-garmin-watch.svg" alt="" loading="eager" />
+          <img :src="activeSlide.imageSrc" alt="" loading="eager" />
           <span class="art-label art-label-top">
-            <Icon icon="solar:palette-round-linear" width="18" height="18" />
-            {{ t('home.heroArtSeries') }}
+            <Icon :icon="activeSlide.artTopIcon" width="18" height="18" />
+            {{ t(activeSlide.artTopKey) }}
           </span>
           <span class="art-label art-label-bottom">
-            <Icon icon="solar:bolt-circle-linear" width="18" height="18" />
-            {{ t('home.heroArtBattery') }}
+            <Icon :icon="activeSlide.artBottomIcon" width="18" height="18" />
+            {{ t(activeSlide.artBottomKey) }}
           </span>
         </div>
+      </div>
+
+      <div class="banner-carousel" :aria-label="t('home.heroCarouselAria')">
+        <button
+          v-for="(slide, index) in slides"
+          :key="slide.id"
+          class="carousel-dot"
+          :class="{ active: index === activeSlideIndex }"
+          type="button"
+          :aria-label="t(slide.dotLabelKey)"
+          :aria-current="index === activeSlideIndex ? 'true' : undefined"
+          @click="selectSlide(index)"
+        />
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
-import { useI18n } from '@/i18n'
+import { useI18n, type MessageKey } from '@/i18n'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const activeSlideIndex = ref(0)
+let carouselTimer: number | undefined
+
+const studioUrl = import.meta.env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io'
 
 const goToSearch = () => {
   router.push(addLocaleToPath('/search', localeStore.currentLocale))
@@ -84,6 +108,134 @@ const goToBundles = () => {
     hash: '#bundle-subscription-card'
   })
 }
+
+const goToCreators = () => {
+  router.push(addLocaleToPath('/creators', localeStore.currentLocale))
+}
+
+const goToStudio = () => {
+  window.open(studioUrl, '_blank', 'noopener,noreferrer')
+}
+
+type HeroSlide = {
+  id: string
+  themeClass: string
+  eyebrowIcon: string
+  eyebrowKey: MessageKey
+  titleKey: MessageKey
+  descKey: MessageKey
+  primaryLabelKey: MessageKey
+  primaryIcon: string
+  primaryAction: () => void
+  secondaryLabelKey: MessageKey
+  secondaryIcon: string
+  secondaryAction: () => void
+  tertiaryLabelKey: MessageKey
+  tertiaryAction: () => void
+  metricOneValueKey: MessageKey
+  metricOneLabelKey: MessageKey
+  metricTwoValueKey: MessageKey
+  metricTwoLabelKey: MessageKey
+  metricThreeValueKey: MessageKey
+  metricThreeLabelKey: MessageKey
+  imageSrc: string
+  artTopIcon: string
+  artTopKey: MessageKey
+  artBottomIcon: string
+  artBottomKey: MessageKey
+  dotLabelKey: MessageKey
+}
+
+const slides: HeroSlide[] = [
+  {
+    id: 'studio',
+    themeClass: 'theme-studio',
+    eyebrowIcon: 'solar:magic-stick-3-bold-duotone',
+    eyebrowKey: 'home.studioEyebrow',
+    titleKey: 'home.studioTitle',
+    descKey: 'home.studioDesc',
+    primaryLabelKey: 'home.studioCta',
+    primaryIcon: 'solar:arrow-right-up-linear',
+    primaryAction: goToStudio,
+    secondaryLabelKey: 'home.studioPcBadge',
+    secondaryIcon: 'solar:monitor-bold-duotone',
+    secondaryAction: goToStudio,
+    tertiaryLabelKey: 'home.studioLearn',
+    tertiaryAction: goToCreators,
+    metricOneValueKey: 'home.studioMetricTemplateValue',
+    metricOneLabelKey: 'home.studioMetricTemplateLabel',
+    metricTwoValueKey: 'home.studioMetricEditorValue',
+    metricTwoLabelKey: 'home.studioMetricEditorLabel',
+    metricThreeValueKey: 'home.studioMetricPublishValue',
+    metricThreeLabelKey: 'home.studioMetricPublishLabel',
+    imageSrc: '/home-hero-watch-gallery.svg',
+    artTopIcon: 'solar:monitor-bold-duotone',
+    artTopKey: 'home.studioArtPc',
+    artBottomIcon: 'solar:layers-minimalistic-bold-duotone',
+    artBottomKey: 'home.studioArtDesign',
+    dotLabelKey: 'home.heroStudioSlide'
+  },
+  {
+    id: 'store',
+    themeClass: 'theme-store',
+    eyebrowIcon: 'solar:watch-round-bold-duotone',
+    eyebrowKey: 'home.heroEyebrow',
+    titleKey: 'home.heroTitle',
+    descKey: 'home.heroDesc',
+    primaryLabelKey: 'home.heroExplore',
+    primaryIcon: 'solar:arrow-right-up-linear',
+    primaryAction: goToSearch,
+    secondaryLabelKey: 'home.heroCode',
+    secondaryIcon: 'solar:ticket-sale-linear',
+    secondaryAction: goToCode,
+    tertiaryLabelKey: 'home.heroBundles',
+    tertiaryAction: goToBundles,
+    metricOneValueKey: 'home.heroMetricFacesValue',
+    metricOneLabelKey: 'home.heroMetricFacesLabel',
+    metricTwoValueKey: 'home.heroMetricCheckoutValue',
+    metricTwoLabelKey: 'home.heroMetricCheckoutLabel',
+    metricThreeValueKey: 'home.heroMetricGarminValue',
+    metricThreeLabelKey: 'home.heroMetricGarminLabel',
+    imageSrc: '/home-hero-garmin-watch.svg',
+    artTopIcon: 'solar:palette-round-linear',
+    artTopKey: 'home.heroArtSeries',
+    artBottomIcon: 'solar:bolt-circle-linear',
+    artBottomKey: 'home.heroArtBattery',
+    dotLabelKey: 'home.heroStoreSlide'
+  }
+]
+
+const activeSlide = computed(() => slides[activeSlideIndex.value])
+
+const selectSlide = (index: number) => {
+  activeSlideIndex.value = index
+  restartCarousel()
+}
+
+const nextSlide = () => {
+  activeSlideIndex.value = (activeSlideIndex.value + 1) % slides.length
+}
+
+const pauseCarousel = () => {
+  if (carouselTimer) {
+    window.clearInterval(carouselTimer)
+    carouselTimer = undefined
+  }
+}
+
+const resumeCarousel = () => {
+  if (!carouselTimer) {
+    carouselTimer = window.setInterval(nextSlide, 6500)
+  }
+}
+
+const restartCarousel = () => {
+  pauseCarousel()
+  resumeCarousel()
+}
+
+onMounted(resumeCarousel)
+onBeforeUnmount(pauseCarousel)
 </script>
 
 <style scoped>
@@ -130,6 +282,27 @@ const goToBundles = () => {
   align-items: center;
   gap: 26px;
   padding: 56px 56px 48px;
+}
+
+.banner-content.theme-studio .banner-title {
+  max-width: 760px;
+}
+
+.banner-content.theme-studio .banner-eyebrow {
+  color: #7c3aed;
+  background: rgba(237, 233, 254, 0.76);
+  border-color: rgba(124, 58, 237, 0.16);
+}
+
+.banner-content.theme-studio .banner-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #0f6b68 100%);
+  box-shadow: 0 16px 34px rgba(124, 58, 237, 0.22);
+}
+
+.banner-content.theme-studio .banner-code {
+  color: #5b21b6;
+  background: rgba(237, 233, 254, 0.78);
+  border-color: rgba(124, 58, 237, 0.18);
 }
 
 .banner-copy {
@@ -252,6 +425,44 @@ const goToBundles = () => {
   background: rgba(255, 255, 255, 0.72);
 }
 
+.banner-carousel {
+  position: absolute;
+  z-index: 3;
+  left: 56px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.carousel-dot {
+  width: 36px;
+  height: 10px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(15, 107, 104, 0.18);
+  cursor: pointer;
+  transition:
+    width 180ms ease,
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.carousel-dot.active {
+  width: 52px;
+  background: var(--color-brand-strong);
+}
+
+.carousel-dot:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.28);
+  outline-offset: 3px;
+}
+
+.carousel-dot:active {
+  transform: scale(0.96);
+}
+
 .art-label {
   position: absolute;
   display: inline-flex;
@@ -283,7 +494,7 @@ const goToBundles = () => {
 @media (max-width: 1024px) {
   .banner-content {
     grid-template-columns: 1fr;
-    padding: 44px;
+    padding: 44px 44px 64px;
   }
 
   .banner-art {
@@ -305,7 +516,7 @@ const goToBundles = () => {
 
   .banner-content {
     min-height: 0;
-    padding: 30px 20px 20px;
+    padding: 30px 20px 58px;
     gap: 20px;
   }
 
@@ -357,6 +568,25 @@ const goToBundles = () => {
   .banner-art {
     width: min(100%, 310px);
     justify-self: center;
+  }
+
+  .banner-carousel {
+    left: 20px;
+    bottom: 20px;
+  }
+
+  .carousel-dot {
+    width: 30px;
+  }
+
+  .carousel-dot.active {
+    width: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .carousel-dot {
+    transition: none;
   }
 }
 </style>

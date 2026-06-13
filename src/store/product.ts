@@ -114,14 +114,14 @@ export const useProductStore = defineStore('product', {
     },
 
     // 获取商品详情
-    async getProductDetail(appId: string): Promise<ProductBaseVO> {
+    async getProductDetail(appId: string): Promise<ProductVO | null> {
       try {
         this.loading = true
         const response = await getProductDetail(appId)
         return response
       } catch (error) {
         this.error = error instanceof Error ? error : new Error('Unknown error')
-        return {} as ProductVO
+        return null
       } finally {
         this.loading = false
       }
@@ -141,4 +141,4 @@ export const useProductStore = defineStore('product', {
       }
     },
   }
-}) 
+})

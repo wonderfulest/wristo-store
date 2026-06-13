@@ -18,11 +18,13 @@
       <el-icon><ShoppingCart /></el-icon>
     </button>
     <div class="product-img-wrap">
-      <img 
-        :src="product?.heroFile?.url || product?.garminImageUrl" 
-        :alt="product?.name" 
-        class="product-img" 
+      <img
+        v-if="productImageUrl"
+        :src="productImageUrl"
+        :alt="product?.name"
+        class="product-img"
       />
+      <span v-else class="product-img-fallback">W</span>
     </div>
     <div class="product-info">
       <div class="product-name">{{ product?.name }}</div>
@@ -37,6 +39,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ShoppingCart } from '@element-plus/icons-vue'
 import { useCartStore } from '@/store/cart'
+import { getProductImageUrl } from '@/utils/productImage'
 
 const props = defineProps<{
   product: any
@@ -46,6 +49,7 @@ const router = useRouter()
 const cartStore = useCartStore()
 
 const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
+const productImageUrl = computed(() => getProductImageUrl(props.product))
 
 const handleClick = () => {
   if (props.product?.appId) {
@@ -131,6 +135,12 @@ const toggleCart = () => {
   object-fit: contain;
   transition: transform 0.3s ease;
   margin: 0 auto;
+}
+
+.product-img-fallback {
+  color: var(--color-brand);
+  font-size: 3rem;
+  font-weight: 900;
 }
 
 .product-card:hover .product-img {

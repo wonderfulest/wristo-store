@@ -1,14 +1,16 @@
 <template>
   <div class="product-detail-page">
     <div class="product-detail-main">
-      <!-- 左侧大圆形图片 -->
+      <!-- 左侧兜底预览图 -->
       <div class="product-image-wrap">
         <img
-          v-if="product?.heroFile?.url || product?.garminImageUrl"
-          :src="product?.heroFile?.url || product?.garminImageUrl"
-          :alt="product.name"
+          v-if="productPreviewFallback"
+          :src="productPreviewFallback"
+          :alt="product?.name || 'Product preview'"
           class="product-image"
+          loading="eager"
         />
+        <div v-else class="product-image-fallback">W</div>
       </div>
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
@@ -115,13 +117,20 @@
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Download, Lock, Share, ShoppingCart } from '@element-plus/icons-vue'
+import {
+  Download,
+  Lock,
+  Share,
+  ShoppingCart,
+} from '@element-plus/icons-vue'
 import { useProductStore } from '@/store/product'
 import { useCartStore } from '@/store/cart'
 import type { ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
+import { getRouteLocaleParam } from '@/store/locale'
+import { getProductImageUrl } from '@/utils/productImage'
 
 const route = useRoute()
 const router = useRouter()
@@ -129,6 +138,10 @@ const productStore = useProductStore()
 const cartStore = useCartStore()
 const product = ref<ProductVO | null>(null)
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
+
+const productPreviewFallback = computed(() => {
+  return getProductImageUrl(product.value)
+})
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
 
@@ -155,7 +168,7 @@ const handleDownload = () => {
     router.push(toGarminStoreBridge({
       url: product.value.garminStoreUrl,
       name: product.value.name,
-      imageUrl: product.value.heroFile?.url || product.value.garminImageUrl,
+      imageUrl: productPreviewFallback.value,
       sourcePath: route.fullPath,
     }))
   } else {
@@ -188,6 +201,12 @@ const displayedDevices = computed(() => {
 const renderedProductDescription = computed(() => {
   return renderProductDescription(product.value?.description || '')
 })
+
+const getNotFoundPath = () => {
+  const routeLang = Array.isArray(route.params.lang) ? route.params.lang[0] : route.params.lang
+  const locale = getRouteLocaleParam(routeLang)
+  return locale ? `/${locale}/404` : '/404'
+}
 
 const escapeHtml = (value: string) => {
   return value
@@ -423,31 +442,38 @@ const shareQRCode = async () => {
 onMounted(async () => {
   let productId = route.params.id
   if (Array.isArray(productId)) productId = productId[0]
-  if (productId) {
-    product.value = await productStore.getProductDetail(productId) as ProductVO
-    if (product.value?.appId) {
-      applySeo(productSeo(product.value, route.path))
-    }
-    
-    // 恢复页面状态（如果用户从外部链接返回）
-    try {
-      const savedState = sessionStorage.getItem('productDetailState')
-      if (savedState) {
-        const state = JSON.parse(savedState)
-        // 检查是否是同一个产品页面，且时间不超过30分钟
-        if (state.productId === productId && (Date.now() - state.timestamp) < 30 * 60 * 1000) {
-          // 恢复滚动位置
-          setTimeout(() => {
-            window.scrollTo(0, state.scrollPosition)
-          }, 100)
-          
-          // 清除已使用的状态
-          sessionStorage.removeItem('productDetailState')
-        }
+  if (!productId) {
+    await router.replace(getNotFoundPath())
+    return
+  }
+
+  const productDetail = await productStore.getProductDetail(productId)
+  if (!productDetail?.appId) {
+    await router.replace(getNotFoundPath())
+    return
+  }
+
+  product.value = productDetail
+  applySeo(productSeo(product.value, route.path))
+
+  // 恢复页面状态（如果用户从外部链接返回）
+  try {
+    const savedState = sessionStorage.getItem('productDetailState')
+    if (savedState) {
+      const state = JSON.parse(savedState)
+      // 检查是否是同一个产品页面，且时间不超过30分钟
+      if (state.productId === productId && (Date.now() - state.timestamp) < 30 * 60 * 1000) {
+        // 恢复滚动位置
+        setTimeout(() => {
+          window.scrollTo(0, state.scrollPosition)
+        }, 100)
+
+        // 清除已使用的状态
+        sessionStorage.removeItem('productDetailState')
       }
-    } catch (error) {
-      console.warn('Failed to restore page state:', error)
     }
+  } catch (error) {
+    console.warn('Failed to restore page state:', error)
   }
 })
 </script>
@@ -473,6 +499,7 @@ onMounted(async () => {
   gap: 64px;
 }
 .product-image-wrap {
+  position: relative;
   width: min(42vw, 460px);
   height: min(42vw, 460px);
   min-width: 320px;
@@ -482,6 +509,7 @@ onMounted(async () => {
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--color-line);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -492,6 +520,17 @@ onMounted(async () => {
   object-fit: cover;
   border-radius: var(--radius-lg);
   display: block;
+}
+.product-image-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-brand);
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 0;
 }
 .product-info-wrap {
   flex: 1;

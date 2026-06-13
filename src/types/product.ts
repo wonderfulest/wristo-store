@@ -25,9 +25,11 @@ export interface ProductBaseVO {
   name: string
   price: number
   designId: string
+  rawImageUrl?: string | null
   garminImageUrl: string
   garminStoreUrl: string
   heroFile: HeroFile | null
+  fallbackImageUrl?: string | null
 }
 
 export interface ProductVO {
@@ -37,6 +39,7 @@ export interface ProductVO {
   name: string
   description: string
   price: number
+  rawImageUrl?: string | null
   garminImageUrl: string
   garminStoreUrl: string
   garminAppUuid: string
@@ -53,6 +56,90 @@ export interface ProductVO {
   packageStatus: number
   payment: PaymentVO
   devices?: GarminDeviceBaseVO[]
+  configJson?: RuntimeDesignConfig | null
+  fallbackImageUrl?: string | null
+}
+
+export interface RuntimeDesignConfig {
+  version?: string
+  properties?: Record<string, any>
+  designId?: string
+  name?: string
+  textCase?: number
+  labelLengthType?: number
+  showUnit?: boolean
+  elements?: RuntimeDesignElement[]
+  orderIds?: string[]
+  [key: string]: any
+}
+
+export interface RuntimeDesignElement {
+  id?: string | number
+  eleType?: string
+  type?: string
+  left?: number
+  top?: number
+  width?: number
+  height?: number
+  radius?: number
+  rx?: number
+  ry?: number
+  x1?: number
+  y1?: number
+  x2?: number
+  y2?: number
+  originX?: string
+  originY?: string
+  fill?: string
+  stroke?: string
+  strokeWidth?: number
+  fontSize?: number
+  fontFamily?: string
+  fontWeight?: string | number
+  angle?: number
+  opacity?: number
+  text?: string
+  label?: string
+  value?: string | number
+  textTemplate?: string
+  dataProperty?: string
+  goalProperty?: string
+  textProperty?: string
+  metricSymbol?: string
+  imageUrl?: string
+  url?: string
+  src?: string
+  points?: Array<{ x: number; y: number }>
+  [key: string]: any
+}
+
+export interface ProductPreviewConfigVO {
+  appId: number
+  designId: string
+  name: string
+  configJson: RuntimeDesignConfig | null
+  fallbackImageUrl?: string | null
+}
+
+export interface DesignFontFileVO {
+  id: number
+  name: string
+  url: string
+  previewUrl?: string | null
+  provider?: string
+}
+
+export interface DesignFontVO {
+  id: number
+  fullName?: string
+  postscriptName?: string
+  slug: string
+  family?: string
+  subfamily?: string
+  type?: string
+  status?: string
+  ttf?: number
+  ttfFile?: DesignFontFileVO | null
 }
 
 export interface Bundle {

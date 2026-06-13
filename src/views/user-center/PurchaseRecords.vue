@@ -187,8 +187,8 @@
               <el-table-column label="" width="56" align="center">
                 <template #default="scope">
                   <img
-                    v-if="scope.row.product?.garminImageUrl"
-                    :src="scope.row.product.garminImageUrl"
+                    v-if="getProductImageUrl(scope.row.product)"
+                    :src="getProductImageUrl(scope.row.product)"
                     :alt="scope.row.product?.name || 'Purchased product'"
                     class="cell-thumb"
                   />
@@ -224,7 +224,7 @@
                       :to="toGarminStoreBridge({
                         url: scope.row.product.garminStoreUrl,
                         name: scope.row.product?.name,
-                        imageUrl: scope.row.product?.heroFile?.url || scope.row.product?.garminImageUrl,
+                        imageUrl: getProductImageUrl(scope.row.product),
                         sourcePath: route.fullPath,
                       })"
                       class="cell-link-btn"
@@ -260,8 +260,8 @@
               <div class="m-card-top">
                 <div class="m-card-name with-img">
                   <img
-                    v-if="item.product?.garminImageUrl"
-                    :src="item.product.garminImageUrl"
+                    v-if="getProductImageUrl(item.product)"
+                    :src="getProductImageUrl(item.product)"
                     :alt="item.product?.name || 'Purchased product'"
                     class="m-thumb"
                   />
@@ -295,7 +295,7 @@
                   :to="toGarminStoreBridge({
                     url: item.product.garminStoreUrl,
                     name: item.product?.name,
-                    imageUrl: item.product?.heroFile?.url || item.product?.garminImageUrl,
+                    imageUrl: getProductImageUrl(item.product),
                     sourcePath: route.fullPath,
                   })"
                   class="m-action-btn"
@@ -364,6 +364,7 @@ import { getPurchaseRecords } from '@/api/pay'
 import type { PurchaseRecord } from '@/types'
 import { ElMessage } from 'element-plus'
 import { toGarminStoreBridge } from '@/utils/garminStore'
+import { getProductImageUrl } from '@/utils/productImage'
 
 const router = useRouter()
 const route = useRoute()

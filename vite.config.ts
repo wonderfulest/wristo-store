@@ -3,11 +3,16 @@ import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'url'
 
 const joinUrl = (baseUrl: string | undefined, path: string) => `${(baseUrl || '').replace(/\/$/, '')}/${path}`
+const isLocalUrl = (url: string | undefined) => /^https?:\/\/(localhost|127\.0\.0\.1)(?::|\/|$)/.test(url || '')
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const envDir = fileURLToPath(new URL('..', import.meta.url))
   const env = loadEnv(mode, envDir, '')
+  const studioUrl =
+    mode === 'prod' && isLocalUrl(env.VITE_WRISTO_STUDIO_URL)
+      ? 'https://studio.wristo.io'
+      : env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io'
 
   return {
     envDir,
@@ -19,6 +24,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT': JSON.stringify(env.VITE_WRISTO_STORE_PADDLE_ENVIRONMENT || ''),
       'import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN': JSON.stringify(env.VITE_WRISTO_STORE_PADDLE_CLIENT_TOKEN || ''),
       'import.meta.env.VITE_WRISTO_SITE_URL': JSON.stringify(env.VITE_WRISTO_STORE_URL || ''),
+      'import.meta.env.VITE_WRISTO_STUDIO_URL': JSON.stringify(studioUrl),
     },
     plugins: [
       vue()

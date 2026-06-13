@@ -48,8 +48,8 @@
               </div>
               <div class="app-hero">
                 <img
-                  v-if="item.app.heroFile?.previewUrl || item.app.heroFile?.url || item.app.garminImageUrl"
-                  :src="item.app.heroFile?.previewUrl || item.app.heroFile?.url || item.app.garminImageUrl"
+                  v-if="getProductImageUrl(item.app)"
+                  :src="getProductImageUrl(item.app)"
                   :alt="item.app.name"
                 />
                 <div v-else class="app-hero-fallback">
@@ -87,6 +87,7 @@ import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { getTopWeekApps, getTopMonthApps } from '@/api/purchase'
 import type { AppSalesSummaryVO, ProductBaseVO } from '@/types/product'
+import { getProductImageUrl } from '@/utils/productImage'
 
 const router = useRouter()
 
