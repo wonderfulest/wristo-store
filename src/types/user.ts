@@ -1,3 +1,5 @@
+import type { StudioMembership } from './membership'
+
 // Paddle订阅数据类型
 export interface PaddleSubscriptionData {
   id: string
@@ -66,6 +68,7 @@ export interface UserInfo {
   lastLoginIp: string | null
   isDeleted: string
   subscription?: Subscription
+  studioMembership?: StudioMembership | null
   activatedApps?: number[]
   roles?: Array<{id: number, roleName: string, roleCode: string, description: string, status: number}>
   userProfile?: UserProfileVO

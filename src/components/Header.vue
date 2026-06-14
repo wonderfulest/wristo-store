@@ -42,9 +42,7 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
-        <button class="nav-link nav-button" type="button" @click="openStudio">
-          {{ t('nav.studio') }}
-        </button>
+        <router-link :to="localizedPath('/studio/membership')" class="nav-link">{{ t('nav.membership') }}</router-link>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
         <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
         <LanguageSwitcher />
@@ -89,6 +87,10 @@
                 <el-dropdown-item command="cart">
                   <el-icon><ShoppingCart /></el-icon>
                   <span>{{ t('nav.cart') }}</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="membership">
+                  <Icon icon="material-symbols:workspace-premium-outline" width="16" height="16" aria-hidden="true" />
+                  <span>{{ t('nav.membership') }}</span>
                 </el-dropdown-item>
                 <el-dropdown-item command="studio">
                   <Icon icon="solar:magic-stick-3-bold-duotone" width="16" height="16" aria-hidden="true" />
@@ -149,10 +151,10 @@
             <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.code') }}</span>
           </router-link>
-          <button class="mobile-nav-link mobile-nav-button" type="button" @click="handleOpenStudio">
-            <Icon icon="solar:magic-stick-3-line-duotone" width="22" height="22" aria-hidden="true" />
-            <span>{{ t('nav.studio') }}</span>
-          </button>
+          <router-link :to="localizedPath('/studio/membership')" class="mobile-nav-link" @click="closeMobileMenu">
+            <Icon icon="material-symbols:workspace-premium-outline" width="22" height="22" aria-hidden="true" />
+            <span>{{ t('nav.membership') }}</span>
+          </router-link>
           <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.faq') }}</span>
@@ -217,6 +219,10 @@
               <button class="mobile-action-btn" @click="handleUserMenuCommand('studio'); closeMobileMenu()">
                 <Icon icon="solar:magic-stick-3-bold-duotone" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.studio') }}</span>
+              </button>
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('membership'); closeMobileMenu()">
+                <Icon icon="material-symbols:workspace-premium-outline" width="18" height="18" aria-hidden="true" />
+                <span>{{ t('nav.membership') }}</span>
               </button>
               <button class="mobile-action-btn logout" @click="handleUserMenuCommand('logout'); closeMobileMenu()">
                 <el-icon><SwitchButton /></el-icon>
@@ -316,6 +322,9 @@ const handleUserMenuCommand = (command: string) => {
     case 'cart':
       router.push(localizedPath('/user/cart'));
       break;
+    case 'membership':
+      router.push(localizedPath('/studio/membership'));
+      break;
     case 'studio':
       openStudio();
       break;
@@ -366,11 +375,6 @@ const toggleCategoriesDropdown = () => {
 const handleMobileLogin = () => {
   closeMobileMenu();
   goToLogin();
-};
-
-const handleOpenStudio = () => {
-  closeMobileMenu();
-  openStudio();
 };
 
 onMounted(() => {

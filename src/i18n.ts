@@ -6,6 +6,7 @@ const en = {
   'nav.categories': 'Categories',
   'nav.code': 'Code',
   'nav.studio': 'Studio',
+  'nav.membership': 'Membership',
   'nav.faq': 'FAQ',
   'nav.top': 'Top',
   'nav.menu': 'Menu',
@@ -13,6 +14,7 @@ const en = {
   'nav.signIn': 'Sign In',
   'nav.premium': 'Premium',
   'nav.userInfo': 'User Info',
+  'nav.userProfile': 'User Profile',
   'nav.purchases': 'Purchases',
   'nav.cart': 'Cart',
   'nav.logout': 'Logout',
@@ -98,6 +100,87 @@ const en = {
   'home.hotSubtitle': 'Popular Garmin watch faces shoppers keep coming back to.',
   'home.hotMore': 'More',
   'home.hotView': 'View',
+  'membership.title': 'Studio Membership',
+  'membership.subtitle': 'Plans for creators building Garmin watch face apps',
+  'membership.heroDescription': 'Unlock room for more watch face apps, cleaner previews, and a Studio workflow built for creators who iterate across Garmin devices.',
+  'membership.releaseNote': '2026.6.10 - First version, Studio released',
+  'membership.planComparison': 'Studio membership plans',
+  'membership.comparePlans': 'Compare plans',
+  'membership.pickPlanTitle': 'Pick the access that matches your build pace',
+  'membership.currentUsage': 'Current usage',
+  'membership.startCheckout': 'Start checkout',
+  'membership.currentPlan': 'Current plan',
+  'membership.alreadySubscribed': 'Already subscribed',
+  'membership.checkoutCompleted': 'Payment completed. Your Studio membership is refreshing.',
+  'membership.checkoutRefreshPending': 'Payment completed. Membership refresh is pending; please refresh again shortly.',
+  'membership.checkoutNotConfigured': 'This plan needs a Paddle price ID before checkout can open.',
+  'membership.checkoutClientNotConfigured': 'Paddle checkout is not configured for Studio.',
+  'membership.checkoutLoadFailed': 'Paddle checkout failed to load. Please refresh and try again.',
+  'membership.emailRequired': 'Your account email is required before checkout.',
+  'membership.bestValue': 'Best value',
+  'membership.freeNote': 'Start with one Studio app.',
+  'membership.trialNote': 'Includes a 30-day free trial.',
+  'membership.bestValueNote': 'Best annual price for active creators.',
+  'membership.oneTimeNote': 'One-time access for 30 days.',
+  'membership.freeCreateLimitReached': 'Free plan can create only 1 app. Upgrade Studio membership to create more.',
+  'membership.profileHint': 'Your current membership is active for Studio creation.',
+  'membership.appsUsed': 'Apps used',
+  'membership.available': 'Available',
+  'membership.limitReached': 'Limit reached',
+  'membership.limitedUsage': '{count} / {max}',
+  'membership.unlimitedUsage': '{count} / Unlimited',
+  'membership.level.free': 'Free',
+  'membership.level.monthly': 'Monthly',
+  'membership.level.quarterly': 'Quarterly',
+  'membership.level.semiannual': 'Semiannual',
+  'membership.level.annual': 'Annual',
+  'membership.level.premium_30d': '30-day Premium',
+  'membership.feature.oneApp': 'Create 1 app',
+  'membership.feature.basicEditor': 'Basic Studio editor access',
+  'membership.feature.unlimitedApps': 'Create more Studio apps',
+  'membership.feature.noWristoAds': 'No Wristo ads',
+  'membership.feature.thirtyDayAccess': '30-day premium access',
+  'membership.feature.communitySupport': 'Community updates and starter workflow',
+  'membership.feature.previewPublish': 'Preview and publish preparation workflow',
+  'membership.feature.priorityQueue': 'Priority product and build feedback queue',
+  'membership.feature.experimentWindow': 'Short-term campaign or launch window',
+  'membership.priceSuffix.forever': 'Starter access',
+  'membership.priceSuffix.cancelAnytime': 'Flexible monthly access',
+  'membership.priceSuffix.save': 'Lowest active-creator price',
+  'membership.priceSuffix.oneTime': 'No subscription renewal',
+  'membership.billing.month': '{price} / month',
+  'membership.billing.threeMonths': '{price} / 3 months',
+  'membership.billing.sixMonths': '{price} / 6 months',
+  'membership.billing.year': '{price} / year',
+  'membership.term.free': 'For first-time exploration',
+  'membership.term.monthly': 'For steady monthly creation',
+  'membership.term.quarterly': 'For seasonal build cycles',
+  'membership.term.semiannual': 'For half-year product runs',
+  'membership.term.annual': 'For serious Studio creators',
+  'membership.term.premium_30d': 'For one launch cycle',
+  'membership.valueTitle': 'Membership value',
+  'membership.value.editor.title': 'More room to design',
+  'membership.value.editor.body': 'Move beyond the single free app limit and keep multiple concepts, client drafts, and launch versions in Studio.',
+  'membership.value.devices.title': 'Device-aware workflow',
+  'membership.value.devices.body': 'Use Studio with Garmin device frames, previews, fonts, and assets so each design stays close to the final watch experience.',
+  'membership.value.publish.title': 'Cleaner launch preparation',
+  'membership.value.publish.body': 'Keep your app workspace organized while you prepare builds, screenshots, and store-ready iterations.',
+  'membership.bestForEyebrow': 'Plan guide',
+  'membership.bestForTitle': 'Which plan should I use?',
+  'membership.fit.free.title': 'Free is for evaluating Studio',
+  'membership.fit.free.body': 'Create one app, test the editor, and decide whether Studio fits your Garmin workflow.',
+  'membership.fit.monthly.title': 'Monthly is for active iteration',
+  'membership.fit.monthly.body': 'Use it when you are testing several designs, preparing updates, or building for clients.',
+  'membership.fit.annual.title': 'Annual is for ongoing creation',
+  'membership.fit.annual.body': 'Best when Studio is part of your regular product, template, or watch-face release process.',
+  'membership.faqEyebrow': 'Questions',
+  'membership.faqTitle': 'Checkout notes',
+  'membership.faq.checkout.question': 'How does checkout work?',
+  'membership.faq.checkout.answer': 'Choose a paid plan and start checkout. Payment opens on wristo.io while studio.wristo.io waits for Paddle domain approval.',
+  'membership.faq.limit.question': 'What happens after the free app limit?',
+  'membership.faq.limit.answer': 'Free accounts can keep using Studio but cannot create more than one app. Upgrading removes that creation limit.',
+  'membership.faq.ads.question': 'What does ad-free mean?',
+  'membership.faq.ads.answer': 'Paid Studio plans are intended to remove Wristo promotional placements from the creator workflow.',
   'search.placeholder': 'Search styles, features, keywords or activate code',
   'search.items': 'items',
   'search.loading': 'Loading results...',
@@ -350,7 +433,7 @@ const en = {
   'agent.supportFaq': 'Support FAQ',
 } as const
 
-export type MessageKey = keyof typeof en
+export type MessageKey = keyof typeof en | string
 type Messages = Record<MessageKey, string>
 
 const messages: Record<SupportedLocale, Messages> = {
@@ -1990,13 +2073,19 @@ const messages: Record<SupportedLocale, Messages> = {
   },
 }
 
-export function translate(key: MessageKey, locale: SupportedLocale): string {
-  return messages[locale]?.[key] || en[key] || key
+export function translate(key: MessageKey, locale: SupportedLocale, params?: Record<string, string | number>): string {
+  const enMessages = en as Record<string, string>
+  const template = messages[locale]?.[key] || enMessages[key] || key
+  if (!params) return template
+  return template.replace(/\{(\w+)\}/g, (match: string, paramKey: string) => {
+    const value = params[paramKey]
+    return value == null ? match : String(value)
+  })
 }
 
 export function useI18n() {
   const localeStore = useLocaleStore()
   const locale = computed(() => localeStore.currentLocale)
-  const t = (key: MessageKey) => translate(key, locale.value)
+  const t = (key: MessageKey, params?: Record<string, string | number>) => translate(key, locale.value, params)
   return { locale, t }
 }

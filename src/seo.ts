@@ -84,6 +84,11 @@ const staticSeoByPath: Record<string, SeoConfig> = {
     title: 'Garmin Watch Face Creators | Wristo',
     description: 'Learn about Wristo creators and publishing Garmin watch faces.',
   },
+  '/studio/membership': {
+    title: 'Studio Membership | Wristo',
+    description: 'Choose a Wristo Studio membership plan and pay securely on wristo.io.',
+    noindex: true,
+  },
   '/bundle-products': {
     title: 'Garmin Watch Face Bundles | Wristo',
     description: 'Browse Wristo bundles for Garmin watch faces and Connect IQ apps.',
@@ -110,6 +115,7 @@ const noindexPrefixes = [
   '/unsubscribe',
   '/code',
   '/unlock',
+  '/studio/membership',
 ]
 
 export function siteUrl(): string {

@@ -25,6 +25,11 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN': JSON.stringify(env.VITE_WRISTO_PADDLE_CLIENT_TOKEN || ''),
       'import.meta.env.VITE_WRISTO_SITE_URL': JSON.stringify(env.VITE_WRISTO_STORE_URL || ''),
       'import.meta.env.VITE_WRISTO_STUDIO_URL': JSON.stringify(studioUrl),
+      'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_MONTHLY': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_MONTHLY || ''),
+      'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_QUARTERLY': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_QUARTERLY || ''),
+      'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_SEMIANNUAL': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_SEMIANNUAL || ''),
+      'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_ANNUAL': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_ANNUAL || ''),
+      'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_PREMIUM_30D': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_PREMIUM_30D || ''),
     },
     plugins: [
       vue()

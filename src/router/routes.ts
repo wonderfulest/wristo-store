@@ -182,6 +182,16 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/Creators.vue')
   },
   {
+    path: '/studio/membership',
+    name: 'StudioMembership',
+    component: () => import('@/views/StudioMembership.vue'),
+    meta: {
+      requiresAuth: true,
+      title: 'Studio Membership | Wristo',
+      description: 'Choose a Wristo Studio membership plan and pay securely on wristo.io.'
+    }
+  },
+  {
     path: '/bundle-products',
     name: 'BundleProducts',
     component: () => import('@/views/products/BundledProducts.vue'),
