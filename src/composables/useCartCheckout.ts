@@ -4,6 +4,7 @@ import { createCartCheckout, purchaseCallback } from '@/api/purchase'
 import type { CartCheckoutItemRequest } from '@/api/purchase'
 import { useUserStore } from '@/store/user'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
+import { initializePaddle } from '@/utils/paddle'
 
 declare global {
   interface Window {
@@ -31,10 +32,9 @@ const loadPaddle = () => {
     script.async = true
     script.onload = () => {
       try {
-        window.Paddle.Environment.set(import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT)
-        window.Paddle.Initialize({
-          token: import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN,
-          eventCallback: async (data: any) => {
+        initializePaddle(
+          window.Paddle,
+          async (data: any) => {
             const currentCheckout = activeCheckout
             if (!currentCheckout) return
             if (data.name === 'checkout.completed') {
@@ -53,8 +53,8 @@ const loadPaddle = () => {
               currentCheckout.setLoading(false)
               activeCheckout = null
             }
-          },
-        })
+          }
+        )
         resolve()
       } catch (error) {
         reject(error)

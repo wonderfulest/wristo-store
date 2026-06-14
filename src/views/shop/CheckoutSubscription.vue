@@ -150,6 +150,7 @@ import type { SubscriptionPlan } from '@/api/subscription'
 import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest, PurchaseSuccessResponseVO } from '@/types/purchase-check'
 import { checkPurchase } from '@/api/pay'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
+import { initializePaddle } from '@/utils/paddle'
 
 declare global {
   interface Window {
@@ -268,14 +269,11 @@ function loadPaddle() {
     if (typeof window !== "undefined" && !window.Paddle) {
         const script = document.createElement("script")
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js"
-        console.log('import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT', import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT)
-        console.log('import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN', import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN)
         script.async = true
         script.onload = () => {
-            window.Paddle.Environment.set(import.meta.env.VITE_WRISTO_PADDLE_ENVIRONMENT)
-            window.Paddle.Initialize({ 
-                token: import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN,
-                eventCallback: async function(data: any) {
+            initializePaddle(
+                window.Paddle,
+                async function(data: any) {
                     console.log('Paddle event:', data)
                     if (data.name === 'checkout.completed') {
                         const eventData = data as PaddleCheckoutCompletedEvent;
@@ -345,8 +343,8 @@ function loadPaddle() {
                             }
                         }
                     }
-                },
-            })
+                }
+            )
         }
         document.body.appendChild(script)
     } else {
