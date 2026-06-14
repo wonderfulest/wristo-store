@@ -42,7 +42,7 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
-        <router-link :to="localizedPath('/studio/membership')" class="nav-link">{{ t('nav.membership') }}</router-link>
+        <router-link :to="localizedPath('/studio/membership')" class="nav-link">{{ t('nav.studio') }}</router-link>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
         <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
         <LanguageSwitcher />
@@ -153,7 +153,7 @@
           </router-link>
           <router-link :to="localizedPath('/studio/membership')" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="material-symbols:workspace-premium-outline" width="22" height="22" aria-hidden="true" />
-            <span>{{ t('nav.membership') }}</span>
+            <span>{{ t('nav.studio') }}</span>
           </router-link>
           <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
