@@ -89,13 +89,22 @@
         </div>
         <!-- Supported Devices -->
         <div v-if="product?.devices && product.devices.length" class="devices-section">
-          <div class="devices-header">
+          <div v-if="selectedSupportedDevice" class="current-device-support" role="status">
+            <div class="current-device-icon" aria-hidden="true">
+              <el-icon><Check /></el-icon>
+            </div>
+            <div class="current-device-copy">
+              <div class="current-device-title">Your current device model is supported</div>
+              <div class="current-device-name">{{ selectedSupportedDevice.displayName }}</div>
+            </div>
+          </div>
+          <div v-else class="devices-header">
             <div class="devices-title">Supported Devices</div>
             <div class="devices-subtitle">
               Compatible Garmin models • {{ product.devices.length }} devices
             </div>
           </div>
-          <div class="devices-grid">
+          <div v-if="!selectedSupportedDevice" class="devices-grid">
             <div
               v-for="d in displayedDevices"
               :key="d.id || d.deviceId || d.displayName"
@@ -110,7 +119,7 @@
             </div>
           </div>
           <button
-            v-if="product.devices.length > maxVisibleDevices"
+            v-if="!selectedSupportedDevice && product.devices.length > maxVisibleDevices"
             class="devices-toggle"
             @click="showAllDevices = !showAllDevices"
           >
@@ -137,6 +146,7 @@ import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
+  Check,
   CreditCard,
   Download,
   Lock,
@@ -146,7 +156,8 @@ import {
 } from '@element-plus/icons-vue'
 import { useProductStore } from '@/store/product'
 import { useCartStore } from '@/store/cart'
-import type { ProductVO } from '@/types'
+import { useUserStore } from '@/store/user'
+import type { GarminDeviceBaseVO, ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
@@ -161,10 +172,12 @@ const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { loading: checkoutLoading, checkout } = useCartCheckout()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
+const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
 const productPreviewFallback = computed(() => {
@@ -246,6 +259,38 @@ const displayedDevices = computed(() => {
   if (showAllDevices.value) return list
   return list.slice(0, maxVisibleDevices)
 })
+
+const currentDevice = computed(() => {
+  return localSelectedDevice.value || userStore.userInfo?.device || null
+})
+
+const selectedSupportedDevice = computed(() => {
+  const selected = currentDevice.value
+  const devices = product.value?.devices || []
+  if (!selected || !devices.length) return null
+
+  const selectedId = selected.id ? String(selected.id) : ''
+  const selectedDeviceId = selected.deviceId ? String(selected.deviceId) : ''
+
+  const isSupported = devices.some((device) => {
+    return (
+      (selectedId && String(device.id) === selectedId) ||
+      (selectedDeviceId && String(device.deviceId) === selectedDeviceId)
+    )
+  })
+
+  return isSupported ? selected : null
+})
+
+const loadSelectedDeviceFromStorage = () => {
+  try {
+    const stored = localStorage.getItem('selectedDevice')
+    localSelectedDevice.value = stored ? JSON.parse(stored) : null
+  } catch (error) {
+    console.warn('Failed to load selected device:', error)
+    localSelectedDevice.value = null
+  }
+}
 
 const renderedProductDescription = computed(() => {
   return renderProductDescription(product.value?.description || '')
@@ -489,6 +534,8 @@ const shareQRCode = async () => {
 }
 
 onMounted(async () => {
+  loadSelectedDeviceFromStorage()
+
   let productId = route.params.id
   if (Array.isArray(productId)) productId = productId[0]
   if (!productId) {
@@ -844,6 +891,46 @@ onMounted(async () => {
   width: 100%;
   margin: 12px 0 24px 0;
 }
+.current-device-support {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 560px;
+  padding: 16px 18px;
+  border: 1px solid rgba(15, 107, 104, 0.18);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #ffffff 0%, var(--color-brand-soft) 100%);
+  box-shadow: var(--shadow-sm);
+}
+.current-device-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  font-size: 1.25rem;
+}
+.current-device-copy {
+  min-width: 0;
+}
+.current-device-title {
+  color: var(--color-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+.current-device-name {
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
 .devices-header {
   display: flex;
   flex-direction: column;
@@ -1162,6 +1249,9 @@ onMounted(async () => {
   .devices-header {
     align-items: center;
   }
+  .current-device-support {
+    max-width: 100%;
+  }
   .devices-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1225,6 +1315,15 @@ onMounted(async () => {
   }
   .devices-grid {
     grid-template-columns: 1fr;
+  }
+  .current-device-support {
+    align-items: flex-start;
+    padding: 14px;
+  }
+  .current-device-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
   }
 }
 
