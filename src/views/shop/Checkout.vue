@@ -34,6 +34,7 @@
                         :is-selected="true"
                         :currency-code="currencyCode"
                         :show-button="false"
+                        :creator-name="productCreatorName"
                         button-text="Proceed to Checkout"
                         @buy="handlePayment"
                         @select="() => {}"
@@ -162,6 +163,21 @@ const discountInfo = computed(() => {
 
 const currencyCode = computed(() => {
   return (discountInfo.value?.valid && discountInfo.value?.currency) ? String(discountInfo.value.currency) : 'USD'
+})
+
+const productCreatorName = computed(() => {
+  if (!product.value || isBundle.value) return ''
+  const productLike = product.value as any
+  const creator = productLike.user || productLike.creator || productLike.merchant || productLike.author
+  return (
+    creator?.nickname ||
+    creator?.username ||
+    creator?.name ||
+    productLike.creatorName ||
+    productLike.merchantName ||
+    productLike.authorName ||
+    ''
+  )
 })
 
 const bundleItemsForCard = computed(() => {

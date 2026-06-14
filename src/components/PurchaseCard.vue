@@ -38,6 +38,10 @@
       <span>{{ type === 'bundle' ? t('purchaseCard.lifetimeBundleAccess') : t('purchaseCard.lifetimeSingleAccess') }}</span>
       <span>{{ type === 'bundle' && appCount ? `${formatCountPlus(appCount)} ${t('purchaseCard.appsIncluded')}` : t('purchaseCard.oneTimePayment') }}</span>
     </div>
+    <div v-if="type === 'product' && displayCreatorName" class="creator-row">
+      <span class="creator-label">Created By</span>
+      <span class="creator-name">{{ displayCreatorName }}</span>
+    </div>
     <!-- 图片 -->
     <div class="card-image">
       <div v-if="type === 'product'" class="single-image">
@@ -143,6 +147,7 @@ interface Props {
   appTotalPrice?: number
   currencyCode?: string
   animateDiscount?: boolean
+  creatorName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -173,6 +178,11 @@ const stripLeadingDisplayMarks = (value: string) => {
 }
 
 const displayTitle = computed(() => stripLeadingDisplayMarks(props.title))
+
+const displayCreatorName = computed(() => {
+  const name = stripLeadingDisplayMarks(props.creatorName || '')
+  return name || ''
+})
 
 const descriptionLines = computed(() => {
   if (!props.description) return []
@@ -580,6 +590,37 @@ onUnmounted(() => {
   color: #44403c;
   font-size: 0.82rem;
   font-weight: 700;
+}
+
+.creator-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  margin: -8px 0 22px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  color: #44403c;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.creator-label {
+  flex-shrink: 0;
+  color: rgba(15, 23, 42, 0.48);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.creator-name {
+  min-width: 0;
+  color: #171717;
+  font-size: 0.9rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .discount-animate {

@@ -36,6 +36,7 @@ export interface ProductVO {
   appId: number
   designId: string
   userId: number
+  user?: UserBaseVO | null
   name: string
   description: string
   price: number

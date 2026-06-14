@@ -52,6 +52,7 @@
         :is-selected="isProductSelected"
         :currency-code="productCurrencyCode"
         :animate-discount="shouldAnimateDiscount(getPriceIdForProduct(product))"
+        :creator-name="productCreatorName"
         :button-text="buyProductText"
         @select="selectProduct"
         @buy="handleBuyProduct"
@@ -83,6 +84,7 @@ import type { SubscriptionPlan } from '@/api/subscription'
 import { checkDiscount, getBundlesForPurchase } from '@/api/purchase'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
+import { getProductDetail } from '@/api/product'
 
 const router = useRouter()
 const route = useRoute()
@@ -96,8 +98,21 @@ const selectedPlan = ref<SubscriptionPlan | null>(null)
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
 
 const bundlesFromApi = ref<Bundle[]>([])
+const productDetail = ref<ProductVO | null>(null)
 
-const product = computed(() => purchaseData.value?.product as ProductVO)
+const product = computed<ProductVO | null>(() => {
+  const baseProduct = purchaseData.value?.product
+  if (!baseProduct) return null
+
+  if (productDetail.value && String(productDetail.value.appId) === String(baseProduct.appId)) {
+    return {
+      ...baseProduct,
+      ...productDetail.value,
+    } as ProductVO
+  }
+
+  return baseProduct as ProductVO
+})
 const bundles = computed(() => {
   const bundlesList = (purchaseData.value?.bundles && purchaseData.value.bundles.length > 0)
     ? purchaseData.value.bundles
@@ -166,6 +181,54 @@ const productCurrencyCode = computed(() => {
   const discountInfo = getDiscountInfoByPriceId(priceId)
   return (discountInfo?.valid && discountInfo.currency) ? String(discountInfo.currency) : 'USD'
 })
+
+const getCreatorNameFromProduct = (p?: ProductVO | null) => {
+  const productLike = p as any
+  const creator = productLike?.user || productLike?.creator || productLike?.merchant || productLike?.author
+  return (
+    creator?.nickname ||
+    creator?.username ||
+    creator?.name ||
+    productLike?.creatorName ||
+    productLike?.merchantName ||
+    productLike?.authorName ||
+    ''
+  )
+}
+
+const productCreatorName = computed(() => getCreatorNameFromProduct(product.value))
+
+const loadProductDetailForCreator = async () => {
+  const currentData = purchaseData.value
+  const appId = currentData?.product?.appId
+  if (!currentData || !appId || getCreatorNameFromProduct(product.value)) return
+  if (productDetail.value && String(productDetail.value.appId) === String(appId)) return
+
+  try {
+    const detail = await getProductDetail(String(appId))
+    if (!detail) return
+    productDetail.value = detail
+    store.setData({
+      ...currentData,
+      product: {
+        ...currentData.product,
+        ...detail,
+      },
+    })
+    if (
+      store.selectedProduct &&
+      !('bundleId' in store.selectedProduct) &&
+      String(store.selectedProduct.appId) === String(appId)
+    ) {
+      store.setSelectedProduct({
+        ...store.selectedProduct,
+        ...detail,
+      } as ProductVO)
+    }
+  } catch (error) {
+    console.warn('Failed to load product detail for creator display:', error)
+  }
+}
 
 const getCurrencyCodeForBundle = (bundleItem: Bundle) => {
   const priceId = getPriceIdForBundle(bundleItem)
@@ -474,8 +537,16 @@ onMounted(() => {
   }
 
   runDiscountChecks()
+  loadProductDetailForCreator()
   scrollToBundleSubscriptionCard()
 })
+
+watch(
+  () => purchaseData.value?.product?.appId,
+  () => {
+    loadProductDetailForCreator()
+  }
+)
 
 watch(
   () => [route.hash, bundles.value.length],
