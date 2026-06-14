@@ -212,7 +212,7 @@ const en = {
   'purchase.buyBundleFor': 'Buy Bundle for',
   'purchase.buyFor': 'Buy for',
   'purchase.premiumBundleName': 'Wristo Premium',
-  'purchase.premiumBundleDesc': 'Why Go Premium?\nWristo Premium Access - One membership. Every brand. No limits.\n2,000+ Premium Watch Faces - Daily, sport, fashion, minimal, and seasonal collections, all included.\nLifetime Updates - All future releases are unlocked automatically, forever.\nEarly Access Privileges - Try new designs before anyone else.\nCurated, Not Random - Only refined, designer-quality watch faces.\nBest Value, One-Time Upgrade - Premium access once, enjoy forever.\nUpgrade to Premium and elevate your wrist experience.',
+  'purchase.premiumBundleDesc': 'Why Go Premium?\nWristo Premium Access - One membership. Every brand. No limits.\n4,000+ Premium Watch Faces - Daily, sport, fashion, minimal, and seasonal collections, all included.\nLifetime Updates - All future releases are unlocked automatically, forever.\nEarly Access Privileges - Try new designs before anyone else.\nCurated, Not Random - Only refined, designer-quality watch faces.\nBest Value, One-Time Upgrade - Premium access once, enjoy forever.\nUpgrade to Premium and elevate your wrist experience.',
   'purchase.seoTitle': 'Purchase Options | Wristo',
   'purchase.seoDesc': 'Compare Wristo purchase options for Garmin watch faces and bundles.',
   'purchaseCard.off': 'Off',
