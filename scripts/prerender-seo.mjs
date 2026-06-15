@@ -27,8 +27,6 @@ const apiBase = trimTrailingSlash(
 const previewPort = Number(process.env.PRERENDER_PORT || 4177)
 const previewUrl = `http://127.0.0.1:${previewPort}`
 const maxPrerenderRoutes = Number(process.env.MAX_PRERENDER_ROUTES || 80)
-const hiddenFaqGuideSectionTitles = new Set(['Design & Tutorials', 'Watchface Picks', 'Updates'])
-
 const staticRoutes = [
   '/',
   '/search',
@@ -36,7 +34,6 @@ const staticRoutes = [
   '/premium',
   '/purchase-options',
   '/faq',
-  '/faq/support',
   '/faq/checkout',
   '/contact',
   '/terms-and-conditions',
@@ -47,6 +44,11 @@ const staticRoutes = [
   '/bundle-products',
   '/template-editor',
 ]
+const hiddenFaqGuideRouteSlugs = new Set([
+  'garmin-watchface-iq-error-fix-zh',
+  'install-error',
+  'mina-lcd',
+])
 const productPreviewByRoute = new Map()
 
 async function main() {
@@ -148,36 +150,37 @@ async function loadSupportedLocales() {
 
 async function loadFaqGuideRoutes() {
   try {
-    const snapshotPath = path.join(rootDir, 'src/content/faq-guides.generated.json')
-    const snapshot = JSON.parse(await readFile(snapshotPath, 'utf8'))
-    const hiddenPostIds = collectHiddenFaqGuidePostIds(asList(snapshot?.tocTree))
+    const source = await readFile(path.join(rootDir, 'src/content/faq-pages.ts'), 'utf8')
+    const legacySource = await readFile(path.join(rootDir, 'src/content/faq-pages-legacy.ts'), 'utf8')
     const routes = ['/faq']
-    for (const post of asList(snapshot?.posts)) {
-      if (hiddenPostIds.has(post?.id)) continue
+    for (const match of source.matchAll(/tr\(\s*'([^']+)'\s*,\s*'([^']+)'/g)) {
+      if (hiddenFaqGuideRouteSlugs.has(match[2])) continue
+      routes.push(`/${encodeURIComponent(match[1])}/faq/${encodeURIComponent(match[2])}`)
+    }
+    for (const post of parseLegacyFaqPosts(legacySource)) {
+      if (isHiddenFaqGuideRoutePost(post)) continue
       for (const translation of asList(post?.translations)) {
         if (translation?.lang && translation?.slug && translation?.contentHtml) {
           routes.push(`/${encodeURIComponent(translation.lang)}/faq/${encodeURIComponent(translation.slug)}`)
         }
       }
     }
-    return routes
+    return uniqueRoutes(routes)
   } catch (error) {
     console.warn(`[seo] Static FAQ guide route discovery failed: ${error.message}`)
     return ['/faq']
   }
 }
 
-function collectHiddenFaqGuidePostIds(nodes) {
-  const ids = new Set()
+function parseLegacyFaqPosts(source) {
+  const match = source.match(/legacyFaqGuidePosts\s*=\s*(\[[\s\S]*?\])\s+as unknown/)
+  if (!match) throw new Error('legacyFaqGuidePosts array not found')
+  return JSON.parse(match[1])
+}
 
-  const visit = (node, hidden) => {
-    const isHidden = hidden || hiddenFaqGuideSectionTitles.has(node?.title)
-    if (isHidden && node?.post?.id) ids.add(node.post.id)
-    for (const child of asList(node?.children)) visit(child, isHidden)
-  }
-
-  for (const node of nodes) visit(node, false)
-  return ids
+function isHiddenFaqGuideRoutePost(post) {
+  return hiddenFaqGuideRouteSlugs.has(post?.slug) ||
+    asList(post?.translations).some((translation) => hiddenFaqGuideRouteSlugs.has(translation?.slug))
 }
 
 async function prerenderRoutes(routes) {

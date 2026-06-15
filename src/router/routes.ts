@@ -106,11 +106,6 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/blogs/BlogPost.vue'),
   },
   {
-    path: '/faq/support',
-    name: 'FAQ',
-    component: () => import('@/views/faq/FAQ.vue'),
-  },
-  {
     path: '/faq/checkout',
     name: 'CheckoutHelp',
     component: () => import('@/views/faq/CheckoutHelp.vue')

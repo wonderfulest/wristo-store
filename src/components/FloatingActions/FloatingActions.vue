@@ -200,4 +200,16 @@ const handleClick = () => {
     bottom: 48px;
   }
 }
+
+@media (max-width: 767px) {
+  .floating-actions {
+    right: 14px;
+    bottom: calc(176px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .fab-btn {
+    width: 44px;
+    height: 44px;
+  }
+}
 </style>

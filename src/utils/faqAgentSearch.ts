@@ -1,8 +1,7 @@
-import { questionsByCategory } from '@/config/faq-data'
 import { buildFaqGuidePath, DEFAULT_FAQ_GUIDE_LANG, getFaqGuidePosts } from '@/content/faq-guides'
 import { normalizeLocale, type SupportedLocale } from '@/store/locale'
 
-export type FaqAgentSourceType = 'support-faq' | 'guide'
+export type FaqAgentSourceType = 'guide'
 
 export interface FaqAgentResult {
   id: string
@@ -66,33 +65,10 @@ function getDocuments(): FaqAgentDocument[] {
   if (cachedDocuments) return cachedDocuments
 
   cachedDocuments = [
-    ...buildSupportFaqDocuments(),
     ...buildGuideDocuments(),
   ]
 
   return cachedDocuments
-}
-
-function buildSupportFaqDocuments(): FaqAgentDocument[] {
-  return Object.entries(questionsByCategory).flatMap(([category, questions]) =>
-    questions.map((item, index) => {
-      const answerText = stripHtml(item.a)
-      const titleText = stripHtml(item.q)
-      return {
-        id: `support-faq:${category}:${index}`,
-        type: 'support-faq',
-        locale: DEFAULT_FAQ_GUIDE_LANG,
-        title: titleText,
-        answer: answerText,
-        category,
-        url: '/faq/support',
-        titleText: normalizeText(titleText),
-        summaryText: normalizeText(category),
-        bodyText: normalizeText(answerText),
-        searchableText: normalizeText(`${titleText} ${category} ${answerText}`),
-      }
-    }),
-  )
 }
 
 function buildGuideDocuments(): FaqAgentDocument[] {

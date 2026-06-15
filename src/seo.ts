@@ -52,10 +52,6 @@ const staticSeoByPath: Record<string, SeoConfig> = {
     description: 'Read Wristo FAQ guides about Garmin devices, watch faces, health metrics, activation, and Connect IQ setup.',
     type: 'article',
   },
-  '/faq/support': {
-    title: 'Garmin Watch Face Help and Support FAQ | Wristo',
-    description: 'Find answers about installing, activating, uninstalling, and using Wristo Garmin watch faces.',
-  },
   '/faq/checkout': {
     title: 'Activation and Checkout Help | Wristo',
     description: 'Learn how to activate trials and complete checkout for Wristo Garmin watch faces.',

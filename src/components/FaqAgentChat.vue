@@ -49,7 +49,7 @@
                 <template v-else>
                   <div class="result-count">{{ t('agent.noAnswerTitle') }}</div>
                   <p>{{ t('agent.noAnswerBody') }}</p>
-                  <RouterLink class="source-link" :to="localizedResultPath('/faq/support')">
+                  <RouterLink class="source-link" :to="localizedResultPath('/contact')">
                     {{ t('agent.contactSupport') }}
                     <Icon icon="solar:arrow-right-up-line-duotone" width="15" height="15" aria-hidden="true" />
                   </RouterLink>
@@ -120,11 +120,11 @@ function submitQuery() {
 }
 
 function resultLabel(type: FaqAgentSourceType): string {
-  return type === 'guide' ? t('agent.guide') : t('agent.supportFaq')
+  if (type === 'guide') return t('agent.guide')
+  return t('agent.guide')
 }
 
 function localizedResultPath(path: string): string {
-  if (path === '/faq/support') return path
   const normalizedPath = stripLocaleFromPath(path)
   if (localeStore.currentLocale === DEFAULT_LOCALE) return normalizedPath
   return addLocaleToPath(normalizedPath, localeStore.currentLocale)

@@ -29,7 +29,7 @@
       
       <div class="mobile-footer-content">
         <div class="footer-actions">
-          <a :href="localizedPath('/faq/support')" class="footer-action" :aria-label="t('footer.help')">
+          <a :href="localizedPath('/faq')" class="footer-action" :aria-label="t('footer.help')">
             <div class="action-icon">?</div>
             <span>{{ t('footer.help') }}</span>
           </a>
@@ -208,28 +208,26 @@ onUnmounted(() => {
 /* */
 @media (max-width: 768px) {
   .footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    position: relative;
     z-index: 100;
-    transform: translateY(100%);
-    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform: none;
+    transition: background 0.25s ease, border-color 0.25s ease;
     backdrop-filter: blur(20px);
     background: rgba(255, 255, 255, 0.96);
     border-top: 1px solid rgba(17, 24, 39, 0.08);
     border-radius: 18px 18px 0 0;
-    box-shadow: 0 -16px 34px rgba(17, 24, 39, 0.12);
+    box-shadow: 0 -10px 24px rgba(17, 24, 39, 0.08);
     padding: 0;
     min-height: auto;
+    margin-top: 32px;
   }
   
   .footer.visible {
-    transform: translateY(0);
+    transform: none;
   }
   
   .footer.expanded {
-    transform: translateY(0);
+    transform: none;
     background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(25px);
   }
@@ -264,7 +262,7 @@ onUnmounted(() => {
   }
   
   .mobile-footer-content {
-    padding: 16px 20px 20px 20px;
+    padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
   }
   
   .footer-actions {

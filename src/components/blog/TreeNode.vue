@@ -53,11 +53,28 @@ function toggle() {
 </script>
 
 <style scoped>
-.tree-node { display: flex; align-items: center; gap: 4px; margin: 1px 0; position: relative; }
-.toggle { appearance: none; background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 10px; padding: 2px 4px; border-radius: 4px; transition: all .2s ease; min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
-.toggle:hover { background: #f1f5f9; color: #475569; }
+.tree-node { display: flex; align-items: flex-start; gap: 4px; margin: 2px 0; position: relative; }
+.toggle { appearance: none; background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 10px; padding: 5px 4px; border-radius: 4px; transition: color .18s ease, background-color .18s ease; min-width: 20px; min-height: 30px; display: flex; align-items: center; justify-content: center; }
+.toggle:hover { background: #f8fafc; color: #0f172a; }
 .toggle-placeholder { min-width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; }
-.node-btn { appearance: none; border: none; background: transparent; color: #475569; padding: 4px 8px; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all .2s ease; text-align: left; flex: 1; cursor: pointer; line-height: 1.4; }
-.node-btn:hover { background: #f8fafc; color: #1e293b; }
-.node-btn.active { color: #2563eb; background: linear-gradient(135deg, #dbeafe, #bfdbfe); font-weight: 600; box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2); }
+.node-btn {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: #475569;
+  padding: 5px 0 5px 8px;
+  border-left: 2px solid transparent;
+  border-radius: 0;
+  font-weight: 500;
+  font-size: 14px;
+  transition: color .18s ease, border-color .18s ease;
+  text-align: left;
+  flex: 1;
+  cursor: pointer;
+  line-height: 1.45;
+  min-height: 30px;
+}
+.node-btn:hover { color: #0f172a; border-left-color: #cbd5e1; }
+.node-btn:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.24); outline-offset: 2px; }
+.node-btn.active { color: #0f6b68; border-left-color: #0f6b68; font-weight: 700; }
 </style>

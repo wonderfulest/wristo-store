@@ -3,7 +3,6 @@ import routes from './routes'
 import { useUserStore } from '@/store/user'
 import { getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { createPageGuard } from '@/utils/guards'
-import { getPreferredFaqGuidePath } from '@/content/faq-guides'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 
 const router = createRouter({
@@ -41,15 +40,6 @@ router.beforeEach((to, from, next) => {
       localeStore.setLocale(normalizedRouteLang)
     }
     localeStore.syncDocumentLang()
-
-    const shouldApplyFaqLocale = ['FAQGuides', 'FAQGuide'].includes(String(to.name || ''))
-    const preferredFaqPath = shouldApplyFaqLocale
-      ? getPreferredFaqGuidePath(to.path, localeStore.currentLocale)
-      : to.path
-    if (shouldApplyFaqLocale && preferredFaqPath !== to.path) {
-      next({ path: preferredFaqPath, query: to.query, hash: to.hash, replace: true })
-      return
-    }
 
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
 

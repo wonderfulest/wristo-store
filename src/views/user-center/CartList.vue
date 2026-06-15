@@ -18,7 +18,7 @@
       <button type="button" class="browse-btn" @click="goHome">Browse watch faces</button>
     </div>
 
-    <div v-else class="cart-layout">
+    <div v-else class="cart-layout" :class="{ 'checkout-layout-active': inlineCheckoutVisible }">
       <div class="cart-items">
         <article v-for="item in cartStore.items" :key="item.appId" class="cart-item" :class="{ purchased: isPurchased(item.appId) }">
           <button type="button" class="item-main" @click="goProduct(item.appId)">
@@ -78,17 +78,20 @@
           <span>Checkout email</span>
           <strong>{{ checkoutEmail }}</strong>
         </div>
-        <button type="button" class="checkout-btn" :disabled="loading || checking" @click="handleCheckout">
+        <button type="button" class="checkout-btn" :disabled="loading || checking || refreshingCart" @click="handleCheckout">
           <el-icon><CreditCard /></el-icon>
           <span>{{ checkoutButtonText }}</span>
         </button>
+        <div v-if="inlineCheckoutVisible" class="inline-checkout-shell" aria-label="Paddle checkout" aria-live="polite">
+          <div :key="inlineCheckoutKey" :id="checkoutFrameId" class="paddle-inline-checkout"></div>
+        </div>
       </aside>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { CreditCard, Delete, Search, ShoppingCart } from '@element-plus/icons-vue'
@@ -98,14 +101,21 @@ import { useUserStore } from '@/store/user'
 import { useCartCheckout } from '@/composables/useCartCheckout'
 import { checkCartPurchases } from '@/api/purchase'
 import type { CartPurchaseCheckItemVO } from '@/api/purchase'
+import { getProductDetail } from '@/api/product'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const localeStore = useLocaleStore()
 const userStore = useUserStore()
-const { loading, checkout } = useCartCheckout()
+const { loading, checkout, closeCheckout } = useCartCheckout()
 const checking = ref(false)
+const refreshingCart = ref(false)
+const inlineCheckoutVisible = ref(false)
+const inlineCheckoutKey = ref(0)
 const purchaseConflicts = ref<Record<number, CartPurchaseCheckItemVO>>({})
+const checkoutFrameId = 'cart-paddle-checkout'
+let rebuildingInlineCheckout = false
+let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
 const checkoutEmail = computed(() => userStore.userInfo?.email || 'Sign in required')
 const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
@@ -136,10 +146,12 @@ const nextDiscountHint = computed(() => {
   return null
 })
 const checkoutButtonText = computed(() => {
+  if (refreshingCart.value) return 'Refreshing cart...'
   if (checking.value) return 'Checking cart...'
-  if (loading.value) return 'Opening checkout...'
+  if (loading.value) return inlineCheckoutVisible.value ? 'Updating checkout...' : 'Opening checkout...'
   return 'Checkout'
 })
+const cartCheckoutSignature = computed(() => cartStore.items.map((item) => `${item.appId}:${Number(item.price || 0)}`).join('|'))
 
 const formatMoney = (amount: number) => `$${amount.toFixed(2)}`
 
@@ -170,6 +182,80 @@ const removeItem = (appId: number) => {
 
 const cartCheckoutItems = () => cartStore.items.map((item) => ({ appId: item.appId, quantity: 1 }))
 
+const refreshCartItems = async () => {
+  const currentItems = [...cartStore.items]
+  if (!currentItems.length || refreshingCart.value) return
+
+  refreshingCart.value = true
+  try {
+    const results = await Promise.allSettled(
+      currentItems.map((item) => getProductDetail(String(item.appId)))
+    )
+    results.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        cartStore.updateItem(result.value)
+      }
+    })
+  } catch (error) {
+    console.warn('Failed to refresh cart items:', error)
+  } finally {
+    refreshingCart.value = false
+  }
+}
+
+const openInlineCheckout = async () => {
+  if (rebuildingInlineCheckout) return
+  rebuildingInlineCheckout = true
+
+  try {
+    await refreshCartItems()
+    const items = cartCheckoutItems()
+    if (!items.length) {
+      closeCheckout()
+      inlineCheckoutVisible.value = false
+      await checkout(items)
+      return
+    }
+    if (!userStore.userInfo?.email) {
+      closeCheckout()
+      inlineCheckoutVisible.value = false
+      await checkout(items)
+      return
+    }
+
+    checking.value = true
+    try {
+      const checkResult = await checkCartPurchases({ items })
+      purchaseConflicts.value = Object.fromEntries(
+        (checkResult.items || [])
+          .filter((item) => item.purchased)
+          .map((item) => [item.appId, item])
+      )
+      if (checkResult.hasPurchasedItems) {
+        closeCheckout()
+        inlineCheckoutVisible.value = false
+        ElMessage.warning('Some items are already purchased. Please remove them before checkout.')
+        return
+      }
+    } finally {
+      checking.value = false
+    }
+
+    closeCheckout()
+    inlineCheckoutVisible.value = true
+    inlineCheckoutKey.value += 1
+    await nextTick()
+    await checkout(items, () => cartStore.clear(), {
+      displayMode: 'inline',
+      frameTarget: checkoutFrameId,
+      frameInitialHeight: 620,
+      frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
+    })
+  } finally {
+    rebuildingInlineCheckout = false
+  }
+}
+
 const handleCheckout = async () => {
   const items = cartCheckoutItems()
   if (!items.length) {
@@ -181,24 +267,30 @@ const handleCheckout = async () => {
     return
   }
 
-  checking.value = true
-  try {
-    const checkResult = await checkCartPurchases({ items })
-    purchaseConflicts.value = Object.fromEntries(
-      (checkResult.items || [])
-        .filter((item) => item.purchased)
-        .map((item) => [item.appId, item])
-    )
-    if (checkResult.hasPurchasedItems) {
-      ElMessage.warning('Some items are already purchased. Please remove them before checkout.')
-      return
-    }
-  } finally {
-    checking.value = false
-  }
-
-  checkout(items, () => cartStore.clear())
+  await openInlineCheckout()
 }
+
+watch(cartCheckoutSignature, (signature, previousSignature) => {
+  if (!inlineCheckoutVisible.value || signature === previousSignature) return
+  if (!signature) {
+    closeCheckout()
+    inlineCheckoutVisible.value = false
+    return
+  }
+  if (rebuildTimer) clearTimeout(rebuildTimer)
+  rebuildTimer = setTimeout(() => {
+    openInlineCheckout()
+  }, 250)
+})
+
+onMounted(() => {
+  refreshCartItems()
+})
+
+onBeforeUnmount(() => {
+  if (rebuildTimer) clearTimeout(rebuildTimer)
+  closeCheckout()
+})
 </script>
 
 <style scoped>
@@ -288,6 +380,10 @@ h1 {
   grid-template-columns: minmax(0, 1fr) 320px;
   gap: 22px;
   align-items: flex-start;
+}
+
+.cart-layout.checkout-layout-active {
+  grid-template-columns: minmax(300px, 0.86fr) minmax(460px, 520px);
 }
 
 .cart-items {
@@ -534,6 +630,19 @@ h1 {
   opacity: 0.72;
 }
 
+.inline-checkout-shell {
+  overflow: hidden;
+  margin-top: 2px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line);
+}
+
+.paddle-inline-checkout {
+  min-height: 620px;
+  width: 100%;
+  background: transparent;
+}
+
 @media (max-width: 640px) {
   .cart-head,
   .cart-item {
@@ -553,8 +662,21 @@ h1 {
     grid-template-columns: 1fr;
   }
 
+  .cart-layout.checkout-layout-active {
+    grid-template-columns: 1fr;
+  }
+
   .checkout-panel {
     position: static;
+  }
+
+  .inline-checkout-shell {
+    margin-inline: -6px;
+    padding-top: 14px;
+  }
+
+  .paddle-inline-checkout {
+    min-height: 680px;
   }
 }
 </style>

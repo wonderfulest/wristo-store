@@ -21,6 +21,13 @@ let activeCheckout:
     }
   | null = null
 
+interface CartCheckoutOptions {
+  displayMode?: 'overlay' | 'inline'
+  frameTarget?: string
+  frameInitialHeight?: number
+  frameStyle?: string
+}
+
 const loadPaddle = () => {
   if (typeof window === 'undefined') return Promise.reject(new Error('Window is not available'))
   if (window.Paddle) return Promise.resolve()
@@ -78,7 +85,19 @@ export function useCartCheckout() {
     return false
   }
 
-  const checkout = async (items: CartCheckoutItemRequest[], onSuccess?: () => void) => {
+  const closeCheckout = () => {
+    if (typeof window !== 'undefined' && window.Paddle?.Checkout?.close) {
+      window.Paddle.Checkout.close()
+    }
+    activeCheckout = null
+    loading.value = false
+  }
+
+  const checkout = async (
+    items: CartCheckoutItemRequest[],
+    onSuccess?: () => void,
+    options: CartCheckoutOptions = {}
+  ) => {
     if (loading.value) return
     if (!items.length) {
       ElMessage.warning('Your cart is empty.')
@@ -100,7 +119,10 @@ export function useCartCheckout() {
       window.Paddle.Checkout.open({
         transactionId: checkoutData.transactionId,
         settings: {
-          displayMode: 'overlay',
+          displayMode: options.displayMode || 'overlay',
+          ...(options.frameTarget ? { frameTarget: options.frameTarget } : {}),
+          ...(options.frameInitialHeight ? { frameInitialHeight: options.frameInitialHeight } : {}),
+          ...(options.frameStyle ? { frameStyle: options.frameStyle } : {}),
         },
         customer: {
           email: userStore.userInfo?.email,
@@ -117,5 +139,6 @@ export function useCartCheckout() {
   return {
     loading,
     checkout,
+    closeCheckout,
   }
 }

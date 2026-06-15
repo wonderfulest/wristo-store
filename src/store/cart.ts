@@ -49,6 +49,12 @@ export const useCartStore = defineStore('cart', {
       if (!product?.appId) return
       const existing = this.items.find((item) => item.appId === Number(product.appId))
       if (existing) {
+        const latest = toCartItem(product)
+        existing.name = latest.name
+        existing.price = latest.price
+        existing.imageUrl = latest.imageUrl
+        existing.garminStoreUrl = latest.garminStoreUrl
+        existing.designId = latest.designId
         existing.quantity = 1
         existing.addedAt = new Date().toISOString()
         return
@@ -63,6 +69,19 @@ export const useCartStore = defineStore('cart', {
     setQuantity(appId: number | string, _quantity: number) {
       const item = this.items.find((entry) => entry.appId === Number(appId))
       if (!item) return
+      item.quantity = 1
+    },
+
+    updateItem(product: CartProduct) {
+      if (!product?.appId) return
+      const item = this.items.find((entry) => entry.appId === Number(product.appId))
+      if (!item) return
+      const latest = toCartItem(product)
+      item.name = latest.name
+      item.price = latest.price
+      item.imageUrl = latest.imageUrl
+      item.garminStoreUrl = latest.garminStoreUrl
+      item.designId = latest.designId
       item.quantity = 1
     },
 

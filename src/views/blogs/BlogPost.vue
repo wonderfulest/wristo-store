@@ -1,22 +1,7 @@
 <template>
   <div class="blog-container">
     <div class="blog-main">
-      <div class="page-header">
-        <div class="header-actions">
-          <button
-            class="toc-toggle"
-            type="button"
-            :aria-expanded="!sidebarCollapsed"
-            @click="sidebarCollapsed = !sidebarCollapsed"
-          >
-            <Icon icon="solar:book-bookmark-line-duotone" width="18" height="18" aria-hidden="true" />
-            <span v-if="sidebarCollapsed">{{ uiText.topics }}</span>
-            <span v-else>{{ uiText.hideTopics }}</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="layout" :class="{ collapsed: sidebarCollapsed }">
+      <div class="layout">
         <aside class="sidebar">
           <div class="toc">
             <TreeNode
@@ -101,31 +86,77 @@ const post = ref<BlogPostVO | null>(null)
 // toc state
 const tree = ref<BlogPostTocItemVO[]>([])
 const activeNodeId = ref<number | undefined>(undefined)
-const sidebarCollapsed = ref(false)
+
+const faqUiTextByLocale = {
+  cs: {
+    loading: 'Nacitani pruvodce FAQ...',
+    failedTitle: 'Nacteni se nezdarilo',
+  },
+  da: {
+    loading: 'Indlaeser FAQ-guide...',
+    failedTitle: 'Indlaesning mislykkedes',
+  },
+  de: {
+    loading: 'FAQ-Anleitung wird geladen...',
+    failedTitle: 'Laden fehlgeschlagen',
+  },
+  en: {
+    loading: 'Loading FAQ guide...',
+    failedTitle: 'Failed to load',
+  },
+  es: {
+    loading: 'Cargando guia de FAQ...',
+    failedTitle: 'No se pudo cargar',
+  },
+  fr: {
+    loading: 'Chargement du guide FAQ...',
+    failedTitle: 'Echec du chargement',
+  },
+  it: {
+    loading: 'Caricamento guida FAQ...',
+    failedTitle: 'Caricamento non riuscito',
+  },
+  ja: {
+    loading: 'FAQ ガイドを読み込み中...',
+    failedTitle: '読み込みに失敗しました',
+  },
+  ko: {
+    loading: 'FAQ 가이드를 불러오는 중...',
+    failedTitle: '불러오기에 실패했습니다',
+  },
+  nl: {
+    loading: 'FAQ-gids laden...',
+    failedTitle: 'Laden mislukt',
+  },
+  pl: {
+    loading: 'Ladowanie przewodnika FAQ...',
+    failedTitle: 'Nie udalo sie zaladowac',
+  },
+  'pt-br': {
+    loading: 'Carregando guia de FAQ...',
+    failedTitle: 'Falha ao carregar',
+  },
+  sv: {
+    loading: 'Laser in FAQ-guide...',
+    failedTitle: 'Kunde inte lasa in',
+  },
+  zh: {
+    loading: '正在加载 FAQ 指南...',
+    failedTitle: '加载失败',
+  },
+}
 
 const currentLang = computed(() => {
   const langParamRaw = route.params.lang
   const langParam = Array.isArray(langParamRaw) ? langParamRaw[0] : (typeof langParamRaw === 'string' ? langParamRaw : undefined)
   const langQ = route.query.lang
   const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
-  return langParam || queryLang || localeStore.currentLocale
+  return langParam || queryLang || DEFAULT_FAQ_GUIDE_LANG
 })
 
 const uiText = computed(() => {
-  if (currentLang.value === 'zh') {
-    return {
-      topics: 'FAQ 主题',
-      hideTopics: '隐藏主题',
-      loading: '正在加载 FAQ 指南...',
-      failedTitle: '加载失败',
-    }
-  }
-  return {
-    topics: 'FAQ topics',
-    hideTopics: 'Hide topics',
-    loading: 'Loading FAQ guide...',
-    failedTitle: 'Failed to load',
-  }
+  const locale = normalizeLocale(currentLang.value)
+  return faqUiTextByLocale[locale] || faqUiTextByLocale.en
 })
 
 const firstTr = computed<BlogPostTranslationVO | null>(() => {
@@ -138,7 +169,7 @@ const formattedDate = computed(() => {
   if (!post.value?.publishedAt) return ''
   try {
     const d = new Date(post.value.publishedAt)
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    return d.toLocaleDateString(normalizeLocale(currentLang.value), { year: 'numeric', month: 'long', day: 'numeric' })
   } catch {
     return ''
   }
@@ -174,7 +205,7 @@ async function loadCurrentPost() {
   const langQ = route.query.lang
   const queryLang = Array.isArray(langQ) ? (langQ[0] ?? undefined) : (typeof langQ === 'string' && langQ ? langQ : undefined)
 
-  const activeLang = langParam || queryLang || localeStore.currentLocale
+  const activeLang = langParam || queryLang || DEFAULT_FAQ_GUIDE_LANG
   try {
     if (slug) {
       post.value = langParam
@@ -195,8 +226,6 @@ async function loadCurrentPost() {
 }
 
 onMounted(async () => {
-  sidebarCollapsed.value = window.innerWidth <= 640
-
   try {
     const activeLang = await loadCurrentPost()
     setBlogSeo()
@@ -278,61 +307,30 @@ async function refreshTree(lang?: string) {
 .blog-container {
   min-height: 100vh;
   --blog-sticky-gap: 0px;
-  --blog-toolbar-height: 60px;
-  background:
-    radial-gradient(520px 260px at 12% 0%, rgba(15, 107, 104, 0.08), transparent 70%),
-    linear-gradient(180deg, #f8fafc 0%, #fff 240px);
+  background: #fff;
   /* Reset global #app text-align so this page uses default alignment */
   text-align: initial;
 }
 
-.blog-main { max-width: 1200px; margin: 0 auto; padding: 18px 20px 80px 20px; }
-.page-header { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-bottom: 12px; }
-.header-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-.toc-toggle {
-  appearance: none;
-  border: 1px solid rgba(15, 107, 104, 0.14);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
-  color: var(--color-ink);
-  padding: 9px 13px;
-  border-radius: 999px;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all .2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
-}
-.toc-toggle:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(15, 23, 42, 0.10); color: var(--color-brand-strong); }
-.toc-toggle:active { transform: translateY(0); }
-.header-actions :deep(.lang-switcher) {
-  margin: 0;
-}
+.blog-main { max-width: 1180px; margin: 0 auto; padding: 16px 24px 88px; }
 
-.layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; }
-.layout.collapsed { grid-template-columns: 1fr; }
-.layout.collapsed .sidebar { display: none; }
+.layout { display: grid; grid-template-columns: minmax(220px, 280px) minmax(0, 1fr); gap: 40px; align-items: start; }
 .sidebar {
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  padding: 12px;
-  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: transparent;
+  border: none;
+  border-right: 1px solid #e2e8f0;
+  border-radius: 0;
+  padding: 8px 20px 8px 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   align-self: start;
   position: sticky;
-  top: 92px;
-  max-height: calc(100dvh - 110px);
+  top: 84px;
+  max-height: calc(100dvh - 100px);
   overflow: auto;
 }
 .toc { display: block; }
-.tree-node { display: flex; align-items: center; gap: 6px; margin: 2px 0; }
-.toggle { appearance: none; background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 12px; padding: 2px; }
-.node-btn { appearance: none; border: 1px solid #e5e7eb; background: #ffffffcc; color: #334155; padding: 6px 8px; border-radius: 10px; font-weight: 600; transition: all .2s ease; text-align: left; flex: 1; }
-.node-btn:hover { transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
-.node-btn.active { color: #fff; border-color: #3b82f6; background: linear-gradient(180deg, #60a5fa, #3b82f6); box-shadow: 0 2px 8px rgba(59,130,246,0.35); }
 
 .state-card {
   display: flex;
@@ -372,11 +370,8 @@ async function refreshTree(lang?: string) {
 }
 
 .blog-article {
-  background: #fff;
-  /* border-radius: 24px; */
-  /* box-shadow: 0 2px 12px rgba(0,0,0,0.06); */
-  /* border: 1px solid #e5e7eb; */
-  overflow: hidden;
+  background: transparent;
+  overflow: visible;
 }
 .hero {
   width: 100%;
@@ -394,14 +389,14 @@ async function refreshTree(lang?: string) {
   font-size: 2rem;
   font-weight: 800;
   letter-spacing: 0;
-  padding: 20px 24px 0 24px;
+  padding: 20px 0 0;
   color: #0f172a;
 }
 .meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px 8px 24px;
+  padding: 12px 0 8px;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -415,6 +410,9 @@ async function refreshTree(lang?: string) {
   height: 40px;
   border-radius: 50%;
   border: 1px solid #e5e7eb;
+  padding: 4px;
+  object-fit: contain;
+  background: #fff;
 }
 .author-info .name {
   font-weight: 700;
@@ -438,15 +436,14 @@ async function refreshTree(lang?: string) {
   color: #334155;
 }
 .summary {
-  margin: 6px 24px 0 24px;
-  padding: 12px 14px;
-  background: linear-gradient(180deg, #f8fafc, #eef2ff);
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  margin: 10px 0 0;
+  padding: 0 0 0 14px;
+  border-left: 3px solid #0f6b68;
   color: #334155;
+  line-height: 1.7;
 }
-.content { background: rgba(255, 255, 255, 0.94); border: 1px solid rgba(15, 23, 42, 0.08); border-radius: 18px; padding: 0; box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08); overflow: hidden; }
-.content-body { padding: 18px 24px 28px 24px; color: #111827; }
+.content { background: transparent; border: none; border-radius: 0; padding: 0; box-shadow: none; overflow: visible; min-width: 0; }
+.content-body { padding: 20px 0 28px; color: #111827; max-width: 760px; }
 .content :deep(h1),
 .content :deep(h2),
 .content :deep(h3),
@@ -465,10 +462,10 @@ async function refreshTree(lang?: string) {
 }
 .content :deep(img) {
   max-width: 100%;
-  border-radius: 14px;
+  border-radius: 8px;
   display: block;
   margin: 10px auto;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  box-shadow: none;
 }
 .content :deep(a) {
   color: #2563eb;
@@ -504,67 +501,27 @@ async function refreshTree(lang?: string) {
 
 @media (max-width: 640px) {
   .blog-container {
-    background:
-      radial-gradient(360px 220px at 50% -40px, rgba(15, 107, 104, 0.12), transparent 70%),
-      linear-gradient(180deg, #f8fafc 0%, #fff 250px);
+    background: #fff;
   }
-  .blog-main { padding: 0 12px 44px; }
-  .page-header {
-    position: sticky;
-    top: 0;
-    z-index: 18;
-    justify-content: stretch;
-    margin: 0 -2px 8px;
-    padding: 8px 0 10px;
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(248, 250, 252, 0.72));
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-  }
-  .header-actions { width: 100%; gap: 8px; justify-content: space-between; flex-wrap: nowrap; }
-  .toc-toggle {
-    min-height: 42px;
-    padding: 0 13px;
-    border-radius: 14px;
-    font-size: 0.9rem;
-    flex: 0 0 auto;
-  }
-  .header-actions :deep(.lang-switcher) {
-    min-width: 0;
-    flex: 1 1 auto;
-    justify-content: flex-end;
-    padding: 8px 10px;
-    border-radius: 14px;
-    overflow: hidden;
-  }
-  .header-actions :deep(.buttons) {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .header-actions :deep(.buttons::-webkit-scrollbar) {
-    display: none;
-  }
+  .blog-main { padding: 0 16px 44px; }
 
   .layout { display: block; }
-  .layout.collapsed { grid-template-columns: 1fr; }
-  .layout.collapsed .sidebar { display: none; }
   .sidebar {
     position: sticky;
-    top: var(--blog-toolbar-height);
+    top: 0;
     z-index: 8;
     max-height: min(52dvh, 420px);
     overflow: auto;
-    padding: 10px;
-    border-radius: 16px;
+    padding: 6px 0 10px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: 0;
     margin-bottom: 12px;
-    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.10);
+    box-shadow: none;
   }
   .toc { max-height: none; overflow: visible; }
 
-  /* TreeNode touch-friendly but compact */
   .tree-node { gap: 4px; margin: 1px 0; }
-  .toggle { font-size: 12px; padding: 2px; }
-  .node-btn { padding: 6px 8px; font-size: 0.92rem; border-radius: 10px; }
 
   /* Article */
   .hero {
@@ -575,10 +532,10 @@ async function refreshTree(lang?: string) {
   .title {
     font-size: clamp(1.55rem, 8vw, 2.15rem);
     line-height: 1.12;
-    padding: 18px 16px 0;
+    padding: 18px 0 0;
   }
   .meta {
-    padding: 12px 16px 4px;
+    padding: 12px 0 4px;
     gap: 12px;
     align-items: flex-start;
   }
@@ -594,17 +551,16 @@ async function refreshTree(lang?: string) {
   .chips::-webkit-scrollbar { display: none; }
   .chip { flex: 0 0 auto; }
   .summary {
-    margin: 10px 16px 0;
-    padding: 12px 13px;
-    border-radius: 14px;
+    margin: 10px 0 0;
+    padding: 0 0 0 12px;
     font-size: 0.96rem;
     line-height: 1.65;
   }
   .content {
-    border-radius: 18px;
-    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+    border-radius: 0;
+    box-shadow: none;
   }
-  .content-body { padding: 16px 16px 24px; }
+  .content-body { padding: 16px 0 24px; max-width: none; }
   .content :deep(h1),
   .content :deep(h2),
   .content :deep(h3),
@@ -631,6 +587,6 @@ async function refreshTree(lang?: string) {
 @media (max-width: 380px) {
   .blog-main { padding-left: 10px; padding-right: 10px; }
   .title { font-size: 1.48rem; }
-  .content-body { padding-left: 14px; padding-right: 14px; }
+  .content-body { padding-left: 0; padding-right: 0; }
 }
 </style>
