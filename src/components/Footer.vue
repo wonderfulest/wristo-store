@@ -8,11 +8,16 @@
   >
     <!-- 桌面端布局 -->
     <div v-if="!isExpanded && !isMobile" class="footer-main desktop-layout">
-      © 2025 WuKong OÜ |
-      <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a> |
-      <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a> |
-      <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a> |
-      <!-- <a href="/faq">FAQ</a> -->
+      <div class="footer-brand">
+        <img class="footer-mark" src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-mark.svg" alt="" aria-hidden="true" />
+        <span>© 2025 WuKong OÜ</span>
+      </div>
+      <nav class="footer-nav" :aria-label="t('footer.quickLinks')">
+        <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a>
+        <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a>
+        <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a>
+        <!-- <a href="/faq">FAQ</a> -->
+      </nav>
     </div>
     
     <!-- 移动端布局 -->
@@ -181,14 +186,17 @@ onUnmounted(() => {
 
 <style scoped>
 .footer {
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--color-muted);
   font-size: 0.95rem;
-  background: #0b1220;
-  padding: 18px 16px;
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+  box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.8);
+  padding: 14px 16px;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
   text-align: center;
   cursor: pointer;
   outline: none;
-  transition: all 0.3s ease;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.3s ease;
   position: relative;
   min-height: 24px; /* 最小高度 */
   display: flex;
@@ -208,10 +216,10 @@ onUnmounted(() => {
     transform: translateY(100%);
     transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
     backdrop-filter: blur(20px);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95));
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -16px 34px rgba(17, 24, 39, 0.12);
     padding: 0;
     min-height: auto;
   }
@@ -222,7 +230,7 @@ onUnmounted(() => {
   
   .footer.expanded {
     transform: translateY(0);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(25px);
   }
   
@@ -237,13 +245,13 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: center;
     padding: 12px 0 8px 0;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
   }
   
   .drag-indicator {
     width: 36px;
     height: 4px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(17, 24, 39, 0.22);
     border-radius: 2px;
     margin-bottom: 8px;
   }
@@ -252,7 +260,7 @@ onUnmounted(() => {
     font-size: 0.9rem;
     font-weight: 600;
     color: #374151;
-    letter-spacing: 0.5px;
+    letter-spacing: 0;
   }
   
   .mobile-footer-content {
@@ -275,9 +283,9 @@ onUnmounted(() => {
     padding: 12px 8px;
     min-height: 64px;
     border-radius: var(--radius-sm);
-    background: rgba(255, 255, 255, 0.7);
+    background: #fff;
     border: 1px solid var(--color-line);
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
     cursor: pointer;
     font-family: inherit;
   }
@@ -287,6 +295,11 @@ onUnmounted(() => {
     background: var(--color-brand-soft);
     border-color: rgba(15, 107, 104, 0.2);
     transform: translateY(-1px);
+  }
+
+  .footer-action:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.16);
   }
   
   .action-icon {
@@ -298,7 +311,7 @@ onUnmounted(() => {
     font-size: 0.9rem;
     font-weight: 800;
     color: var(--color-brand-strong);
-    background: #fff;
+    background: #eef9f6;
     margin-bottom: 4px;
   }
   
@@ -317,7 +330,7 @@ onUnmounted(() => {
     font-size: 0.8rem;
     color: #9CA3AF;
     padding-top: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-top: 1px solid rgba(17, 24, 39, 0.08);
   }
   
   /* */
@@ -342,45 +355,89 @@ onUnmounted(() => {
 }
 
 .footer-main {
-  color: rgba(255, 255, 255, 0.72);
+  width: min(100%, 1180px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #4b5563;
   font-size: 0.95rem;
   letter-spacing: 0;
 }
 
-.footer a {
-  color: #b7f4ea;
-  text-decoration: underline;
-  margin: 0 4px;
-  transition: color 0.2s;
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #374151;
+  font-weight: 700;
 }
 
-.footer a:hover {
-  color: #fff;
+.footer-mark {
+  width: 22px;
+  height: 22px;
+  padding: 3px;
+  border: 1px solid rgba(15, 107, 104, 0.18);
+  border-radius: 999px;
+  background: var(--color-brand-soft);
+}
+
+.footer-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.footer-nav a,
+.footer-detail a {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #4b5563;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  margin: 0;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.footer-nav a:hover,
+.footer-nav a:focus-visible,
+.footer-detail a:hover,
+.footer-detail a:focus-visible {
+  background: rgba(15, 107, 104, 0.1);
+  color: var(--color-brand-strong);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.14);
 }
 
 .footer-detail {
   margin-top: 0;
-  color: #eee;
-  font-size: 1.05rem;
+  color: #4b5563;
+  font-size: 0.95rem;
   line-height: 1.7;
   animation: fadeIn 0.3s;
   padding: 16px 0;
-  background: #0b1220;
+  background: #fff;
   width: 100%;
 }
 
 .footer-detail-title {
   font-weight: bold;
   margin-bottom: 8px;
-  color: #fff;
+  color: #111827;
 }
 .footer-detail-links {
   margin-top: 18px;
-  color: #b7f4ea;
-  font-size: 1.08rem;
+  color: var(--color-brand-strong);
+  font-size: 0.95rem;
 }
 .footer-detail-links a {
-  color: #b7f4ea;
+  color: var(--color-brand-strong);
   margin: 0 4px;
 }
 .footer-expand-enter-active,
@@ -400,5 +457,11 @@ onUnmounted(() => {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .footer-detail {
+    padding: 18px 20px max(24px, env(safe-area-inset-bottom));
+  }
 }
 </style> 

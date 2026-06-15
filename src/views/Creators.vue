@@ -22,6 +22,10 @@
               <Icon icon="solar:map-arrow-right-linear" width="20" height="20" aria-hidden="true" />
               {{ t('creators.viewGrowthPath') }}
             </button>
+            <button class="btn-secondary" type="button" @click="handleOpenAcademy">
+              <Icon icon="solar:notebook-bookmark-linear" width="20" height="20" aria-hidden="true" />
+              {{ t('creators.openAcademy') }}
+            </button>
           </div>
           <div class="hero-metrics" :aria-label="t('creators.metricsAria')">
             <div v-for="metric in heroMetrics" :key="metric.label" class="metric-item">
@@ -178,6 +182,10 @@
           <Icon icon="solar:magic-stick-3-bold-duotone" width="20" height="20" aria-hidden="true" />
           {{ t('creators.joinFree') }}
         </button>
+        <button class="btn-secondary promise-secondary" type="button" @click="handleOpenAcademy">
+          <Icon icon="solar:notebook-bookmark-linear" width="20" height="20" aria-hidden="true" />
+          {{ t('creators.openAcademy') }}
+        </button>
       </section>
     </main>
   </div>
@@ -187,9 +195,11 @@
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useI18n } from '@/i18n'
+import { getStudioUrl } from '@/utils/studio'
 
 const studioUrl = import.meta.env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io/'
 const { t } = useI18n()
+const academyUrl = new URL('/academy', getStudioUrl()).toString()
 
 const heroMetrics = computed(() => [
   { value: t('creators.metricFreeValue'), label: t('creators.metricFreeLabel') },
@@ -313,6 +323,10 @@ const handleViewPath = () => {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+}
+
+const handleOpenAcademy = () => {
+  window.open(academyUrl, '_blank', 'noopener')
 }
 
 const handleNextStage = () => {
@@ -943,6 +957,17 @@ const goStage = (stage: number) => {
   box-shadow: none;
 }
 
+.promise-band .promise-secondary {
+  flex: 0 0 auto;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.promise-band .promise-secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 @media (max-width: 980px) {
   .hero-inner,
   .stage-panel,
@@ -1105,7 +1130,8 @@ const goStage = (stage: number) => {
     flex-direction: column;
   }
 
-  .promise-band .btn-primary {
+  .promise-band .btn-primary,
+  .promise-band .promise-secondary {
     width: 100%;
   }
 }
