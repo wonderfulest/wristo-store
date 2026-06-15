@@ -12,6 +12,10 @@
           <Icon icon="mdi:account-outline" width="18" aria-hidden="true" />
           Profile
         </button>
+        <button class="billing-link" type="button" @click="openPaddleCustomerPortal">
+          <Icon icon="solar:bill-list-line-duotone" width="18" aria-hidden="true" />
+          Billing & invoices
+        </button>
       </div>
 
       <div v-if="isLoading" class="loading-panel" aria-live="polite" aria-label="Loading purchase records">
@@ -180,6 +184,7 @@ import { ElMessage } from 'element-plus'
 import { toGarminStoreBridge } from '@/utils/garminStore'
 import { getProductImageUrl } from '@/utils/productImage'
 import { useUserStore } from '@/store/user'
+import { openPaddleCustomerPortal } from '@/utils/paddlePortal'
 
 const router = useRouter()
 const route = useRoute()
@@ -389,6 +394,7 @@ onMounted(async () => {
 }
 
 .profile-link,
+.billing-link,
 .empty-action {
   min-height: 44px;
   display: inline-flex;
@@ -404,7 +410,8 @@ onMounted(async () => {
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
-.profile-link {
+.profile-link,
+.billing-link {
   flex-shrink: 0;
   padding: 0 16px;
   color: var(--color-brand-strong);
@@ -412,9 +419,19 @@ onMounted(async () => {
   box-shadow: var(--shadow-sm);
 }
 
-.profile-link:hover {
+.billing-link {
+  color: #fff;
+  background: var(--color-brand);
+}
+
+.profile-link:hover,
+.billing-link:hover {
   border-color: rgba(15, 107, 104, 0.36);
   background: var(--color-brand-soft);
+}
+
+.billing-link:hover {
+  color: var(--color-brand-strong);
 }
 
 .records-content,
@@ -815,7 +832,8 @@ onMounted(async () => {
     gap: 16px;
   }
 
-  .profile-link {
+  .profile-link,
+  .billing-link {
     width: 100%;
   }
 

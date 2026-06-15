@@ -14,10 +14,19 @@
             <Icon icon="solar:plain-2-bold-duotone" width="21" height="21" aria-hidden="true" />
             {{ t('contact.ctaLabel') }}
           </a>
+          <a class="contact-billing" :href="paddleCustomerPortalUrl" target="_blank" rel="noopener noreferrer">
+            <Icon icon="solar:bill-list-line-duotone" width="20" height="20" aria-hidden="true" />
+            {{ t('contact.billingCta') }}
+          </a>
           <a class="contact-secondary" :href="plainMailHref">
             <Icon icon="solar:letter-linear" width="20" height="20" aria-hidden="true" />
             support@wristo.io
           </a>
+        </div>
+
+        <div class="order-support-note">
+          <Icon icon="solar:receipt-list-line-duotone" width="22" height="22" aria-hidden="true" />
+          <p>{{ t('contact.orderLookupDesc') }}</p>
         </div>
       </div>
 
@@ -84,9 +93,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from '@/i18n'
+import { getPaddleCustomerPortalUrl } from '@/utils/paddlePortal'
 
 const { t } = useI18n()
 const supportEmail = 'support@wristo.io'
+const paddleCustomerPortalUrl = getPaddleCustomerPortalUrl()
 
 const plainMailHref = computed(() => `mailto:${supportEmail}`)
 const mailtoHref = computed(() => {
@@ -192,6 +203,7 @@ const mailtoHref = computed(() => {
 }
 
 .contact-primary,
+.contact-billing,
 .contact-secondary {
   min-height: 48px;
   display: inline-flex;
@@ -211,9 +223,22 @@ const mailtoHref = computed(() => {
   box-shadow: 0 14px 28px rgba(15, 107, 104, 0.22);
 }
 
+.contact-billing {
+  border: 1px solid rgba(15, 107, 104, 0.18);
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+}
+
 .contact-primary:hover {
   color: #fff;
   background: var(--color-brand-strong);
+  transform: translateY(-2px);
+}
+
+.contact-billing:hover {
+  border-color: rgba(15, 107, 104, 0.36);
+  background: #fff;
+  color: var(--color-brand-strong);
   transform: translateY(-2px);
 }
 
@@ -229,9 +254,32 @@ const mailtoHref = computed(() => {
 }
 
 .contact-primary:focus-visible,
+.contact-billing:focus-visible,
 .contact-secondary:focus-visible {
   outline: 3px solid rgba(15, 107, 104, 0.24);
   outline-offset: 4px;
+}
+
+.order-support-note {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 16px 18px;
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  border-radius: var(--radius-sm);
+  background: #f8fbfa;
+  color: #475467;
+  line-height: 1.65;
+}
+
+.order-support-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: var(--color-brand);
+}
+
+.order-support-note p {
+  margin: 0;
 }
 
 .contact-mail-preview {
@@ -433,6 +481,7 @@ const mailtoHref = computed(() => {
 
   .contact-actions,
   .contact-primary,
+  .contact-billing,
   .contact-secondary {
     width: 100%;
   }

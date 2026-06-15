@@ -42,7 +42,7 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
-        <router-link :to="localizedPath('/studio/membership')" class="nav-link">{{ t('nav.studio') }}</router-link>
+        <button type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
         <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
         <LanguageSwitcher />
@@ -83,6 +83,10 @@
                 <el-dropdown-item command="purchase-records">
                   <el-icon><Document /></el-icon>
                   <span>{{ t('nav.purchases') }}</span>
+                </el-dropdown-item>
+                <el-dropdown-item command="billing">
+                  <Icon icon="solar:bill-list-line-duotone" width="16" height="16" aria-hidden="true" />
+                  <span>{{ t('nav.billing') }}</span>
                 </el-dropdown-item>
                 <el-dropdown-item command="cart">
                   <el-icon><ShoppingCart /></el-icon>
@@ -151,10 +155,10 @@
             <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.code') }}</span>
           </router-link>
-          <router-link :to="localizedPath('/studio/membership')" class="mobile-nav-link" @click="closeMobileMenu">
+          <button type="button" class="mobile-nav-link mobile-nav-button" @click="openStudio(); closeMobileMenu()">
             <Icon icon="material-symbols:workspace-premium-outline" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.studio') }}</span>
-          </router-link>
+          </button>
           <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.faq') }}</span>
@@ -212,6 +216,10 @@
                 <el-icon><Document /></el-icon>
                 <span>{{ t('nav.purchases') }}</span>
               </button>
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('billing'); closeMobileMenu()">
+                <Icon icon="solar:bill-list-line-duotone" width="18" height="18" aria-hidden="true" />
+                <span>{{ t('nav.billing') }}</span>
+              </button>
               <button class="mobile-action-btn" @click="handleUserMenuCommand('cart'); closeMobileMenu()">
                 <el-icon><ShoppingCart /></el-icon>
                 <span>{{ t('nav.cart') }}</span>
@@ -256,6 +264,7 @@ import { addLocaleToPath, useLocaleStore } from '@/store/locale';
 import { useI18n } from '@/i18n';
 import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
 import { openStudio } from '@/utils/studio';
+import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -316,6 +325,9 @@ const handleUserMenuCommand = (command: string) => {
     case 'purchase-records':
       router.push(localizedPath('/user/purchase-records'));
       break;
+    case 'billing':
+      openPaddleCustomerPortal();
+      break;
     case 'orders':
       router.push(localizedPath('/user/orders'));
       break;
@@ -323,7 +335,7 @@ const handleUserMenuCommand = (command: string) => {
       router.push(localizedPath('/user/cart'));
       break;
     case 'membership':
-      router.push(localizedPath('/studio/membership'));
+      openStudio();
       break;
     case 'studio':
       openStudio();
