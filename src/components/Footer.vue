@@ -3,7 +3,10 @@
     class="footer"
     :class="{ expanded: isExpanded, visible: isVisible }"
     tabindex="0"
-    @click="toggle"
+    :aria-expanded="isExpanded"
+    @click="handleFooterClick"
+    @keydown.enter.prevent="toggle"
+    @keydown.space.prevent="toggle"
     @blur="collapse"
   >
     <!-- 桌面端布局 -->
@@ -22,38 +25,16 @@
     
     <!-- 移动端布局 -->
     <div v-if="!isExpanded && isMobile" class="footer-main mobile-layout">
-      <div class="mobile-footer-header">
+      <button
+        class="mobile-footer-header"
+        type="button"
+        :aria-expanded="isExpanded"
+        :aria-label="t('footer.viewDetails')"
+        @click.stop="toggle"
+      >
         <div class="drag-indicator"></div>
-        <span class="footer-title">{{ t('footer.quickLinks') }}</span>
-      </div>
-      
-      <div class="mobile-footer-content">
-        <div class="footer-actions">
-          <a :href="localizedPath('/faq')" class="footer-action" :aria-label="t('footer.help')">
-            <div class="action-icon">?</div>
-            <span>{{ t('footer.help') }}</span>
-          </a>
-          
-          <a :href="localizedPath('/terms-and-conditions')" class="footer-action" :aria-label="t('footer.terms')">
-            <div class="action-icon">T</div>
-            <span>{{ t('footer.terms') }}</span>
-          </a>
-          
-          <a href="mailto:support@wristo.io" class="footer-action" :aria-label="t('footer.support')">
-            <div class="action-icon">@</div>
-            <span>{{ t('footer.support') }}</span>
-          </a>
-          
-          <button @click="scrollToTop" class="footer-action" type="button" :aria-label="t('footer.top')">
-            <div class="action-icon">↑</div>
-            <span>{{ t('footer.top') }}</span>
-          </button>
-        </div>
-        
-        <div class="footer-copyright">
-          © 2025 WuKong OÜ
-        </div>
-      </div>
+        <span class="footer-title">© 2025 WuKong OÜ</span>
+      </button>
     </div>
     <transition name="footer-expand">
       <div v-if="isExpanded" class="footer-detail">
@@ -99,18 +80,6 @@ const { t } = useI18n()
 let ticking = false
 
 const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
-
-// 滚动到顶部功能
-const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  })
-  // 滚动后隐藏footer
-  setTimeout(() => {
-    isVisible.value = false
-  }, 500)
-}
 
 // 
 function checkMobile() {
@@ -158,6 +127,13 @@ function handleResize() {
 
 function toggle() {
   isExpanded.value = !isExpanded.value
+}
+
+function handleFooterClick(event: MouseEvent) {
+  if (isMobile.value && event.target instanceof Element && event.target.closest('a, button')) {
+    return
+  }
+  toggle()
 }
 
 function collapse() {
@@ -236,14 +212,23 @@ onUnmounted(() => {
   .mobile-layout {
     width: 100%;
     padding: 0;
+    display: block;
   }
   
   .mobile-footer-header {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 12px 0 8px 0;
-    border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+    width: 100%;
+    padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+    border-bottom: 0;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
   }
   
   .drag-indicator {
@@ -260,83 +245,8 @@ onUnmounted(() => {
     color: #374151;
     letter-spacing: 0;
   }
-  
-  .mobile-footer-content {
-    padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
-  }
-  
-  .footer-actions {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  
-  .footer-action {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    color: #374151;
-    padding: 12px 8px;
-    min-height: 64px;
-    border-radius: var(--radius-sm);
-    background: #fff;
-    border: 1px solid var(--color-line);
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  
-  .footer-action:hover,
-  .footer-action:active {
-    background: var(--color-brand-soft);
-    border-color: rgba(15, 107, 104, 0.2);
-    transform: translateY(-1px);
-  }
 
-  .footer-action:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.16);
-  }
-  
-  .action-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
-    display: grid;
-    place-items: center;
-    font-size: 0.9rem;
-    font-weight: 800;
-    color: var(--color-brand-strong);
-    background: #eef9f6;
-    margin-bottom: 4px;
-  }
-  
-  .footer-action span {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: #6B7280;
-  }
-  
-  .footer-action:hover span {
-    color: var(--color-brand-strong);
-  }
-  
-  .footer-copyright {
-    text-align: center;
-    font-size: 0.8rem;
-    color: #9CA3AF;
-    padding-top: 12px;
-    border-top: 1px solid rgba(17, 24, 39, 0.08);
-  }
-  
-  /* */
   .desktop-layout {
-    display: block;
-  }
-  
-  .mobile-layout {
     display: none;
   }
 }

@@ -1,6 +1,5 @@
 <template>
     <div class="checkout">
-        <h2 class="title">Secure Checkout</h2>
         <div class="checkout-main">
             <div :class="['checkout-left', { 'checkout-left-bundle': isBundle }]">
                 <template v-if="isBundle">
@@ -42,71 +41,20 @@
                 </template>
             </div>
             <div class="checkout-right">
-                <div class="checkout-panel-header">
-                    <p class="checkout-eyebrow">Payment details</p>
-                    <h3>Complete your order</h3>
-                    <p>Your Garmin watch face will be delivered to this email after payment.</p>
-                </div>
-                <label class="input-label">Email for receipt</label>
-                <input
-                    v-model="email"
-                    :class="['input', { 'email-input-highlight': shouldHighlightEmail }]"
-                    placeholder="you@example.com"
-                    :disabled="isEmailLocked"
-                    type="email"
-                    autocomplete="email"
-                    aria-describedby="checkout-email-help checkout-email-error"
-                />
-                <div v-if="isEmailLocked" class="email-locked-hint">
-                    Your email is locked to your current account. To use a different email, please sign out and sign in (or create a new account) with the new email, then place the order again.
-                </div>
-                <div v-else id="checkout-email-help" class="input-desc">Please use a real email address. It will be used to receive your order and activation benefits - and it can also be used to sign in later. Sign in (or create an account) to manage your purchases.</div>
                 <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
-                <div class="payment-method-card">
-                    <div class="payment-method-copy">
-                        <div class="pay-method-title">Payment Method</div>
-                        <div class="pay-method-note">Secure payment powered by Paddle</div>
+                <div class="paddle-inline-shell" aria-live="polite">
+                    <div v-if="loading" class="inline-loading">
+                        <span class="loading-spinner"></span>
                     </div>
-                    <el-icon class="payment-method-icon" aria-hidden="true"><CreditCard /></el-icon>
+                    <div class="paddle-inline-checkout"></div>
                 </div>
-                <button 
-                    type="button"
-                    class="purchase-btn" 
-                    @click="() => handlePayment()"
-                    :disabled="loading"
-                    :aria-busy="loading"
-                >
-                    <span v-if="loading" class="loading-spinner"></span>
-                    <el-icon v-else class="purchase-btn-lock" aria-hidden="true"><Lock /></el-icon>
-                    <span class="purchase-btn-copy">
-                        <span class="purchase-btn-title">{{ checkoutButtonText }}</span>
-                        <span class="purchase-btn-subtitle">{{ loading ? 'Opening Paddle checkout' : 'Encrypted checkout' }}</span>
-                    </span>
-                    <el-icon v-if="!loading" class="purchase-btn-arrow" aria-hidden="true"><ArrowRight /></el-icon>
-                </button>
-                <div class="trust-list" aria-label="Checkout protections">
-                    <span>
-                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-                        Secure payment
-                    </span>
-                    <span>
-                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-                        Instant delivery
-                    </span>
-                    <span>
-                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-                        Email receipt
-                    </span>
-                </div>
-                
-                <div id="result-message" style="margin-top:16px;color:#e63946;"></div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, onMounted, computed } from 'vue'
+import { ref, onBeforeMount, onBeforeUnmount, onMounted, computed, nextTick } from 'vue'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
@@ -118,7 +66,6 @@ import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 import { checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
-import { ArrowRight, CircleCheckFilled, CreditCard, Lock } from '@element-plus/icons-vue'
 import { getProductImageUrl } from '@/utils/productImage'
 import { initializePaddle } from '@/utils/paddle'
 
@@ -139,12 +86,9 @@ const loading = ref(false)
 const emailError = ref('')
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
-
-const isEmailLocked = computed(() => !!userStore.userInfo?.email)
-
-const shouldHighlightEmail = computed(() => {
-    return !isEmailLocked.value && !email.value
-})
+const paddleFrameTarget = 'paddle-inline-checkout'
+let paddleScriptPromise: Promise<void> | null = null
+let checkoutOpening = false
 
 const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
@@ -238,10 +182,6 @@ const isBundleTokenFlow = computed(() => {
   return isBundle.value && !request.value?.accounttoken
 })
 
-const checkoutButtonText = computed(() => {
-  return loading.value ? 'Processing...' : 'Continue to secure payment'
-})
-
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
@@ -262,16 +202,35 @@ onMounted(() => {
     if (!email.value && userStore.userInfo?.email) {
         email.value = userStore.userInfo.email
     }
-    loadPaddle()
+    nextTick(() => {
+        handlePayment()
+    })
+})
+
+onBeforeUnmount(() => {
+    if (typeof window !== "undefined" && window.Paddle?.Checkout?.close) {
+        window.Paddle.Checkout.close()
+    }
 })
 
 function loadPaddle() {
-    if (typeof window !== "undefined" && !window.Paddle) {
+    if (typeof window === "undefined") {
+        return Promise.reject(new Error('Window is not available'))
+    }
+    if (window.Paddle) {
+        return Promise.resolve()
+    }
+    if (paddleScriptPromise) {
+        return paddleScriptPromise
+    }
+
+    paddleScriptPromise = new Promise((resolve, reject) => {
         const script = document.createElement("script")
         script.src = "https://cdn.paddle.com/paddle/v2/paddle.js"
         script.async = true
         script.onload = () => {
-            initializePaddle(
+            try {
+                initializePaddle(
                 window.Paddle,
                 async function(data: any) {
                     console.log('Paddle event:', data)
@@ -329,8 +288,10 @@ function loadPaddle() {
                         ElMessageBox.alert('Payment failed. Please try again.', 'Error')
                     }
                     if (data.name === 'checkout.updated') {
+                        loading.value = false
                     }
                     if (data.name === 'checkout.items.updated') {
+                        loading.value = false
                         const items = data.data.items || [];
                         const hasInvalidQuantity = items.some((item: any) => item.quantity > maxQuantity.value);
 
@@ -350,22 +311,27 @@ function loadPaddle() {
                         }
                     }
                 }
-            )
+                )
+                resolve()
+            } catch (error) {
+                reject(error)
+            }
         }
+        script.onerror = () => reject(new Error('Paddle failed to load'))
         document.body.appendChild(script)
-    } else {
-        console.log('Paddle already loaded')
-    }
+    })
+
+    return paddleScriptPromise
 }
 
 const handlePayment = async (isRetry = false) => {
-    if (isBundleTokenFlow.value) {
+    if (checkoutOpening) return
+    checkoutOpening = true
+
+    try {
+    if (isBundleTokenFlow.value && email.value) {
         const bundleId = (product.value as Bundle).bundleId
 
-        if (!email.value) {
-            emailError.value = 'We need your email to send receipt.'
-            return
-        }
         if (!validateEmail(email.value)) {
             emailError.value = 'Please enter a valid email address'
             return
@@ -389,7 +355,7 @@ const handlePayment = async (isRetry = false) => {
         accountToken: request.value?.accounttoken as string,
         isSubscription: false,
     }
-    if (!isBundleTokenFlow.value) {
+    if (!isBundleTokenFlow.value && email.value) {
         const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
         console.log('checkPurchaseResponse', checkPurchaseResponse)
         if (checkPurchaseResponse.isPurchase) {
@@ -406,11 +372,7 @@ const handlePayment = async (isRetry = false) => {
         }
     }
     if (!isRetry) {
-        if (!email.value) {
-            emailError.value = 'We need your email to send receipt.'
-            return
-        }
-        if (!validateEmail(email.value)) {
+        if (email.value && !validateEmail(email.value)) {
             emailError.value = 'Please enter a valid email address'
             return
         }
@@ -426,11 +388,16 @@ const handlePayment = async (isRetry = false) => {
         emailError.value = ''
         loading.value = true
     }
+
+    await loadPaddle()
     
     if (typeof window !== "undefined" && window.Paddle) {
-        window.Paddle.Checkout.open({
+        const checkoutOptions: Record<string, any> = {
             settings: {
-                displayMode: 'overlay',
+                displayMode: 'inline',
+                frameTarget: paddleFrameTarget,
+                frameInitialHeight: 620,
+                frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
             },
             items: [
                 {
@@ -438,7 +405,6 @@ const handlePayment = async (isRetry = false) => {
                     quantity: userSelectedQuantity.value,
                 },
             ],
-            customer: { email: email.value },
             discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
             customData: {
                 isSubscription: false,
@@ -453,10 +419,21 @@ const handlePayment = async (isRetry = false) => {
                 email: email.value,
                 discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
             },
-        })
+        }
+        if (email.value) {
+            checkoutOptions.customer = { email: email.value }
+        }
+        window.Paddle.Checkout.open(checkoutOptions)
     } else {
         ElMessageBox.alert('Paddle failed to load, please refresh the page and try again.', 'Error')
         loading.value = false
+    }
+    } catch (error) {
+        console.error('Paddle checkout failed:', error)
+        ElMessageBox.alert('Paddle failed to load, please refresh the page and try again.', 'Error')
+        loading.value = false
+    } finally {
+        checkoutOpening = false
     }
 }
 </script>
@@ -775,6 +752,40 @@ const handlePayment = async (isRetry = false) => {
     font-size: 0.78rem;
     font-weight: 700;
     line-height: 1.2;
+}
+
+.paddle-inline-shell {
+    margin-top: 18px;
+    width: 100%;
+    min-width: 0;
+}
+
+.paddle-inline-checkout {
+    width: 100%;
+    min-height: 0;
+}
+
+.paddle-inline-checkout:empty {
+    display: none;
+}
+
+.inline-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 160px;
+    border: 1px dashed rgba(15, 107, 104, 0.22);
+    border-radius: 16px;
+    background: rgba(15, 107, 104, 0.05);
+    color: #475467;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.inline-loading .loading-spinner {
+    border-color: rgba(15, 107, 104, 0.28);
+    border-top-color: transparent;
 }
 
 .trust-list {
