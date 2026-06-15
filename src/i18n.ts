@@ -150,6 +150,7 @@ const en = {
   'membership.feature.oneApp': 'Create 1 app',
   'membership.feature.basicEditor': 'Basic Studio editor access',
   'membership.feature.unlimitedApps': 'Create more Studio apps',
+  'membership.feature.upTo10Apps': 'Create up to 10 apps',
   'membership.feature.noWristoAds': 'No Wristo ads',
   'membership.feature.thirtyDayAccess': '30-day premium access',
   'membership.feature.communitySupport': 'Community updates and starter workflow',

@@ -270,7 +270,7 @@ const fallbackPlans: PlanCard[] = [
     priceSuffixKey: 'membership.priceSuffix.oneTime',
     termKey: 'membership.term.premium_30d',
     noteKey: 'membership.oneTimeNote',
-    featureKeys: ['membership.feature.thirtyDayAccess', 'membership.feature.noWristoAds', 'membership.feature.experimentWindow'],
+    featureKeys: ['membership.feature.thirtyDayAccess', 'membership.feature.upTo10Apps', 'membership.feature.noWristoAds', 'membership.feature.experimentWindow'],
     paddlePriceId: '',
   },
 ]
