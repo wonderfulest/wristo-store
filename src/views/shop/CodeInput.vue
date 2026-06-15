@@ -175,10 +175,10 @@ const handleContinue = async () => {
       store.setDiscountCode(coupon.value.trim())
       router.push({
         path: localizedPath('/purchase-options'),
-        query: { discountCode: coupon.value.trim() }
+        query: { source: 'code', discountCode: coupon.value.trim() }
       })
     } else {
-      router.push(localizedPath('/purchase-options'))
+      router.push({ path: localizedPath('/purchase-options'), query: { source: 'code' } })
     }
   } catch (e: unknown) {
     if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof (e as any).msg === 'string') {

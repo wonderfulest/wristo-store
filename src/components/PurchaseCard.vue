@@ -18,20 +18,20 @@
     </div>
     <!-- 名字和价格 -->
     <div class="card-header">
-      <div class="title-group">
+      <div class="card-header-row card-header-meta">
         <span class="card-kicker">{{ type === 'bundle' ? t('purchaseCard.bestValueBundle') : t('purchaseCard.singleItem') }}</span>
-        <h3 class="card-title">{{ displayTitle }}</h3>
+        <span
+          v-if="originalPrice > currentPrice"
+          :class="['original-price', 'original-price-float', { 'original-float-animate': animateDiscount }]"
+        >
+          {{ currencySymbol }}{{ originalPrice.toFixed(2) }}
+        </span>
       </div>
-      <div class="price-info">
-        <div v-if="originalPrice > currentPrice" class="price-container">
-          <div class="price-group">
-            <span :class="['original-price', 'original-price-float', { 'original-float-animate': animateDiscount }]">{{ currencySymbol }}{{ originalPrice.toFixed(2) }}</span>
-            <span :class="['price', { 'discount-animate': animateDiscount, 'discounted-price': originalPrice > currentPrice }]">{{ currencySymbol }}{{ currentPrice.toFixed(2) }}</span>
-          </div>
-        </div>
-        <div v-else class="price-container">
-          <span class="price">{{ currencySymbol }}{{ currentPrice.toFixed(2) }}</span>
-        </div>
+      <div class="card-header-row card-header-title">
+        <h3 class="card-title">{{ displayTitle }}</h3>
+        <span :class="['price', { 'discount-animate': animateDiscount, 'discounted-price': originalPrice > currentPrice }]">
+          {{ currencySymbol }}{{ currentPrice.toFixed(2) }}
+        </span>
       </div>
     </div>  
     <div class="value-strip">
@@ -56,17 +56,12 @@
           @mouseleave="resumeAutoScroll"
           @focusin="pauseAutoScroll"
           @focusout="resumeAutoScroll"
+          @scroll="handleBundleScroll"
         >
-          <div v-for="item in bundleItems" :key="item.id" class="bundle-image-item">
+          <div v-for="item in visibleBundleItems" :key="item.id" class="bundle-image-item">
             <img :src="item.imageUrl" :alt="item.name" />
             <!-- <div class="item-name">{{ item.name }}</div> -->
           </div>
-        </div>
-        <div class="scroll-indicator" v-if="!isMobile">
-          <span class="scroll-text">{{ t('purchaseCard.scrollToView') }}</span>
-        </div>
-        <div class="scroll-indicator" v-else>
-          <span class="scroll-text">{{ t('purchaseCard.swipeToView') }}</span>
         </div>
       </div>
     </div>
@@ -105,7 +100,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from '@/i18n'
 
 const { t } = useI18n()
@@ -148,6 +143,8 @@ interface Props {
   currencyCode?: string
   animateDiscount?: boolean
   creatorName?: string
+  hasMoreBundleItems?: boolean
+  bundleItemsLoading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -155,8 +152,12 @@ const props = withDefaults(defineProps<Props>(), {
   bundleItems: () => [],
   showButton: true,
   currencyCode: 'USD',
-  animateDiscount: false
+  animateDiscount: false,
+  hasMoreBundleItems: false,
+  bundleItemsLoading: false
 })
+
+const BUNDLE_ITEMS_MAX_VISIBLE = 500
 
 const cappedDiscount = computed(() => {
   const n = Number(props.discount)
@@ -169,6 +170,7 @@ const currencySymbol = computed(() => getCurrencySymbol(props.currencyCode))
 const emit = defineEmits<{
   select: []
   buy: []
+  loadMoreBundleItems: []
 }>()
 
 const stripLeadingDisplayMarks = (value: string) => {
@@ -194,6 +196,11 @@ const descriptionLines = computed(() => {
     .filter(Boolean)
 })
 
+const visibleBundleItems = computed(() => {
+  if (props.type !== 'bundle') return []
+  return props.bundleItems.slice(0, BUNDLE_ITEMS_MAX_VISIBLE)
+})
+
 const formatCountPlus = (value?: number) => {
   if (value === undefined || value === null) return ''
 
@@ -214,6 +221,21 @@ const handleSelect = () => {
 const handleBuy = (event: Event) => {
   event.stopPropagation()
   emit('buy')
+}
+
+const loadNextBundleItemsBatch = () => {
+  if (!props.hasMoreBundleItems || props.bundleItemsLoading) return
+  emit('loadMoreBundleItems')
+}
+
+const handleBundleScroll = () => {
+  const container = scrollContainer.value
+  if (!container || props.type !== 'bundle') return
+
+  const distanceToEnd = container.scrollWidth - container.clientWidth - container.scrollLeft
+  if (distanceToEnd <= 24) {
+    loadNextBundleItemsBatch()
+  }
 }
 
 // 自动滚动功能 - 移动端优化
@@ -284,6 +306,16 @@ const resumeAutoScroll = () => {
   autoScrollPausedByHover = false
   startAutoScroll()
 }
+
+watch(
+  () => [props.type, props.title],
+  () => {
+    scrollDirection = 1
+    if (scrollContainer.value) {
+      scrollContainer.value.scrollLeft = 0
+    }
+  }
+)
 
 // 移动端触摸事件处理
 const handleTouchStart = () => {
@@ -471,23 +503,34 @@ onUnmounted(() => {
 /* 卡片头部 */
 .card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 30px;
   margin-bottom: 16px;
   padding-bottom: 18px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }
 
-.title-group {
+.card-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
   min-width: 0;
-  text-align: left;
+  width: 100%;
+}
+
+.card-header-meta {
+  min-height: 1.05rem;
+}
+
+.card-header-title {
+  align-items: flex-end;
 }
 
 .card-kicker {
-  display: block;
-  margin-bottom: 8px;
+  display: inline-flex;
+  min-width: 0;
   color: #7c5f12;
   font-size: 0.76rem;
   font-weight: 800;
@@ -501,23 +544,7 @@ onUnmounted(() => {
   font-weight: 800;
   color: #171717;
   margin: 0;
-}
-
-.price-info {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.price-container {
-  display: flex;
-  align-items: baseline;
-}
-
-.price-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  position: relative;
+  min-width: 0;
 }
 
 .price {
@@ -525,27 +552,25 @@ onUnmounted(() => {
   font-weight: 900;
   color: #171717;
   line-height: 1;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .original-price {
   font-size: 1.2rem;
   color: rgba(15, 23, 42, 0.45);
-  order: -1;
 }
 
 .original-price-float {
-  position: absolute;
-  right: 0;
-  top: -1.05rem;
   font-size: 1.05rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
   text-decoration: line-through;
   text-decoration-thickness: 2px;
   text-decoration-color: rgba(15, 23, 42, 0.35);
   opacity: 0.72;
   pointer-events: none;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .original-float-animate {
@@ -756,17 +781,6 @@ onUnmounted(() => {
   line-height: 1.2;
 }
 
-.scroll-indicator {
-  margin-top: 10px;
-  text-align: center;
-}
-
-.scroll-text {
-  font-size: 0.82rem;
-  color: #78716c;
-  font-weight: 600;
-}
-
 /* 卡片信息 */
 .card-info {
   flex: 1;
@@ -914,7 +928,6 @@ onUnmounted(() => {
   }
   
   .card-header {
-    flex-direction: column;
     gap: 14px;
     text-align: left;
     margin-top: 24px;
@@ -931,10 +944,6 @@ onUnmounted(() => {
   }
 
   .original-price-float {
-    position: static;
-    left: 0;
-    right: auto;
-    margin-bottom: 4px;
     transform: none;
   }
   

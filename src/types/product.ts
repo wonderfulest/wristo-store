@@ -150,6 +150,7 @@ export interface Bundle {
   paddlePriceId: string
   bundleName: string
   bundleDesc: string
+  bundleType?: 'account' | 'custom' | 'global' | string
   price: number
   isActive: number
   createdAt: string

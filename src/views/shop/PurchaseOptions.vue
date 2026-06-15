@@ -32,8 +32,11 @@
         :currency-code="getCurrencyCodeForBundle(bundleItem)"
         :animate-discount="shouldAnimateDiscount(getPriceIdForBundle(bundleItem))"
         :button-text="buyBundleText(bundleItem)"
+        :has-more-bundle-items="hasMoreBundleItems(bundleItem)"
+        :bundle-items-loading="loadingBundleProductIds.has(bundleItem.bundleId)"
         @select="() => selectBundle(bundleItem)"
         @buy="() => handleBuyBundle(bundleItem)"
+        @load-more-bundle-items="() => loadMoreBundleItems(bundleItem)"
         :app-count="bundleItem.appCount"
         :app-total-price="bundleItem.appTotalPrice"
       />
@@ -81,7 +84,7 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
-import { checkDiscount, getBundlesForPurchase } from '@/api/purchase'
+import { checkDiscount, getBundleProductsForPurchase, getBundlesForPurchase } from '@/api/purchase'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 import { getProductDetail } from '@/api/product'
@@ -96,11 +99,31 @@ const selectedPlan = ref<SubscriptionPlan | null>(null)
 
 // 直接使用 PurchaseData 类型
 const purchaseData = computed<PurchaseData | null>(() => store.data as PurchaseData || null)
+const isCodePurchaseEntry = computed(() => {
+  const source = route.query?.source
+  return (Array.isArray(source) ? source[0] : source) === 'code'
+})
 
 const bundlesFromApi = ref<Bundle[]>([])
 const productDetail = ref<ProductVO | null>(null)
+const loadingBundleProductIds = ref<Set<number>>(new Set())
+
+const normalizedBundleType = (bundleItem?: Bundle | null) => {
+  return String(bundleItem?.bundleType || '').trim().toLowerCase()
+}
+
+const isWristoPremiumBundle = (bundleItem: Bundle) => {
+  return String(bundleItem.bundleName || '').toLowerCase().includes('wristo premium')
+}
+
+const isGlobalPremiumBundle = (bundleItem: Bundle) => {
+  const type = normalizedBundleType(bundleItem)
+  return isWristoPremiumBundle(bundleItem) && (!type || type === 'global')
+}
 
 const product = computed<ProductVO | null>(() => {
+  if (!isCodePurchaseEntry.value) return null
+
   const baseProduct = purchaseData.value?.product
   if (!baseProduct) return null
 
@@ -114,11 +137,12 @@ const product = computed<ProductVO | null>(() => {
   return baseProduct as ProductVO
 })
 const bundles = computed(() => {
-  const bundlesList = (purchaseData.value?.bundles && purchaseData.value.bundles.length > 0)
+  const bundlesList = (isCodePurchaseEntry.value && purchaseData.value?.bundles && purchaseData.value.bundles.length > 0)
     ? purchaseData.value.bundles
     : bundlesFromApi.value
+  const visibleBundles = bundlesList.filter(isGlobalPremiumBundle)
   // 按实际金额从大到小排序
-  return bundlesList.sort((a, b) => {
+  return [...visibleBundles].sort((a, b) => {
     const priceA = parseFloat(String(a.price))
     const priceB = parseFloat(String(b.price))
     return priceB - priceA
@@ -240,10 +264,6 @@ const formatPrice = (amount: number, currencyCode?: string) => {
   const symbol = getCurrencySymbol(currencyCode)
   const safe = Number.isFinite(Number(amount)) ? Number(amount) : 0
   return `${symbol}${safe.toFixed(2)}`
-}
-
-const isWristoPremiumBundle = (bundleItem: Bundle) => {
-  return String(bundleItem.bundleName || '').toLowerCase().includes('wristo premium')
 }
 
 const localizedBundleTitle = (bundleItem: Bundle) => {
@@ -368,6 +388,38 @@ const getBundleItems = (bundleItem: Bundle) => {
     name: p.name,
     imageUrl: getProductImageUrl(p)
   }))
+}
+
+const hasMoreBundleItems = (bundleItem: Bundle) => {
+  const loadedCount = bundleItem.products?.length || 0
+  const totalCount = Math.min(Number(bundleItem.appCount || 0), 500)
+  return loadedCount < totalCount
+}
+
+const loadMoreBundleItems = async (bundleItem: Bundle) => {
+  const bundleId = Number(bundleItem.bundleId)
+  if (!bundleId || !hasMoreBundleItems(bundleItem) || loadingBundleProductIds.value.has(bundleId)) return
+
+  const loadingIds = new Set(loadingBundleProductIds.value)
+  loadingIds.add(bundleId)
+  loadingBundleProductIds.value = loadingIds
+
+  try {
+    const loadedCount = bundleItem.products?.length || 0
+    const products = await getBundleProductsForPurchase(bundleId, {
+      offset: loadedCount,
+      limit: 50
+    })
+    const existingAppIds = new Set((bundleItem.products || []).map((p) => String(p.appId)))
+    const newProducts = (products || []).filter((p) => !existingAppIds.has(String(p.appId)))
+    bundleItem.products = [...(bundleItem.products || []), ...newProducts].slice(0, 500)
+  } catch (error) {
+    console.warn('Failed to load more bundle products:', error)
+  } finally {
+    const loadingIds = new Set(loadingBundleProductIds.value)
+    loadingIds.delete(bundleId)
+    loadingBundleProductIds.value = loadingIds
+  }
 }
 
 // 判断产品是否被选中
@@ -520,25 +572,34 @@ const scrollToBundleSubscriptionCard = async () => {
   }, 80)
 }
 
-onMounted(() => {
+const loadBundlesForCurrentEntry = () => {
+  if (isCodePurchaseEntry.value && purchaseData.value) return
+
+  getBundlesForPurchase()
+    .then((list) => {
+      bundlesFromApi.value = list || []
+      runDiscountChecks()
+    })
+    .catch(() => {
+      bundlesFromApi.value = []
+    })
+}
+
+const syncEntryContext = () => {
   const shouldResetByPremiumPath = route.path === '/premium' || route.name === 'Premium'
-  if (shouldResetByPremiumPath) {
+  const shouldResetProductContext = shouldResetByPremiumPath || !isCodePurchaseEntry.value
+  if (shouldResetProductContext) {
     store.reset()
   }
-  if (!purchaseData.value) {
-    getBundlesForPurchase()
-      .then((list) => {
-        bundlesFromApi.value = list || []
-        runDiscountChecks()
-      })
-      .catch(() => {
-        bundlesFromApi.value = []
-      })
-  }
 
+  loadBundlesForCurrentEntry()
   runDiscountChecks()
   loadProductDetailForCreator()
   scrollToBundleSubscriptionCard()
+}
+
+onMounted(() => {
+  syncEntryContext()
 })
 
 watch(
@@ -552,6 +613,13 @@ watch(
   () => [route.hash, bundles.value.length],
   () => {
     scrollToBundleSubscriptionCard()
+  }
+)
+
+watch(
+  () => [route.name, route.query.source],
+  () => {
+    syncEntryContext()
   }
 )
 </script>

@@ -64,6 +64,13 @@ export const getBundlesForPurchase = (): Promise<Bundle[]> => {
   return instance.get('/public/purchase/bundles')
 }
 
+export const getBundleProductsForPurchase = (
+  bundleId: number,
+  params?: { offset?: number; limit?: number }
+): Promise<Bundle['products']> => {
+  return instance.get(`/public/purchase/bundles/${bundleId}/products`, { params })
+}
+
 export const checkBundleByEmail = (request: { email: string; bundleId: number }): Promise<PurchaseRecordVO | null> => {
   return instance.post('/public/purchase/bundle/check', request)
 }
