@@ -424,6 +424,7 @@ const handlePayment = async (isRetry = false) => {
             checkoutOptions.customer = { email: email.value }
         }
         window.Paddle.Checkout.open(checkoutOptions)
+        loading.value = false
     } else {
         ElMessageBox.alert('Paddle failed to load, please refresh the page and try again.', 'Error')
         loading.value = false
@@ -762,11 +763,7 @@ const handlePayment = async (isRetry = false) => {
 
 .paddle-inline-checkout {
     width: 100%;
-    min-height: 0;
-}
-
-.paddle-inline-checkout:empty {
-    display: none;
+    min-height: 620px;
 }
 
 .inline-loading {
