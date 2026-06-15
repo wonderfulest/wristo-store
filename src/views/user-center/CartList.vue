@@ -83,7 +83,11 @@
           <span>{{ checkoutButtonText }}</span>
         </button>
         <div v-if="inlineCheckoutVisible" class="inline-checkout-shell" aria-label="Paddle checkout" aria-live="polite">
-          <div :key="inlineCheckoutKey" :id="checkoutFrameId" class="paddle-inline-checkout"></div>
+          <div
+            :key="inlineCheckoutKey"
+            :id="checkoutFrameId"
+            :class="['paddle-inline-checkout', checkoutFrameTarget]"
+          ></div>
         </div>
       </aside>
     </div>
@@ -114,6 +118,7 @@ const inlineCheckoutVisible = ref(false)
 const inlineCheckoutKey = ref(0)
 const purchaseConflicts = ref<Record<number, CartPurchaseCheckItemVO>>({})
 const checkoutFrameId = 'cart-paddle-checkout'
+const checkoutFrameTarget = 'cart-paddle-checkout-frame'
 let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -247,7 +252,7 @@ const openInlineCheckout = async () => {
     await nextTick()
     await checkout(items, () => cartStore.clear(), {
       displayMode: 'inline',
-      frameTarget: checkoutFrameId,
+      frameTarget: checkoutFrameTarget,
       frameInitialHeight: 620,
       frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
     })

@@ -28,6 +28,24 @@ interface CartCheckoutOptions {
   frameStyle?: string
 }
 
+const buildCheckoutSettings = (options: CartCheckoutOptions) => {
+  if (options.displayMode !== 'inline') {
+    return { displayMode: 'overlay' }
+  }
+
+  if (!options.frameTarget || !document.getElementsByClassName(options.frameTarget)[0]) {
+    console.warn('Paddle inline checkout frame target was not found; falling back to overlay checkout.')
+    return { displayMode: 'overlay' }
+  }
+
+  return {
+    displayMode: 'inline',
+    frameTarget: options.frameTarget,
+    ...(options.frameInitialHeight ? { frameInitialHeight: options.frameInitialHeight } : {}),
+    ...(options.frameStyle ? { frameStyle: options.frameStyle } : {}),
+  }
+}
+
 const loadPaddle = () => {
   if (typeof window === 'undefined') return Promise.reject(new Error('Window is not available'))
   if (window.Paddle) return Promise.resolve()
@@ -118,12 +136,7 @@ export function useCartCheckout() {
       }
       window.Paddle.Checkout.open({
         transactionId: checkoutData.transactionId,
-        settings: {
-          displayMode: options.displayMode || 'overlay',
-          ...(options.frameTarget ? { frameTarget: options.frameTarget } : {}),
-          ...(options.frameInitialHeight ? { frameInitialHeight: options.frameInitialHeight } : {}),
-          ...(options.frameStyle ? { frameStyle: options.frameStyle } : {}),
-        },
+        settings: buildCheckoutSettings(options),
         customer: {
           email: userStore.userInfo?.email,
         },
