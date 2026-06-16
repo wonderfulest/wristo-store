@@ -31,7 +31,10 @@
                 <strong>{{ item.name }}</strong>
                 <span v-if="isPurchased(item.appId)" class="purchased-badge">{{ t('cart.purchased') }}</span>
               </span>
-              <span>${{ item.price.toFixed(2) }}</span>
+              <span class="item-meta-row">
+                <span class="item-price">${{ item.price.toFixed(2) }}</span>
+                <span class="quantity-fixed">{{ t('cart.quantityFixed') }}</span>
+              </span>
               <span v-if="purchaseWarning(item.appId)" class="purchase-warning">
                 {{ purchaseWarning(item.appId) }}
               </span>
@@ -39,7 +42,6 @@
           </button>
 
           <div class="item-actions">
-            <span class="quantity-fixed">{{ t('cart.quantityFixed') }}</span>
             <button type="button" class="remove-btn" :title="t('cart.remove')" @click="removeItem(item.appId)">
               <el-icon><Delete /></el-icon>
             </button>
@@ -522,7 +524,16 @@ h1 {
   min-width: 0;
 }
 
-.item-info > span:not(.item-title-row):not(.purchase-warning),
+.item-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--color-brand);
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.item-info > span:not(.item-title-row):not(.item-meta-row):not(.purchase-warning),
 .item-title-row strong {
   color: var(--color-brand);
   font-weight: 800;
@@ -558,11 +569,10 @@ h1 {
 }
 
 .quantity-fixed {
-  min-width: 58px;
   color: var(--color-muted);
   font-size: 0.9rem;
   font-weight: 700;
-  text-align: right;
+  white-space: nowrap;
 }
 
 .remove-btn {
