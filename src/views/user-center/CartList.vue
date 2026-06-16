@@ -86,6 +86,10 @@
             :placeholder="t('cart.emailPlaceholder')"
             :aria-invalid="Boolean(checkoutEmailError)"
           />
+          <p v-if="!userStore.token" class="cart-email-note">
+            {{ t('cart.guestEmailNote') }}
+            <button type="button" class="cart-email-login" @click="goSsoLogin">{{ t('cart.emailLoginLink') }}</button>
+          </p>
         </div>
         <p v-if="checkoutEmailError" class="cart-email-error" role="alert">{{ checkoutEmailError }}</p>
         <button type="button" class="checkout-btn" :disabled="loading || checking || refreshingCart" @click="handleCheckout">
@@ -117,6 +121,7 @@ import { checkCartPurchases } from '@/api/purchase'
 import type { CartPurchaseCheckItemVO } from '@/api/purchase'
 import { getProductDetail } from '@/api/product'
 import { useI18n } from '@/i18n'
+import { buildSsoLoginUrl } from '@/utils/ssoRedirect'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -136,7 +141,7 @@ const checkoutFrameTarget = 'cart-paddle-checkout-frame'
 let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
-const checkoutEmail = computed(() => normalizeEmail(userStore.userInfo?.email || checkoutEmailInput.value))
+const checkoutEmail = computed(() => userStore.token ? normalizeEmail(userStore.userInfo?.email || '') : '')
 const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
 const discountEligibleCount = computed(() => cartStore.items.filter((item) => Number(item.price || 0) > 0).length)
 const cartDiscountRate = computed(() => {
@@ -179,7 +184,9 @@ const normalizeEmail = (email: string) => email.trim().toLowerCase()
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
 const resolveCheckoutEmail = () => {
-  const email = normalizeEmail(userStore.userInfo?.email || checkoutEmailInput.value)
+  const email = userStore.token
+    ? normalizeEmail(userStore.userInfo?.email || '')
+    : normalizeEmail(checkoutEmailInput.value)
   checkoutEmailInput.value = email
   if (!email) {
     checkoutEmailError.value = t('cart.error.emailRequired')
@@ -205,6 +212,16 @@ const goProduct = (appId: number) => {
 
 const goRecommendedSearch = () => {
   router.push(localizedPath('/search'))
+}
+
+const goSsoLogin = () => {
+  try {
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+    sessionStorage.setItem('wristo:sso:return-path', currentPath || '/')
+  } catch (e) {
+    console.warn('Failed to save SSO return path:', e)
+  }
+  window.location.href = buildSsoLoginUrl('store')
 }
 
 const purchaseConflict = (appId: number) => purchaseConflicts.value[appId]
@@ -416,7 +433,7 @@ h1 {
 
 .cart-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 3fr);
   gap: 22px;
   align-items: flex-start;
 }
@@ -449,7 +466,7 @@ h1 {
 }
 
 .item-main {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -494,11 +511,7 @@ h1 {
   color: var(--color-ink);
   font-size: 1rem;
   line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
 }
 
 .item-title-row {
@@ -537,6 +550,7 @@ h1 {
 }
 
 .item-actions {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -673,6 +687,29 @@ h1 {
 .email-lock input:focus {
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14);
+}
+
+.cart-email-note {
+  margin: 2px 0 0;
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.cart-email-login {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-brand);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cart-email-login:hover,
+.cart-email-login:focus-visible {
+  text-decoration: underline;
 }
 
 .cart-email-error {

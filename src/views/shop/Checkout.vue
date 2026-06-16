@@ -54,10 +54,13 @@
                             aria-describedby="checkout-email-error"
                         />
                         <button type="submit" :disabled="loading">
-                            {{ loading ? t('cart.openingCheckout') : t('cart.continue') }}
+                            {{ loading ? t('cart.openingCheckout') : t('cart.checkout') }}
                         </button>
                     </div>
-                    <p class="checkout-email-note">{{ t('cart.emailNote') }}</p>
+                    <p class="checkout-email-note">
+                        {{ t('cart.guestEmailNote') }}
+                        <button type="button" class="checkout-email-login" @click="goSsoLogin">{{ t('cart.emailLoginLink') }}</button>
+                    </p>
                 </form>
                 <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
                 <div v-else-if="emailConfirmed" class="paddle-inline-shell" aria-live="polite">
@@ -87,6 +90,7 @@ import { useUserStore } from '@/store/user'
 import { getProductImageUrl } from '@/utils/productImage'
 import { initializePaddle } from '@/utils/paddle'
 import { useI18n } from '@/i18n'
+import { buildSsoLoginUrl } from '@/utils/ssoRedirect'
 
 declare global {
   interface Window {
@@ -203,7 +207,8 @@ const isBundleTokenFlow = computed(() => {
   return isBundle.value && !request.value?.accounttoken
 })
 
-const emailStepVisible = computed(() => !emailConfirmed.value && !userStore.userInfo?.email)
+const accountEmail = computed(() => userStore.token ? normalizeEmail(userStore.userInfo?.email || '') : '')
+const emailStepVisible = computed(() => !emailConfirmed.value && !accountEmail.value)
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -226,8 +231,8 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
-    if (!email.value && userStore.userInfo?.email) {
-        email.value = normalizeEmail(userStore.userInfo.email)
+    if (!email.value && accountEmail.value) {
+        email.value = accountEmail.value
         emailConfirmed.value = true
     }
     if (emailConfirmed.value) {
@@ -356,15 +361,15 @@ function loadPaddle() {
 
 const handlePayment = async (isRetry = false) => {
     if (checkoutOpening) return
-    checkoutOpening = true
 
     try {
-    const checkoutEmail = normalizeEmail(email.value)
+    const checkoutEmail = accountEmail.value || normalizeEmail(email.value)
     if (!validateEmail(checkoutEmail)) {
         email.value = checkoutEmail
-        emailError.value = t('cart.error.emailInvalid')
+        emailError.value = checkoutEmail ? t('cart.error.emailInvalid') : t('cart.error.emailRequired')
         return
     }
+    checkoutOpening = true
     email.value = checkoutEmail
     emailConfirmed.value = true
     emailError.value = ''
@@ -470,6 +475,16 @@ const handlePayment = async (isRetry = false) => {
 
 const confirmEmailAndPay = () => {
     handlePayment()
+}
+
+const goSsoLogin = () => {
+    try {
+        const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
+        sessionStorage.setItem('wristo:sso:return-path', currentPath || '/')
+    } catch (e) {
+        console.warn('Failed to save SSO return path:', e)
+    }
+    window.location.href = buildSsoLoginUrl('store')
 }
 </script>
 
@@ -853,6 +868,22 @@ const confirmEmailAndPay = () => {
     color: #667085;
     font-size: 0.85rem;
     line-height: 1.45;
+}
+
+.checkout-email-login {
+    display: inline;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #0f6b68;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.checkout-email-login:hover,
+.checkout-email-login:focus-visible {
+    text-decoration: underline;
 }
 
 .paddle-inline-checkout {

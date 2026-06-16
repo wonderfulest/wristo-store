@@ -73,6 +73,7 @@
                             :placeholder="t('checkoutSubscription.emailPlaceholder')" 
                             @input="handleEmailInput"
                             @blur="validateEmailField" 
+                            disabled
                         />
                         <div v-if="isEmailConfirmed" class="email-success-icon">✓</div>
                     </div>
@@ -152,6 +153,8 @@ import { checkPurchase } from '@/api/pay'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 import { initializePaddle } from '@/utils/paddle'
 import { useI18n } from '@/i18n'
+import { useUserStore } from '@/store/user'
+import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 
 declare global {
   interface Window {
@@ -161,6 +164,7 @@ declare global {
 
 const router = useRouter()
 const store = useShopOptionsStore()
+const userStore = useUserStore()
 const subscription = computed(() => store.selectedSubscription as SubscriptionPlan)
 const request = computed(() => store.data?.request as PurchaseRequest)
 const { t } = useI18n()
@@ -174,15 +178,22 @@ const showConfirmEmail = ref(false)
 const isEmailConfirmed = ref(false)
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
+const accountEmail = computed(() => userStore.token ? normalizeEmail(userStore.userInfo?.email || '') : '')
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase()
+}
+
 function validateEmailField() {
   emailError.value = ''
+  email.value = accountEmail.value
   if (!email.value.trim()) {
-    emailError.value = t('checkoutSubscription.emailRequired')
+    emailError.value = t('cart.error.loginRequired')
+    redirectToSsoLogin('store', 600)
     return false
   }
   if (!validateEmail(email.value)) {
@@ -264,6 +275,11 @@ onBeforeMount(() => {
 })
 
 onMounted(() => {
+    if (accountEmail.value) {
+        email.value = accountEmail.value
+        isEmailConfirmed.value = true
+        showConfirmEmail.value = false
+    }
     loadPaddle()
 })
 
@@ -359,6 +375,7 @@ const handlePayment = async (isRetry = false) => {
     if (!validateAllEmails()) {
         return
     }
+    email.value = accountEmail.value
     
     // 根据邮箱 + part_number 校验购买过的权益
     const checkPurchaseRequest: CheckPurchaseRequest = {

@@ -99,7 +99,7 @@ onMounted(async () => {
 
 <style scoped>
 .cart-page-shell {
-  width: min(100% - 32px, 860px);
+  width: min(100% - 32px, 960px);
   margin: 48px auto 88px;
 }
 

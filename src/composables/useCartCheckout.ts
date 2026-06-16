@@ -116,10 +116,14 @@ export function useCartCheckout() {
       ElMessage.warning(t('cart.error.empty'))
       return
     }
+    const checkoutEmail = email.trim().toLowerCase()
+    if (!checkoutEmail) {
+      ElMessage.warning(t('cart.error.emailRequired'))
+      return
+    }
     loading.value = true
     try {
       await loadPaddle()
-      const checkoutEmail = email.trim().toLowerCase()
       const checkoutData = await createCartCheckout({ items, email: checkoutEmail })
       activeCheckout = {
         transactionId: checkoutData.transactionId,
