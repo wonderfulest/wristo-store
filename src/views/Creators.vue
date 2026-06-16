@@ -195,9 +195,8 @@
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useI18n } from '@/i18n'
-import { getStudioUrl } from '@/utils/studio'
+import { getStudioUrl, openStudio, openStudioUrl } from '@/utils/studio'
 
-const studioUrl = import.meta.env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io/'
 const { t } = useI18n()
 const academyUrl = new URL('/academy', getStudioUrl()).toString()
 
@@ -315,7 +314,7 @@ const stageCountText = computed(() => t('creators.stageCount')
   .replace('{total}', String(stages.value.length)))
 
 const handleStart = () => {
-  window.open(studioUrl, '_blank', 'noopener')
+  openStudio()
 }
 
 const handleViewPath = () => {
@@ -326,7 +325,7 @@ const handleViewPath = () => {
 }
 
 const handleOpenAcademy = () => {
-  window.open(academyUrl, '_blank', 'noopener')
+  openStudioUrl(academyUrl)
 }
 
 const handleNextStage = () => {

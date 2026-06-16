@@ -141,7 +141,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from '@/i18n'
 import { useUserStore } from '@/store/user'
 import { membershipApi } from '@/api/membership'
-import { getStudioUrl } from '@/utils/studio'
+import { getStudioUrl, openStudioUrl } from '@/utils/studio'
 import type { StudioMembershipPlan } from '@/types/membership'
 
 const router = useRouter()
@@ -489,7 +489,7 @@ const loadPlans = async () => {
 const redirectToStudioAfterCheckout = () => {
   const studioUrl = new URL('/pricing', getStudioUrl())
   studioUrl.searchParams.set('checkout', 'success')
-  window.location.href = studioUrl.toString()
+  openStudioUrl(studioUrl.toString(), '_self')
 }
 
 const loadPaddle = () => {

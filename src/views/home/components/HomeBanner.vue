@@ -85,14 +85,13 @@ import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n, type MessageKey } from '@/i18n'
+import { openStudio } from '@/utils/studio'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const activeSlideIndex = ref(0)
 let carouselTimer: number | undefined
-
-const studioUrl = import.meta.env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io'
 
 const goToSearch = () => {
   router.push(addLocaleToPath('/search', localeStore.currentLocale))
@@ -114,7 +113,7 @@ const goToCreators = () => {
 }
 
 const goToStudio = () => {
-  window.open(studioUrl, '_blank', 'noopener,noreferrer')
+  openStudio()
 }
 
 type HeroSlide = {
