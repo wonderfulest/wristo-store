@@ -696,7 +696,7 @@ watch(
 .cards-container > * {
   flex: 1 1 380px;
   width: min(100%, 420px);
-  max-width: 430px;
+  max-width: 480px;
 }
 
 #bundle-subscription-card:target .bundle-subscription-target {

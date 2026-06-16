@@ -5,8 +5,8 @@
                 <template v-if="isBundle">
                     <PurchaseCard
                         type="bundle"
-                        :title="(product as Bundle).bundleName"
-                        :description="(product as Bundle).bundleDesc"
+                        :title="checkoutBundleTitle"
+                        :description="checkoutBundleDescription"
                         :bundle-items="bundleItemsForCard"
                         :original-price="bundleOriginalPrice"
                         :current-price="bundleCurrentPrice"
@@ -117,6 +117,30 @@ let checkoutOpening = false
 
 const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
+})
+
+const normalizedBundleType = computed(() => {
+  if (!isBundle.value) return ''
+  return String((product.value as Bundle).bundleType || '').trim().toLowerCase()
+})
+
+const isWristoPremiumBundle = computed(() => {
+  if (!isBundle.value) return false
+  const bundle = product.value as Bundle
+  const name = String(bundle.bundleName || '').toLowerCase()
+  return name.includes('wristo premium') || normalizedBundleType.value === 'global'
+})
+
+const checkoutBundleTitle = computed(() => {
+  if (!isBundle.value) return ''
+  const bundle = product.value as Bundle
+  return isWristoPremiumBundle.value ? t('purchase.premiumBundleName') : bundle.bundleName
+})
+
+const checkoutBundleDescription = computed(() => {
+  if (!isBundle.value) return ''
+  const bundle = product.value as Bundle
+  return isWristoPremiumBundle.value ? t('purchase.premiumBundleDesc') : bundle.bundleDesc
 })
 
 const getPriceIdForCheckout = computed(() => {
@@ -949,10 +973,11 @@ const goSsoLogin = () => {
 }
 
 .checkout-left {
-    width: 100%;
+    width: min(100%, 480px);
     min-width: 0;
     display: flex;
     flex-direction: column;
+    justify-self: center;
     margin-top: 0;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -962,10 +987,6 @@ const goSsoLogin = () => {
 
 .checkout-left :deep(.purchase-card) {
     width: 100%;
-}
-
-.checkout-left-bundle :deep(.purchase-card) {
-    max-width: none;
 }
 .card-header {
     display: flex;
