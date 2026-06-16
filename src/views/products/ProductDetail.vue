@@ -6,7 +6,7 @@
         <img
           v-if="productPreviewFallback"
           :src="productPreviewFallback"
-          :alt="product?.name || 'Product preview'"
+          :alt="product?.name || t('product.previewAlt')"
           class="product-image"
           loading="eager"
         />
@@ -23,7 +23,7 @@
           :disabled="checkoutLoading"
           @click="handleBuyNow"
         >
-          {{ checkoutLoading ? 'Opening checkout...' : 'Buy now' }}
+          {{ checkoutLoading ? t('product.openingCheckout') : t('product.buyNow') }}
           <el-icon class="btn-icon"><CreditCard /></el-icon>
         </button>
         <button
@@ -33,7 +33,7 @@
           :class="{ active: isInCart }"
           @click="toggleCart"
         >
-          {{ isInCart ? t('cart.goToCart') : 'Add to Cart' }}
+          {{ isInCart ? t('cart.goToCart') : t('product.addToCart') }}
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
         <button
@@ -42,19 +42,19 @@
           class="product-btn product-btn-studio"
           @click="handleCustomizeInStudio"
         >
-          Customize in Studio
+          {{ t('product.customizeInStudio') }}
           <el-icon class="btn-icon"><MagicStick /></el-icon>
         </button>
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
-          <h2 id="product-summary-title" class="product-section-title">Product Details</h2>
+          <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
           <div class="product-desc" v-html="renderedProductDescription"></div>
         </section>
         <div v-if="product?.garminStoreUrl" class="install-section">
-          <div class="install-title">Install on your Garmin device</div>
-          <div class="install-subtitle">Choose your preferred installation method</div>
+          <div class="install-title">{{ t('product.installTitle') }}</div>
+          <div class="install-subtitle">{{ t('product.installSubtitle') }}</div>
           <div class="install-methods">
             <div class="qrcode-section">
-              <div class="qrcode-title">Scan to open in <br>Garmin Connect IQ App</div>
+              <div class="qrcode-title">{{ t('product.qrTitle') }}</div>
               <div class="qrcode-container" ref="qrcodeBoxRef">
                 <qrcode-vue 
                   ref="qrcodeRef"
@@ -65,23 +65,23 @@
                   class="qrcode-img" 
                 />
                 <div class="qrcode-actions">
-                  <button class="qrcode-action-btn" @click="saveQRCode" title="Save QR Code">
+                  <button class="qrcode-action-btn" @click="saveQRCode" :title="t('product.saveQr')">
                     <el-icon><Download /></el-icon>
                   </button>
-                  <button class="qrcode-action-btn" @click="shareQRCode" title="Share QR Code">
+                  <button class="qrcode-action-btn" @click="shareQRCode" :title="t('product.shareQr')">
                     <el-icon><Share /></el-icon>
                   </button>
                 </div>
               </div>
               <div class="qrcode-help">
-                <span class="qrcode-help-text">Long press QR code to save <br>or <br>scan with camera</span>
+                <span class="qrcode-help-text">{{ t('product.qrHelp') }}</span>
               </div>
             </div>
             <div class="install-or">or</div>
             <div class="button-section">
-              <div class="button-title">Need the Garmin website anyway? You will confirm three times before leaving Wristo.</div>
+              <div class="button-title">{{ t('product.websiteConfirmTitle') }}</div>
               <button class="product-btn product-btn-download" @click="handleDownload">
-                Website option
+                {{ t('product.websiteOption') }}
                 <!-- <span class="icon-download-svg" v-html="DownloadSvg"></span> -->
               </button>
             </div>
@@ -94,14 +94,14 @@
               <el-icon><Check /></el-icon>
             </div>
             <div class="current-device-copy">
-              <div class="current-device-title">Your current device model is supported</div>
+              <div class="current-device-title">{{ t('product.deviceSupported') }}</div>
               <div class="current-device-name">{{ selectedSupportedDevice.displayName }}</div>
             </div>
           </div>
           <div v-else class="devices-header">
-            <div class="devices-title">Supported Devices</div>
+            <div class="devices-title">{{ t('product.supportedDevices') }}</div>
             <div class="devices-subtitle">
-              Compatible Garmin models • {{ product.devices.length }} devices
+              {{ t('product.compatibleDevices', { count: product.devices.length }) }}
             </div>
           </div>
           <div v-if="!selectedSupportedDevice" class="devices-grid">
@@ -123,17 +123,17 @@
             class="devices-toggle"
             @click="showAllDevices = !showAllDevices"
           >
-            <span v-if="!showAllDevices">Show all {{ product.devices.length }} devices</span>
-            <span v-else>Show less</span>
+            <span v-if="!showAllDevices">{{ t('product.showAllDevices', { count: product.devices.length }) }}</span>
+            <span v-else>{{ t('product.showLess') }}</span>
           </button>
         </div>
         <div class="unlock-section">
-          <div class="unlock-tip">Enter the 6-digit code from your watch to unlock the trial.</div>
+          <div class="unlock-tip">{{ t('product.unlockTip') }}</div>
           <button class="product-btn product-btn-unlock" @click="handleUnlock">
-            Unlock Trial <el-icon class="btn-icon"><Lock /></el-icon>
+            {{ t('product.unlockTrial') }} <el-icon class="btn-icon"><Lock /></el-icon>
           </button>
           <button class="product-btn product-btn-already-purchased" @click="handleAlreadyPurchased">
-            Already Purchased
+            {{ t('product.alreadyPurchased') }}
           </button>
         </div>
       </div>
@@ -435,7 +435,7 @@ const saveQRCode = async () => {
     }
 
     if (!el) {
-      ElMessage.error('QR element not ready, please try again')
+      ElMessage.error(t('product.qrNotReady'))
       return
     }
 
@@ -456,7 +456,7 @@ const saveQRCode = async () => {
           a.click()
           document.body.removeChild(a)
           URL.revokeObjectURL(url)
-          ElMessage.success('QR Code saved successfully!')
+          ElMessage.success(t('product.qrSaved'))
         }, 'image/png')
       } else {
         // Fallback for older browsers
@@ -467,7 +467,7 @@ const saveQRCode = async () => {
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
-        ElMessage.success('QR Code saved successfully!')
+        ElMessage.success(t('product.qrSaved'))
       }
       return
     }
@@ -485,7 +485,7 @@ const saveQRCode = async () => {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      ElMessage.success('QR Code saved successfully!')
+      ElMessage.success(t('product.qrSaved'))
       return
     }
 
@@ -499,14 +499,14 @@ const saveQRCode = async () => {
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      ElMessage.success('QR Code saved successfully!')
+      ElMessage.success(t('product.qrSaved'))
       return
     }
 
-    ElMessage.error('Unable to access QR code for saving')
+    ElMessage.error(t('product.qrAccessFailed'))
   } catch (error) {
     console.error('Error saving QR code:', error)
-    ElMessage.error('Failed to save QR code')
+      ElMessage.error(t('product.qrSaveFailed'))
   }
 }
 

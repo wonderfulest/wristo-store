@@ -113,7 +113,9 @@ const normalizedBundleType = (bundleItem?: Bundle | null) => {
 }
 
 const isWristoPremiumBundle = (bundleItem: Bundle) => {
-  return String(bundleItem.bundleName || '').toLowerCase().includes('wristo premium')
+  const name = String(bundleItem.bundleName || '').toLowerCase()
+  const type = normalizedBundleType(bundleItem)
+  return name.includes('wristo premium') || type === 'global'
 }
 
 const isGlobalPremiumBundle = (bundleItem: Bundle) => {

@@ -6,8 +6,8 @@
           <Icon class="new-header-icon-inner" icon="solar:magic-stick-3-line-duotone" width="25" height="25" aria-hidden="true" />
         </div>
         <div class="new-heading-copy">
-          <span class="new-kicker">Fresh drops</span>
-          <h2 class="new-title">New Arrivals</h2>
+          <span class="new-kicker">{{ t('home.newArrivalsKicker') }}</span>
+          <h2 class="new-title">{{ t('home.newArrivalsTitle') }}</h2>
         </div>
       </div>
       <div class="new-carousel-wrap">
@@ -38,8 +38,8 @@
                       class="cart-toggle"
                       type="button"
                       :class="{ active: cartStore.hasItem(product.appId) }"
-                      :title="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
-                      :aria-label="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
+                      :title="cartStore.hasItem(product.appId) ? t('cart.removeFromCart') : t('cart.addToCart')"
+                      :aria-label="cartStore.hasItem(product.appId) ? t('cart.removeFromCart') : t('cart.addToCart')"
                       @click.stop="toggleCart(product.__origin)"
                     >
                       <Icon icon="solar:cart-3-line-duotone" width="19" height="19" aria-hidden="true" />

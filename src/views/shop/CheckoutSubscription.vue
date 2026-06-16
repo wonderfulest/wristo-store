@@ -1,6 +1,6 @@
 <template>
     <div class="checkout">
-        <h2 class="title">Secure Checkout</h2>
+        <h2 class="title">{{ t('checkoutSubscription.title') }}</h2>
         <div class="checkout-main">
             <div class="checkout-left">
                 <div class="card-header">
@@ -13,51 +13,51 @@
                 
                 <div class="subscription-details">
                     <div class="subscription-type">
-                        <span class="label">Type:</span>
-                        <span class="value">{{ getPlanType(subscription) }} Plan</span>
+                        <span class="label">{{ t('checkoutSubscription.typeLabel') }}</span>
+                        <span class="value">{{ getPlanType(subscription) }} {{ t('checkoutSubscription.planSuffix') }}</span>
                     </div>
                     
                     <div class="subscription-duration" v-if="subscription.durationDays > 0">
-                        <span class="label">Duration:</span>
-                        <span class="value">{{ subscription.durationDays >= 365 ? subscription.durationDays/365 + ' Year' : subscription.durationDays/30 + ' Month' }}</span>
+                        <span class="label">{{ t('checkoutSubscription.durationLabel') }}</span>
+                        <span class="value">{{ subscription.durationDays >= 365 ? subscription.durationDays/365 + ' ' + t('checkoutSubscription.year') : subscription.durationDays/30 + ' ' + t('checkoutSubscription.month') }}</span>
                     </div>
                     
                     <div class="subscription-features">
                         <div class="feature-item">
                             <span class="check-icon">✓</span>
-                            <span>Access to 2000+ premium watch faces</span>
+                            <span>{{ t('checkoutSubscription.benefit1') }}</span>
                         </div>
                         <div class="feature-item">
                             <span class="check-icon">✓</span>
-                            <span>{{ subscription.durationDays === -1 ? 'Get all future watch faces automatically' : 'Get new watch faces monthly' }}</span>
+                            <span>{{ subscription.durationDays === -1 ? t('checkoutSubscription.benefit2Lifetime') : t('checkoutSubscription.benefit2Monthly') }}</span>
                         </div>
                         <div class="feature-item">
                             <span class="check-icon">✓</span>
-                            <span>Ad-free experience</span>
+                            <span>{{ t('checkoutSubscription.benefit3') }}</span>
                         </div>
                         <div class="feature-item" v-if="subscription.durationDays === -1">
                             <span class="check-icon">✓</span>
-                            <span>Early access to new features</span>
+                            <span>{{ t('checkoutSubscription.benefit4') }}</span>
                         </div>
                         <div class="feature-item">
                             <span class="check-icon">✓</span>
-                            <span>{{ subscription.durationDays === -1 ? 'Priority customer support' : 
-                                (subscription.durationDays >= 365 ? 'Standard customer support' : 'Basic customer support') }}</span>
+                            <span>{{ subscription.durationDays === -1 ? t('checkoutSubscription.supportPriority') : 
+                                (subscription.durationDays >= 365 ? t('checkoutSubscription.supportStandard') : t('checkoutSubscription.supportBasic')) }}</span>
                         </div>
                     </div>
                 </div>
                 
                 <div class="price-summary" v-if="subscription.discountPrice && subscription.discountPrice < subscription.originalPrice">
                     <div class="summary-row">
-                        <span>Original Price</span>
+                        <span>{{ t('checkoutSubscription.originalPrice') }}</span>
                         <span>${{ subscription.originalPrice }}</span>
                     </div>
                     <div class="summary-row discount">
-                        <span>Discount ({{ Math.round((1 - subscription.discountPrice / subscription.originalPrice) * 100) }}% OFF)</span>
+                        <span>{{ t('checkoutSubscription.discount', { rate: Math.round((1 - subscription.discountPrice / subscription.originalPrice) * 100) }) }}</span>
                         <span>-${{ (subscription.originalPrice - subscription.discountPrice).toFixed(2) }}</span>
                     </div>
                     <div class="summary-row total">
-                        <span>Total</span>
+                        <span>{{ t('checkoutSubscription.total') }}</span>
                         <span>${{ subscription.discountPrice }}</span>
                     </div>
                 </div>
@@ -65,40 +65,40 @@
             
             <div class="checkout-right">
                 <div class="email-input-container">
-                    <label class="input-label">Email Address</label>
+                    <label class="input-label">{{ t('checkoutSubscription.emailLabel') }}</label>
                     <div class="input-wrapper">
                         <input 
                             v-model="email" 
                             class="input" 
-                            placeholder="Enter your email address" 
+                            :placeholder="t('checkoutSubscription.emailPlaceholder')" 
                             @input="handleEmailInput"
                             @blur="validateEmailField" 
                         />
                         <div v-if="isEmailConfirmed" class="email-success-icon">✓</div>
                     </div>
                     <div class="input-desc">
-                        <strong>⚠️ Please use a real email address!</strong>
+                        <strong>{{ t('checkoutSubscription.emailHint') }}</strong>
                     </div>
                     
                     <div class="email-tips">
                         <div class="tips-header">
                             <div class="tips-icon">💡</div>
-                            <span class="tips-title">Tips</span>
+                            <span class="tips-title">{{ t('checkoutSubscription.tipsTitle') }}</span>
                         </div>
                         <div class="tips-content">
-                            <div class="tips-subtitle">This email will be used for:</div>
+                            <div class="tips-subtitle">{{ t('checkoutSubscription.tipsSubtitle') }}</div>
                             <div class="tips-list">
                                 <div class="tip-item">
                                     <div class="tip-icon">📧</div>
-                                    <span>Receiving activation emails</span>
+                                    <span>{{ t('checkoutSubscription.tip1') }}</span>
                                 </div>
                                 <div class="tip-item">
                                     <div class="tip-icon">⚙️</div>
-                                    <span>Managing your subscription</span>
+                                    <span>{{ t('checkoutSubscription.tip2') }}</span>
                                 </div>
                                 <div class="tip-item">
                                     <div class="tip-icon">👤</div>
-                                    <span>Account registration <span class="tip-highlight">(highly recommended after purchase)</span></span>
+                                    <span>{{ t('checkoutSubscription.tip3') }} <span class="tip-highlight">{{ t('checkoutSubscription.tip3Highlight') }}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -107,22 +107,22 @@
                 </div>
                 
                 <div v-if="showConfirmEmail && !isEmailConfirmed" class="email-confirm-container">
-                    <label class="input-label">Confirm Email Address</label>
+                    <label class="input-label">{{ t('checkoutSubscription.confirmEmailLabel') }}</label>
                     <input 
                         v-model="confirmEmail" 
                         class="input" 
-                        placeholder="Re-enter your email address" 
+                        :placeholder="t('checkoutSubscription.confirmEmailPlaceholder')" 
                         @input="handleConfirmEmailInput"
                         @blur="validateEmailMatch"
                         @paste.prevent
                     />
-                    <div class="input-desc">Please confirm your email address to ensure accuracy.</div>
+                    <div class="input-desc">{{ t('checkoutSubscription.confirmEmailDesc') }}</div>
                     <div v-if="confirmEmailError" class="input-error-text">{{ confirmEmailError }}</div>
                 </div>
                 
-                <div class="pay-method-title">Payment Method</div>
+                <div class="pay-method-title">{{ t('checkoutSubscription.paymentMethod') }}</div>
                 <div class="pay-method-note">
-                    Secure payment powered by Paddle
+                    {{ t('checkoutSubscription.poweredByPaddle') }}
                 </div>
                 <button 
                     class="purchase-btn" 
@@ -130,7 +130,7 @@
                     :disabled="loading"
                 >
                     <span v-if="loading" class="loading-spinner"></span>
-                    {{ loading ? 'Processing...' : 'Proceed to Checkout' }}
+                    {{ loading ? t('checkoutSubscription.processing') : t('checkoutSubscription.proceedToCheckout') }}
                 </button>
                 
                 <div id="result-message" style="margin-top:16px;color:#e63946;"></div>
@@ -151,6 +151,7 @@ import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackReque
 import { checkPurchase } from '@/api/pay'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 import { initializePaddle } from '@/utils/paddle'
+import { useI18n } from '@/i18n'
 
 declare global {
   interface Window {
@@ -162,6 +163,7 @@ const router = useRouter()
 const store = useShopOptionsStore()
 const subscription = computed(() => store.selectedSubscription as SubscriptionPlan)
 const request = computed(() => store.data?.request as PurchaseRequest)
+const { t } = useI18n()
 
 const email = ref('')
 const confirmEmail = ref('')
@@ -180,11 +182,11 @@ function validateEmail(email: string) {
 function validateEmailField() {
   emailError.value = ''
   if (!email.value.trim()) {
-    emailError.value = 'Email address is required'
+    emailError.value = t('checkoutSubscription.emailRequired')
     return false
   }
   if (!validateEmail(email.value)) {
-    emailError.value = 'Please enter a valid email address'
+    emailError.value = t('checkoutSubscription.invalidEmail')
     return false
   }
   return true
@@ -193,11 +195,11 @@ function validateEmailField() {
 function validateEmailMatch() {
   confirmEmailError.value = ''
   if (!confirmEmail.value.trim()) {
-    confirmEmailError.value = 'Please confirm your email address'
+    confirmEmailError.value = t('checkoutSubscription.confirmRequired')
     return false
   }
   if (email.value !== confirmEmail.value) {
-    confirmEmailError.value = 'Email addresses do not match'
+    confirmEmailError.value = t('checkoutSubscription.emailMismatch')
     return false
   }
   return true

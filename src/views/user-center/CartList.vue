@@ -2,20 +2,20 @@
   <section class="cart-list" aria-labelledby="cart-title">
     <div class="cart-head">
       <div>
-        <p class="cart-kicker">Saved items</p>
-        <h1 id="cart-title">Cart</h1>
+        <p class="cart-kicker">{{ t('cart.savedItems') }}</p>
+        <h1 id="cart-title">{{ t('cart.title') }}</h1>
       </div>
       <div v-if="cartStore.count" class="cart-summary">
-        <span>{{ cartStore.count }} items</span>
+        <span>{{ t('cart.itemCount', { count: cartStore.count }) }}</span>
         <strong>${{ cartStore.totalPrice.toFixed(2) }}</strong>
       </div>
     </div>
 
     <div v-if="!cartStore.items.length" class="empty-state">
       <el-icon><ShoppingCart /></el-icon>
-      <h2>Your cart is empty</h2>
-      <p>Save watch faces here while browsing, then complete checkout with your Wristo account email.</p>
-      <button type="button" class="browse-btn" @click="goHome">Browse watch faces</button>
+      <h2>{{ t('cart.emptyTitle') }}</h2>
+      <p>{{ t('cart.emptyDesc') }}</p>
+      <button type="button" class="browse-btn" @click="goHome">{{ t('cart.browse') }}</button>
     </div>
 
     <div v-else class="cart-layout" :class="{ 'checkout-layout-active': inlineCheckoutVisible }">
@@ -29,7 +29,7 @@
             <span class="item-info">
               <span class="item-title-row">
                 <strong>{{ item.name }}</strong>
-                <span v-if="isPurchased(item.appId)" class="purchased-badge">Purchased</span>
+                <span v-if="isPurchased(item.appId)" class="purchased-badge">{{ t('cart.purchased') }}</span>
               </span>
               <span>${{ item.price.toFixed(2) }}</span>
               <span v-if="purchaseConflict(item.appId)?.message" class="purchase-warning">
@@ -39,21 +39,21 @@
           </button>
 
           <div class="item-actions">
-            <span class="quantity-fixed">Qty 1</span>
-            <button type="button" class="remove-btn" title="Remove" @click="removeItem(item.appId)">
+            <span class="quantity-fixed">{{ t('cart.quantityFixed') }}</span>
+            <button type="button" class="remove-btn" :title="t('cart.remove')" @click="removeItem(item.appId)">
               <el-icon><Delete /></el-icon>
             </button>
           </div>
         </article>
       </div>
 
-      <aside class="checkout-panel" aria-label="Checkout summary">
+      <aside class="checkout-panel" :aria-label="t('cart.checkoutSummaryAria')">
         <div class="checkout-row">
-          <span>Items</span>
+          <span>{{ t('cart.itemsLabel') }}</span>
           <strong>{{ cartStore.count }}</strong>
         </div>
         <div class="checkout-row">
-          <span>Subtotal</span>
+          <span>{{ t('cart.subtotalLabel') }}</span>
           <strong>{{ formatMoney(cartSubtotal) }}</strong>
         </div>
         <div v-if="cartDiscount.rate > 0" class="checkout-row discount-row">
@@ -68,21 +68,21 @@
         </p>
         <button type="button" class="recommend-search-btn" @click="goRecommendedSearch">
           <el-icon><Search /></el-icon>
-          <span>Add more apps</span>
+          <span>{{ t('cart.addMoreApps') }}</span>
         </button>
         <div class="checkout-row total-row">
-          <span>Estimated total</span>
+          <span>{{ t('cart.estimatedTotal') }}</span>
           <strong>{{ formatMoney(cartEstimatedTotal) }}</strong>
         </div>
         <div class="email-lock">
-          <span>Checkout email</span>
+          <span>{{ t('cart.checkoutEmail') }}</span>
           <strong>{{ checkoutEmail }}</strong>
         </div>
         <button type="button" class="checkout-btn" :disabled="loading || checking || refreshingCart" @click="handleCheckout">
           <el-icon><CreditCard /></el-icon>
           <span>{{ checkoutButtonText }}</span>
         </button>
-        <div v-if="inlineCheckoutVisible" class="inline-checkout-shell" aria-label="Paddle checkout" aria-live="polite">
+        <div v-if="inlineCheckoutVisible" class="inline-checkout-shell" :aria-label="t('cart.paddleCheckoutAria')" aria-live="polite">
           <div
             :key="inlineCheckoutKey"
             :id="checkoutFrameId"
@@ -106,11 +106,13 @@ import { useCartCheckout } from '@/composables/useCartCheckout'
 import { checkCartPurchases } from '@/api/purchase'
 import type { CartPurchaseCheckItemVO } from '@/api/purchase'
 import { getProductDetail } from '@/api/product'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const localeStore = useLocaleStore()
 const userStore = useUserStore()
+const { t } = useI18n()
 const { loading, checkout, closeCheckout } = useCartCheckout()
 const checking = ref(false)
 const refreshingCart = ref(false)
@@ -122,7 +124,7 @@ const checkoutFrameTarget = 'cart-paddle-checkout-frame'
 let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
-const checkoutEmail = computed(() => userStore.userInfo?.email || 'Collected by Paddle at checkout')
+const checkoutEmail = computed(() => userStore.userInfo?.email || t('cart.checkoutEmailFallback'))
 const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
 const discountEligibleCount = computed(() => cartStore.items.filter((item) => Number(item.price || 0) > 0).length)
 const cartDiscountRate = computed(() => {
@@ -151,10 +153,10 @@ const nextDiscountHint = computed(() => {
   return null
 })
 const checkoutButtonText = computed(() => {
-  if (refreshingCart.value) return 'Refreshing cart...'
-  if (checking.value) return 'Checking cart...'
-  if (loading.value) return inlineCheckoutVisible.value ? 'Updating checkout...' : 'Opening checkout...'
-  return 'Checkout'
+  if (refreshingCart.value) return t('cart.refreshingCart')
+  if (checking.value) return t('cart.checkingCart')
+  if (loading.value) return inlineCheckoutVisible.value ? t('cart.updatingCheckout') : t('cart.openingCheckout')
+  return t('cart.checkout')
 })
 const cartCheckoutSignature = computed(() => cartStore.items.map((item) => `${item.appId}:${Number(item.price || 0)}`).join('|'))
 

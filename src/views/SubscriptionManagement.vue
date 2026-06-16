@@ -2,8 +2,8 @@
   <div class="subscription-management">
     <div class="container">
       <div class="header">
-        <h1 class="page-title">Subscription Management</h1>
-        <p class="page-subtitle">Manage your subscription plan and billing</p>
+        <h1 class="page-title">{{ t('subscriptionManagement.title') }}</h1>
+        <p class="page-subtitle">{{ t('subscriptionManagement.subtitle') }}</p>
       </div>
 
       <!-- 当前订阅信息 -->
@@ -12,43 +12,43 @@
           <div class="plan-info">
             <h2 class="plan-name">{{ userStore.userInfo?.subscription?.name }}</h2>
             <span class="plan-status" :class="{ 'active': hasActiveSubscription, 'expired': !hasActiveSubscription }">
-              {{ hasActiveSubscription ? 'Active' : 'Expired' }}
+              {{ hasActiveSubscription ? t('subscriptionManagement.active') : t('subscriptionManagement.expired') }}
             </span>
           </div>
           <div class="plan-actions">
             <el-button type="text" size="small" @click="goToCancelPage" class="manage-btn">
-              Cancel
+              {{ t('subscriptionManagement.cancel') }}
             </el-button>
           </div>
         </div>
 
         <div class="subscription-details">
           <div class="detail-item">
-            <span class="label">Plan Type:</span>
+            <span class="label">{{ t('subscriptionManagement.planType') }}</span>
             <span class="value">{{ formatPlanType(userStore.userInfo?.subscription?.planCode) }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">Start Date:</span>
+            <span class="label">{{ t('subscriptionManagement.startDate') }}</span>
             <span class="value">{{ formatDate(userStore.userInfo?.subscription?.startTime) }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">End Date:</span>
+            <span class="label">{{ t('subscriptionManagement.endDate') }}</span>
             <span class="value">{{ formatDate(userStore.userInfo?.subscription?.endTime) }}</span>
           </div>
           <div class="detail-item">
-            <span class="label">Days Remaining:</span>
-            <span class="value">{{ daysRemaining }} days</span>
+            <span class="label">{{ t('subscriptionManagement.daysRemaining') }}</span>
+            <span class="value">{{ t('subscriptionManagement.days', { count: daysRemaining }) }}</span>
           </div>
         </div>
 
         <!-- 订阅权益 -->
         <div class="subscription-benefits">
-          <h3>Your Benefits</h3>
+          <h3>{{ t('subscriptionManagement.benefitsTitle') }}</h3>
           <ul class="benefits-list">
-            <li><el-icon class="check-icon"><Check /></el-icon> Access to 2000+ premium watch faces</li>
-            <li><el-icon class="check-icon"><Check /></el-icon> Get new watch faces monthly</li>
-            <li><el-icon class="check-icon"><Check /></el-icon> Ad-free experience</li>
-            <li><el-icon class="check-icon"><Check /></el-icon> Priority customer support</li>
+            <li><el-icon class="check-icon"><Check /></el-icon> {{ t('subscriptionManagement.benefit1') }}</li>
+            <li><el-icon class="check-icon"><Check /></el-icon> {{ t('subscriptionManagement.benefit2') }}</li>
+            <li><el-icon class="check-icon"><Check /></el-icon> {{ t('subscriptionManagement.benefit3') }}</li>
+            <li><el-icon class="check-icon"><Check /></el-icon> {{ t('subscriptionManagement.benefit4') }}</li>
           </ul>
         </div>
       </div>
@@ -57,10 +57,10 @@
       <div v-else class="no-subscription">
         <div class="empty-state">
           <el-icon class="empty-icon"><Warning /></el-icon>
-          <h2>No Active Subscription</h2>
-          <p>You don't have an active subscription. Subscribe now to unlock premium features!</p>
+          <h2>{{ t('subscriptionManagement.noActiveTitle') }}</h2>
+          <p>{{ t('subscriptionManagement.noActiveDesc') }}</p>
           <el-button type="primary" size="large" @click="router.push('/subscription')">
-            View Subscription Plans
+            {{ t('subscriptionManagement.viewPlans') }}
           </el-button>
         </div>
       </div>
@@ -76,9 +76,11 @@ import { useRouter } from 'vue-router'
 import { ElButton, ElIcon } from 'element-plus'
 import { Check, Warning } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { t } = useI18n()
 
 // 检查用户是否有有效订阅
 const hasActiveSubscription = computed(() => {
@@ -103,11 +105,11 @@ const formatPlanType = (planCode?: string): string => {
   if (!planCode) return 'Unknown'
   switch (planCode) {
     case 'monthly':
-      return 'Monthly Plan'
+      return t('subscriptionManagement.monthlyPlan')
     case 'yearly':
-      return 'Annual Plan'
+      return t('subscriptionManagement.annualPlan')
     case 'lifetime':
-      return 'Lifetime Plan'
+      return t('subscriptionManagement.lifetimePlan')
     default:
       return planCode
   }
