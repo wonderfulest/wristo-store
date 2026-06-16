@@ -74,7 +74,7 @@
           <span>{{ t('cart.estimatedTotal') }}</span>
           <strong>{{ formatMoney(cartEstimatedTotal) }}</strong>
         </div>
-        <div class="email-lock">
+        <div v-if="checkoutEmailVisible" class="email-lock">
           <label for="cart-checkout-email">{{ t('cart.checkoutEmail') }}</label>
           <strong v-if="userStore.userInfo?.email">{{ checkoutEmail }}</strong>
           <input
@@ -91,7 +91,7 @@
             <button type="button" class="cart-email-login" @click="goSsoLogin">{{ t('cart.emailLoginLink') }}</button>
           </p>
         </div>
-        <p v-if="checkoutEmailError" class="cart-email-error" role="alert">{{ checkoutEmailError }}</p>
+        <p v-if="checkoutEmailVisible && checkoutEmailError" class="cart-email-error" role="alert">{{ checkoutEmailError }}</p>
         <button type="button" class="checkout-btn" :disabled="loading || checking || refreshingCart" @click="handleCheckout">
           <el-icon><CreditCard /></el-icon>
           <span>{{ checkoutButtonText }}</span>
@@ -175,6 +175,7 @@ const checkoutButtonText = computed(() => {
   if (loading.value) return inlineCheckoutVisible.value ? t('cart.updatingCheckout') : t('cart.openingCheckout')
   return t('cart.checkout')
 })
+const checkoutEmailVisible = computed(() => !inlineCheckoutVisible.value)
 const cartCheckoutSignature = computed(() => cartStore.items.map((item) => `${item.appId}:${Number(item.price || 0)}`).join('|'))
 
 const formatMoney = (amount: number) => `$${amount.toFixed(2)}`
