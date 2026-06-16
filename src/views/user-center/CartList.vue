@@ -122,7 +122,7 @@ const checkoutFrameTarget = 'cart-paddle-checkout-frame'
 let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
-const checkoutEmail = computed(() => userStore.userInfo?.email || 'Sign in required')
+const checkoutEmail = computed(() => userStore.userInfo?.email || 'Collected by Paddle at checkout')
 const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
 const discountEligibleCount = computed(() => cartStore.items.filter((item) => Number(item.price || 0) > 0).length)
 const cartDiscountRate = computed(() => {
@@ -221,13 +221,6 @@ const openInlineCheckout = async () => {
       await checkout(items)
       return
     }
-    if (!userStore.userInfo?.email) {
-      closeCheckout()
-      inlineCheckoutVisible.value = false
-      await checkout(items)
-      return
-    }
-
     checking.value = true
     try {
       const checkResult = await checkCartPurchases({ items })
@@ -267,11 +260,6 @@ const handleCheckout = async () => {
     checkout(items)
     return
   }
-  if (!userStore.userInfo?.email) {
-    checkout(items)
-    return
-  }
-
   await openInlineCheckout()
 }
 

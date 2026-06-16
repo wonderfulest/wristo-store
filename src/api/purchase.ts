@@ -84,11 +84,11 @@ export const checkDiscount = (data: CheckDiscountRequest): Promise<CheckDiscount
 }
 
 export const createCartCheckout = (data: CartCheckoutRequest): Promise<CartCheckoutResponseVO> => {
-  return instance.post('/purchase/cart/checkout', data)
+  return instance.post('/public/purchase/cart/checkout', data)
 }
 
 export const checkCartPurchases = (data: CartCheckoutRequest): Promise<CartPurchaseCheckResponseVO> => {
-  return instance.post('/purchase/cart/check', data)
+  return instance.post('/public/purchase/cart/check', data)
 }
 
 // Top apps by sales for last 7 days

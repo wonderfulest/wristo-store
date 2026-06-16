@@ -3,7 +3,6 @@ import { ElMessage } from 'element-plus'
 import { createCartCheckout, purchaseCallback } from '@/api/purchase'
 import type { CartCheckoutItemRequest } from '@/api/purchase'
 import { useUserStore } from '@/store/user'
-import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 import { initializePaddle } from '@/utils/paddle'
 
 declare global {
@@ -96,13 +95,6 @@ export function useCartCheckout() {
   const loading = ref(false)
   const userStore = useUserStore()
 
-  const requireLogin = () => {
-    if (userStore.userInfo?.email) return true
-    ElMessage.info('Please sign in before checkout.')
-    redirectToSsoLogin('store')
-    return false
-  }
-
   const closeCheckout = () => {
     if (typeof window !== 'undefined' && window.Paddle?.Checkout?.close) {
       window.Paddle.Checkout.close()
@@ -121,8 +113,6 @@ export function useCartCheckout() {
       ElMessage.warning('Your cart is empty.')
       return
     }
-    if (!requireLogin()) return
-
     loading.value = true
     try {
       await loadPaddle()
@@ -134,13 +124,16 @@ export function useCartCheckout() {
           loading.value = value
         },
       }
-      window.Paddle.Checkout.open({
+      const checkoutOptions: Record<string, any> = {
         transactionId: checkoutData.transactionId,
         settings: buildCheckoutSettings(options),
-        customer: {
+      }
+      if (userStore.userInfo?.email) {
+        checkoutOptions.customer = {
           email: userStore.userInfo?.email,
-        },
-      })
+        }
+      }
+      window.Paddle.Checkout.open(checkoutOptions)
     } catch (error) {
       console.error('Cart checkout failed:', error)
       ElMessage.error('Checkout failed. Please try again.')
