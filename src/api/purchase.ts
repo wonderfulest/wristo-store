@@ -21,6 +21,7 @@ export interface CartCheckoutItemRequest {
 }
 
 export interface CartCheckoutRequest {
+  email?: string
   items: CartCheckoutItemRequest[]
 }
 

@@ -2,8 +2,9 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { createCartCheckout, purchaseCallback } from '@/api/purchase'
 import type { CartCheckoutItemRequest } from '@/api/purchase'
-import { useUserStore } from '@/store/user'
 import { initializePaddle } from '@/utils/paddle'
+import { useLocaleStore } from '@/store/locale'
+import { translate } from '@/i18n'
 
 declare global {
   interface Window {
@@ -93,7 +94,8 @@ const loadPaddle = () => {
 
 export function useCartCheckout() {
   const loading = ref(false)
-  const userStore = useUserStore()
+  const localeStore = useLocaleStore()
+  const t = (key: string) => translate(key, localeStore.currentLocale)
 
   const closeCheckout = () => {
     if (typeof window !== 'undefined' && window.Paddle?.Checkout?.close) {
@@ -105,18 +107,20 @@ export function useCartCheckout() {
 
   const checkout = async (
     items: CartCheckoutItemRequest[],
+    email: string,
     onSuccess?: () => void,
     options: CartCheckoutOptions = {}
   ) => {
     if (loading.value) return
     if (!items.length) {
-      ElMessage.warning('Your cart is empty.')
+      ElMessage.warning(t('cart.error.empty'))
       return
     }
     loading.value = true
     try {
       await loadPaddle()
-      const checkoutData = await createCartCheckout({ items })
+      const checkoutEmail = email.trim().toLowerCase()
+      const checkoutData = await createCartCheckout({ items, email: checkoutEmail })
       activeCheckout = {
         transactionId: checkoutData.transactionId,
         onSuccess,
@@ -128,15 +132,17 @@ export function useCartCheckout() {
         transactionId: checkoutData.transactionId,
         settings: buildCheckoutSettings(options),
       }
-      if (userStore.userInfo?.email) {
+      if (checkoutEmail) {
         checkoutOptions.customer = {
-          email: userStore.userInfo?.email,
+          email: checkoutEmail,
         }
       }
       window.Paddle.Checkout.open(checkoutOptions)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Cart checkout failed:', error)
-      ElMessage.error('Checkout failed. Please try again.')
+      if (!error?.code && !error?.msg) {
+        ElMessage.error(t('cart.error.checkoutFailed'))
+      }
       activeCheckout = null
       loading.value = false
     }

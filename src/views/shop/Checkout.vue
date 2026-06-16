@@ -41,8 +41,26 @@
                 </template>
             </div>
             <div class="checkout-right">
+                <form v-if="emailStepVisible" class="checkout-email-form" @submit.prevent="confirmEmailAndPay">
+                    <label for="checkout-email">{{ t('cart.checkoutEmail') }}</label>
+                    <div class="checkout-email-row">
+                        <input
+                            id="checkout-email"
+                            v-model="email"
+                            type="email"
+                            autocomplete="email"
+                            :placeholder="t('cart.emailPlaceholder')"
+                            :aria-invalid="Boolean(emailError)"
+                            aria-describedby="checkout-email-error"
+                        />
+                        <button type="submit" :disabled="loading">
+                            {{ loading ? t('cart.openingCheckout') : t('cart.continue') }}
+                        </button>
+                    </div>
+                    <p class="checkout-email-note">{{ t('cart.emailNote') }}</p>
+                </form>
                 <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
-                <div class="paddle-inline-shell" aria-live="polite">
+                <div v-else-if="emailConfirmed" class="paddle-inline-shell" aria-live="polite">
                     <div v-if="loading" class="inline-loading">
                         <span class="loading-spinner"></span>
                     </div>
@@ -68,6 +86,7 @@ import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase
 import { useUserStore } from '@/store/user'
 import { getProductImageUrl } from '@/utils/productImage'
 import { initializePaddle } from '@/utils/paddle'
+import { useI18n } from '@/i18n'
 
 declare global {
   interface Window {
@@ -78,12 +97,14 @@ declare global {
 const router = useRouter()
 const store = useShopOptionsStore()
 const userStore = useUserStore()
+const { t } = useI18n()
 const product = computed(() => store.selectedProduct as Bundle | ProductVO)
 
 const request = computed(() => store.data?.request as PurchaseRequest | undefined)
 const email = ref('')
 const loading = ref(false)
 const emailError = ref('')
+const emailConfirmed = ref(false)
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
 const paddleFrameTarget = 'paddle-inline-checkout'
@@ -182,8 +203,14 @@ const isBundleTokenFlow = computed(() => {
   return isBundle.value && !request.value?.accounttoken
 })
 
+const emailStepVisible = computed(() => !emailConfirmed.value && !userStore.userInfo?.email)
+
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+}
+
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase()
 }
 
 onBeforeMount(() => {
@@ -200,11 +227,14 @@ onBeforeMount(() => {
 
 onMounted(() => {
     if (!email.value && userStore.userInfo?.email) {
-        email.value = userStore.userInfo.email
+        email.value = normalizeEmail(userStore.userInfo.email)
+        emailConfirmed.value = true
     }
-    nextTick(() => {
-        handlePayment()
-    })
+    if (emailConfirmed.value) {
+        nextTick(() => {
+            handlePayment()
+        })
+    }
 })
 
 onBeforeUnmount(() => {
@@ -329,13 +359,17 @@ const handlePayment = async (isRetry = false) => {
     checkoutOpening = true
 
     try {
+    const checkoutEmail = normalizeEmail(email.value)
+    if (!validateEmail(checkoutEmail)) {
+        email.value = checkoutEmail
+        emailError.value = t('cart.error.emailInvalid')
+        return
+    }
+    email.value = checkoutEmail
+    emailConfirmed.value = true
+    emailError.value = ''
     if (isBundleTokenFlow.value && email.value) {
         const bundleId = (product.value as Bundle).bundleId
-
-        if (!validateEmail(email.value)) {
-            emailError.value = 'Please enter a valid email address'
-            return
-        }
 
         try {
             const existing: PurchaseRecordVO | null = await checkBundleByEmail({ email: email.value, bundleId })
@@ -372,10 +406,6 @@ const handlePayment = async (isRetry = false) => {
         }
     }
     if (!isRetry) {
-        if (email.value && !validateEmail(email.value)) {
-            emailError.value = 'Please enter a valid email address'
-            return
-        }
         if (userSelectedQuantity.value > maxQuantity.value) {
             ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')
             return
@@ -436,6 +466,10 @@ const handlePayment = async (isRetry = false) => {
     } finally {
         checkoutOpening = false
     }
+}
+
+const confirmEmailAndPay = () => {
+    handlePayment()
 }
 </script>
 
@@ -761,6 +795,66 @@ const handlePayment = async (isRetry = false) => {
     min-width: 0;
 }
 
+.checkout-email-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.checkout-email-form label {
+    color: #0f172a;
+    font-size: 0.92rem;
+    font-weight: 800;
+}
+
+.checkout-email-row {
+    display: flex;
+    gap: 10px;
+}
+
+.checkout-email-row input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    border-radius: 12px;
+    background: #fff;
+    color: #0f172a;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.checkout-email-row input:focus {
+    border-color: rgba(15, 107, 104, 0.62);
+    box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.12);
+}
+
+.checkout-email-row button {
+    min-height: 44px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 12px;
+    background: #0f6b68;
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.checkout-email-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.checkout-email-note {
+    margin: 0;
+    color: #667085;
+    font-size: 0.85rem;
+    line-height: 1.45;
+}
+
 .paddle-inline-checkout {
     width: 100%;
     min-height: 620px;
@@ -1059,6 +1153,14 @@ const handlePayment = async (isRetry = false) => {
 
 /* 手机端优化 */
 @media (max-width: 480px) {
+    .checkout-email-row {
+        flex-direction: column;
+    }
+
+    .checkout-email-row button {
+        width: 100%;
+    }
+
     .checkout {
         padding: 16px 16px 32px 16px;
         min-height: 100vh;

@@ -144,7 +144,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Check,
   CreditCard,
@@ -199,9 +199,31 @@ const toggleCart = () => {
   })
 }
 
-const handleBuyNow = () => {
+const normalizeEmail = (email: string) => email.trim().toLowerCase()
+
+const promptCheckoutEmail = async () => {
+  const accountEmail = userStore.userInfo?.email
+  if (accountEmail) return normalizeEmail(accountEmail)
+  const result = await ElMessageBox.prompt(t('cart.emailNote'), t('cart.checkoutEmail'), {
+    confirmButtonText: t('cart.continue'),
+    cancelButtonText: t('subscriptionManagement.cancel'),
+    inputType: 'email',
+    inputPlaceholder: t('cart.emailPlaceholder'),
+    inputPattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    inputErrorMessage: t('cart.error.emailInvalid'),
+  })
+  return normalizeEmail(String(result.value || ''))
+}
+
+const handleBuyNow = async () => {
   if (!product.value?.appId) return
-  checkout([{ appId: product.value.appId, quantity: 1 }])
+  try {
+    const email = await promptCheckoutEmail()
+    if (!email) return
+    checkout([{ appId: product.value.appId, quantity: 1 }], email)
+  } catch (error) {
+    // User cancelled the prompt.
+  }
 }
 
 const handleDownload = () => {

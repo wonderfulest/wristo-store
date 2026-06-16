@@ -32,8 +32,8 @@
                 <span v-if="isPurchased(item.appId)" class="purchased-badge">{{ t('cart.purchased') }}</span>
               </span>
               <span>${{ item.price.toFixed(2) }}</span>
-              <span v-if="purchaseConflict(item.appId)?.message" class="purchase-warning">
-                {{ purchaseConflict(item.appId)?.message }}
+              <span v-if="purchaseWarning(item.appId)" class="purchase-warning">
+                {{ purchaseWarning(item.appId) }}
               </span>
             </span>
           </button>
@@ -75,9 +75,19 @@
           <strong>{{ formatMoney(cartEstimatedTotal) }}</strong>
         </div>
         <div class="email-lock">
-          <span>{{ t('cart.checkoutEmail') }}</span>
-          <strong>{{ checkoutEmail }}</strong>
+          <label for="cart-checkout-email">{{ t('cart.checkoutEmail') }}</label>
+          <strong v-if="userStore.userInfo?.email">{{ checkoutEmail }}</strong>
+          <input
+            v-else
+            id="cart-checkout-email"
+            v-model="checkoutEmailInput"
+            type="email"
+            autocomplete="email"
+            :placeholder="t('cart.emailPlaceholder')"
+            :aria-invalid="Boolean(checkoutEmailError)"
+          />
         </div>
+        <p v-if="checkoutEmailError" class="cart-email-error" role="alert">{{ checkoutEmailError }}</p>
         <button type="button" class="checkout-btn" :disabled="loading || checking || refreshingCart" @click="handleCheckout">
           <el-icon><CreditCard /></el-icon>
           <span>{{ checkoutButtonText }}</span>
@@ -118,13 +128,15 @@ const checking = ref(false)
 const refreshingCart = ref(false)
 const inlineCheckoutVisible = ref(false)
 const inlineCheckoutKey = ref(0)
+const checkoutEmailInput = ref('')
+const checkoutEmailError = ref('')
 const purchaseConflicts = ref<Record<number, CartPurchaseCheckItemVO>>({})
 const checkoutFrameId = 'cart-paddle-checkout'
 const checkoutFrameTarget = 'cart-paddle-checkout-frame'
 let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
-const checkoutEmail = computed(() => userStore.userInfo?.email || t('cart.checkoutEmailFallback'))
+const checkoutEmail = computed(() => normalizeEmail(userStore.userInfo?.email || checkoutEmailInput.value))
 const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
 const discountEligibleCount = computed(() => cartStore.items.filter((item) => Number(item.price || 0) > 0).length)
 const cartDiscountRate = computed(() => {
@@ -162,6 +174,25 @@ const cartCheckoutSignature = computed(() => cartStore.items.map((item) => `${it
 
 const formatMoney = (amount: number) => `$${amount.toFixed(2)}`
 
+const normalizeEmail = (email: string) => email.trim().toLowerCase()
+
+const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+
+const resolveCheckoutEmail = () => {
+  const email = normalizeEmail(userStore.userInfo?.email || checkoutEmailInput.value)
+  checkoutEmailInput.value = email
+  if (!email) {
+    checkoutEmailError.value = t('cart.error.emailRequired')
+    return ''
+  }
+  if (!isValidEmail(email)) {
+    checkoutEmailError.value = t('cart.error.emailInvalid')
+    return ''
+  }
+  checkoutEmailError.value = ''
+  return email
+}
+
 const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 
 const goHome = () => {
@@ -179,6 +210,17 @@ const goRecommendedSearch = () => {
 const purchaseConflict = (appId: number) => purchaseConflicts.value[appId]
 
 const isPurchased = (appId: number) => Boolean(purchaseConflict(appId)?.purchased)
+
+const purchaseWarning = (appId: number) => {
+  const conflict = purchaseConflict(appId)
+  if (!conflict?.purchased) return ''
+  if (conflict.purchaseType === 'bundle') {
+    return conflict.bundleName
+      ? t('cart.purchasedBundleMessage', { bundleName: conflict.bundleName })
+      : t('cart.purchasedBundleFallbackMessage')
+  }
+  return t('cart.purchasedDirectMessage')
+}
 
 const removeItem = (appId: number) => {
   cartStore.remove(appId)
@@ -212,6 +254,8 @@ const refreshCartItems = async () => {
 
 const openInlineCheckout = async () => {
   if (rebuildingInlineCheckout) return
+  const email = resolveCheckoutEmail()
+  if (!email) return
   rebuildingInlineCheckout = true
 
   try {
@@ -220,12 +264,12 @@ const openInlineCheckout = async () => {
     if (!items.length) {
       closeCheckout()
       inlineCheckoutVisible.value = false
-      await checkout(items)
+      await checkout(items, email)
       return
     }
     checking.value = true
     try {
-      const checkResult = await checkCartPurchases({ items })
+      const checkResult = await checkCartPurchases({ items, email })
       purchaseConflicts.value = Object.fromEntries(
         (checkResult.items || [])
           .filter((item) => item.purchased)
@@ -234,7 +278,7 @@ const openInlineCheckout = async () => {
       if (checkResult.hasPurchasedItems) {
         closeCheckout()
         inlineCheckoutVisible.value = false
-        ElMessage.warning('Some items are already purchased. Please remove them before checkout.')
+        ElMessage.warning(t('cart.error.containsPurchasedItems'))
         return
       }
     } finally {
@@ -245,7 +289,7 @@ const openInlineCheckout = async () => {
     inlineCheckoutVisible.value = true
     inlineCheckoutKey.value += 1
     await nextTick()
-    await checkout(items, () => cartStore.clear(), {
+    await checkout(items, email, () => cartStore.clear(), {
       displayMode: 'inline',
       frameTarget: checkoutFrameTarget,
       frameInitialHeight: 620,
@@ -259,7 +303,7 @@ const openInlineCheckout = async () => {
 const handleCheckout = async () => {
   const items = cartCheckoutItems()
   if (!items.length) {
-    checkout(items)
+    checkout(items, '')
     return
   }
   await openInlineCheckout()
@@ -594,6 +638,9 @@ h1 {
 }
 
 .email-lock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   padding: 12px;
   border-radius: var(--radius-sm);
   background: var(--color-brand-soft);
@@ -601,11 +648,39 @@ h1 {
   font-size: 0.82rem;
 }
 
+.email-lock label {
+  font-weight: 800;
+}
+
 .email-lock strong {
-  display: block;
-  margin-top: 4px;
   color: var(--color-ink);
   overflow-wrap: anywhere;
+}
+
+.email-lock input {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid rgba(15, 23, 42, 0.14);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--color-ink);
+  font-size: 0.92rem;
+  outline: none;
+}
+
+.email-lock input:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.14);
+}
+
+.cart-email-error {
+  margin: -4px 0 0;
+  color: #dc2626;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .checkout-btn {

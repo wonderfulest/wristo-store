@@ -2,8 +2,10 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import { BizErrorCode } from '@/constant/errorCode'
 import { useUserStore } from '@/store/user'
+import { useLocaleStore } from '@/store/locale'
 import type { ApiResponse } from '@/types'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
+import { translate } from '@/i18n'
 
 const instance = axios.create({
   baseURL: '/api', // 走 vite 代理
@@ -47,6 +49,13 @@ const ErrorCodesWithoutMessage: number[] = [
   BizErrorCode.INVALID_PAYMENT_CODE,
   BizErrorCode.ALREADY_PAID,
 ]
+
+const localizeApiMessage = (message: string | undefined, fallback: string) => {
+  if (!message) return fallback
+  const localeStore = useLocaleStore()
+  return translate(message, localeStore.currentLocale) || message
+}
+
 // 响应拦截器
 instance.interceptors.response.use(
   (response) => {
@@ -56,7 +65,7 @@ instance.interceptors.response.use(
       return res.data
     } else {
       if (!ErrorCodesWithoutMessage.includes(res.code)) {
-        ElMessage.error(res.msg || '请求失败')
+        ElMessage.error(localizeApiMessage(res.msg, 'Request failed'))
       }
       // 当存在异常时，返回 ApiResponse
       return Promise.reject(res)
@@ -69,7 +78,7 @@ instance.interceptors.response.use(
     if (status === 401 || status === 403) {
       if (isPublicApi) {
         // 对公开接口不做登录重定向，仅提示错误
-        const msg = error.response?.data?.msg || 'Permission denied'
+        const msg = localizeApiMessage(error.response?.data?.msg, 'Permission denied')
         ElMessage.error(msg)
       } else {
         const userStore = useUserStore()
@@ -79,7 +88,7 @@ instance.interceptors.response.use(
         redirectToSsoLogin('store', 1000)
       }
     } else {
-      const msg = error.response?.data?.msg || '网络错误，请稍后重试'
+      const msg = localizeApiMessage(error.response?.data?.msg, 'Network error. Please try again later.')
       ElMessage.error(msg)
     }
     return Promise.reject(error)
