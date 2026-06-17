@@ -39,7 +39,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -112,7 +112,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -165,7 +165,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -388,7 +388,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -441,7 +441,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -526,7 +526,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -571,7 +571,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -701,7 +701,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -754,7 +754,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
@@ -807,7 +807,7 @@ export const legacyFaqGuidePosts = [
       "id": 300,
       "username": "Wristo",
       "nickname": "Wristo",
-      "avatar": "https://cdn.wristo.io/avatar/bbf6062a-cc05-4025-a023-be6e9bc3943d.png",
+      "avatar": "/logo.svg",
       "email": "289869876@qq.com"
     },
     "category": {
