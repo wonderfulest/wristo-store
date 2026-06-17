@@ -38,12 +38,13 @@
               <button
                 class="hot-cart-toggle"
                 type="button"
-                :class="{ active: cartStore.hasItem(product.appId) }"
-                :title="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
-                :aria-label="cartStore.hasItem(product.appId) ? 'Remove from cart' : 'Add to cart'"
+                :class="{ active: isProductInCart(product) }"
+                :title="isProductInCart(product) ? t('cart.removeFromCart') : t('cart.addToCart')"
+                :aria-label="isProductInCart(product) ? t('cart.removeFromCart') : t('cart.addToCart')"
                 @click.stop="toggleCart(product)"
               >
                 <Icon icon="solar:cart-3-line-duotone" width="19" height="19" aria-hidden="true" />
+                <span class="hot-cart-state" aria-hidden="true">{{ isProductInCart(product) ? '-' : '+' }}</span>
               </button>
             </div>
           </div>
@@ -86,9 +87,11 @@ const handleProductClick = (product: ProductBaseVO) => {
   emit('product-click', product)
 }
 
+const isProductInCart = (product: ProductBaseVO) => cartStore.hasItem(product?.appId)
+
 const toggleCart = (product: ProductBaseVO) => {
   if (!product?.appId) return
-  const removing = cartStore.hasItem(product.appId)
+  const removing = isProductInCart(product)
   cartStore.toggle(product)
   if (removing) {
     ElMessage.success(t('cart.removed'))
@@ -345,6 +348,7 @@ const toggleCart = (product: ProductBaseVO) => {
 }
 
 .hot-cart-toggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -358,6 +362,24 @@ const toggleCart = (product: ProductBaseVO) => {
   color: var(--color-muted);
   box-shadow: var(--shadow-sm);
   transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.hot-cart-state {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: #fff;
+  border: 2px solid #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1;
 }
 
 .hot-cart-toggle:hover,
