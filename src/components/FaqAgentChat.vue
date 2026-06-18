@@ -9,7 +9,7 @@
         :title="t('agent.open')"
         @click="openAgent"
       >
-        <Icon icon="solar:chat-round-dots-line-duotone" width="24" height="24" aria-hidden="true" />
+        <BaseIcon name="chat" :size="24" />
       </button>
 
       <div v-else class="agent-panel" role="dialog" :aria-label="t('agent.title')">
@@ -18,8 +18,8 @@
             <div class="agent-title">{{ t('agent.title') }}</div>
             <div class="agent-subtitle">{{ t('agent.subtitle') }}</div>
           </div>
-          <button class="icon-button" type="button" :aria-label="t('agent.close')" @click="isOpen = false">
-            <Icon icon="solar:close-circle-line-duotone" width="22" height="22" aria-hidden="true" />
+          <button class="icon-button" type="button" :aria-label="t('agent.close')" :title="t('agent.close')" @click.stop.prevent="closeAgent">
+            <BaseIcon name="close" :size="22" />
           </button>
         </header>
 
@@ -42,7 +42,7 @@
                     <p>{{ result.answer }}</p>
                     <RouterLink v-if="result.url" class="source-link" :to="localizedResultPath(result.url)">
                       {{ t('agent.viewSource') }}
-                      <Icon icon="solar:arrow-right-up-line-duotone" width="15" height="15" aria-hidden="true" />
+                      <BaseIcon name="external" :size="15" />
                     </RouterLink>
                   </article>
                 </template>
@@ -51,7 +51,7 @@
                   <p>{{ t('agent.noAnswerBody') }}</p>
                   <RouterLink class="source-link" :to="localizedResultPath('/contact')">
                     {{ t('agent.contactSupport') }}
-                    <Icon icon="solar:arrow-right-up-line-duotone" width="15" height="15" aria-hidden="true" />
+                    <BaseIcon name="external" :size="15" />
                   </RouterLink>
                 </template>
               </div>
@@ -69,7 +69,7 @@
             autocomplete="off"
           />
           <button class="send-button" type="submit" :disabled="!canSubmit" :aria-label="t('agent.send')">
-            <Icon icon="solar:plain-2-line-duotone" width="20" height="20" aria-hidden="true" />
+            <BaseIcon name="send" :size="20" />
           </button>
         </form>
       </div>
@@ -78,9 +78,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
-import { Icon } from '@iconify/vue'
+import BaseIcon from '@/components/BaseIcon.vue'
 import { useI18n } from '@/i18n'
 import { addLocaleToPath, DEFAULT_LOCALE, stripLocaleFromPath, useLocaleStore } from '@/store/locale'
 import { searchFaqAgent, type FaqAgentResult, type FaqAgentSourceType } from '@/utils/faqAgentSearch'
@@ -104,6 +104,16 @@ const canSubmit = computed(() => query.value.trim().length >= 2)
 function openAgent() {
   isOpen.value = true
   nextTick(scrollToBottom)
+}
+
+function closeAgent() {
+  isOpen.value = false
+}
+
+function handleKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape' && isOpen.value) {
+    closeAgent()
+  }
 }
 
 function submitQuery() {
@@ -134,6 +144,14 @@ function scrollToBottom() {
   if (!messagesEl.value) return
   messagesEl.value.scrollTop = messagesEl.value.scrollHeight
 }
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <style scoped>
@@ -162,8 +180,8 @@ function scrollToBottom() {
 
 .agent-launcher {
   pointer-events: auto;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 999px;
   color: #fff;
   background: var(--color-brand);
@@ -174,6 +192,11 @@ function scrollToBottom() {
 .agent-launcher:hover {
   transform: translateY(-2px);
   box-shadow: 0 22px 46px rgba(15, 107, 104, 0.3), 0 12px 24px rgba(17, 24, 39, 0.18);
+}
+
+.agent-launcher:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.24);
+  outline-offset: 4px;
 }
 
 .agent-panel {
@@ -215,16 +238,29 @@ function scrollToBottom() {
 
 .icon-button {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
-  color: var(--color-text-secondary);
-  background: rgba(255, 255, 255, 0.74);
+  color: var(--color-brand-strong);
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid rgba(15, 107, 104, 0.16);
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .icon-button:hover {
-  color: var(--color-brand-strong);
-  background: rgba(15, 107, 104, 0.08);
+  color: #0b4f4c;
+  background: #ecfdf9;
+  border-color: rgba(15, 107, 104, 0.36);
+  box-shadow: 0 8px 18px rgba(15, 107, 104, 0.12);
+}
+
+.icon-button:active {
+  background: #d8f8f0;
+}
+
+.icon-button:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.22);
+  outline-offset: 3px;
 }
 
 .agent-messages {
@@ -320,7 +356,7 @@ function scrollToBottom() {
 
 .agent-form {
   display: grid;
-  grid-template-columns: 1fr 42px;
+  grid-template-columns: 1fr 44px;
   gap: 8px;
   padding: 12px;
   border-top: 1px solid rgba(15, 107, 104, 0.12);
@@ -330,7 +366,7 @@ function scrollToBottom() {
 .agent-input {
   min-width: 0;
   width: 100%;
-  height: 42px;
+  height: 44px;
   border: 1px solid rgba(17, 24, 39, 0.14);
   border-radius: 8px;
   padding: 0 12px;
@@ -345,16 +381,34 @@ function scrollToBottom() {
 }
 
 .send-button {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   color: #fff;
   background: var(--color-brand);
+  box-shadow: 0 8px 16px rgba(15, 107, 104, 0.18);
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.send-button:hover:not(:disabled) {
+  background: var(--color-brand-strong);
+  box-shadow: 0 10px 20px rgba(15, 107, 104, 0.22);
+  transform: translateY(-1px);
+}
+
+.send-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.send-button:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.22);
+  outline-offset: 3px;
 }
 
 .send-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+  box-shadow: none;
 }
 
 @media (min-width: 768px) {
@@ -370,6 +424,11 @@ function scrollToBottom() {
 }
 
 @media (max-width: 520px) {
+  .agent-launcher {
+    width: 44px;
+    height: 44px;
+  }
+
   .faq-agent.open {
     right: 8px;
     bottom: 8px;

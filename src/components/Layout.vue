@@ -8,8 +8,8 @@
       <slot />
     </main>
     <FloatingActions
-      v-if="showFloatingActions"
       always-visible
+      :show-page-actions="showFloatingActions"
     />
     <FaqAgentChat />
     <Footer />

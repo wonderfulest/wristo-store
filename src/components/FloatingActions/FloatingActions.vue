@@ -1,8 +1,18 @@
 <template>
   <Teleport to="body">
     <div class="floating-actions" v-show="visible">
+      <a
+        class="fab-btn fab-youtube"
+        href="https://www.youtube.com/@wristoio"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Wristo on YouTube"
+        title="Wristo on YouTube"
+      >
+        <Icon class="fab-icon fab-icon-solid" icon="mdi:youtube" width="22" height="22" aria-hidden="true" />
+      </a>
       <button
-        v-if="cartStore.count"
+        v-if="showPageActions && cartStore.count"
         class="fab-btn fab-cart"
         type="button"
         @click="openCart"
@@ -22,6 +32,7 @@
         </svg>
       </button>
       <button
+        v-if="showPageActions && scrolled"
         class="fab-btn fab-top"
         type="button"
         @click="handleClick"
@@ -46,6 +57,7 @@
 
 <script setup lang="ts">
 import { useScrollVisibility } from './useScrollVisibility'
+import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
@@ -55,14 +67,16 @@ const props = withDefaults(
   defineProps<{
     threshold?: number
     alwaysVisible?: boolean
+    showPageActions?: boolean
   }>(),
   {
     threshold: 200,
-    alwaysVisible: false
+    alwaysVisible: false,
+    showPageActions: true
   }
 )
 
-const { visible, scrollToTop } = useScrollVisibility(props.threshold, {
+const { visible, scrolled, scrollToTop } = useScrollVisibility(props.threshold, {
   alwaysVisible: props.alwaysVisible
 })
 const router = useRouter()
@@ -164,6 +178,13 @@ const handleClick = () => {
   stroke-linejoin: round;
 }
 
+.fab-icon-solid {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  stroke: none;
+}
+
 .fab-cart {
   background: var(--color-brand);
   border-color: rgba(15, 107, 104, 0.42);
@@ -173,6 +194,24 @@ const handleClick = () => {
 .fab-cart:hover {
   background: var(--color-brand-strong);
   color: #fff;
+}
+
+.fab-youtube:hover {
+  border-color: rgba(190, 18, 60, 0.45);
+  background: #d6002f;
+  color: #fff;
+  box-shadow:
+    0 20px 44px rgba(17, 24, 39, 0.16),
+    0 12px 28px rgba(255, 0, 51, 0.3);
+}
+
+.fab-youtube {
+  color: #fff;
+  border-color: rgba(255, 0, 51, 0.34);
+  background: #ff0033;
+  box-shadow:
+    0 16px 34px rgba(17, 24, 39, 0.12),
+    0 8px 22px rgba(255, 0, 51, 0.18);
 }
 
 .fab-count {
@@ -197,19 +236,27 @@ const handleClick = () => {
 @media (min-width: 768px) {
   .floating-actions {
     right: 24px;
-    bottom: 48px;
+    bottom: 172px;
   }
 }
 
 @media (max-width: 767px) {
   .floating-actions {
     right: 14px;
-    bottom: calc(176px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(172px + env(safe-area-inset-bottom, 0px));
+    flex-direction: row;
+    gap: 8px;
   }
 
   .fab-btn {
     width: 44px;
     height: 44px;
+  }
+}
+
+@media (max-width: 520px) {
+  .floating-actions {
+    bottom: calc(168px + env(safe-area-inset-bottom, 0px));
   }
 }
 </style>

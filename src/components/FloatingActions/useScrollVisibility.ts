@@ -7,6 +7,7 @@ export function useScrollVisibility(
   }
 ) {
   const visible = ref(false)
+  const scrolled = ref(false)
   let scrollTarget: Window | HTMLElement | null = window
 
   const detectScrollTarget = () => {
@@ -46,7 +47,8 @@ export function useScrollVisibility(
   }
 
   const onScroll = () => {
-    visible.value = getCurrentScrollY() > threshold
+    scrolled.value = getCurrentScrollY() > threshold
+    visible.value = options?.alwaysVisible ? true : scrolled.value
   }
 
   onMounted(() => {
@@ -55,14 +57,12 @@ export function useScrollVisibility(
     if (options?.alwaysVisible) {
       console.log('[FloatingActions] alwaysVisible mode enabled')
       visible.value = true
-      return
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
   })
 
   onUnmounted(() => {
-    if (options?.alwaysVisible) return
     window.removeEventListener('scroll', onScroll)
   })
 
@@ -113,6 +113,7 @@ export function useScrollVisibility(
 
   return {
     visible,
+    scrolled,
     scrollToTop
   }
 }
