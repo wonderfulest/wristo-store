@@ -367,29 +367,32 @@ function getRowExamples(row: number) {
 
 <style scoped>
 .examples-card {
-  position: fixed;
-  inset: 0 auto auto 0;
-  top: 72px;
+  position: absolute;
+  inset: 0;
   width: 100%;
   pointer-events: none;
-  z-index: 20;
+  z-index: 0;
+  overflow: hidden;
 }
 
 .examples-card::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0));
+  background:
+    linear-gradient(90deg, rgba(251, 253, 252, 0.95), rgba(251, 253, 252, 0) 16%, rgba(251, 253, 252, 0) 84%, rgba(251, 253, 252, 0.95)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.62), rgba(238, 245, 243, 0));
   pointer-events: none;
+  z-index: 1;
 }
 
 .barrage-layer {
   position: relative;
   margin: 0 auto;
-  max-width: 1100px;
-  height: 150px;
+  max-width: var(--container);
+  height: 100%;
   overflow: hidden;
-  padding: 0 16px;
+  padding: 0 18px;
 }
 
 .barrage-row {
@@ -401,36 +404,43 @@ function getRowExamples(row: number) {
   gap: 10px;
   transform: translateX(100%);
   animation: barrage-row-move var(--duration) linear infinite;
+  animation-delay: calc(var(--row-index) * -5.5s);
 }
 
 .barrage-item {
-  padding: 6px 12px;
+  min-height: 42px;
+  padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid #e2e8f0;
-  background: linear-gradient(145deg, #ffffff, #f8fafc);
-  box-shadow: 0 4px 10px rgba(148, 163, 184, 0.35);
+  border: 1px solid rgba(17, 24, 39, 0.09);
+  background: linear-gradient(145deg, #ffffff, rgba(238, 245, 243, 0.82));
+  box-shadow: var(--shadow-sm);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
   pointer-events: auto;
   white-space: nowrap;
+  color: var(--color-ink);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease, background 180ms ease;
 }
 
-.barrage-item:hover {
-  box-shadow: 0 8px 18px rgba(59, 130, 246, 0.4);
-  border-color: #3b82f6;
+.barrage-item:hover,
+.barrage-item:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(15, 107, 104, 0.14);
+  border-color: rgba(15, 107, 104, 0.3);
+  background: #ffffff;
 }
 
 .barrage-label {
   font-size: 0.78rem;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 800;
+  color: var(--color-brand-strong);
 }
 
 .barrage-text {
   font-size: 0.78rem;
-  color: #4b5563;
+  color: var(--color-muted);
 }
 
 @keyframes barrage-row-move {
@@ -444,7 +454,16 @@ function getRowExamples(row: number) {
 
 @media (max-width: 768px) {
   .barrage-layer {
-    height: 160px;
+    padding: 0 12px;
+  }
+
+  .barrage-item {
+    max-width: 84vw;
+  }
+
+  .barrage-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>

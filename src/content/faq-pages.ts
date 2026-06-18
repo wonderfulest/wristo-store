@@ -75,7 +75,7 @@ const curatedFaqGuidePosts = [
 <ul>
   <li><strong>You want to try a watch face:</strong> install it from Garmin Connect IQ, sync the watch, then open the watch face on the device.</li>
   <li><strong>Your watch shows a six-digit code:</strong> open <a href="https://wristo.io/code">wristo.io/code</a>, enter the purchase email and the code, then sync Garmin Connect.</li>
-  <li><strong>You already paid but see a payment prompt:</strong> use <a href="https://wristo.io/unlock">wristo.io/unlock</a> with the original purchase email and the code shown on the watch.</li>
+  <li><strong>You already paid but see a payment prompt:</strong> sign in on <a href="https://www.wristo.io/">wristo.io</a> with the purchase email, then open <a href="https://www.wristo.io/en/code">wristo.io/en/code</a>. You can also use <a href="https://www.wristo.io/already-purchased">already purchased</a> without signing in by entering the purchase email and the six-digit code shown on the watch.</li>
   <li><strong>You want a refund or purchase record:</strong> check your history first, then contact support if the order is still unclear.</li>
   <li><strong>The watch face crashes or shows IQ:</strong> update firmware, reinstall the face, and send the Connect IQ log if it continues.</li>
 </ul>
@@ -98,7 +98,7 @@ const curatedFaqGuidePosts = [
 <ul>
   <li><strong>想安装或试用表盘：</strong>先在 Wristo 找到表盘，跳转 Garmin Connect IQ 安装，然后保持手机和手表同步。</li>
   <li><strong>手表上出现 6 位激活码：</strong>打开 <a href="https://wristo.io/code">wristo.io/code</a>，输入购买邮箱和手表上的 6 位码，完成后同步 Garmin Connect。</li>
-  <li><strong>已经付费但又提示付款：</strong>通常是重装、换设备或同步识别失败。打开 <a href="https://wristo.io/unlock">wristo.io/unlock</a>，用原购买邮箱和手表上的代码恢复授权。</li>
+  <li><strong>已经付费但又提示付款：</strong>先用购买邮箱登录 <a href="https://www.wristo.io/">wristo.io</a>，再打开 <a href="https://www.wristo.io/en/code">wristo.io/en/code</a> 激活；也可以在未登录状态打开 <a href="https://www.wristo.io/already-purchased">already purchased</a>，输入购买邮箱和手表上的 6 位数字恢复授权。</li>
   <li><strong>要找购买记录或申请退款：</strong>先去购买记录页面确认订单，再按退款规则联系支持。</li>
   <li><strong>表盘显示 IQ 或无法运行：</strong>优先更新固件、重装表盘、保持同步；仍无效时发送日志给支持团队。</li>
 </ul>
@@ -166,11 +166,20 @@ const curatedFaqGuidePosts = [
       'purchase-refund-history',
       'Purchases, Duplicate Charges, Refunds, and History',
       'What to do after payment, duplicate prompts, refunds, or missing purchase records.',
-      `<h2>I already paid. Why do I see payment again?</h2>
-<p>This usually happens after reinstalling a watch face, changing devices, syncing from a new phone, or Garmin recognizing the license state again. Do not pay again first; open <a href="https://wristo.io/unlock">wristo.io/unlock</a>.</p>
+      `<h2>I already bought Wristo Premium. Why do watch faces still ask for payment?</h2>
+<p>Garmin privacy protection can prevent a watch face app from reading a stable unique device ID. Because of that, Wristo may not be able to activate the device automatically inside the watch face. Premium access is restored through the purchase email instead.</p>
+<h2>Activate Premium with your purchase email</h2>
 <ol>
+  <li>Sign in on <a href="https://www.wristo.io/">wristo.io</a> with the email used for purchase.</li>
+  <li>Open <a href="https://www.wristo.io/en/code">wristo.io/en/code</a>.</li>
+  <li>Enter the six-digit code shown on your Garmin watch face and submit.</li>
+  <li>Open Garmin Connect and sync the watch. The watch face should refresh after sync.</li>
+</ol>
+<h2>Activate without signing in</h2>
+<ol>
+  <li>Open <a href="https://www.wristo.io/already-purchased">wristo.io/already-purchased</a>.</li>
   <li>Enter the original purchase email.</li>
-  <li>Enter the code currently shown on the watch face.</li>
+  <li>Enter the six-digit code currently shown on the watch face.</li>
   <li>Submit, then sync Garmin Connect.</li>
 </ol>
 <h2>Is payment recurring?</h2>
@@ -185,11 +194,20 @@ const curatedFaqGuidePosts = [
       'purchase-refund-history',
       '购买、重复收费、退款与购买记录',
       '已经付款、重复提示付款、查不到订单或想退款时的处理方式。',
-      `<h2>已经付费，为什么还提示付款？</h2>
-<p>常见原因是卸载重装、更换设备、换手机同步，或 Garmin 侧重新识别了表盘授权状态。这种情况不要重复付款，先打开 <a href="https://wristo.io/unlock">wristo.io/unlock</a>。</p>
+      `<h2>已经购买 Wristo Premium，为什么表盘还提示付款？</h2>
+<p>这是因为 Garmin 的隐私保护机制可能不允许表盘应用读取稳定的设备唯一 ID，所以 Wristo 无法总是在表盘内部直接识别并激活你的设备。你的权益会通过购买邮箱恢复。</p>
+<h2>通过购买邮箱激活 Premium</h2>
 <ol>
+  <li>在 <a href="https://www.wristo.io/">wristo.io</a> 使用购买邮箱登录。</li>
+  <li>打开 <a href="https://www.wristo.io/en/code">wristo.io/en/code</a>。</li>
+  <li>输入 Garmin 手表表盘上显示的 6 位数字并提交。</li>
+  <li>打开 Garmin Connect 同步手表，表盘通常会在同步后刷新。</li>
+</ol>
+<h2>未登录状态如何激活？</h2>
+<ol>
+  <li>打开 <a href="https://www.wristo.io/already-purchased">wristo.io/already-purchased</a>。</li>
   <li>输入原购买邮箱。</li>
-  <li>输入当前手表表盘上显示的代码。</li>
+  <li>输入当前手表表盘上显示的 6 位数字。</li>
   <li>提交后同步 Garmin Connect。</li>
 </ol>
 <h2>Wristo 是一次性付款还是订阅？</h2>

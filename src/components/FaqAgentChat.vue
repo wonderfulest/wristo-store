@@ -25,7 +25,20 @@
 
         <div ref="messagesEl" class="agent-messages">
           <div class="message assistant">
-            <div class="bubble">{{ t('agent.greeting') }}</div>
+            <div class="bubble intro-bubble">
+              <p>{{ t('agent.greeting') }}</p>
+              <div class="suggestion-list" :aria-label="t('agent.suggestionsLabel')">
+                <button
+                  v-for="suggestion in suggestedQuestions"
+                  :key="suggestion"
+                  class="suggestion-chip"
+                  type="button"
+                  @click="submitSuggestion(t(suggestion))"
+                >
+                  {{ t(suggestion) }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <template v-for="message in messages" :key="message.id">
@@ -100,6 +113,12 @@ const messagesEl = ref<HTMLElement | null>(null)
 let nextMessageId = 1
 
 const canSubmit = computed(() => query.value.trim().length >= 2)
+const suggestedQuestions = [
+  'agent.suggestion.premiumPayment',
+  'agent.suggestion.activationCode',
+  'agent.suggestion.refund',
+  'agent.suggestion.iqError',
+] as const
 
 function openAgent() {
   isOpen.value = true
@@ -118,6 +137,15 @@ function handleKeydown(event: KeyboardEvent) {
 
 function submitQuery() {
   const text = query.value.trim()
+  submitText(text)
+  query.value = ''
+}
+
+function submitSuggestion(text: string) {
+  submitText(text)
+}
+
+function submitText(text: string) {
   if (text.length < 2) return
 
   messages.value.push({
@@ -125,7 +153,6 @@ function submitQuery() {
     query: text,
     results: searchFaqAgent(text, localeStore.currentLocale),
   })
-  query.value = ''
   nextTick(scrollToBottom)
 }
 
@@ -286,6 +313,44 @@ onBeforeUnmount(() => {
   line-height: 1.5;
   background: #fff;
   border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.intro-bubble {
+  max-width: 100%;
+}
+
+.intro-bubble p {
+  margin: 0;
+}
+
+.suggestion-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.suggestion-chip {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid rgba(15, 107, 104, 0.16);
+  border-radius: 999px;
+  color: var(--color-brand-strong);
+  background: rgba(240, 253, 250, 0.86);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.suggestion-chip:hover {
+  border-color: rgba(15, 107, 104, 0.36);
+  background: #ecfdf9;
+}
+
+.suggestion-chip:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.18);
+  outline-offset: 2px;
 }
 
 .message.user .bubble {

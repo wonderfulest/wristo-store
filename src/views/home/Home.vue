@@ -29,6 +29,23 @@
       @product-click="goToProduct"
       @more-click="goToTopApps"
     />
+
+    <section class="home-faq-section" aria-labelledby="home-faq-title">
+      <button class="home-faq-card" type="button" @click="goToPremiumFaq">
+        <span class="home-faq-icon" aria-hidden="true">
+          <Icon icon="solar:question-circle-line-duotone" width="30" height="30" />
+        </span>
+        <span class="home-faq-copy">
+          <span class="home-faq-eyebrow">{{ t('home.faqEyebrow') }}</span>
+          <span id="home-faq-title" class="home-faq-title">{{ t('home.faqPremiumTitle') }}</span>
+          <span class="home-faq-desc">{{ t('home.faqPremiumDesc') }}</span>
+        </span>
+        <span class="home-faq-action">
+          {{ t('home.faqCta') }}
+          <Icon icon="mdi:arrow-right" width="20" height="20" aria-hidden="true" />
+        </span>
+      </button>
+    </section>
   </div>
   <section class="bundle-subscription-section" aria-labelledby="bundle-subscription-title">
     <button
@@ -124,6 +141,10 @@ const goToTopApps = () => {
 const goToSeries = (series: Series) => {
   router.push(addLocaleToPath(`/categories/${series.slug}`, localeStore.currentLocale));
 };
+
+const goToPremiumFaq = () => {
+  router.push(addLocaleToPath('/faq/purchase-refund-history', localeStore.currentLocale));
+};
 </script>
 
 <style scoped>
@@ -137,6 +158,84 @@ const goToSeries = (series: Series) => {
 .bundle-subscription-section {
   width: min(var(--container), calc(100% - 32px));
   margin: 32px auto 64px;
+}
+
+.home-faq-section {
+  width: min(var(--container), calc(100% - 32px));
+  margin: 36px auto 0;
+}
+
+.home-faq-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 22px 24px;
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  background: #ffffff;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+
+.home-faq-card:hover {
+  border-color: rgba(15, 107, 104, 0.28);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.home-faq-icon {
+  width: 54px;
+  height: 54px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--color-brand-strong);
+  background: rgba(15, 107, 104, 0.09);
+}
+
+.home-faq-copy {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.home-faq-eyebrow {
+  color: var(--color-brand-strong);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.home-faq-title {
+  color: var(--color-ink);
+  font-size: 1.2rem;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+.home-faq-desc {
+  color: var(--color-muted);
+  font-size: 0.96rem;
+  line-height: 1.55;
+}
+
+.home-faq-action {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: var(--radius-sm);
+  color: #ffffff;
+  background: var(--color-brand);
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .bundle-subscription-card {
@@ -265,6 +364,21 @@ const goToSeries = (series: Series) => {
   .bundle-subscription-section {
     width: calc(100% - 24px);
     margin: 24px auto 40px;
+  }
+
+  .home-faq-section {
+    width: calc(100% - 24px);
+    margin-top: 24px;
+  }
+
+  .home-faq-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 18px;
+  }
+
+  .home-faq-action {
+    grid-column: 1 / -1;
+    width: 100%;
   }
 
   .bundle-subscription-card {
