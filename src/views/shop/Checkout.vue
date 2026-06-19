@@ -1,5 +1,6 @@
 <template>
     <div class="checkout">
+        <h2 class="title">{{ t('checkout.title') }}</h2>
         <div class="checkout-main">
             <div :class="['checkout-left', { 'checkout-left-bundle': isBundle }]">
                 <template v-if="isBundle">
@@ -33,7 +34,6 @@
                         :is-selected="true"
                         :currency-code="currencyCode"
                         :show-button="false"
-                        :creator-name="productCreatorName"
                         button-text="Proceed to Checkout"
                         @buy="handlePayment"
                         @select="() => {}"
@@ -41,33 +41,61 @@
                 </template>
             </div>
             <div class="checkout-right">
-                <form v-if="emailStepVisible" class="checkout-email-form" @submit.prevent="confirmEmailAndPay">
-                    <label for="checkout-email">{{ t('cart.checkoutEmail') }}</label>
-                    <div class="checkout-email-row">
-                        <input
-                            id="checkout-email"
-                            v-model="email"
-                            type="email"
-                            autocomplete="email"
-                            :placeholder="t('cart.emailPlaceholder')"
-                            :aria-invalid="Boolean(emailError)"
-                            aria-describedby="checkout-email-error"
-                        />
-                        <button type="submit" :disabled="loading">
-                            {{ loading ? t('cart.openingCheckout') : t('cart.checkout') }}
-                        </button>
-                    </div>
-                    <p class="checkout-email-note">
-                        {{ t('cart.guestEmailNote') }}
-                        <button type="button" class="checkout-email-login" @click="goSsoLogin">{{ t('cart.emailLoginLink') }}</button>
-                    </p>
-                </form>
+                <div class="checkout-panel-header">
+                    <p class="checkout-eyebrow">{{ t('checkout.paymentDetails') }}</p>
+                    <h3>{{ t('checkout.completeOrder') }}</h3>
+                    <p>{{ t('checkout.deliveryNote') }}</p>
+                </div>
+                <label class="input-label">{{ t('checkout.emailForReceipt') }}</label>
+                <input
+                    v-model="email"
+                    :class="['input', { 'email-input-highlight': shouldHighlightEmail }]"
+                    :placeholder="t('cart.emailPlaceholder')"
+                    :disabled="isEmailLocked"
+                    type="email"
+                    autocomplete="email"
+                    aria-describedby="checkout-email-help checkout-email-error"
+                />
+                <div v-if="isEmailLocked" class="email-locked-hint">
+                    {{ t('checkout.emailLockedHint') }}
+                </div>
+                <div v-else id="checkout-email-help" class="input-desc">{{ t('checkout.emailHelp') }}</div>
                 <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
-                <div v-else-if="emailConfirmed && isInlineCheckoutMode" class="paddle-inline-shell" aria-live="polite">
-                    <div v-if="loading" class="inline-loading">
-                        <span class="loading-spinner"></span>
+                <div class="payment-method-card">
+                    <div class="payment-method-copy">
+                        <div class="pay-method-title">{{ t('checkout.paymentMethod') }}</div>
+                        <div class="pay-method-note">{{ t('checkout.paymentMethodNote') }}</div>
                     </div>
-                    <div class="paddle-inline-checkout"></div>
+                    <el-icon class="payment-method-icon" aria-hidden="true"><CreditCard /></el-icon>
+                </div>
+                <button
+                    type="button"
+                    class="purchase-btn"
+                    @click="() => handlePayment()"
+                    :disabled="loading"
+                    :aria-busy="loading"
+                >
+                    <span v-if="loading" class="loading-spinner"></span>
+                    <el-icon v-else class="purchase-btn-lock" aria-hidden="true"><Lock /></el-icon>
+                    <span class="purchase-btn-copy">
+                        <span class="purchase-btn-title">{{ checkoutButtonText }}</span>
+                        <span class="purchase-btn-subtitle">{{ loading ? t('checkout.openingPaddle') : t('checkout.encryptedCheckout') }}</span>
+                    </span>
+                    <el-icon v-if="!loading" class="purchase-btn-arrow" aria-hidden="true"><ArrowRight /></el-icon>
+                </button>
+                <div class="trust-list" :aria-label="t('checkout.protectionsAria')">
+                    <span>
+                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
+                        {{ t('checkout.securePayment') }}
+                    </span>
+                    <span>
+                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
+                        {{ t('checkout.instantDelivery') }}
+                    </span>
+                    <span>
+                        <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
+                        {{ t('checkout.emailReceipt') }}
+                    </span>
                 </div>
             </div>
         </div>
@@ -75,7 +103,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeMount, onBeforeUnmount, onMounted, computed, nextTick } from 'vue'
+import { ref, onBeforeMount, onBeforeUnmount, onMounted, computed } from 'vue'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
@@ -90,7 +118,7 @@ import { useUserStore } from '@/store/user'
 import { getProductImageUrl } from '@/utils/productImage'
 import { initializePaddle } from '@/utils/paddle'
 import { useI18n } from '@/i18n'
-import { buildSsoLoginUrl } from '@/utils/ssoRedirect'
+import { ArrowRight, CircleCheckFilled, CreditCard, Lock } from '@element-plus/icons-vue'
 
 declare global {
   interface Window {
@@ -108,18 +136,8 @@ const request = computed(() => store.data?.request as PurchaseRequest | undefine
 const email = ref('')
 const loading = ref(false)
 const emailError = ref('')
-const emailConfirmed = ref(false)
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
-type PaddleCheckoutDisplayMode = 'overlay' | 'inline'
-const paddleCheckoutDisplayMode = 'overlay' as PaddleCheckoutDisplayMode
-const paddleFrameTarget = 'paddle-inline-checkout'
-const paddleInlineSettings = {
-    displayMode: 'inline' as const,
-    frameTarget: paddleFrameTarget,
-    frameInitialHeight: 620,
-    frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
-}
 let paddleScriptPromise: Promise<void> | null = null
 let checkoutOpening = false
 
@@ -165,21 +183,6 @@ const discountInfo = computed(() => {
 
 const currencyCode = computed(() => {
   return (discountInfo.value?.valid && discountInfo.value?.currency) ? String(discountInfo.value.currency) : 'USD'
-})
-
-const productCreatorName = computed(() => {
-  if (!product.value || isBundle.value) return ''
-  const productLike = product.value as any
-  const creator = productLike.user || productLike.creator || productLike.merchant || productLike.author
-  return (
-    creator?.nickname ||
-    creator?.username ||
-    creator?.name ||
-    productLike.creatorName ||
-    productLike.merchantName ||
-    productLike.authorName ||
-    ''
-  )
 })
 
 const bundleItemsForCard = computed(() => {
@@ -240,8 +243,16 @@ const isBundleTokenFlow = computed(() => {
 })
 
 const accountEmail = computed(() => userStore.token ? normalizeEmail(userStore.userInfo?.email || '') : '')
-const isInlineCheckoutMode = computed(() => paddleCheckoutDisplayMode === 'inline')
-const emailStepVisible = computed(() => !emailConfirmed.value && (!accountEmail.value || !isInlineCheckoutMode.value))
+
+const isEmailLocked = computed(() => !!accountEmail.value)
+
+const shouldHighlightEmail = computed(() => {
+    return !isEmailLocked.value && !email.value
+})
+
+const checkoutButtonText = computed(() => {
+  return loading.value ? 'Processing...' : 'Continue to secure payment'
+})
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -266,12 +277,6 @@ onBeforeMount(() => {
 onMounted(() => {
     if (!email.value && accountEmail.value) {
         email.value = accountEmail.value
-        emailConfirmed.value = true
-    }
-    if (emailConfirmed.value) {
-        nextTick(() => {
-            handlePayment()
-        })
     }
 })
 
@@ -350,13 +355,10 @@ function loadPaddle() {
                     }
                     if (data.name === 'checkout.closed') {
                         loading.value = false
-                        if (!isInlineCheckoutMode.value) {
-                            emailConfirmed.value = false
-                        }
                     }
                     if (data.name === 'checkout.error') {
                         loading.value = false
-                        ElMessageBox.alert('Payment failed. Please try again.', 'Error')
+                        ElMessageBox.alert(t('checkout.paymentFailed'), t('checkout.errorTitle'))
                     }
                     if (data.name === 'checkout.updated') {
                         loading.value = false
@@ -373,7 +375,7 @@ function loadPaddle() {
                                 window.Paddle.Checkout.close();
 
                                 // Notify user that quantity has been reset
-                                ElMessageBox.alert('You can only purchase one item at a time. The quantity will be reset to 1.', 'Quantity Limit')
+                                ElMessageBox.alert(t('checkout.quantityReset'), t('checkout.quantityLimitTitle'))
                                   .finally(() => {
                                       // Reopen checkout window with default quantity 1
                                       handlePayment(true);
@@ -407,7 +409,6 @@ const handlePayment = async (isRetry = false) => {
     }
     checkoutOpening = true
     email.value = checkoutEmail
-    emailConfirmed.value = true
     emailError.value = ''
     if (isBundleTokenFlow.value && email.value) {
         const bundleId = (product.value as Bundle).bundleId
@@ -448,11 +449,11 @@ const handlePayment = async (isRetry = false) => {
     }
     if (!isRetry) {
         if (userSelectedQuantity.value > maxQuantity.value) {
-            ElMessageBox.alert('You can only select up to ' + maxQuantity.value + ' items', 'Error')
+            ElMessageBox.alert(t('checkout.quantityMax', { count: maxQuantity.value }), t('checkout.errorTitle'))
             return
         }
         if (!isBundleTokenFlow.value && !request.value?.accounttoken) {
-            ElMessageBox.alert('Please enter your code first', 'Error')
+            ElMessageBox.alert(t('checkout.codeRequired'), t('checkout.errorTitle'))
             router.push('/code')
             return
         }
@@ -464,7 +465,7 @@ const handlePayment = async (isRetry = false) => {
     
     if (typeof window !== "undefined" && window.Paddle) {
         const checkoutOptions: Record<string, any> = {
-            settings: isInlineCheckoutMode.value ? paddleInlineSettings : { displayMode: 'overlay' },
+            settings: { displayMode: 'overlay' },
             items: [
                 {
                     priceId: (product.value as ProductVO).payment?.paddlePriceId || (product.value as Bundle)?.paddlePriceId,
@@ -492,31 +493,18 @@ const handlePayment = async (isRetry = false) => {
         window.Paddle.Checkout.open(checkoutOptions)
         loading.value = false
     } else {
-        ElMessageBox.alert('Paddle failed to load, please refresh the page and try again.', 'Error')
+        ElMessageBox.alert(t('checkout.paddleLoadFailed'), t('checkout.errorTitle'))
         loading.value = false
     }
     } catch (error) {
         console.error('Paddle checkout failed:', error)
-        ElMessageBox.alert('Paddle failed to load, please refresh the page and try again.', 'Error')
+        ElMessageBox.alert(t('checkout.paddleLoadFailed'), t('checkout.errorTitle'))
         loading.value = false
     } finally {
         checkoutOpening = false
     }
 }
 
-const confirmEmailAndPay = () => {
-    handlePayment()
-}
-
-const goSsoLogin = () => {
-    try {
-        const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`
-        sessionStorage.setItem('wristo:sso:return-path', currentPath || '/')
-    } catch (e) {
-        console.warn('Failed to save SSO return path:', e)
-    }
-    window.location.href = buildSsoLoginUrl('store')
-}
 </script>
 
 <style scoped>
@@ -835,112 +823,6 @@ const goSsoLogin = () => {
     line-height: 1.2;
 }
 
-.paddle-inline-shell {
-    margin-top: 18px;
-    width: 100%;
-    min-width: 0;
-}
-
-.checkout-email-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 18px;
-}
-
-.checkout-email-form label {
-    color: #0f172a;
-    font-size: 0.92rem;
-    font-weight: 800;
-}
-
-.checkout-email-row {
-    display: flex;
-    gap: 10px;
-}
-
-.checkout-email-row input {
-    flex: 1;
-    min-width: 0;
-    min-height: 44px;
-    padding: 0 14px;
-    border: 1px solid rgba(15, 23, 42, 0.14);
-    border-radius: 12px;
-    background: #fff;
-    color: #0f172a;
-    font-size: 0.95rem;
-    outline: none;
-}
-
-.checkout-email-row input:focus {
-    border-color: rgba(15, 107, 104, 0.62);
-    box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.12);
-}
-
-.checkout-email-row button {
-    min-height: 44px;
-    padding: 0 18px;
-    border: none;
-    border-radius: 12px;
-    background: #0f6b68;
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.checkout-email-row button:disabled {
-    cursor: not-allowed;
-    opacity: 0.65;
-}
-
-.checkout-email-note {
-    margin: 0;
-    color: #667085;
-    font-size: 0.85rem;
-    line-height: 1.45;
-}
-
-.checkout-email-login {
-    display: inline;
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: #0f6b68;
-    font: inherit;
-    font-weight: 800;
-    cursor: pointer;
-}
-
-.checkout-email-login:hover,
-.checkout-email-login:focus-visible {
-    text-decoration: underline;
-}
-
-.paddle-inline-checkout {
-    width: 100%;
-    min-height: 620px;
-}
-
-.inline-loading {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-height: 160px;
-    border: 1px dashed rgba(15, 107, 104, 0.22);
-    border-radius: 16px;
-    background: rgba(15, 107, 104, 0.05);
-    color: #475467;
-    font-size: 0.92rem;
-    font-weight: 700;
-}
-
-.inline-loading .loading-spinner {
-    border-color: rgba(15, 107, 104, 0.28);
-    border-top-color: transparent;
-}
-
 .trust-list {
     display: flex;
     flex-wrap: wrap;
@@ -980,11 +862,10 @@ const goSsoLogin = () => {
 }
 
 .checkout-left {
-    width: min(100%, 480px);
+    width: 100%;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-self: center;
     margin-top: 0;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -994,6 +875,10 @@ const goSsoLogin = () => {
 
 .checkout-left :deep(.purchase-card) {
     width: 100%;
+}
+
+.checkout-left-bundle :deep(.purchase-card) {
+    max-width: none;
 }
 .card-header {
     display: flex;
@@ -1212,14 +1097,6 @@ const goSsoLogin = () => {
 
 /* 手机端优化 */
 @media (max-width: 480px) {
-    .checkout-email-row {
-        flex-direction: column;
-    }
-
-    .checkout-email-row button {
-        width: 100%;
-    }
-
     .checkout {
         padding: 16px 16px 32px 16px;
         min-height: 100vh;
