@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div class="floating-actions" v-show="visible">
-      <a
+      <!-- <a
         class="fab-btn fab-youtube"
         href="https://www.youtube.com/@wristoio"
         target="_blank"
@@ -10,7 +10,7 @@
         title="Wristo on YouTube"
       >
         <Icon class="fab-icon fab-icon-solid" icon="mdi:youtube" width="22" height="22" aria-hidden="true" />
-      </a>
+      </a> -->
       <button
         v-if="showPageActions && cartStore.count"
         class="fab-btn fab-cart"
@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { useScrollVisibility } from './useScrollVisibility'
-import { Icon } from '@iconify/vue'
+// import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
