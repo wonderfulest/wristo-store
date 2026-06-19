@@ -138,8 +138,16 @@ const inlineCheckoutKey = ref(0)
 const checkoutEmailInput = ref('')
 const checkoutEmailError = ref('')
 const purchaseConflicts = ref<Record<number, CartPurchaseCheckItemVO>>({})
+type PaddleCheckoutDisplayMode = 'overlay' | 'inline'
+const paddleCheckoutDisplayMode = 'overlay' as PaddleCheckoutDisplayMode
 const checkoutFrameId = 'cart-paddle-checkout'
 const checkoutFrameTarget = 'cart-paddle-checkout-frame'
+const paddleInlineCheckoutOptions = {
+  displayMode: 'inline' as const,
+  frameTarget: checkoutFrameTarget,
+  frameInitialHeight: 620,
+  frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
+}
 let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -179,6 +187,9 @@ const checkoutButtonText = computed(() => {
 })
 const checkoutEmailVisible = computed(() => !inlineCheckoutVisible.value)
 const cartCheckoutSignature = computed(() => cartStore.items.map((item) => `${item.appId}:${Number(item.price || 0)}`).join('|'))
+const cartCheckoutOptions = computed(() => (
+  paddleCheckoutDisplayMode === 'inline' ? paddleInlineCheckoutOptions : { displayMode: 'overlay' as const }
+))
 
 const formatMoney = (amount: number) => `$${amount.toFixed(2)}`
 
@@ -306,15 +317,10 @@ const openInlineCheckout = async () => {
     }
 
     closeCheckout()
-    inlineCheckoutVisible.value = true
+    inlineCheckoutVisible.value = paddleCheckoutDisplayMode === 'inline'
     inlineCheckoutKey.value += 1
     await nextTick()
-    await checkout(items, email, () => cartStore.clear(), {
-      displayMode: 'inline',
-      frameTarget: checkoutFrameTarget,
-      frameInitialHeight: 620,
-      frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
-    })
+    await checkout(items, email, () => cartStore.clear(), cartCheckoutOptions.value)
   } finally {
     rebuildingInlineCheckout = false
   }

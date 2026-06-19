@@ -63,7 +63,7 @@
                     </p>
                 </form>
                 <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
-                <div v-else-if="emailConfirmed" class="paddle-inline-shell" aria-live="polite">
+                <div v-else-if="emailConfirmed && isInlineCheckoutMode" class="paddle-inline-shell" aria-live="polite">
                     <div v-if="loading" class="inline-loading">
                         <span class="loading-spinner"></span>
                     </div>
@@ -111,7 +111,15 @@ const emailError = ref('')
 const emailConfirmed = ref(false)
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
+type PaddleCheckoutDisplayMode = 'overlay' | 'inline'
+const paddleCheckoutDisplayMode = 'overlay' as PaddleCheckoutDisplayMode
 const paddleFrameTarget = 'paddle-inline-checkout'
+const paddleInlineSettings = {
+    displayMode: 'inline' as const,
+    frameTarget: paddleFrameTarget,
+    frameInitialHeight: 620,
+    frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
+}
 let paddleScriptPromise: Promise<void> | null = null
 let checkoutOpening = false
 
@@ -232,7 +240,8 @@ const isBundleTokenFlow = computed(() => {
 })
 
 const accountEmail = computed(() => userStore.token ? normalizeEmail(userStore.userInfo?.email || '') : '')
-const emailStepVisible = computed(() => !emailConfirmed.value && !accountEmail.value)
+const isInlineCheckoutMode = computed(() => paddleCheckoutDisplayMode === 'inline')
+const emailStepVisible = computed(() => !emailConfirmed.value && (!accountEmail.value || !isInlineCheckoutMode.value))
 
 function validateEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -341,6 +350,9 @@ function loadPaddle() {
                     }
                     if (data.name === 'checkout.closed') {
                         loading.value = false
+                        if (!isInlineCheckoutMode.value) {
+                            emailConfirmed.value = false
+                        }
                     }
                     if (data.name === 'checkout.error') {
                         loading.value = false
@@ -452,12 +464,7 @@ const handlePayment = async (isRetry = false) => {
     
     if (typeof window !== "undefined" && window.Paddle) {
         const checkoutOptions: Record<string, any> = {
-            settings: {
-                displayMode: 'inline',
-                frameTarget: paddleFrameTarget,
-                frameInitialHeight: 620,
-                frameStyle: 'width: 100%; min-width: 0; background-color: transparent; border: none;',
-            },
+            settings: isInlineCheckoutMode.value ? paddleInlineSettings : { displayMode: 'overlay' },
             items: [
                 {
                     priceId: (product.value as ProductVO).payment?.paddlePriceId || (product.value as Bundle)?.paddlePriceId,
