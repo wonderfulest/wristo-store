@@ -1,5 +1,22 @@
 import instance from '@/config/axios'
-import type { DesignFontVO, ProductBaseVO, ProductPreviewConfigVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
+import type { DesignFontVO, ImageVO, ProductBaseVO, ProductPreviewConfigVO, ProductRatingStatsVO, ProductReviewVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
+
+export interface CategoryPageData {
+  total: number
+  pageNum: number
+  pageSize: number
+  pages: number
+  list: Series[]
+}
+
+export interface CategoryMutationPayload {
+  name?: string
+  slug?: string
+  heroId?: number | null
+  bannerId?: number | null
+  sort?: number | null
+  isActive?: number | null
+}
 
 
 // 搜索商品
@@ -33,7 +50,36 @@ export const getHotSeries = (limit = 8): Promise<Series[]> => {
 
 // 获取系列列表
 export const getSeries = (): Promise<Series[]> => {
-  return instance.get('/public/categories/all')
+  return instance.get('/public/categories/all', {
+    params: { populate: 'image' }
+  })
+}
+
+export const fetchAdminCategories = (): Promise<CategoryPageData> => {
+  return instance.get('/admin/categories/page?populate=image', {
+    params: { pageNum: 1, pageSize: 1000, orderBy: 'sort:desc' }
+  })
+}
+
+export const createAdminCategory = (data: Pick<CategoryMutationPayload, 'name' | 'slug' | 'heroId' | 'bannerId'>): Promise<Series> => {
+  return instance.post('/admin/categories/create', data)
+}
+
+export const updateAdminCategory = (id: number, data: CategoryMutationPayload): Promise<Series> => {
+  return instance.post(`/admin/categories/update/${id}`, data)
+}
+
+export const updateAdminCategoryStatus = (id: number, isActive: number): Promise<Series> => {
+  return instance.post(`/admin/categories/active/${id}/${isActive}`)
+}
+
+export const uploadAdminCategoryImage = (file: File): Promise<ImageVO> => {
+  const form = new FormData()
+  form.append('file', file)
+  form.append('aspect', 'hero')
+  return instance.post('/admin/image/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
 }
 
 // 获取热门商品
@@ -53,6 +99,22 @@ export const getProductDetail = (appId: string): Promise<ProductVO> => {
 // 获取商品 Studio 动态预览配置
 export const getProductPreviewConfig = (appId: string | number): Promise<ProductPreviewConfigVO> => {
   return instance.get(`/public/products/app/${appId}/preview-config`)
+}
+
+export const getProductRating = (appId: string | number): Promise<ProductRatingStatsVO> => {
+  return instance.get(`/public/products/app/${appId}/rating`)
+}
+
+export const getMyProductRating = (appId: string | number): Promise<ProductRatingStatsVO> => {
+  return instance.get(`/products/app/${appId}/rating`)
+}
+
+export const updateProductRating = (appId: string | number, rating: number, comment?: string): Promise<ProductRatingStatsVO> => {
+  return instance.post(`/products/app/${appId}/rating`, { rating, comment })
+}
+
+export const getProductReviews = (appId: string | number): Promise<ProductReviewVO[]> => {
+  return instance.get(`/public/products/app/${appId}/reviews`)
 }
 
 // 根据设计 ID 获取商品 Studio 动态预览配置

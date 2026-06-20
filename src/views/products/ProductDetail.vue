@@ -1,16 +1,27 @@
 <template>
   <div class="product-detail-page">
     <div class="product-detail-main">
-      <!-- 左侧兜底预览图 -->
-      <div class="product-image-wrap">
-        <img
-          v-if="productPreviewFallback"
-          :src="productPreviewFallback"
-          :alt="product?.name || t('product.previewAlt')"
-          class="product-image"
-          loading="eager"
-        />
-        <div v-else class="product-image-fallback">W</div>
+      <div class="product-visual-wrap">
+        <!-- 左侧兜底预览图 -->
+        <div class="product-image-wrap">
+          <img
+            v-if="productPreviewFallback"
+            :src="productPreviewFallback"
+            :alt="product?.name || t('product.previewAlt')"
+            class="product-image"
+            loading="eager"
+          />
+          <div v-else class="product-image-fallback">W</div>
+        </div>
+        <button
+          v-if="product?.designId"
+          type="button"
+          class="product-btn product-btn-studio"
+          @click="handleCustomizeInStudio"
+        >
+          {{ t('product.customizeInStudio') }}
+          <el-icon class="btn-icon"><MagicStick /></el-icon>
+        </button>
       </div>
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
@@ -47,39 +58,6 @@
             <button type="button" @click="categoryEditorVisible = true">编辑分类</button>
             <button type="button" @click="handleOpenInStudio">跳转 Studio</button>
           </div>
-        </section>
-        <button
-          v-if="product?.appId"
-          type="button"
-          class="product-btn product-btn-buy"
-          :disabled="checkoutLoading"
-          @click="handleBuyNow"
-        >
-          {{ checkoutLoading ? t('product.openingCheckout') : t('product.buyNow') }}
-          <el-icon class="btn-icon"><CreditCard /></el-icon>
-        </button>
-        <button
-          v-if="isCartEnabled && product?.appId"
-          type="button"
-          class="product-btn product-btn-cart"
-          :class="{ active: isInCart }"
-          @click="toggleCart"
-        >
-          {{ isInCart ? t('cart.goToCart') : t('product.addToCart') }}
-          <el-icon class="btn-icon"><ShoppingCart /></el-icon>
-        </button>
-        <button
-          v-if="product?.designId"
-          type="button"
-          class="product-btn product-btn-studio"
-          @click="handleCustomizeInStudio"
-        >
-          {{ t('product.customizeInStudio') }}
-          <el-icon class="btn-icon"><MagicStick /></el-icon>
-        </button>
-        <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
-          <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
-          <div class="product-desc" v-html="renderedProductDescription"></div>
         </section>
         <div v-if="product?.garminStoreUrl" class="install-section">
           <div class="install-title">{{ t('product.installTitle') }}</div>
@@ -119,6 +97,43 @@
             </div>
           </div>
         </div>
+        <button
+          v-if="product?.appId"
+          type="button"
+          class="product-btn product-btn-buy"
+          :disabled="checkoutLoading"
+          @click="handleBuyNow"
+        >
+          {{ checkoutLoading ? t('product.openingCheckout') : t('product.buyNow') }}
+          <el-icon class="btn-icon"><CreditCard /></el-icon>
+        </button>
+        <button
+          v-if="isCartEnabled && product?.appId"
+          type="button"
+          class="product-btn product-btn-cart"
+          :class="{ active: isInCart }"
+          @click="toggleCart"
+        >
+          {{ isInCart ? t('cart.goToCart') : t('product.addToCart') }}
+          <el-icon class="btn-icon"><ShoppingCart /></el-icon>
+        </button>
+        <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
+          <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
+          <div
+            class="product-desc"
+            :class="{ collapsed: productDescriptionNeedsToggle && !isProductDescriptionExpanded }"
+            v-html="renderedProductDescription"
+          ></div>
+          <button
+            v-if="productDescriptionNeedsToggle"
+            type="button"
+            class="product-desc-toggle"
+            :aria-expanded="isProductDescriptionExpanded"
+            @click="isProductDescriptionExpanded = !isProductDescriptionExpanded"
+          >
+            {{ isProductDescriptionExpanded ? t('product.showLessDetails') : t('product.showMoreDetails') }}
+          </button>
+        </section>
         <!-- Supported Devices -->
         <div v-if="product?.devices && product.devices.length" class="devices-section">
           <div v-if="selectedSupportedDevice" class="current-device-support" role="status">
@@ -168,6 +183,84 @@
             {{ t('product.alreadyPurchased') }}
           </button>
         </div>
+        <section v-if="product" class="product-rating-panel" aria-label="Product rating">
+          <div class="product-rating-stats">
+            <div>
+              <strong>{{ formatDisplayDownloadCount(product.download) }}</strong>
+              <span>{{ t('product.downloads') }}</span>
+            </div>
+            <div>
+              <strong>{{ formatDisplayRating(displayRating) }}</strong>
+              <span>{{ t('product.rating') }}</span>
+            </div>
+            <div>
+              <strong>{{ formatNumber(product.ratingCount || 0) }}</strong>
+              <span>{{ t('product.ratings') }}</span>
+            </div>
+          </div>
+          <div class="product-rate-row">
+            <span class="product-rate-label">{{ product.myRating ? t('product.yourRating') : t('product.rateThis') }}</span>
+            <div class="product-rate-actions">
+              <button
+                v-for="star in ratingStars"
+                :key="star"
+                type="button"
+                class="product-rate-star"
+                :class="{ active: star <= reviewRating }"
+                :disabled="ratingSubmitting"
+                :aria-label="t('product.rateValue', { count: star })"
+                @click="reviewRating = star"
+              >
+                <el-icon><StarFilled /></el-icon>
+              </button>
+            </div>
+          </div>
+          <textarea
+            v-model="reviewComment"
+            class="product-review-input"
+            :placeholder="t('product.reviewPlaceholder')"
+            :disabled="ratingSubmitting"
+            maxlength="2000"
+          ></textarea>
+          <button
+            type="button"
+            class="product-review-submit"
+            :disabled="ratingSubmitting || !reviewRating"
+            @click="submitRating"
+          >
+            {{ ratingSubmitting ? t('product.savingReview') : t('product.submitReview') }}
+          </button>
+        </section>
+        <section v-if="product" class="product-reviews-section" aria-labelledby="product-reviews-title">
+          <div class="product-reviews-header">
+            <h2 id="product-reviews-title" class="product-section-title">{{ t('product.reviewsTitle') }}</h2>
+            <span>{{ t('product.reviewsCount', { count: productReviews.length }) }}</span>
+          </div>
+          <div v-if="reviewsLoading" class="product-reviews-empty">{{ t('product.loadingReviews') }}</div>
+          <div v-else-if="!productReviews.length" class="product-reviews-empty">{{ t('product.noReviews') }}</div>
+          <div v-else class="product-reviews-list">
+            <article v-for="review in productReviews" :key="review.id" class="product-review-item">
+              <div class="product-review-meta">
+                <strong>{{ review.userNickname || review.userName || t('product.anonymousUser') }}</strong>
+                <span>{{ formatDate(review.updatedAt || review.createdAt) }}</span>
+              </div>
+              <div class="product-review-stars" :aria-label="t('product.rateValue', { count: review.rating })">
+                <el-icon
+                  v-for="star in ratingStars"
+                  :key="star"
+                  :class="{ active: star <= review.rating }"
+                >
+                  <StarFilled />
+                </el-icon>
+              </div>
+              <p v-if="review.comment" class="product-review-comment">{{ review.comment }}</p>
+              <div v-if="review.adminReply" class="product-review-reply">
+                <strong>{{ t('product.adminReply') }}</strong>
+                <p>{{ review.adminReply }}</p>
+              </div>
+            </article>
+          </div>
+        </section>
       </div>
     </div>
     <AdminCategoryEditorDialog
@@ -192,18 +285,22 @@ import {
   MagicStick,
   Share,
   ShoppingCart,
+  StarFilled,
 } from '@element-plus/icons-vue'
 import { useProductStore } from '@/store/product'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
-import type { GarminDeviceBaseVO, ProductStoreMetricsVO, ProductVO } from '@/types'
+import type { GarminDeviceBaseVO, ProductReviewVO, ProductStoreMetricsVO, ProductVO } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
 import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { getProductImageUrl } from '@/utils/productImage'
-import { fetchAdminStoreMetrics, updateProductStoreDisplay } from '@/api/product'
+import { resolveProductDisplayRating } from '@/utils/productRating'
+import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
+import { fetchAdminStoreMetrics, getMyProductRating, getProductRating, getProductReviews, updateProductRating, updateProductStoreDisplay } from '@/api/product'
 import { openStudioDesign, openStudioDesignCopy } from '@/utils/studio'
+import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 import { useCartCheckout } from '@/composables/useCartCheckout'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
@@ -222,10 +319,21 @@ const product = ref<ProductVO | null>(null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const categoryEditorVisible = ref(false)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
+const ratingSubmitting = ref(false)
+const reviewsLoading = ref(false)
+const productReviews = ref<ProductReviewVO[]>([])
+const reviewRating = ref(0)
+const reviewComment = ref('')
+const isProductDescriptionExpanded = ref(false)
+const ratingStars = [1, 2, 3, 4, 5]
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
 const productPreviewFallback = computed(() => {
   return getProductImageUrl(product.value)
+})
+
+const displayRating = computed(() => {
+  return resolveProductDisplayRating(product.value?.averageRating, product.value?.score)
 })
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
@@ -339,9 +447,18 @@ const formatNumber = (value?: number | null) => {
   return new Intl.NumberFormat('en-US').format(value)
 }
 
+const formatDisplayDownloadCount = (value?: number | null) => {
+  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
+}
+
 const formatScore = (value?: number | null) => {
   if (value == null) return '-'
   return Number(value).toFixed(2)
+}
+
+const formatDisplayRating = (value?: number | null) => {
+  if (value == null) return '-'
+  return Number(value).toFixed(1)
 }
 
 const formatDate = (value?: string | null) => {
@@ -358,6 +475,72 @@ const loadAdminMetrics = async () => {
     adminMetrics.value = list?.[0] || null
   } catch (error) {
     adminMetrics.value = null
+  }
+}
+
+const loadRatingState = async () => {
+  if (!product.value?.appId) return
+  try {
+    const stats = userStore.token
+      ? await getMyProductRating(product.value.appId)
+      : await getProductRating(product.value.appId)
+    product.value = {
+      ...product.value,
+      averageRating: stats.averageRating ?? product.value.averageRating,
+      ratingCount: stats.ratingCount ?? product.value.ratingCount,
+      myRating: stats.myRating ?? product.value.myRating,
+      myComment: stats.myComment ?? product.value.myComment,
+    }
+    reviewRating.value = product.value.myRating || 0
+    reviewComment.value = product.value.myComment || ''
+  } catch (error) {
+    reviewRating.value = product.value?.myRating || 0
+    reviewComment.value = product.value?.myComment || ''
+  }
+}
+
+const loadProductReviews = async () => {
+  if (!product.value?.appId) return
+  reviewsLoading.value = true
+  try {
+    productReviews.value = await getProductReviews(product.value.appId)
+  } catch (error) {
+    productReviews.value = []
+  } finally {
+    reviewsLoading.value = false
+  }
+}
+
+const submitRating = async () => {
+  if (!product.value?.appId || ratingSubmitting.value) return
+  if (!userStore.userInfo?.id) {
+    ElMessage.info(t('product.loginToRate'))
+    redirectToSsoLogin('store', 500)
+    return
+  }
+  if (!reviewRating.value) {
+    ElMessage.info(t('product.selectRating'))
+    return
+  }
+  ratingSubmitting.value = true
+  try {
+    const stats = await updateProductRating(product.value.appId, reviewRating.value, reviewComment.value)
+    product.value = {
+      ...product.value,
+      averageRating: stats.averageRating ?? product.value.averageRating,
+      ratingCount: stats.ratingCount ?? product.value.ratingCount,
+      myRating: stats.myRating ?? reviewRating.value,
+      myComment: stats.myComment ?? reviewComment.value,
+    }
+    reviewComment.value = product.value.myComment || ''
+    ElMessage.success(t('product.reviewSaved'))
+    await loadProductReviews()
+  } catch (error: any) {
+    if (error?.code === 401 || error?.response?.status === 401) {
+      redirectToSsoLogin('store', 500)
+    }
+  } finally {
+    ratingSubmitting.value = false
   }
 }
 
@@ -447,6 +630,13 @@ const loadSelectedDeviceFromStorage = () => {
 
 const renderedProductDescription = computed(() => {
   return renderProductDescription(product.value?.description || '')
+})
+
+const productDescriptionNeedsToggle = computed(() => {
+  const description = product.value?.description || ''
+  const text = description.replace(/[#*_`>\-+\d.\s]+/g, ' ').replace(/\s+/g, ' ').trim()
+  const lineCount = description.split(/\r\n|\r|\n/).filter((line) => line.trim()).length
+  return text.length > 320 || lineCount > 6
 })
 
 const getNotFoundPath = () => {
@@ -703,7 +893,9 @@ onMounted(async () => {
   }
 
   product.value = productDetail
-  await loadAdminMetrics()
+  reviewRating.value = product.value.myRating || 0
+  reviewComment.value = product.value.myComment || ''
+  await Promise.all([loadRatingState(), loadProductReviews(), loadAdminMetrics()])
   applySeo(productSeo(product.value, route.path))
 
   // 恢复页面状态（如果用户从外部链接返回）
@@ -748,11 +940,22 @@ onMounted(async () => {
   max-width: var(--container);
   gap: 64px;
 }
+.product-info-wrap *,
+.product-visual-wrap * {
+  box-sizing: border-box;
+}
+.product-visual-wrap {
+  width: min(42vw, 460px);
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+}
 .product-image-wrap {
   position: relative;
-  width: min(42vw, 460px);
-  height: min(42vw, 460px);
-  min-width: 320px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   min-height: 320px;
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
@@ -783,7 +986,9 @@ onMounted(async () => {
   letter-spacing: 0;
 }
 .product-info-wrap {
-  flex: 1;
+  --detail-content-width: min(100%, 560px);
+  flex: 0 1 560px;
+  width: var(--detail-content-width);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -803,12 +1008,192 @@ onMounted(async () => {
   font-size: 1.35rem;
   color: var(--color-brand);
   font-weight: 800;
-  margin-bottom: 34px;
+  margin-bottom: 16px;
   margin-top: 0;
 }
+.product-rating-panel {
+  width: var(--detail-content-width);
+  display: grid;
+  gap: 12px;
+  margin: 18px 0 0;
+}
+.product-review-input {
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  padding: 10px 12px;
+  border: 1px solid rgba(15, 107, 104, 0.18);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-ink);
+  font: inherit;
+  line-height: 1.45;
+  outline: none;
+}
+.product-review-input:focus {
+  border-color: rgba(15, 107, 104, 0.48);
+  box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.08);
+}
+.product-review-submit {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--color-brand);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.product-review-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+.product-reviews-section {
+  width: var(--detail-content-width);
+  margin: 18px 0 0;
+  padding: 24px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-sm);
+}
+.product-reviews-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.product-reviews-header .product-section-title {
+  margin-bottom: 0;
+}
+.product-reviews-header span,
+.product-reviews-empty {
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+.product-reviews-list {
+  display: grid;
+  gap: 14px;
+}
+.product-review-item {
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+  border-top: 1px solid var(--color-line);
+}
+.product-review-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.product-review-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--color-ink);
+  font-size: 0.92rem;
+}
+.product-review-meta span {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+}
+.product-review-stars {
+  display: inline-flex;
+  color: rgba(15, 23, 42, 0.22);
+}
+.product-review-stars .active {
+  color: #f59e0b;
+}
+.product-review-comment,
+.product-review-reply p {
+  margin: 0;
+  color: var(--color-muted);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.product-review-reply {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--color-brand-soft);
+}
+.product-review-reply strong {
+  color: var(--color-brand-strong);
+  font-size: 0.86rem;
+}
+.product-rating-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.product-rating-stats div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 8px;
+  border: 1px solid rgba(15, 107, 104, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  text-align: center;
+}
+.product-rating-stats strong {
+  color: var(--color-ink);
+  font-size: 1rem;
+  line-height: 1;
+}
+.product-rating-stats span {
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  line-height: 1.15;
+}
+.product-rate-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--color-brand-soft);
+}
+.product-rate-label {
+  color: var(--color-brand-strong);
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.product-rate-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.product-rate-star {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(15, 23, 42, 0.24);
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+}
+.product-rate-star:hover,
+.product-rate-star.active {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+.product-rate-star:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
 .admin-detail-panel {
-  width: 340px;
-  max-width: 100%;
+  width: var(--detail-content-width);
   display: grid;
   gap: 12px;
   margin: 0 0 22px;
@@ -892,7 +1277,7 @@ onMounted(async () => {
   color: var(--color-brand-strong);
 }
 .product-btn {
-  width: 300px;
+  width: var(--detail-content-width);
   max-width: 100%;
   min-height: 56px;
   border-radius: 999px;
@@ -921,7 +1306,7 @@ onMounted(async () => {
   background: var(--color-brand-strong);
 }
 .product-btn-buy {
-  width: 340px;
+  width: var(--detail-content-width);
   height: 56px;
   margin-bottom: 14px;
   color: #fff;
@@ -937,7 +1322,7 @@ onMounted(async () => {
   opacity: 0.72;
 }
 .product-btn-cart {
-  width: 340px;
+  width: var(--detail-content-width);
   height: 56px;
   margin-bottom: 26px;
   color: var(--color-brand);
@@ -952,9 +1337,9 @@ onMounted(async () => {
   border-color: rgba(15, 107, 104, 0.34);
 }
 .product-btn-studio {
-  width: 340px;
+  width: 100%;
   height: 56px;
-  margin-bottom: 26px;
+  margin-bottom: 0;
   color: #fff;
   background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
   border: 1px solid rgba(15, 107, 104, 0.22);
@@ -972,7 +1357,7 @@ onMounted(async () => {
   font-size: 1.22rem;
   box-shadow: 0 14px 30px rgba(15, 107, 104, 0.18);
   height: 64px;
-  width: 340px;
+  width: var(--detail-content-width);
   max-width: 100%;
   margin-bottom: 0;
   margin-top: 0;
@@ -992,7 +1377,7 @@ onMounted(async () => {
   font-size: 1.1rem;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
   height: 56px;
-  width: 340px;
+  width: var(--detail-content-width);
   max-width: 100%;
   margin-bottom: 0;
   margin-top: 12px;
@@ -1013,20 +1398,45 @@ onMounted(async () => {
   letter-spacing: 0;
 }
 .product-summary {
-  width: 100%;
-  max-width: 560px;
-  margin: 6px 0 32px 0;
-  padding: 24px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  width: var(--detail-content-width);
+  margin: 4px 0 28px 0;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-line);
 }
 .product-desc {
+  position: relative;
   font-size: 1rem;
   color: var(--color-muted);
   line-height: 1.72;
   max-width: 100%;
+  overflow: hidden;
+}
+.product-desc.collapsed {
+  max-height: 11.9em;
+}
+.product-desc.collapsed::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 4.2em;
+  background: linear-gradient(180deg, rgba(251, 253, 252, 0), #fbfdfc 86%);
+  pointer-events: none;
+}
+.product-desc-toggle {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-brand);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.product-desc-toggle:hover {
+  color: var(--color-brand-strong);
 }
 .product-desc :deep(h3),
 .product-desc :deep(h4) {
@@ -1118,7 +1528,7 @@ onMounted(async () => {
 }
 .install-section {
   margin: 0 0 32px 0;
-  width: 100%;
+  width: var(--detail-content-width);
   padding: 24px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--color-line);
@@ -1127,7 +1537,7 @@ onMounted(async () => {
 }
 /* Devices */
 .devices-section {
-  width: 100%;
+  width: var(--detail-content-width);
   margin: 12px 0 24px 0;
 }
 .current-device-support {
@@ -1135,7 +1545,6 @@ onMounted(async () => {
   align-items: center;
   gap: 14px;
   width: 100%;
-  max-width: 560px;
   padding: 16px 18px;
   border: 1px solid rgba(15, 107, 104, 0.18);
   border-radius: var(--radius-lg);
@@ -1301,10 +1710,12 @@ onMounted(async () => {
   align-self: center;
 }
 .qrcode-title {
+  width: 100%;
   font-size: 1.02rem;
   color: var(--color-muted);
   margin-bottom: 10px;
   letter-spacing: 0.2px;
+  text-align: center;
 }
 .qrcode-container {
   position: relative;
@@ -1409,7 +1820,7 @@ onMounted(async () => {
   box-shadow: none;
 }
 .unlock-section {
-  width: 100%;
+  width: var(--detail-content-width);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1440,19 +1851,21 @@ onMounted(async () => {
     align-items: center;
     min-width: 0;
     width: 100%;
-    max-width: 400px;
+    max-width: 560px;
   }
   
   .product-btn {
     width: 100%;
-    max-width: 340px;
+    max-width: 100%;
+  }
+  .product-visual-wrap {
+    width: 280px;
+    min-width: 0;
   }
   
   .product-image-wrap {
-    width: 280px;
     height: 280px;
-    min-width: 280px;
-    min-height: 280px;
+    min-height: 0;
   }
   
   .install-methods {
@@ -1480,9 +1893,12 @@ onMounted(async () => {
   .product-price {
     text-align: center;
   }
+  .product-rating-panel {
+    width: 100%;
+  }
   
   .product-desc {
-    text-align: center;
+    text-align: left;
     max-width: 100%;
   }
   .devices-header {
@@ -1505,8 +1921,11 @@ onMounted(async () => {
     gap: 32px;
   }
   
-  .product-image-wrap {
+  .product-visual-wrap {
     width: 240px;
+  }
+  
+  .product-image-wrap {
     height: 240px;
   }
   
@@ -1527,6 +1946,13 @@ onMounted(async () => {
   .product-btn-already-purchased {
     height: 48px;
     font-size: 1rem;
+  }
+  .product-rating-stats {
+    grid-template-columns: 1fr;
+  }
+  .product-rate-row {
+    align-items: flex-start;
+    flex-direction: column;
   }
   
   .install-title {
@@ -1571,8 +1997,11 @@ onMounted(async () => {
     padding: 24px 8px 80px 8px;
   }
   
-  .product-image-wrap {
+  .product-visual-wrap {
     width: 200px;
+  }
+  
+  .product-image-wrap {
     height: 200px;
   }
   

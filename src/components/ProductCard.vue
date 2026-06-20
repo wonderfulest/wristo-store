@@ -18,6 +18,16 @@
     </div>
     <div class="product-info">
       <div class="product-name">{{ product?.name }}</div>
+      <div class="product-public-metrics" aria-label="Product popularity">
+        <span>
+          <el-icon><Download /></el-icon>
+          {{ formatDisplayDownloadCount(product?.download) }}
+        </span>
+        <span>
+          <el-icon><StarFilled /></el-icon>
+          {{ formatProductRating(product?.averageRating, product?.score) }}
+        </span>
+      </div>
       <div v-if="isAdmin && resolvedMetrics" class="admin-metrics" @click.stop>
         <div class="admin-metrics-top">
           <span>D {{ formatNumber(resolvedMetrics.download) }}</span>
@@ -90,12 +100,14 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { ShoppingCart } from '@element-plus/icons-vue'
+import { Download, ShoppingCart, StarFilled } from '@element-plus/icons-vue'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
+import { resolveProductDisplayRating } from '@/utils/productRating'
+import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { openStudioDesign } from '@/utils/studio'
@@ -115,6 +127,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'adminChanged', appId: number): void
+  (event: 'removedFromCurrentCategory', appId: number): void
 }>()
 
 const router = useRouter()
@@ -177,9 +190,22 @@ const formatNumber = (value?: number | null) => {
   return new Intl.NumberFormat('en-US').format(value)
 }
 
+const formatDisplayDownloadCount = (value?: number | null) => {
+  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
+}
+
 const formatScore = (value?: number | null) => {
   if (value == null) return '-'
   return Number(value).toFixed(2)
+}
+
+const formatDisplayRating = (value?: number | null) => {
+  if (value == null) return '-'
+  return Number(value).toFixed(1)
+}
+
+const formatProductRating = (averageRating?: number | null, score?: number | null) => {
+  return formatDisplayRating(resolveProductDisplayRating(averageRating, score))
 }
 
 const formatDate = (value?: string | null) => {
@@ -254,7 +280,7 @@ const removeFromCategory = async () => {
   })
   await removeProductCategory(Number(props.product.appId), currentCategoryId.value)
   ElMessage.success('已移出当前分类')
-  await refreshAfterAdminChange()
+  emit('removedFromCurrentCategory', Number(props.product.appId))
 }
 
 onMounted(loadLocalMetrics)
@@ -366,10 +392,10 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 }
 
 .product-info {
-  padding: 16px 4px 4px;
+  padding: 12px 4px 4px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 6px;
 }
 
 .product-name {
@@ -382,9 +408,32 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-height: 2.6em;
   line-height: 1.3;
   letter-spacing: 0;
+}
+
+.product-public-metrics {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 20px;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.product-public-metrics span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.product-public-metrics .el-icon {
+  color: var(--color-brand);
+  font-size: 0.95rem;
 }
 
 .admin-metrics {
@@ -482,7 +531,6 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: auto;
 }
 
 @media (max-width: 768px) {

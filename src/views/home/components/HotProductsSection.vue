@@ -302,7 +302,6 @@ const toggleCart = (product: ProductBaseVO) => {
 .hot-card-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
   padding: 16px 4px 4px;
 }
 

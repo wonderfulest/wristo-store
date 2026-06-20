@@ -23,19 +23,32 @@
       <!-- Desktop navigation -->
       <nav class="nav-area desktop-nav">
         <router-link :to="localizedPath('/')" class="nav-link">{{ t('nav.home') }}</router-link>
-        <el-dropdown @command="handleSelectSeries" trigger="hover">
-          <span class="nav-link dropdown-trigger">
+        <el-dropdown @command="handleSelectSeries" trigger="hover" popper-class="category-nav-popper">
+          <button type="button" class="nav-link nav-button dropdown-trigger">
             {{ t('nav.categories') }}
             <el-icon style="margin-left: 4px"><arrow-down /></el-icon>
-          </span>
+          </button>
           <template #dropdown>
-            <el-dropdown-menu>
+            <el-dropdown-menu class="category-dropdown-menu">
+              <div class="category-dropdown-head">
+                <span>Explore categories</span>
+                <strong>{{ visibleSeriesList.length }} collections</strong>
+              </div>
               <el-dropdown-item
-                v-for="series in seriesList"
+                v-for="series in visibleSeriesList"
                 :key="series.id"
                 :command="series.slug"
+                class="category-dropdown-item"
               >
-                {{ series.name }}
+                <span class="category-dropdown-thumb-wrap">
+                  <img v-if="series.image" :src="series.image" :alt="series.name" class="category-dropdown-thumb" />
+                  <span v-else class="category-dropdown-fallback" aria-hidden="true">{{ series.name.slice(0, 1).toUpperCase() }}</span>
+                </span>
+                <span class="category-dropdown-copy">
+                  <strong>{{ series.name }}</strong>
+                  <span>{{ formatCategoryAppCount(series.appCount) }}</span>
+                </span>
+                <Icon icon="solar:arrow-right-up-line-duotone" width="18" height="18" aria-hidden="true" />
               </el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -140,13 +153,20 @@
             </button>
             <div class="mobile-dropdown-content" :class="{ open: isCategoriesOpen }">
               <router-link 
-                v-for="series in seriesList"
+                v-for="series in visibleSeriesList"
                 :key="series.id"
                 :to="localizedPath(`/categories/${series.slug}`)"
                 class="mobile-dropdown-link"
                 @click="closeMobileMenu"
               >
-                {{ series.name }}
+                <span class="mobile-category-thumb-wrap">
+                  <img v-if="series.image" :src="series.image" :alt="series.name" class="mobile-category-thumb" />
+                  <span v-else class="mobile-category-fallback" aria-hidden="true">{{ series.name.slice(0, 1).toUpperCase() }}</span>
+                </span>
+                <span class="mobile-category-copy">
+                  <strong>{{ series.name }}</strong>
+                  <span>{{ formatCategoryAppCount(series.appCount) }}</span>
+                </span>
               </router-link>
             </div>
           </div>
@@ -266,6 +286,7 @@ import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
 import { openStudio } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 import { isCartEnabled } from '@/config/features';
+import { formatApproxAppCount, formatExactCount } from '@/utils/downloadCount';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -293,6 +314,28 @@ const localizedPath = (path: string) => addLocaleToPath(path, localeStore.curren
 const loadSeries = async () => {
   seriesList.value = await productStore.getSeries();
 };
+
+const visibleSeriesList = computed(() => {
+  return [...seriesList.value]
+    .filter((series) => Number(series.isActive ?? 1) === 1)
+    .sort((a, b) => {
+      const sortDiff = Number(b.sort || 0) - Number(a.sort || 0)
+      if (sortDiff !== 0) return sortDiff
+      return a.name.localeCompare(b.name)
+    })
+});
+
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || []
+  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
+})
+
+const formatCategoryAppCount = (count?: number | null) => {
+  if (count == null) return 'View apps'
+  const label = isAdmin.value ? formatExactCount(count) : formatApproxAppCount(count)
+  if (label == null) return 'View apps'
+  return `${label} ${label === '1' ? 'app' : 'apps'}`
+}
 
 const handleSelectSeries = (slug: string) => {
   router.push(localizedPath(`/categories/${slug}`));
@@ -493,6 +536,107 @@ defineExpose({
   cursor: pointer;
   display: flex;
   align-items: center;
+}
+
+:global(.category-nav-popper) {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16) !important;
+}
+
+:global(.category-dropdown-menu) {
+  width: 328px;
+  max-height: min(70vh, 560px);
+  padding: 10px !important;
+  overflow-y: auto;
+}
+
+:global(.category-dropdown-head) {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 12px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  margin-bottom: 6px;
+}
+
+:global(.category-dropdown-head span) {
+  color: var(--color-brand-strong);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+:global(.category-dropdown-head strong) {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+:global(.category-dropdown-item) {
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 11px;
+  min-height: 62px;
+  padding: 8px !important;
+  border-radius: 12px !important;
+  color: var(--color-ink) !important;
+}
+
+:global(.category-dropdown-item:hover),
+:global(.category-dropdown-item:focus) {
+  background: var(--color-brand-soft) !important;
+  color: var(--color-brand-strong) !important;
+}
+
+:global(.category-dropdown-thumb-wrap),
+:global(.category-dropdown-thumb),
+:global(.category-dropdown-fallback) {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+}
+
+:global(.category-dropdown-thumb) {
+  display: block;
+  object-fit: cover;
+}
+
+:global(.category-dropdown-fallback) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  font-weight: 900;
+}
+
+:global(.category-dropdown-copy) {
+  display: grid;
+  min-width: 0;
+}
+
+:global(.category-dropdown-copy strong),
+:global(.category-dropdown-copy span) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.category-dropdown-copy strong) {
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+:global(.category-dropdown-copy span) {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+:global(.category-nav-popper .el-popper__arrow::before) {
+  border-color: rgba(15, 23, 42, 0.08) !important;
 }
 .user-area {
   display: flex;
@@ -935,22 +1079,74 @@ defineExpose({
 }
 
 .mobile-dropdown-content.open {
-  max-height: 300px;
+  max-height: 420px;
+  overflow-y: auto;
 }
 
 .mobile-dropdown-link {
-  display: block;
-  padding: 11px 18px 11px 48px;
-  color: var(--color-muted);
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  margin: 8px;
+  min-height: 56px;
+  padding: 7px 10px;
+  color: var(--color-ink);
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
+  border-radius: 14px;
   transition: all 0.2s;
 }
 
 .mobile-dropdown-link:hover {
   color: var(--color-brand-strong);
-  background: rgba(15, 107, 104, 0.08);
+  background: rgba(15, 107, 104, 0.1);
+}
+
+.mobile-category-thumb-wrap,
+.mobile-category-thumb,
+.mobile-category-fallback {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.mobile-category-thumb {
+  display: block;
+  object-fit: cover;
+}
+
+.mobile-category-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  color: var(--color-brand-strong);
+  font-weight: 900;
+}
+
+.mobile-category-copy {
+  display: grid;
+  min-width: 0;
+}
+
+.mobile-category-copy strong,
+.mobile-category-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-category-copy strong {
+  color: var(--color-ink);
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.mobile-category-copy span {
+  color: #64748b;
+  font-size: 0.78rem;
 }
 
 /* Mobile user area */

@@ -38,6 +38,10 @@ export interface ProductBaseVO {
   garminStoreUrl: string
   heroFile: HeroFile | null
   fallbackImageUrl?: string | null
+  download?: number | null
+  score?: number | null
+  averageRating?: number | null
+  ratingCount?: number | null
 }
 
 export interface ProductVO {
@@ -67,6 +71,10 @@ export interface ProductVO {
   storeVisibilityReason?: string | null
   lastGoLive?: string | null
   score?: number | null
+  averageRating?: number | null
+  ratingCount?: number | null
+  myRating?: number | null
+  myComment?: string | null
   packageStatus: number
   payment: PaymentVO
   devices?: GarminDeviceBaseVO[]
@@ -86,6 +94,34 @@ export interface ProductStoreMetricsVO {
   storeVisibilityReason?: string | null
   categories?: CategoryVO[]
   designer?: UserBaseVO | null
+}
+
+export interface ProductRatingStatsVO {
+  appId: number
+  averageRating?: number | null
+  ratingCount?: number | null
+  myRating?: number | null
+  myComment?: string | null
+}
+
+export interface ProductReviewVO {
+  id: number
+  productId: number
+  appId: number
+  userId: number
+  rating: number
+  comment?: string | null
+  adminReply?: string | null
+  replyUserId?: number | null
+  repliedAt?: string | null
+  createdAt?: string | null
+  updatedAt?: string | null
+  userName?: string | null
+  userNickname?: string | null
+  userAvatar?: string | null
+  userEmail?: string | null
+  replyUserName?: string | null
+  replyUserNickname?: string | null
 }
 
 export interface RuntimeDesignConfig {
@@ -240,6 +276,7 @@ export interface Series {
   banner?: ImageVO | null
   image?: string | null
   representativeProduct?: ProductBaseVO | null
+  appCount?: number | null
 }
 
 // Top sales summary for apps
