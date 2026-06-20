@@ -1,5 +1,5 @@
 import instance from '@/config/axios'
-import type { DesignFontVO, ProductBaseVO, ProductPreviewConfigVO, ProductVO, Series, PageResult } from '@/types'
+import type { DesignFontVO, ProductBaseVO, ProductPreviewConfigVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
 
 
 // 搜索商品
@@ -74,5 +74,26 @@ export const getRelatedProducts = (appId: string): Promise<ProductBaseVO[]> => {
 export const getProductsByCategory = (slug: string, pageNum = 1, pageSize = 30): Promise<PageResult<ProductBaseVO>> => {
   return instance.get('/public/products/page/category', {
     params: { slug, pageNum, pageSize, orderBy: 'download:desc' }
+  })
+}
+
+export const fetchAdminStoreMetrics = (appIds: number[]): Promise<ProductStoreMetricsVO[]> => {
+  return instance.post('/admin/products/store-metrics', { appIds })
+}
+
+export const updateProductStoreDisplay = (
+  appId: number,
+  payload: { storeVisibility?: string; weight?: number; storeWeight?: number; reason?: string }
+): Promise<ProductVO> => {
+  return instance.post(`/admin/products/store-display/${appId}`, payload)
+}
+
+export const updateProductCategories = (appId: number, categoryIds: number[]): Promise<ProductVO> => {
+  return instance.post(`/admin/products/category/${appId}`, { categoryIds })
+}
+
+export const removeProductCategory = (appId: number, categoryId: number): Promise<ProductVO> => {
+  return instance.post(`/admin/products/category/${appId}/delete`, null, {
+    params: { categoryId }
   })
 }

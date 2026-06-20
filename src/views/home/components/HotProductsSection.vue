@@ -436,21 +436,39 @@ const toggleCart = (product: ProductBaseVO) => {
   }
 
   .hot-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .hot-item {
     min-height: 0;
-    padding: 12px;
+    padding: 10px;
   }
 
   .hot-card-body {
-    padding-top: 14px;
+    gap: 10px;
+    padding: 12px 2px 2px;
   }
 
   .hot-name {
-    min-height: auto;
+    min-height: 2.6em;
+    font-size: 0.9rem;
+  }
+
+  .hot-card-footer {
+    gap: 8px;
+  }
+
+  .hot-price {
+    min-height: 30px;
+    padding: 0 9px;
+    font-size: 0.88rem;
+  }
+
+  .hot-cart-toggle {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
   }
 }
 </style>

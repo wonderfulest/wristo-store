@@ -18,6 +18,49 @@
     </div>
     <div class="product-info">
       <div class="product-name">{{ product?.name }}</div>
+      <div v-if="isAdmin && resolvedMetrics" class="admin-metrics" @click.stop>
+        <div class="admin-metrics-top">
+          <span>D {{ formatNumber(resolvedMetrics.download) }}</span>
+          <span>P {{ formatNumber(resolvedMetrics.purchase) }}</span>
+          <span>S {{ formatScore(resolvedMetrics.score) }}</span>
+          <span>W {{ resolvedMetrics.storeWeight ?? DEFAULT_DISPLAY_WEIGHT }}</span>
+        </div>
+        <div class="admin-meta-line">
+          <span>{{ designerLabel }}</span>
+          <span>{{ formatDate(resolvedMetrics.lastGoLive) }}</span>
+        </div>
+        <div v-if="resolvedMetrics.categories?.length" class="admin-category-row">
+          <span
+            v-for="category in resolvedMetrics.categories"
+            :key="category.id"
+            class="admin-category-chip"
+            :class="{ current: category.id === currentCategoryId }"
+          >
+            {{ category.name }}
+          </span>
+        </div>
+        <div class="admin-actions">
+          <button
+            type="button"
+            class="admin-action-btn"
+            :class="{ danger: resolvedMetrics.storeVisibility !== 'HIDDEN' }"
+            @click="toggleVisibility"
+          >
+            {{ resolvedMetrics.storeVisibility === 'HIDDEN' ? '恢复' : '隐藏' }}
+          </button>
+          <button type="button" class="admin-action-btn" @click="editStoreWeight">权重</button>
+          <button type="button" class="admin-action-btn" @click="categoryEditorVisible = true">分类</button>
+          <button type="button" class="admin-action-btn" @click="openProductInStudio">Studio</button>
+          <button
+            v-if="currentCategoryId"
+            type="button"
+            class="admin-action-btn danger"
+            @click="removeFromCategory"
+          >
+            移出分类
+          </button>
+        </div>
+      </div>
       <div class="product-footer">
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
         <button
@@ -33,37 +76,85 @@
         </button>
       </div>
     </div>
+    <AdminCategoryEditorDialog
+      v-if="isAdmin"
+      v-model="categoryEditorVisible"
+      :app-id="product?.appId ? Number(product.appId) : null"
+      :selected-categories="resolvedMetrics?.categories || []"
+      @saved="refreshAfterAdminChange"
+    />
   </article>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ShoppingCart } from '@element-plus/icons-vue'
 import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
+import { openStudioDesign } from '@/utils/studio'
+import AdminCategoryEditorDialog from '@/components/AdminCategoryEditorDialog.vue'
+import {
+  fetchAdminStoreMetrics,
+  removeProductCategory,
+  updateProductStoreDisplay,
+} from '@/api/product'
+import type { ProductStoreMetricsVO } from '@/types'
 
 const props = defineProps<{
   product: any
+  adminMetrics?: ProductStoreMetricsVO | null
+  currentCategoryId?: number | null
+}>()
+
+const emit = defineEmits<{
+  (event: 'adminChanged', appId: number): void
 }>()
 
 const router = useRouter()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const localMetrics = ref<ProductStoreMetricsVO | null>(null)
+const categoryEditorVisible = ref(false)
+const DEFAULT_DISPLAY_WEIGHT = 20
+const DISPLAY_WEIGHT_PATTERN = /^(?:[0-9]|[1-9][0-9])$/
 
 const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
 const productImageUrl = computed(() => getProductImageUrl(props.product))
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || []
+  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
+})
+const resolvedMetrics = computed(() => props.adminMetrics || localMetrics.value)
+const currentCategoryId = computed(() => props.currentCategoryId ?? null)
+const designerLabel = computed(() => {
+  const designer = resolvedMetrics.value?.designer
+  if (!designer) return 'Designer -'
+  const name = designer.nickname || designer.username || 'Designer'
+  return `${name} #${designer.id}`
+})
 
 const handleClick = () => {
   if (props.product?.appId) {
     router.push({ name: 'product-detail', params: { id: props.product.appId } })
   }
+}
+
+const openProductInStudio = () => {
+  const designId = String(props.product?.designId || '').trim()
+  if (!designId) {
+    ElMessage.error('Studio design is not available')
+    return
+  }
+  openStudioDesign(designId)
 }
 
 const toggleCart = () => {
@@ -80,6 +171,101 @@ const toggleCart = () => {
     viewCart: t('cart.viewCart'),
   })
 }
+
+const formatNumber = (value?: number | null) => {
+  if (value == null) return '0'
+  return new Intl.NumberFormat('en-US').format(value)
+}
+
+const formatScore = (value?: number | null) => {
+  if (value == null) return '-'
+  return Number(value).toFixed(2)
+}
+
+const formatDate = (value?: string | null) => {
+  if (!value) return '未上线'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '未上线'
+  return date.toLocaleDateString()
+}
+
+const loadLocalMetrics = async () => {
+  if (!isAdmin.value || props.adminMetrics || !props.product?.appId) return
+  try {
+    const list = await fetchAdminStoreMetrics([Number(props.product.appId)])
+    localMetrics.value = list?.[0] || null
+  } catch (error) {
+    localMetrics.value = null
+  }
+}
+
+const refreshAfterAdminChange = async () => {
+  await loadLocalMetrics()
+  if (props.product?.appId) {
+    emit('adminChanged', Number(props.product.appId))
+  }
+}
+
+const toggleVisibility = async () => {
+  if (!props.product?.appId || !resolvedMetrics.value) return
+  const hidden = resolvedMetrics.value.storeVisibility === 'HIDDEN'
+  let reason = resolvedMetrics.value.storeVisibilityReason || ''
+  if (!hidden) {
+    const result = await ElMessageBox.prompt('隐藏原因', '隐藏应用', {
+      confirmButtonText: '隐藏',
+      cancelButtonText: '取消',
+      inputValue: reason,
+    })
+    reason = String(result.value || '').trim()
+  }
+  await updateProductStoreDisplay(Number(props.product.appId), {
+    storeVisibility: hidden ? 'VISIBLE' : 'HIDDEN',
+    weight: resolvedMetrics.value.storeWeight ?? DEFAULT_DISPLAY_WEIGHT,
+    reason,
+  })
+  ElMessage.success(hidden ? '应用已恢复展示' : '应用已隐藏')
+  await refreshAfterAdminChange()
+}
+
+const editStoreWeight = async () => {
+  if (!props.product?.appId || !resolvedMetrics.value) return
+  const result = await ElMessageBox.prompt('请输入 0-99 的整数，数值越大越靠前', '展示权重', {
+    confirmButtonText: '保存',
+    cancelButtonText: '取消',
+    inputValue: String(resolvedMetrics.value.storeWeight ?? DEFAULT_DISPLAY_WEIGHT),
+    inputPattern: DISPLAY_WEIGHT_PATTERN,
+    inputErrorMessage: '请输入 0-99 的整数',
+  })
+  await updateProductStoreDisplay(Number(props.product.appId), {
+    storeVisibility: resolvedMetrics.value.storeVisibility || 'VISIBLE',
+    weight: Number(result.value),
+    reason: resolvedMetrics.value.storeVisibilityReason || '',
+  })
+  ElMessage.success('权重已更新')
+  await refreshAfterAdminChange()
+}
+
+const removeFromCategory = async () => {
+  if (!props.product?.appId || !currentCategoryId.value) return
+  await ElMessageBox.confirm('确认将该应用从当前分类移出？应用不会被删除。', '移出分类', {
+    confirmButtonText: '移出',
+    cancelButtonText: '取消',
+    type: 'warning',
+  })
+  await removeProductCategory(Number(props.product.appId), currentCategoryId.value)
+  ElMessage.success('已移出当前分类')
+  await refreshAfterAdminChange()
+}
+
+onMounted(loadLocalMetrics)
+
+watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
+  if (props.adminMetrics) {
+    localMetrics.value = null
+    return
+  }
+  loadLocalMetrics()
+})
 </script>
 
 <style scoped>
@@ -199,6 +385,74 @@ const toggleCart = () => {
   min-height: 2.6em;
   line-height: 1.3;
   letter-spacing: 0;
+}
+
+.admin-metrics {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 107, 104, 0.16);
+  background: rgba(248, 250, 252, 0.92);
+  color: #334155;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.admin-metrics-top,
+.admin-meta-line,
+.admin-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-metrics-top span,
+.admin-meta-line span {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.admin-category-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.admin-category-chip {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+}
+
+.admin-category-chip.current {
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+}
+
+.admin-action-btn {
+  min-height: 24px;
+  padding: 0 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  color: #334155;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.admin-action-btn:hover {
+  border-color: rgba(15, 107, 104, 0.34);
+  color: var(--color-brand-strong);
+}
+
+.admin-action-btn.danger {
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.22);
 }
 
 .product-card:hover .product-name {

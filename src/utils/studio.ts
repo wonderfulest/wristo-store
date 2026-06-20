@@ -53,6 +53,15 @@ export const openStudio = () => {
   return openStudioUrl(getStudioUrl())
 }
 
+export const openStudioDesign = (designId: string) => {
+  const normalizedDesignId = designId.trim()
+  if (!normalizedDesignId) return false
+
+  const studioUrl = new URL('/design', getStudioUrl())
+  studioUrl.searchParams.set('id', normalizedDesignId)
+  return openStudioUrl(studioUrl.toString())
+}
+
 export const openStudioDesignCopy = (designId: string) => {
   const normalizedDesignId = designId.trim()
   if (!normalizedDesignId) return false

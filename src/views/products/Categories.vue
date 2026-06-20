@@ -9,7 +9,10 @@
         v-for="product in products"
         :key="product.appId"
         :product="product"
+        :admin-metrics="adminMetricsMap.get(product.appId) || null"
+        :current-category-id="series?.id || null"
         class="product-item"
+        @admin-changed="handleAdminChanged"
         @click="goToProduct(product)"
       />
     </div>
@@ -30,24 +33,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, onBeforeUnmount } from 'vue'
+import { computed, ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
-import { getProductsByCategory } from '@/api/product'
-import type { PageResult, ProductBaseVO, Series } from '@/types'
+import { fetchAdminStoreMetrics, getProductsByCategory } from '@/api/product'
+import { useUserStore } from '@/store/user'
+import type { PageResult, ProductBaseVO, ProductStoreMetricsVO, Series } from '@/types'
 import ProductCard from '@/components/ProductCard.vue'
 import { absoluteUrl, applySeo } from '@/seo'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const userStore = useUserStore()
 const series = ref<Series | null>(null)
 const products = ref<ProductBaseVO[]>([])
+const adminMetricsMap = ref<Map<number, ProductStoreMetricsVO>>(new Map())
 const loading = ref(false)
 const currentPage = ref(1)
 const hasMore = ref(true)
 const pageSize = 24
 let scrollTimeout: number | null = null
+
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || []
+  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
+})
+
+const fetchAdminMetrics = async () => {
+  if (!isAdmin.value || products.value.length === 0) {
+    adminMetricsMap.value = new Map()
+    return
+  }
+  try {
+    const ids = [...new Set(products.value.map((product) => Number(product.appId)).filter(Boolean))]
+    const metrics = await fetchAdminStoreMetrics(ids)
+    adminMetricsMap.value = new Map((metrics || []).map((item) => [item.appId, item]))
+  } catch (error) {
+    adminMetricsMap.value = new Map()
+  }
+}
 
 const fetchSeriesAndProducts = async (reset = true) => {
   const slug = route.params.slug as string
@@ -79,6 +104,7 @@ const fetchSeriesAndProducts = async (reset = true) => {
       } else {
         products.value = [...products.value, ...(response.list || [])]
       }
+      await fetchAdminMetrics()
 
       applyCategorySeo()
       
@@ -97,6 +123,10 @@ const fetchSeriesAndProducts = async (reset = true) => {
   } finally {
     loading.value = false
   }
+}
+
+const handleAdminChanged = async () => {
+  await fetchSeriesAndProducts(true)
 }
 
 const loadMore = async () => {

@@ -1,5 +1,13 @@
 import type { UserBaseVO } from "./user";
 
+export interface CategoryVO {
+  id: number
+  name: string
+  slug: string
+  sort?: number | null
+  isActive?: number | null
+}
+
 export interface HeroFile {
   id: number
   name: string
@@ -54,11 +62,30 @@ export interface ProductVO {
   heroFile: HeroFile | null
   backgroundFile: string | null
   categories: any
+  storeVisibility?: 'VISIBLE' | 'HIDDEN' | string
+  storeWeight?: number
+  storeVisibilityReason?: string | null
+  lastGoLive?: string | null
+  score?: number | null
   packageStatus: number
   payment: PaymentVO
   devices?: GarminDeviceBaseVO[]
   configJson?: RuntimeDesignConfig | null
   fallbackImageUrl?: string | null
+}
+
+export interface ProductStoreMetricsVO {
+  appId: number
+  download?: number | null
+  purchase?: number | null
+  score?: number | null
+  createdAt?: string | null
+  lastGoLive?: string | null
+  storeVisibility?: 'VISIBLE' | 'HIDDEN' | string
+  storeWeight?: number | null
+  storeVisibilityReason?: string | null
+  categories?: CategoryVO[]
+  designer?: UserBaseVO | null
 }
 
 export interface RuntimeDesignConfig {
