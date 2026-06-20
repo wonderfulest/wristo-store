@@ -59,7 +59,7 @@
       <!-- Desktop user area -->
       <div class="user-area desktop-user">
         <router-link
-          v-if="cartStore.count"
+          v-if="isCartEnabled && cartStore.count"
           :to="localizedPath('/user/cart')"
           class="header-cart-link"
           :aria-label="t('cart.headerAria')"
@@ -88,7 +88,7 @@
                   <Icon icon="solar:bill-list-line-duotone" width="16" height="16" aria-hidden="true" />
                   <span>{{ t('nav.billing') }}</span>
                 </el-dropdown-item>
-                <el-dropdown-item command="cart">
+                <el-dropdown-item v-if="isCartEnabled" command="cart">
                   <el-icon><ShoppingCart /></el-icon>
                   <span>{{ t('nav.cart') }}</span>
                 </el-dropdown-item>
@@ -164,7 +164,7 @@
             <span>{{ t('nav.faq') }}</span>
           </router-link>
           <router-link
-            v-if="cartStore.count"
+            v-if="isCartEnabled && cartStore.count"
             :to="localizedPath('/user/cart')"
             class="mobile-nav-link mobile-cart-link"
             @click="closeMobileMenu"
@@ -220,7 +220,7 @@
                 <Icon icon="solar:bill-list-line-duotone" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.billing') }}</span>
               </button>
-              <button class="mobile-action-btn" @click="handleUserMenuCommand('cart'); closeMobileMenu()">
+              <button v-if="isCartEnabled" class="mobile-action-btn" @click="handleUserMenuCommand('cart'); closeMobileMenu()">
                 <el-icon><ShoppingCart /></el-icon>
                 <span>{{ t('nav.cart') }}</span>
               </button>
@@ -265,6 +265,7 @@ import { useI18n } from '@/i18n';
 import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
 import { openStudio } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
+import { isCartEnabled } from '@/config/features';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -332,7 +333,9 @@ const handleUserMenuCommand = (command: string) => {
       router.push(localizedPath('/user/orders'));
       break;
     case 'cart':
-      router.push(localizedPath('/user/cart'));
+      if (isCartEnabled) {
+        router.push(localizedPath('/user/cart'));
+      }
       break;
     case 'membership':
       openStudio();

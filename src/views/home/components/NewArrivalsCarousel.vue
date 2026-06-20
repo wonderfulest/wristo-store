@@ -35,6 +35,7 @@
                   <div class="product-footer">
                     <div class="product-price">${{ product.price.toFixed(2) }}</div>
                     <button
+                      v-if="isCartEnabled"
                       class="cart-toggle"
                       type="button"
                       :class="{ active: cartStore.hasItem(product.appId) }"
@@ -42,7 +43,7 @@
                       :aria-label="cartStore.hasItem(product.appId) ? t('cart.removeFromCart') : t('cart.addToCart')"
                       @click.stop="toggleCart(product.__origin)"
                     >
-                      <Icon icon="solar:cart-3-line-duotone" width="19" height="19" aria-hidden="true" />
+                      <el-icon><ShoppingCart /></el-icon>
                     </button>
                   </div>
                 </div>
@@ -60,12 +61,14 @@ import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { ElMessage } from 'element-plus'
+import { ShoppingCart } from '@element-plus/icons-vue'
 import type { ProductBaseVO } from '@/types';
 import { getProductImageUrl } from '@/utils/productImage'
 import { useCartStore } from '@/store/cart'
 import { useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
+import { isCartEnabled } from '@/config/features'
 
 const props = defineProps<{
   newProducts: ProductBaseVO[];
@@ -101,6 +104,7 @@ const handleProductClick = (product: ProductBaseVO) => {
 }
 
 const toggleCart = (product: ProductBaseVO) => {
+  if (!isCartEnabled) return
   if (!product?.appId) return
   const removing = cartStore.hasItem(product.appId)
   cartStore.toggle(product)

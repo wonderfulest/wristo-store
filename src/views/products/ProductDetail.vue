@@ -27,7 +27,7 @@
           <el-icon class="btn-icon"><CreditCard /></el-icon>
         </button>
         <button
-          v-if="product?.appId"
+          v-if="isCartEnabled && product?.appId"
           type="button"
           class="product-btn product-btn-cart"
           :class="{ active: isInCart }"
@@ -167,6 +167,7 @@ import { openStudioDesignCopy } from '@/utils/studio'
 import { useCartCheckout } from '@/composables/useCartCheckout'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
+import { isCartEnabled } from '@/config/features'
 
 const route = useRoute()
 const router = useRouter()
@@ -187,6 +188,7 @@ const productPreviewFallback = computed(() => {
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
 
 const toggleCart = () => {
+  if (!isCartEnabled) return
   if (!product.value?.appId) return
   if (cartStore.hasItem(product.value.appId)) {
     router.push(addLocaleToPath('/user/cart', localeStore.currentLocale))

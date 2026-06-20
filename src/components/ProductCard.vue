@@ -21,6 +21,7 @@
       <div class="product-footer">
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
         <button
+          v-if="isCartEnabled"
           class="cart-toggle"
           type="button"
           :class="{ active: isInCart }"
@@ -45,6 +46,7 @@ import { useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
+import { isCartEnabled } from '@/config/features'
 
 const props = defineProps<{
   product: any
@@ -65,6 +67,7 @@ const handleClick = () => {
 }
 
 const toggleCart = () => {
+  if (!isCartEnabled) return
   if (!props.product?.appId) return
   const removing = cartStore.hasItem(props.product.appId)
   cartStore.toggle(props.product)

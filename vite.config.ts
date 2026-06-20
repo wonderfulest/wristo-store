@@ -30,6 +30,7 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_SEMIANNUAL': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_SEMIANNUAL || ''),
       'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_ANNUAL': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_ANNUAL || ''),
       'import.meta.env.VITE_WRISTO_STUDIO_PADDLE_PRICE_PREMIUM_30D': JSON.stringify(env.VITE_WRISTO_STUDIO_PADDLE_PRICE_PREMIUM_30D || ''),
+      'import.meta.env.VITE_STORE_CART_ENABLED': JSON.stringify(env.VITE_STORE_CART_ENABLED || ''),
     },
     plugins: [
       vue()

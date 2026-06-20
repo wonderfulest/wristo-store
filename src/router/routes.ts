@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { SUPPORTED_LOCALES } from '@/store/locale'
+import { isCartEnabled } from '@/config/features'
 
 const langPattern = SUPPORTED_LOCALES.join('|')
 
@@ -225,7 +226,12 @@ const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/user/cart',
     name: 'CartListPage',
-    component: () => import('@/views/user-center/CartListPage.vue')
+    component: () => import('@/views/user-center/CartListPage.vue'),
+    beforeEnter: (to) => {
+      if (isCartEnabled) return true
+      const lang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+      return typeof lang === 'string' ? `/${lang}` : '/'
+    }
   },
   /**
    * Email Settings

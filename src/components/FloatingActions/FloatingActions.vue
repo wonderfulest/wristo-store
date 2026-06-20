@@ -12,7 +12,7 @@
         <Icon class="fab-icon fab-icon-solid" icon="mdi:youtube" width="22" height="22" aria-hidden="true" />
       </a> -->
       <button
-        v-if="showPageActions && cartStore.count"
+        v-if="showPageActions && isCartEnabled && cartStore.count"
         class="fab-btn fab-cart"
         type="button"
         @click="openCart"
@@ -20,16 +20,7 @@
         :title="t('cart.viewCart')"
       >
         <span class="fab-count">{{ cartStore.count }}</span>
-        <svg
-          class="fab-icon"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M6 7h15l-1.5 8.5H8L6 4H3" />
-          <path d="M9 20h.01" />
-          <path d="M18 20h.01" />
-        </svg>
+        <el-icon class="fab-icon"><ShoppingCart /></el-icon>
       </button>
       <button
         v-if="showPageActions && scrolled"
@@ -62,6 +53,8 @@ import { useRouter } from 'vue-router'
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
+import { isCartEnabled } from '@/config/features'
+import { ShoppingCart } from '@element-plus/icons-vue'
 
 const props = withDefaults(
   defineProps<{
@@ -85,6 +78,7 @@ const localeStore = useLocaleStore()
 const { t } = useI18n()
 
 const openCart = () => {
+  if (!isCartEnabled) return
   router.push(addLocaleToPath('/user/cart', localeStore.currentLocale))
 }
 

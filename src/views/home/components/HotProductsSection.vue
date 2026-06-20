@@ -36,6 +36,7 @@
             <div class="hot-card-footer">
               <span class="hot-price">${{ product.price.toFixed(2) }}</span>
               <button
+                v-if="isCartEnabled"
                 class="hot-cart-toggle"
                 type="button"
                 :class="{ active: isProductInCart(product) }"
@@ -43,8 +44,7 @@
                 :aria-label="isProductInCart(product) ? t('cart.removeFromCart') : t('cart.addToCart')"
                 @click.stop="toggleCart(product)"
               >
-                <Icon icon="solar:cart-3-line-duotone" width="19" height="19" aria-hidden="true" />
-                <span class="hot-cart-state" aria-hidden="true">{{ isProductInCart(product) ? '-' : '+' }}</span>
+                <el-icon><ShoppingCart /></el-icon>
               </button>
             </div>
           </div>
@@ -59,12 +59,14 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { Icon } from '@iconify/vue';
 import { ElMessage } from 'element-plus';
+import { ShoppingCart } from '@element-plus/icons-vue';
 import type { ProductBaseVO } from '@/types';
 import { useI18n } from '@/i18n';
 import { getProductImageUrl } from '@/utils/productImage'
 import { useCartStore } from '@/store/cart'
 import { useLocaleStore } from '@/store/locale'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
+import { isCartEnabled } from '@/config/features'
 
 const { t } = useI18n();
 const router = useRouter()
@@ -90,6 +92,7 @@ const handleProductClick = (product: ProductBaseVO) => {
 const isProductInCart = (product: ProductBaseVO) => cartStore.hasItem(product?.appId)
 
 const toggleCart = (product: ProductBaseVO) => {
+  if (!isCartEnabled) return
   if (!product?.appId) return
   const removing = isProductInCart(product)
   cartStore.toggle(product)
@@ -362,24 +365,6 @@ const toggleCart = (product: ProductBaseVO) => {
   color: var(--color-muted);
   box-shadow: var(--shadow-sm);
   transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
-}
-
-.hot-cart-state {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  width: 15px;
-  height: 15px;
-  border-radius: 999px;
-  background: var(--color-brand);
-  color: #fff;
-  border: 2px solid #fff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 850;
-  line-height: 1;
 }
 
 .hot-cart-toggle:hover,
