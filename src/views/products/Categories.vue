@@ -5,6 +5,23 @@
       <h1 class="category-title">{{ series.name }}</h1>
     </div>
 
+    <div v-if="series" class="category-toolbar" aria-label="Category product sorting">
+      <span class="category-sort-label">Sort by</span>
+      <div class="category-sort-options" role="group" aria-label="Sort products">
+        <button
+          v-for="option in sortOptions"
+          :key="option.value"
+          type="button"
+          class="category-sort-btn"
+          :class="{ active: selectedOrderBy === option.value }"
+          :aria-pressed="selectedOrderBy === option.value"
+          @click="selectOrder(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+    </div>
+
     <section v-if="isAdmin" class="admin-category-panel" aria-label="Category display management">
       <div class="admin-panel-head">
         <div>
@@ -59,9 +76,12 @@
             <div class="admin-category-main">
               <img v-if="category.image" :src="category.image" :alt="category.name" class="admin-category-thumb" />
               <div v-else class="admin-category-placeholder" aria-hidden="true">{{ category.name.slice(0, 1).toUpperCase() }}</div>
-              <div>
+              <div class="admin-category-copy">
                 <strong>{{ category.name }}</strong>
-                <span>/categories/{{ category.slug }}</span>
+                <div class="admin-category-meta">
+                  <span>/categories/{{ category.slug }}</span>
+                  <span class="admin-category-count">{{ formatCategoryAppCount(category) }}</span>
+                </div>
               </div>
             </div>
             <label class="admin-sort-field">
@@ -134,6 +154,7 @@ import {
   fetchAdminCategories,
   fetchAdminStoreMetrics,
   getProductsByCategory,
+  type CategoryProductOrderBy,
   updateAdminCategory,
   updateAdminCategoryStatus,
   uploadAdminCategoryImage,
@@ -167,6 +188,22 @@ const newCategory = ref({
   sort: 0,
   isActive: true,
 })
+const sortOptions: { label: string; value: CategoryProductOrderBy }[] = [
+  { label: 'Most downloaded', value: 'download:desc' },
+  { label: 'Top rated', value: 'rating:desc,download:desc' },
+]
+
+const normalizeOrderBy = (value: unknown): CategoryProductOrderBy => {
+  return value === 'rating' || value === 'rating:desc,download:desc'
+    ? 'rating:desc,download:desc'
+    : 'download:desc'
+}
+
+const orderByToQuery = (orderBy: CategoryProductOrderBy) => {
+  return orderBy === 'rating:desc,download:desc' ? 'rating' : undefined
+}
+
+const selectedOrderBy = computed(() => normalizeOrderBy(route.query.sort))
 
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
@@ -205,6 +242,11 @@ const sortCategories = (list: Series[]) => {
     if (sortDiff !== 0) return sortDiff
     return a.name.localeCompare(b.name)
   })
+}
+
+const formatCategoryAppCount = (category: Series) => {
+  const count = Number(category.appCount ?? 0)
+  return `${Number.isFinite(count) ? count : 0} 个应用`
 }
 
 const refreshStoreCategories = async () => {
@@ -320,7 +362,8 @@ const fetchSeriesAndProducts = async (reset = true) => {
       const response: PageResult<ProductBaseVO> = await getProductsByCategory(
         slug, 
         currentPage.value, 
-        pageSize
+        pageSize,
+        selectedOrderBy.value
       )
       
       if (reset) {
@@ -351,6 +394,7 @@ const fetchSeriesAndProducts = async (reset = true) => {
 
 const handleAdminChanged = async () => {
   await fetchSeriesAndProducts(true)
+  await loadAdminCategories()
 }
 
 const handleRemovedFromCurrentCategory = (appId: number) => {
@@ -358,6 +402,15 @@ const handleRemovedFromCurrentCategory = (appId: number) => {
   const nextMetrics = new Map(adminMetricsMap.value)
   nextMetrics.delete(appId)
   adminMetricsMap.value = nextMetrics
+  if (series.value?.id) {
+    adminCategories.value = adminCategories.value.map((category) => {
+      if (category.id !== series.value?.id) return category
+      return {
+        ...category,
+        appCount: Math.max(Number(category.appCount ?? 0) - 1, 0),
+      }
+    })
+  }
 }
 
 const loadMore = async () => {
@@ -365,6 +418,17 @@ const loadMore = async () => {
   
   currentPage.value++
   await fetchSeriesAndProducts(false)
+}
+
+const selectOrder = async (orderBy: CategoryProductOrderBy) => {
+  if (orderBy === selectedOrderBy.value) return
+  await router.replace({
+    path: route.path,
+    query: {
+      ...route.query,
+      sort: orderByToQuery(orderBy),
+    },
+  })
 }
 
 // 滚动到底部自动加载更多
@@ -488,7 +552,7 @@ onMounted(() => {
   ;(window as any).scrollCheckInterval = checkInterval
 })
 
-watch(() => route.params.slug, () => {
+watch(() => [route.params.slug, route.query.sort], () => {
   fetchSeriesAndProducts(true)
 })
 
@@ -549,6 +613,49 @@ onBeforeUnmount(() => {
   font-weight: 800;
   color: var(--color-ink);
   margin: 0;
+}
+
+.category-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: -12px 0 28px;
+}
+
+.category-sort-label {
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.category-sort-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.category-sort-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #475569;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.category-sort-btn.active {
+  background: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(15, 107, 104, 0.18);
 }
 
 .admin-category-panel {
@@ -701,6 +808,12 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.admin-category-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
 .admin-category-thumb,
 .admin-category-placeholder {
   width: 44px;
@@ -723,7 +836,7 @@ onBeforeUnmount(() => {
 }
 
 .admin-category-main strong,
-.admin-category-main span {
+.admin-category-meta span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -734,9 +847,25 @@ onBeforeUnmount(() => {
   color: var(--color-ink);
 }
 
-.admin-category-main span {
+.admin-category-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.admin-category-meta span {
   color: #64748b;
   font-size: 0.82rem;
+}
+
+.admin-category-count {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-weight: 800;
 }
 
 .admin-status-switch {
@@ -865,6 +994,12 @@ onBeforeUnmount(() => {
     gap: 18px;
   }
 
+  .category-toolbar {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: -18px;
+  }
+
   .admin-panel-head,
   .admin-category-item {
     grid-template-columns: 1fr;
@@ -909,6 +1044,15 @@ onBeforeUnmount(() => {
     flex-direction: column;
     text-align: center;
     gap: 16px;
+  }
+
+  .category-toolbar,
+  .category-sort-options {
+    width: 100%;
+  }
+
+  .category-sort-btn {
+    flex: 1;
   }
 
   .admin-category-create {

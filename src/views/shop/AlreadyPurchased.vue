@@ -1,10 +1,11 @@
 <template>
   <div class="already-purchased-page">
     <div class="content-container">
+      <img class="code-logo" src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-logo-horizontal.svg" alt="Wristo" />
       <div class="header-section">
         <p class="eyebrow">Already purchased</p>
         <h1 class="title">Activate your purchase</h1>
-        <p class="desc">Enter your purchase email and the 6-digit code shown on your Garmin watch.</p>
+        <p class="desc">Restore premium access with the same purchase email and the 6-digit code on your Garmin watch.</p>
       </div>
       
       <div class="tip-card">
@@ -13,7 +14,7 @@
         </div>
         <div class="tip-content">
           <strong>Where to find it</strong>
-          <span>The code appears after installing a clock face or app.</span>
+          <span>The code appears on the watch face after the trial or purchase prompt shows.</span>
         </div>
       </div>
       
@@ -28,8 +29,10 @@
             class="email-input" 
             required 
             autocomplete="email"
+            aria-describedby="purchase-email-help"
             @input="clearMessages"
           />
+          <div id="purchase-email-help" class="input-desc">Use the email address from the original payment.</div>
         </div>
         
         <div class="input-group">
@@ -45,9 +48,10 @@
             class="code-input" 
             required 
             autocomplete="one-time-code"
+            aria-describedby="activation-code-help"
             @input="handleCodeInput"
           />
-          <div class="input-desc">
+          <div id="activation-code-help" class="input-desc">
             Enter numbers only.
             <span class="help-inline">
               Not seeing your code? 
@@ -63,6 +67,8 @@
           <span v-else>Activate Purchase</span>
         </button>
       </form>
+
+      <p class="sync-note">After activation, sync Garmin Connect. Most watch faces unlock within 1-5 minutes.</p>
       
       <div v-if="error" class="message error-message">
         <el-icon class="message-icon" aria-hidden="true"><WarningFilled /></el-icon>
@@ -180,18 +186,18 @@ function handleResendCode() {
 
 <style scoped>
 .already-purchased-page {
-  height: calc(100dvh - 132px);
-  min-height: auto;
+  min-height: calc(100dvh - 64px - 58px - 40px);
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
   background:
     radial-gradient(circle at 18% 0%, rgba(15, 107, 104, 0.12), transparent 28rem),
     radial-gradient(circle at 92% 8%, rgba(245, 158, 11, 0.14), transparent 24rem),
     linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 100%);
   padding: 20px;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .content-container {
@@ -207,10 +213,19 @@ function handleResendCode() {
   padding: 36px;
   width: 100%;
   max-width: 540px;
+  max-height: none;
   display: flex;
   flex-direction: column;
   gap: 22px;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.code-logo {
+  width: 132px;
+  height: auto;
+  align-self: center;
 }
 
 .header-section {
@@ -241,10 +256,11 @@ function handleResendCode() {
 }
 
 .desc {
+  max-width: 31rem;
   color: #475467;
   font-size: 1rem;
   line-height: 1.6;
-  margin: 4px 0 0;
+  margin: 4px auto 0;
 }
 
 .tip-card {
@@ -292,7 +308,6 @@ function handleResendCode() {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  flex: 1;
 }
 
 .input-group {
@@ -370,9 +385,11 @@ function handleResendCode() {
   cursor: pointer;
   text-decoration: none;
   transition: color 180ms ease, background 180ms ease;
-  padding: 0;
+  min-height: 28px;
+  padding: 0 4px;
   margin-left: 2px;
   border-radius: 8px;
+  touch-action: manipulation;
 }
 
 .help-link-inline:hover,
@@ -399,7 +416,7 @@ function handleResendCode() {
   transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease, background 180ms ease;
   letter-spacing: 0;
   width: 100%;
-  margin-top: auto;
+  margin-top: 2px;
   box-shadow:
     0 18px 42px rgba(15, 107, 104, 0.26),
     0 10px 24px rgba(245, 158, 11, 0.20),
@@ -472,6 +489,14 @@ function handleResendCode() {
   color: #0f6b68;
 }
 
+.sync-note {
+  margin: -6px 0 0;
+  color: #667085;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .loading-spinner {
   width: 18px;
   height: 18px;
@@ -487,17 +512,61 @@ function handleResendCode() {
   }
 }
 
-@media (max-width: 480px) {
+@media (prefers-reduced-motion: reduce) {
+  .email-input,
+  .code-input,
+  .help-link-inline,
+  .activation-btn {
+    transition: none;
+  }
+
+  .activation-btn:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .loading-spinner {
+    animation-duration: 1.8s;
+  }
+}
+
+@media (max-width: 768px) {
   .already-purchased-page {
-    height: calc(100dvh - 120px);
-    padding: 10px;
+    align-items: flex-start;
+    min-height: 100dvh;
+    padding: 16px;
   }
 
   .content-container {
-    padding: 18px 16px;
-    gap: 12px;
+    padding: 28px 22px;
+    gap: 16px;
     max-width: 100%;
     border-radius: 20px;
+  }
+
+  .code-logo {
+    width: 120px;
+  }
+
+  .title {
+    max-width: 12ch;
+    font-size: clamp(1.9rem, 8vw, 2.6rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .already-purchased-page {
+    min-height: 100dvh;
+    padding: 12px;
+  }
+
+  .content-container {
+    padding: 22px 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+
+  .code-logo {
+    width: 108px;
   }
   
   .tip-card {
@@ -524,6 +593,10 @@ function handleResendCode() {
     padding: 12px 14px;
   }
 
+  .email-input {
+    text-align: left;
+  }
+
   .code-input {
     min-height: 56px;
     font-size: 1.45rem;
@@ -534,6 +607,12 @@ function handleResendCode() {
     min-height: 50px;
     padding: 10px 14px;
     font-size: 0.94rem;
+  }
+
+  .message {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 14px 16px;
   }
 }
 </style> 

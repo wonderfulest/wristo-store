@@ -1,21 +1,75 @@
 <template>
   <div class="search-page">
+    <section class="search-hero">
+      <div class="search-hero-inner">
+        <div class="search-hero-copy">
+          <p class="section-kicker">{{ t('search.heroKicker') }}</p>
+          <h1 class="search-title">{{ t('search.heroTitle') }}</h1>
+        </div>
 
-    <SearchSection
-      class="search-section-standalone"
-      :initialSearchTerm="searchTerm"
-      :placeholder="t('search.placeholder')"
-      :total="total"
-      @search="handleSearch"
-      @submit="handleSubmit"
-    />
+        <SearchSection
+          class="search-section-standalone"
+          :initialSearchTerm="searchTerm"
+          :placeholder="t('search.placeholder')"
+          :total="total"
+          :helper="t('search.helper')"
+          :submit-label="t('search.submit')"
+          variant="compact"
+          show-submit
+          @search="handleSearch"
+          @submit="handleSubmit"
+        />
+
+        <div class="hero-quick-row" :aria-label="t('search.popularAria')">
+          <button
+            v-for="item in popularSearches"
+            :key="item"
+            class="search-chip"
+            :class="{ active: normalizedSearchTerm === item }"
+            type="button"
+            @click="submitSuggestion(item)"
+          >
+            {{ item }}
+          </button>
+        </div>
+      </div>
+    </section>
 
     <div class="search-content">
-      <div v-if="loading" class="state-card">{{ t('search.loading') }}</div>
+      <div class="results-toolbar">
+        <div>
+          <p class="section-kicker">{{ resultKicker }}</p>
+          <h2 class="results-title">{{ resultTitle }}</h2>
+        </div>
+        <button v-if="hasSearchQuery" class="outline-link" type="button" @click="clearSearch">
+          <Icon icon="mdi:close" width="18" aria-hidden="true" />
+          {{ t('search.clear') }}
+        </button>
+      </div>
+
+      <div v-if="loading" class="skeleton-grid" :aria-label="t('search.loading')">
+        <div v-for="item in pageSize" :key="item" class="skeleton-card">
+          <span class="skeleton-image" />
+          <span class="skeleton-line strong" />
+          <span class="skeleton-line" />
+        </div>
+      </div>
 
       <div v-else-if="shouldShowEmpty" class="state-card">
+        <Icon icon="mdi:magnify-close" width="34" aria-hidden="true" />
         <div class="state-title">{{ t('search.emptyTitle') }}</div>
         <div class="state-subtitle">{{ t('search.emptySubtitle') }}</div>
+        <div class="empty-suggestions">
+          <button
+            v-for="item in fallbackSearches"
+            :key="item"
+            class="search-chip"
+            type="button"
+            @click="submitSuggestion(item)"
+          >
+            {{ item }}
+          </button>
+        </div>
         <button class="state-studio-btn" type="button" @click="openStudio">
           <Icon icon="mdi:creation-outline" width="18" aria-hidden="true" />
           {{ t('search.createInStudio') }}
@@ -37,6 +91,13 @@
       </div>
 
       <div
+        v-if="isFetchingMore"
+        class="infinite-footer loading-more"
+      >
+        {{ t('search.loadingMore') }}
+      </div>
+
+      <div
         v-if="showMobileEndState"
         class="infinite-footer"
       >
@@ -53,6 +114,7 @@
       <div class="discovery-header">
         <div>
           <p class="section-kicker">{{ t('search.exploreMore') }}</p>
+          <h2 class="section-title">{{ t('search.discoveryTitle') }}</h2>
         </div>
         <button class="outline-link" type="button" @click="goToTopApps">
           <Icon icon="mdi:chart-line" width="18" aria-hidden="true" />
@@ -153,6 +215,8 @@ const popularSearches = [
   'daily'
 ]
 
+const fallbackSearches = ['minimal', 'classic', 'sport', 'analog']
+
 const localizedPath = (path: string) => addLocaleToPath(path, locale.value)
 
 const scenarios = computed(() => [
@@ -184,6 +248,14 @@ const pages = ref(0)
 const maxPages = computed(() => Math.min(pages.value || 0, 10))
 const limitedTotal = computed(() => Math.min(total.value, pageSize.value * 10))
 const hasSearchQuery = computed(() => searchTerm.value.trim().length >= 2)
+const normalizedSearchTerm = computed(() => searchTerm.value.trim().toLowerCase())
+const formattedTotal = computed(() => new Intl.NumberFormat('en-US').format(total.value || searchResults.value.length || 0))
+const resultKicker = computed(() => hasSearchQuery.value ? t('search.resultsKicker') : t('search.featuredKicker'))
+const resultTitle = computed(() => {
+  if (!hasSearchQuery.value) return t('search.featuredTitle')
+  if (loading.value) return t('search.loading')
+  return t('search.resultsTitle').replace('{count}', formattedTotal.value).replace('{query}', searchTerm.value.trim())
+})
 const showDesktopPagination = computed(() => {
   return !isMobile.value && hasSearchQuery.value && maxPages.value > 1 && searchResults.value.length > 0
 })
@@ -248,6 +320,10 @@ watch(
 
 const handleSearch = async (term: string) => {
   const q = term.trim()
+  if (!q) {
+    await clearSearch()
+    return
+  }
   if (/^\d{6}$/.test(q)) {
     await router.replace({ path: localizedPath('/code'), query: { code: q } })
     return
@@ -270,6 +346,12 @@ const submitSuggestion = async (term: string) => {
   searchTerm.value = term
   pageNum.value = 1
   await router.replace({ path: localizedPath('/search'), query: { q: term } })
+}
+
+const clearSearch = async () => {
+  searchTerm.value = ''
+  pageNum.value = 1
+  await router.replace({ path: localizedPath('/search') })
 }
 
 const goToTopApps = () => {
@@ -414,58 +496,137 @@ onUnmounted(() => {
 
 <style scoped>
 .search-page {
-  min-height: 0;
+  min-height: 100%;
   padding-bottom: 0;
+  background:
+    linear-gradient(180deg, #f7fbfa 0%, #ffffff 42%, #f7faf9 100%);
 }
 
 .search-section-standalone {
   width: 100%;
   min-height: auto;
   background: transparent;
+  border-block: none;
   border-bottom: none;
   box-shadow: none;
 }
 
 .search-section-standalone :deep(.search-bar-outer) {
-  margin-top: 28px;
-  margin-bottom: 18px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .search-section-standalone :deep(.search-bar-inner) {
-  width: min(760px, calc(100vw - 32px));
-  max-width: 760px;
+  width: min(840px, 100%);
+  max-width: 840px;
 }
 
 .search-hero {
-  padding: 56px 0 12px;
-  background: radial-gradient(1200px 300px at 50% 0%, #eaf3ff 0%, #ffffff 70%);
-  border-bottom: 1px solid #eef2f7;
+  padding: 46px 0 34px;
+  background:
+    radial-gradient(900px 260px at 18% 0%, rgba(223, 245, 241, 0.92) 0%, rgba(223, 245, 241, 0) 72%),
+    radial-gradient(760px 260px at 82% 18%, rgba(255, 248, 235, 0.98) 0%, rgba(255, 248, 235, 0) 70%),
+    #ffffff;
 }
 
 .search-hero-inner {
-  max-width: 1200px;
+  width: min(var(--container), calc(100% - 44px));
   margin: 0 auto;
-  padding: 0 22px;
+}
+
+.search-hero-copy {
+  max-width: 760px;
+  margin-bottom: 24px;
 }
 
 .search-title {
   margin: 0;
-  font-size: 44px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #111827;
+  max-width: 720px;
+  font-size: clamp(2.1rem, 4.4vw, 4.5rem);
+  font-weight: 850;
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--color-ink);
 }
 
-.search-subtitle {
-  margin: 10px 0 0;
-  font-size: 16px;
-  color: #6b7280;
+.hero-quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
 }
 
 .search-content {
-  max-width: 1200px;
+  width: min(var(--container), calc(100% - 44px));
   margin: 0 auto;
-  padding: 0 22px;
+  padding: 28px 0 0;
+}
+
+.results-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 2px;
+}
+
+.results-title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(1.35rem, 2.3vw, 2rem);
+  font-weight: 850;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 18px;
+  padding: 38px 10px 10px;
+}
+
+.skeleton-card {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+
+.skeleton-image,
+.skeleton-line {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #eef3f2 0%, #f8faf9 45%, #eef3f2 90%);
+  background-size: 220% 100%;
+  animation: search-skeleton 1.2s ease-in-out infinite;
+}
+
+.skeleton-image {
+  aspect-ratio: 1;
+  margin-bottom: 12px;
+}
+
+.skeleton-line {
+  width: 72%;
+  height: 12px;
+  margin-top: 8px;
+}
+
+.skeleton-line.strong {
+  width: 92%;
+  height: 14px;
+}
+
+@keyframes search-skeleton {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
 }
 
 .state-studio-btn {
@@ -490,7 +651,7 @@ onUnmounted(() => {
 
 .search-discovery {
   width: min(var(--container), calc(100% - 44px));
-  margin: 18px auto 56px;
+  margin: 26px auto 56px;
   padding: 34px 0 0;
 }
 
@@ -583,11 +744,20 @@ onUnmounted(() => {
   background: #ffffff;
   font-size: 0.94rem;
   font-weight: 800;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .search-chip:hover {
   border-color: rgba(15, 107, 104, 0.34);
   background: var(--color-brand-soft);
+  transform: translateY(-1px);
+}
+
+.search-chip.active {
+  color: #ffffff;
+  border-color: var(--color-brand);
+  background: var(--color-brand);
 }
 
 .discovery-grid {
@@ -606,6 +776,8 @@ onUnmounted(() => {
   padding: 22px;
   text-align: left;
   color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .scenario-card:hover {
@@ -677,6 +849,8 @@ onUnmounted(() => {
   font-size: 0.94rem;
   font-weight: 800;
   white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .solid-link {
@@ -701,6 +875,7 @@ onUnmounted(() => {
 .outline-link:hover {
   background: var(--color-brand-soft);
   border-color: rgba(15, 107, 104, 0.34);
+  transform: translateY(-1px);
 }
 
 .pagination-wrap {
@@ -774,8 +949,8 @@ onUnmounted(() => {
 }
 
 .state-card {
-  margin: 18px 0 0;
-  min-height: 220px;
+  margin: 26px 0 0;
+  min-height: 260px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -790,9 +965,59 @@ onUnmounted(() => {
   box-shadow: var(--shadow-sm);
 }
 
+.state-card > .iconify {
+  color: var(--color-brand);
+}
+
+.empty-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 8px 0 4px;
+}
+
+.infinite-footer {
+  margin: 18px auto 0;
+  padding: 14px 18px;
+  color: var(--color-muted);
+  font-size: 0.94rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.loading-more {
+  color: var(--color-brand-strong);
+  font-weight: 800;
+}
+
 @media (max-width: 735px) {
+  .search-hero {
+    padding: 34px 0 24px;
+  }
+
+  .search-hero-inner,
   .search-content {
-    padding: 0 16px;
+    width: calc(100% - 28px);
+  }
+
+  .search-title {
+    font-size: 2.35rem;
+  }
+
+  .search-content {
+    padding-top: 22px;
+  }
+
+  .results-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .skeleton-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    padding: 24px 0 0;
   }
 
   .search-discovery {
@@ -866,12 +1091,23 @@ onUnmounted(() => {
 }
 
 @media (max-width: 735px) {
-  .search-hero {
-    padding-top: 44px;
+  .state-card {
+    min-height: 240px;
+    padding: 24px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-image,
+  .skeleton-line {
+    animation: none;
   }
 
-  .search-title {
-    font-size: 34px;
+  .search-chip,
+  .scenario-card,
+  .outline-link,
+  .solid-link {
+    transition: none;
   }
 }
 </style>

@@ -132,10 +132,17 @@ export const getRelatedProducts = (appId: string): Promise<ProductBaseVO[]> => {
   return instance.get(`/public/products/related/${appId}`)
 }
 
+export type CategoryProductOrderBy = 'download:desc' | 'rating:desc,download:desc'
+
 // 通过 slug 获取系列下商品（分页）
-export const getProductsByCategory = (slug: string, pageNum = 1, pageSize = 30): Promise<PageResult<ProductBaseVO>> => {
+export const getProductsByCategory = (
+  slug: string,
+  pageNum = 1,
+  pageSize = 30,
+  orderBy: CategoryProductOrderBy = 'download:desc'
+): Promise<PageResult<ProductBaseVO>> => {
   return instance.get('/public/products/page/category', {
-    params: { slug, pageNum, pageSize, orderBy: 'download:desc' }
+    params: { slug, pageNum, pageSize, orderBy }
   })
 }
 

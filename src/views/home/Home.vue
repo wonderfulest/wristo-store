@@ -11,17 +11,23 @@
       @submit="handleSubmitSearch"
     />
 
-    <!-- Brands Section -->
-    <BrandsSection />
-    
-    <!-- Feature Section -->
-    <FeatureSection />
+    <!-- New Arrivals Carousel -->
+    <NewArrivalsCarousel
+      :new-products="newProducts"
+      @product-click="goToProduct"
+    />
 
     <!-- Series Section -->
     <SeriesSection 
       :series-list="seriesList"
       @series-click="goToSeries"
     />
+
+    <!-- Brands Section -->
+    <BrandsSection />
+    
+    <!-- Feature Section -->
+    <FeatureSection />
 
     <!-- Hot Products Section -->
     <HotProductsSection 
@@ -44,6 +50,7 @@ import HomeBanner from '@/views/home/components/HomeBanner.vue';
 import SearchSection from '@/views/home/components/SearchSection.vue';
 import BrandsSection from '@/views/brands/BrandsSection.vue';
 import FeatureSection from '@/views/home/components/FeatureSection.vue';
+import NewArrivalsCarousel from '@/views/home/components/NewArrivalsCarousel.vue';
 import SeriesSection from '@/views/home/components/SeriesSection.vue';
 import HotProductsSection from '@/views/home/components/HotProductsSection.vue';
 import { addLocaleToPath, useLocaleStore } from '@/store/locale';
@@ -56,6 +63,7 @@ const localeStore = useLocaleStore();
 const searchTerm = ref('');
 const seriesList = ref<Series[]>([]);
 const hotProducts = ref<ProductBaseVO[]>([]);
+const newProducts = ref<ProductBaseVO[]>([]);
 
 const handleSubmitSearch = async (term: string) => {
   const q = term.trim()
@@ -67,9 +75,10 @@ const handleSubmitSearch = async (term: string) => {
 // Fetch initial data
 onMounted(async () => {
   try {
-    [seriesList.value, hotProducts.value] = await Promise.all([
+    [seriesList.value, hotProducts.value, newProducts.value] = await Promise.all([
       productStore.getHotSeries(),
-      productStore.getHotProducts()
+      productStore.getHotProducts(),
+      productStore.getNewProducts()
     ]);
   } catch (error) {
     console.error('Failed to fetch initial data:', error);

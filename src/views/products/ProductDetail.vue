@@ -148,7 +148,7 @@
           <div v-else class="devices-header">
             <div class="devices-title">{{ t('product.supportedDevices') }}</div>
             <div class="devices-subtitle">
-              {{ t('product.compatibleDevices', { count: product.devices.length }) }}
+              {{ t('product.compatibleDevicesPreview', { count: product.devices.length }) }}
             </div>
           </div>
           <div v-if="!selectedSupportedDevice" class="devices-grid">
@@ -166,13 +166,14 @@
             </div>
           </div>
           <button
-            v-if="!selectedSupportedDevice && product.devices.length > maxVisibleDevices"
-            class="devices-toggle"
-            @click="showAllDevices = !showAllDevices"
+            v-if="!selectedSupportedDevice"
+            type="button"
+            class="devices-select-btn"
+            @click="showDeviceSelector = true"
           >
-            <span v-if="!showAllDevices">{{ t('product.showAllDevices', { count: product.devices.length }) }}</span>
-            <span v-else>{{ t('product.showLess') }}</span>
+            {{ t('product.selectYourDevice') }}
           </button>
+          <DeviceSelector v-model="showDeviceSelector" @device-selected="onDeviceSelected" />
         </div>
         <div class="unlock-section">
           <div class="unlock-tip">{{ t('product.unlockTip') }}</div>
@@ -306,6 +307,7 @@ import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import AdminCategoryEditorDialog from '@/components/AdminCategoryEditorDialog.vue'
+import DeviceSelector from '@/components/DeviceSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -319,6 +321,7 @@ const product = ref<ProductVO | null>(null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const categoryEditorVisible = ref(false)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
+const showDeviceSelector = ref(false)
 const ratingSubmitting = ref(false)
 const reviewsLoading = ref(false)
 const productReviews = ref<ProductReviewVO[]>([])
@@ -587,12 +590,10 @@ const editAdminWeight = async () => {
 const qrcodeRef = ref<any>(null)
 const qrcodeBoxRef = ref<HTMLElement | null>(null)
 
-// Devices show more/less
-const maxVisibleDevices = 12
-const showAllDevices = ref(false)
+// Devices preview
+const maxVisibleDevices = 5
 const displayedDevices = computed(() => {
   const list = product.value?.devices || []
-  if (showAllDevices.value) return list
   return list.slice(0, maxVisibleDevices)
 })
 
@@ -626,6 +627,11 @@ const loadSelectedDeviceFromStorage = () => {
     console.warn('Failed to load selected device:', error)
     localSelectedDevice.value = null
   }
+}
+
+const onDeviceSelected = (device: GarminDeviceBaseVO) => {
+  localSelectedDevice.value = device
+  showDeviceSelector.value = false
 }
 
 const renderedProductDescription = computed(() => {
@@ -1649,7 +1655,7 @@ onMounted(async () => {
   word-break: break-word;
   flex: 1 1 auto;
 }
-.devices-toggle {
+.devices-select-btn {
   margin-top: 10px;
   background: #fff;
   border: 1px solid var(--color-line);
@@ -1660,7 +1666,7 @@ onMounted(async () => {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.devices-toggle:hover {
+.devices-select-btn:hover {
   background: var(--color-brand-soft);
   border-color: rgba(15, 107, 104, 0.2);
 }

@@ -27,7 +27,7 @@ defineProps<{
 <style scoped>
 .search-results-section {
   width: 100%;
-  padding: 30px 0 18px;
+  padding: 22px 0 18px;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -62,13 +62,33 @@ defineProps<{
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 18px;
-  padding: 8px 10px 10px;
+  padding: 10px 10px 10px;
   overflow: visible;
 }
 
 .product-item {
   min-width: 0;
   overflow: visible;
+  animation: result-enter 220ms ease both;
+}
+
+.product-item:nth-child(2n) {
+  animation-delay: 20ms;
+}
+
+.product-item:nth-child(3n) {
+  animation-delay: 40ms;
+}
+
+@keyframes result-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive Design */
@@ -121,6 +141,12 @@ defineProps<{
   
   .results-count {
     font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-item {
+    animation: none;
   }
 }
 </style>

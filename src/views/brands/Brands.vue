@@ -99,11 +99,11 @@
           <div class="brand-stats">
             <div class="brand-stat">
               <div class="brand-stat-label">Apps</div>
-              <div class="brand-stat-value">{{ formatNumber(m.appCount) }}</div>
+              <div class="brand-stat-value">{{ formatDisplayAppCount(m.appCount) }}</div>
             </div>
             <div class="brand-stat">
               <div class="brand-stat-label">Downloads</div>
-              <div class="brand-stat-value">{{ formatNumber(m.totalDownloads) }}</div>
+              <div class="brand-stat-value">{{ formatDisplayDownloadCount(m.totalDownloads) }}</div>
             </div>
           </div>
 
@@ -114,16 +114,24 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { getAllMerchants } from '@/api/merchant'
+import { useUserStore } from '@/store/user'
 import type { PublicMerchantVO } from '@/types/merchant'
+import { formatApproxAppCount, formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
 
 const router = useRouter()
+const userStore = useUserStore()
 
 const merchants = ref<PublicMerchantVO[]>([])
 const loading = ref(true)
+
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || []
+  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
+})
 
 onMounted(async () => {
   try {
@@ -160,10 +168,12 @@ const getBannerUrl = (m: PublicMerchantVO) => {
   return img.url || ''
 }
 
-const formatNumber = (value?: number) => {
-  const n = Number(value || 0)
-  if (!Number.isFinite(n)) return '0'
-  return new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+const formatDisplayAppCount = (value?: number | null) => {
+  return isAdmin.value ? formatExactCount(value) : (formatApproxAppCount(value) || '0')
+}
+
+const formatDisplayDownloadCount = (value?: number | null) => {
+  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
 }
 
 const handlePrimaryClick = (m: PublicMerchantVO) => {

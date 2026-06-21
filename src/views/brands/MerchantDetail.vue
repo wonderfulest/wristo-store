@@ -41,11 +41,11 @@
 
           <div class="hero-stats">
             <div class="stat">
-              <div class="stat-value">{{ formatNumber(appsTotal) }}</div>
+              <div class="stat-value">{{ formatDisplayAppCount(appsTotal) }}</div>
               <div class="stat-label">Apps</div>
             </div>
             <div class="stat">
-              <div class="stat-value">{{ formatNumber(merchant.totalDownloads) }}</div>
+              <div class="stat-value">{{ formatDisplayDownloadCount(merchant.totalDownloads) }}</div>
               <div class="stat-label">Downloads</div>
             </div>
           </div>
@@ -85,7 +85,7 @@
           <div class="apps-toolbar">
             <div class="apps-heading">
               <h2 class="section-title">Watch faces</h2>
-              <div class="section-subtitle">{{ formatNumber(appsTotal) }} designs from {{ displayName }}</div>
+              <div class="section-subtitle">{{ formatDisplayAppCount(appsTotal) }} designs from {{ displayName }}</div>
             </div>
             <div class="apps-search">
               <input
@@ -126,13 +126,16 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getMerchantAppsPage, getMerchantDetail } from "@/api/merchant";
+import { useUserStore } from "@/store/user";
 import type { PublicMerchantVO } from "@/types/merchant";
 import type { ProductBaseVO, PageResult } from "@/types";
+import { formatApproxAppCount, formatApproxDownloadCount, formatExactCount } from "@/utils/downloadCount";
 
 import ProductCard from "@/components/ProductCard.vue";
 
 const router = useRouter();
 const route = useRoute();
+const userStore = useUserStore();
 
 const merchant = ref<PublicMerchantVO | null>(null);
 const loading = ref(true);
@@ -155,6 +158,11 @@ const userId = computed(() => {
   const raw = route.params.userId;
   const v = Array.isArray(raw) ? raw[0] : raw;
   return v ? String(v) : "";
+});
+
+const isAdmin = computed(() => {
+  const roles = userStore.userInfo?.roles || [];
+  return roles.some((role) => role.roleCode === "ROLE_ADMIN");
 });
 
 onMounted(async () => {
@@ -332,13 +340,12 @@ const hasAnySocial = computed(() => {
   );
 });
 
-const formatNumber = (value?: number) => {
-  const n = Number(value || 0);
-  if (!Number.isFinite(n)) return "0";
-  return new Intl.NumberFormat("en-US", {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(n);
+const formatDisplayAppCount = (value?: number | null) => {
+  return isAdmin.value ? formatExactCount(value) : (formatApproxAppCount(value) || "0");
+};
+
+const formatDisplayDownloadCount = (value?: number | null) => {
+  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value);
 };
 
 const goBack = () => {
