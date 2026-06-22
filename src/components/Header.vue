@@ -84,12 +84,21 @@
         <template v-if="isLoggedIn">
           <el-dropdown @command="handleUserMenuCommand" trigger="click" popper-class="user-menu-popper">
             <button type="button" class="user-avatar-container" :aria-label="t('nav.accountMenu')">
-              <img :src="userAvatar" class="user-avatar" alt="user avatar" />
+              <span class="user-avatar-frame">
+                <img :src="userAvatar" class="user-avatar" alt="user avatar" />
+                <span
+                  v-if="hasPremiumAccess"
+                  class="avatar-premium-badge"
+                  :aria-label="t('nav.premium')"
+                  :title="t('nav.premium')"
+                >
+                  <Icon icon="solar:crown-bold" width="12" height="12" aria-hidden="true" />
+                </span>
+              </span>
               <span class="user-trigger-copy">
                 <span>{{ userDisplayName }}</span>
-                <small>{{ isSubscribed ? t('nav.premium') : t('nav.account') }}</small>
+                <small>{{ hasPremiumAccess ? t('nav.premium') : t('nav.account') }}</small>
               </span>
-              <span v-if="isSubscribed" class="premium-badge">{{ t('nav.premium') }}</span>
               <el-icon class="user-trigger-arrow"><arrow-down /></el-icon>
             </button>
             <template #dropdown>
@@ -100,8 +109,8 @@
                     <strong>{{ userDisplayName }}</strong>
                     <span>{{ userEmail }}</span>
                   </div>
-                  <span class="user-dropdown-status" :class="{ premium: isSubscribed }">
-                    {{ isSubscribed ? t('nav.premium') : t('nav.account') }}
+                  <span class="user-dropdown-status" :class="{ premium: hasPremiumAccess }">
+                    {{ hasPremiumAccess ? t('nav.premium') : t('nav.account') }}
                   </span>
                 </div>
                 <div class="user-dropdown-section">
@@ -289,7 +298,14 @@
             <div class="mobile-user-info">
               <div class="mobile-avatar-container">
                 <img :src="userAvatar" class="mobile-user-avatar" alt="user avatar" />
-                <span v-if="isSubscribed" class="mobile-premium-badge">{{ t('nav.premium') }}</span>
+                <span
+                  v-if="hasPremiumAccess"
+                  class="mobile-premium-badge"
+                  :aria-label="t('nav.premium')"
+                  :title="t('nav.premium')"
+                >
+                  <Icon icon="solar:crown-bold" width="12" height="12" aria-hidden="true" />
+                </span>
               </div>
             </div>
             <div class="mobile-user-actions">
@@ -352,6 +368,7 @@ import { openStudio } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 import { isCartEnabled } from '@/config/features';
 import { formatApproxAppCount, formatExactCount } from '@/utils/downloadCount';
+import { hasActiveBundle } from '@/utils/entitlements';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -429,6 +446,10 @@ const isSubscribed = computed(() => {
   
   // Check if subscription is still active
   return endTime > now
+})
+
+const hasPremiumAccess = computed(() => {
+  return isSubscribed.value || hasActiveBundle(userStore.userInfo)
 })
 
 const handleUserMenuCommand = (command: string) => {
@@ -835,6 +856,12 @@ defineExpose({
   transform: translateY(0) scale(0.98);
 }
 
+.user-avatar-frame {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .user-avatar {
   width: 36px;
   height: 36px;
@@ -848,6 +875,30 @@ defineExpose({
 .user-avatar-container:hover .user-avatar {
   box-shadow: 0 0 0 2px rgba(15, 107, 104, 0.22);
   transform: scale(1.03);
+}
+
+.avatar-premium-badge,
+.mobile-premium-badge {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background:
+    radial-gradient(circle at 30% 25%, #fff7c2 0, #facc15 42%, #d97706 100%);
+  color: #3b2500;
+  box-shadow:
+    0 5px 12px rgba(180, 83, 9, 0.32),
+    0 1px 0 rgba(255, 255, 255, 0.65) inset;
+  z-index: 2;
+}
+
+.avatar-premium-badge {
+  top: -5px;
+  right: -6px;
 }
 
 .user-trigger-copy {
@@ -888,21 +939,6 @@ defineExpose({
 .user-avatar-container:hover .user-trigger-arrow {
   color: var(--color-brand-strong);
   transform: translateY(1px);
-}
-
-.premium-badge {
-  position: absolute;
-  bottom: -7px;
-  left: 24px;
-  background: linear-gradient(135deg, #fde68a, #f59e0b);
-  color: #111827;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1;
 }
 
 :global(.user-menu-popper) {
@@ -1526,16 +1562,8 @@ defineExpose({
 }
 
 .mobile-premium-badge {
-  position: absolute;
-  bottom: -4px;
-  right: -4px;
-  background: linear-gradient(135deg, #fde68a, #f59e0b);
-  color: #111827;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  top: -4px;
+  right: -5px;
 }
 
 .mobile-user-actions {
