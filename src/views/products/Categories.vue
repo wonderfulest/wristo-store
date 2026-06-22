@@ -171,7 +171,7 @@ const productStore = useProductStore()
 const userStore = useUserStore()
 const series = ref<Series | null>(null)
 const products = ref<ProductBaseVO[]>([])
-const adminMetricsMap = ref<Map<number, ProductStoreMetricsVO>>(new Map())
+const adminMetricsMap = ref<Map<number, ProductStoreMetricsVO | null>>(new Map())
 const loading = ref(false)
 const currentPage = ref(1)
 const hasMore = ref(true)
@@ -217,10 +217,23 @@ const fetchAdminMetrics = async () => {
   }
   try {
     const ids = [...new Set(products.value.map((product) => Number(product.appId)).filter(Boolean))]
-    const metrics = await fetchAdminStoreMetrics(ids)
-    adminMetricsMap.value = new Map((metrics || []).map((item) => [item.appId, item]))
+    const missingIds = ids.filter((id) => !adminMetricsMap.value.has(id))
+    if (!missingIds.length) return
+    const metrics = await fetchAdminStoreMetrics(missingIds)
+    const nextMap = new Map(adminMetricsMap.value)
+    ;(metrics || []).forEach((item) => {
+      nextMap.set(item.appId, item)
+    })
+    missingIds.forEach((id) => {
+      if (!nextMap.has(id)) {
+        nextMap.set(id, null)
+      }
+    })
+    adminMetricsMap.value = nextMap
   } catch (error) {
-    adminMetricsMap.value = new Map()
+    if (adminMetricsMap.value.size === 0) {
+      adminMetricsMap.value = new Map()
+    }
   }
 }
 
@@ -346,6 +359,7 @@ const fetchSeriesAndProducts = async (reset = true) => {
   if (reset) {
     // 重置状态
     products.value = []
+    adminMetricsMap.value = new Map()
     currentPage.value = 1
     hasMore.value = true
   }

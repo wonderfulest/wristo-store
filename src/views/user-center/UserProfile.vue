@@ -670,7 +670,7 @@ watch(() => userStore.userInfo, (val) => {
   padding: 11px 24px;
   border-radius: 10px;
   border: none;
-  background: #007aff;
+  background: var(--color-brand);
   color: #fff;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -680,11 +680,11 @@ watch(() => userStore.userInfo, (val) => {
 }
 
 .save-btn:hover {
-  background: #0066d6;
+  background: var(--color-brand-hover);
 }
 
 .save-btn:active {
-  background: #0055b3;
+  background: var(--color-brand-active);
   transform: scale(0.985);
 }
 

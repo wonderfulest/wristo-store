@@ -26,7 +26,16 @@
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
         <h1 class="product-title">{{ product?.name }}</h1>
-        <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
+        <div v-if="hasBundleEntitlement" class="product-activated-panel">
+          <div class="product-activated-icon" aria-hidden="true">
+            <el-icon><StarFilled /></el-icon>
+          </div>
+          <div>
+            <div class="product-activated-title">{{ t('product.activatedTitle') }}</div>
+            <div class="product-activated-desc">{{ t('product.activatedDesc') }}</div>
+          </div>
+        </div>
+        <div v-else class="product-price">${{ product?.price?.toFixed(2) }}</div>
         <section v-if="isAdmin && adminMetrics" class="admin-detail-panel">
           <div class="admin-detail-header">
             <span>管理员数据</span>
@@ -98,7 +107,7 @@
           </div>
         </div>
         <button
-          v-if="product?.appId"
+          v-if="product?.appId && !hasBundleEntitlement"
           type="button"
           class="product-btn product-btn-buy"
           :disabled="checkoutLoading"
@@ -108,7 +117,7 @@
           <el-icon class="btn-icon"><CreditCard /></el-icon>
         </button>
         <button
-          v-if="isCartEnabled && product?.appId"
+          v-if="isCartEnabled && product?.appId && !hasBundleEntitlement"
           type="button"
           class="product-btn product-btn-cart"
           :class="{ active: isInCart }"
@@ -306,6 +315,7 @@ import { useCartCheckout } from '@/composables/useCartCheckout'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
+import { hasActiveBundle } from '@/utils/entitlements'
 import AdminCategoryEditorDialog from '@/components/AdminCategoryEditorDialog.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 
@@ -340,6 +350,7 @@ const displayRating = computed(() => {
 })
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
+const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
@@ -1016,6 +1027,45 @@ onMounted(async () => {
   font-weight: 800;
   margin-bottom: 16px;
   margin-top: 0;
+}
+.product-activated-panel {
+  width: var(--detail-content-width);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(194, 138, 26, 0.26);
+  background:
+    linear-gradient(135deg, rgba(255, 248, 218, 0.98) 0%, rgba(248, 224, 148, 0.82) 100%);
+  color: #5f3b00;
+  box-shadow: 0 14px 34px rgba(148, 107, 31, 0.12);
+}
+.product-activated-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  color: #b7791f;
+  font-size: 1.35rem;
+  box-shadow: inset 0 0 0 1px rgba(194, 138, 26, 0.18);
+}
+.product-activated-title {
+  color: #4a3000;
+  font-size: 1rem;
+  font-weight: 850;
+  line-height: 1.2;
+}
+.product-activated-desc {
+  margin-top: 3px;
+  color: rgba(74, 48, 0, 0.74);
+  font-size: 0.9rem;
+  line-height: 1.35;
 }
 .product-rating-panel {
   width: var(--detail-content-width);

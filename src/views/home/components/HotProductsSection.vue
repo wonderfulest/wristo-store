@@ -28,12 +28,20 @@
           @keydown.enter.prevent="handleProductClick(product)"
           @keydown.space.prevent="handleProductClick(product)"
         >
+          <div
+            v-if="hasBundleEntitlement"
+            class="hot-activated-badge"
+            :title="t('product.activated')"
+            :aria-label="t('product.activated')"
+          >
+            <Icon icon="solar:star-bold" width="14" height="14" aria-hidden="true" />
+          </div>
           <div class="hot-img-wrap">
             <img :src="getProductImageUrl(product)" :alt="product.name" class="hot-img" />
           </div>
           <div class="hot-card-body">
             <div class="hot-name">{{ product.name }}</div>
-            <div class="hot-card-footer">
+            <div v-if="!hasBundleEntitlement" class="hot-card-footer">
               <span class="hot-price">${{ product.price.toFixed(2) }}</span>
               <button
                 v-if="isCartEnabled"
@@ -64,14 +72,18 @@ import type { ProductBaseVO } from '@/types';
 import { useI18n } from '@/i18n';
 import { getProductImageUrl } from '@/utils/productImage'
 import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
+import { hasActiveBundle } from '@/utils/entitlements'
 
 const { t } = useI18n();
 const router = useRouter()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 const localeStore = useLocaleStore()
+const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 
 const props = defineProps<{
   hotProducts: ProductBaseVO[];
@@ -347,6 +359,23 @@ const toggleCart = (product: ProductBaseVO) => {
 .hot-item:hover .hot-price {
   color: #fff;
   background: var(--color-brand);
+}
+
+.hot-activated-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  color: rgba(151, 94, 10, 0.72);
+  background: rgba(255, 247, 214, 0.5);
+  border: 1px solid rgba(194, 138, 26, 0.18);
 }
 
 .hot-cart-toggle {

@@ -7,6 +7,14 @@
     @keydown.enter.prevent="handleClick"
     @keydown.space.prevent="handleClick"
   >
+    <div
+      v-if="hasBundleEntitlement"
+      class="product-activated-badge"
+      :title="t('product.activated')"
+      :aria-label="t('product.activated')"
+    >
+      <el-icon><StarFilled /></el-icon>
+    </div>
     <div class="product-img-wrap">
       <img
         v-if="productImageUrl"
@@ -71,7 +79,7 @@
           </button>
         </div>
       </div>
-      <div class="product-footer">
+      <div v-if="!hasBundleEntitlement" class="product-footer">
         <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
         <button
           v-if="isCartEnabled"
@@ -111,9 +119,10 @@ import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCou
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { openStudioDesign } from '@/utils/studio'
+import { hasActiveBundle } from '@/utils/entitlements'
+import { fetchAdminStoreMetricBatched, invalidateAdminStoreMetric } from '@/utils/adminStoreMetricsBatch'
 import AdminCategoryEditorDialog from '@/components/AdminCategoryEditorDialog.vue'
 import {
-  fetchAdminStoreMetrics,
   removeProductCategory,
   updateProductStoreDisplay,
 } from '@/api/product'
@@ -142,6 +151,7 @@ const DISPLAY_WEIGHT_PATTERN = /^(?:[0-9]|[1-9][0-9])$/
 
 const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
 const productImageUrl = computed(() => getProductImageUrl(props.product))
+const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
@@ -215,18 +225,20 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleDateString()
 }
 
-const loadLocalMetrics = async () => {
+const loadLocalMetrics = async (force = false) => {
   if (!isAdmin.value || props.adminMetrics || !props.product?.appId) return
   try {
-    const list = await fetchAdminStoreMetrics([Number(props.product.appId)])
-    localMetrics.value = list?.[0] || null
+    localMetrics.value = await fetchAdminStoreMetricBatched(Number(props.product.appId), { force })
   } catch (error) {
     localMetrics.value = null
   }
 }
 
 const refreshAfterAdminChange = async () => {
-  await loadLocalMetrics()
+  if (props.product?.appId) {
+    invalidateAdminStoreMetric(Number(props.product.appId))
+  }
+  await loadLocalMetrics(true)
   if (props.product?.appId) {
     emit('adminChanged', Number(props.product.appId))
   }
@@ -524,6 +536,31 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 .product-card:hover .product-price {
   color: #fff;
   background: var(--color-brand);
+}
+
+.product-activated-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  border-radius: 999px;
+  color: rgba(92, 59, 7, 0.78);
+  background: rgba(255, 247, 214, 0.5);
+  border: 1px solid rgba(194, 138, 26, 0.18);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.product-activated-badge .el-icon {
+  color: rgba(151, 94, 10, 0.72);
+  font-size: 0.86rem;
 }
 
 .product-footer {

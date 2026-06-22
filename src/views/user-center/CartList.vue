@@ -7,7 +7,8 @@
       </div>
       <div v-if="cartStore.count" class="cart-summary">
         <span>{{ t('cart.itemCount', { count: cartStore.count }) }}</span>
-        <strong>${{ cartStore.totalPrice.toFixed(2) }}</strong>
+        <strong v-if="hasBundleEntitlement">{{ t('product.activated') }}</strong>
+        <strong v-else>${{ cartStore.totalPrice.toFixed(2) }}</strong>
       </div>
     </div>
 
@@ -32,8 +33,14 @@
                 <span v-if="isPurchased(item.appId)" class="purchased-badge">{{ t('cart.purchased') }}</span>
               </span>
               <span class="item-meta-row">
-                <span class="item-price">${{ item.price.toFixed(2) }}</span>
-                <span class="quantity-fixed">{{ t('cart.quantityFixed') }}</span>
+                <span v-if="hasBundleEntitlement" class="item-activated-badge">
+                  <el-icon><StarFilled /></el-icon>
+                  {{ t('product.activated') }}
+                </span>
+                <template v-else>
+                  <span class="item-price">${{ item.price.toFixed(2) }}</span>
+                  <span class="quantity-fixed">{{ t('cart.quantityFixed') }}</span>
+                </template>
               </span>
               <span v-if="purchaseWarning(item.appId)" class="purchase-warning">
                 {{ purchaseWarning(item.appId) }}
@@ -49,7 +56,19 @@
         </article>
       </div>
 
-      <aside class="checkout-panel" :aria-label="t('cart.checkoutSummaryAria')">
+      <aside v-if="hasBundleEntitlement" class="checkout-panel cart-activated-panel" :aria-label="t('product.activatedTitle')">
+        <div class="cart-activated-icon" aria-hidden="true">
+          <el-icon><StarFilled /></el-icon>
+        </div>
+        <h2>{{ t('product.activatedTitle') }}</h2>
+        <p>{{ t('product.activatedDesc') }}</p>
+        <button type="button" class="recommend-search-btn" @click="goRecommendedSearch">
+          <el-icon><Search /></el-icon>
+          <span>{{ t('cart.addMoreApps') }}</span>
+        </button>
+      </aside>
+
+      <aside v-else class="checkout-panel" :aria-label="t('cart.checkoutSummaryAria')">
         <div class="checkout-row">
           <span>{{ t('cart.itemsLabel') }}</span>
           <strong>{{ cartStore.count }}</strong>
@@ -114,7 +133,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { CreditCard, Delete, Search, ShoppingCart } from '@element-plus/icons-vue'
+import { CreditCard, Delete, Search, ShoppingCart, StarFilled } from '@element-plus/icons-vue'
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useUserStore } from '@/store/user'
@@ -124,6 +143,7 @@ import type { CartPurchaseCheckItemVO } from '@/api/purchase'
 import { getProductDetail } from '@/api/product'
 import { useI18n } from '@/i18n'
 import { buildSsoLoginUrl } from '@/utils/ssoRedirect'
+import { hasActiveBundle } from '@/utils/entitlements'
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -152,6 +172,7 @@ let rebuildingInlineCheckout = false
 let rebuildTimer: ReturnType<typeof setTimeout> | null = null
 
 const checkoutEmail = computed(() => userStore.token ? normalizeEmail(userStore.userInfo?.email || '') : '')
+const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 const cartSubtotal = computed(() => cartStore.items.reduce((total, item) => total + Number(item.price || 0), 0))
 const discountEligibleCount = computed(() => cartStore.items.filter((item) => Number(item.price || 0) > 0).length)
 const cartDiscountRate = computed(() => {
@@ -327,6 +348,7 @@ const openInlineCheckout = async () => {
 }
 
 const handleCheckout = async () => {
+  if (hasBundleEntitlement.value) return
   const items = cartCheckoutItems()
   if (!items.length) {
     checkout(items, '')
@@ -581,6 +603,20 @@ h1 {
   white-space: nowrap;
 }
 
+.item-activated-badge {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #7a4b00;
+  background: linear-gradient(135deg, #fff7d6 0%, #f8df8b 100%);
+  border: 1px solid rgba(194, 138, 26, 0.28);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
 .remove-btn {
   width: 36px;
   height: 36px;
@@ -604,6 +640,41 @@ h1 {
   border-radius: var(--radius-md);
   background: #fff;
   box-shadow: var(--shadow-sm);
+}
+
+.cart-activated-panel {
+  align-items: flex-start;
+  border-color: rgba(194, 138, 26, 0.26);
+  background:
+    linear-gradient(135deg, rgba(255, 248, 218, 0.98) 0%, rgba(248, 224, 148, 0.82) 100%);
+  color: #5f3b00;
+  box-shadow: 0 14px 34px rgba(148, 107, 31, 0.12);
+}
+
+.cart-activated-icon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  color: #b7791f;
+  font-size: 1.35rem;
+  box-shadow: inset 0 0 0 1px rgba(194, 138, 26, 0.18);
+}
+
+.cart-activated-panel h2 {
+  margin: 0;
+  color: #4a3000;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.cart-activated-panel p {
+  margin: -8px 0 0;
+  color: rgba(74, 48, 0, 0.74);
+  line-height: 1.5;
 }
 
 .checkout-row {

@@ -22,6 +22,14 @@
                 @keydown.enter.prevent="handleProductClick(product.__origin)"
                 @keydown.space.prevent="handleProductClick(product.__origin)"
               >
+                <div
+                  v-if="hasBundleEntitlement"
+                  class="product-activated-badge"
+                  :title="t('product.activated')"
+                  :aria-label="t('product.activated')"
+                >
+                  <Icon icon="solar:star-bold" width="14" height="14" aria-hidden="true" />
+                </div>
                 <div class="product-circle-img">
                   <img
                     :src="getProductImageUrl(product)"
@@ -32,7 +40,7 @@
                 </div>
                 <div class="product-info">
                   <div class="product-name">{{ product.name }}</div>
-                  <div class="product-footer">
+                  <div v-if="!hasBundleEntitlement" class="product-footer">
                     <div class="product-price">${{ product.price.toFixed(2) }}</div>
                     <button
                       v-if="isCartEnabled"
@@ -65,10 +73,12 @@ import { ShoppingCart } from '@element-plus/icons-vue'
 import type { ProductBaseVO } from '@/types';
 import { getProductImageUrl } from '@/utils/productImage'
 import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
+import { hasActiveBundle } from '@/utils/entitlements'
 
 const props = defineProps<{
   newProducts: ProductBaseVO[];
@@ -77,8 +87,10 @@ const props = defineProps<{
 const emit = defineEmits(['product-click']);
 const router = useRouter()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const isMobile = ref(false)
@@ -306,6 +318,7 @@ onUnmounted(() => {
 }
 
 .slide-card {
+  position: relative;
   width: 100%;
   border: none;
   background: transparent;
@@ -364,6 +377,23 @@ onUnmounted(() => {
   font-size: 16px;
   font-weight: 700;
   color: var(--color-brand);
+}
+
+.product-activated-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+  color: rgba(151, 94, 10, 0.72);
+  background: rgba(255, 247, 214, 0.5);
+  border: 1px solid rgba(194, 138, 26, 0.18);
 }
 
 .product-footer {
