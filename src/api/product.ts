@@ -34,8 +34,14 @@ export const searchProductsV2 = (keyword: string, pageNum = 1, pageSize = 24): P
 }
 
 // 获取新品
-export const getNewProducts = (): Promise<ProductBaseVO[]> => {
-  return instance.get('/public/products/new?limit=16')
+export const getNewProducts = (limit = 16, weight?: number): Promise<ProductBaseVO[]> => {
+  const params: { limit: number; weight?: number } = { limit }
+  if (weight !== undefined) {
+    params.weight = weight
+  }
+  return instance.get('/public/products/new', {
+    params
+  })
 }
 
 // 获取系列列表
@@ -155,6 +161,10 @@ export const updateProductStoreDisplay = (
   payload: { storeVisibility?: string; weight?: number; storeWeight?: number; reason?: string }
 ): Promise<ProductVO> => {
   return instance.post(`/admin/products/store-display/${appId}`, payload)
+}
+
+export const updateProductSampleStatus = (appId: number, isTemplate: number): Promise<ProductVO> => {
+  return instance.post(`/admin/products/sample/${appId}/${isTemplate}`)
 }
 
 export const updateProductCategories = (appId: number, categoryIds: number[]): Promise<ProductVO> => {

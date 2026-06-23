@@ -92,6 +92,7 @@ export interface ProductStoreMetricsVO {
   storeVisibility?: 'VISIBLE' | 'HIDDEN' | string
   storeWeight?: number | null
   storeVisibilityReason?: string | null
+  designIsTemplate?: number | null
   categories?: CategoryVO[]
   designer?: UserBaseVO | null
 }

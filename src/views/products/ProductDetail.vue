@@ -36,38 +36,13 @@
           </div>
         </div>
         <div v-else class="product-price">${{ product?.price?.toFixed(2) }}</div>
-        <section v-if="isAdmin && adminMetrics" class="admin-detail-panel">
-          <div class="admin-detail-header">
-            <span>管理员数据</span>
-            <span :class="['admin-state', adminMetrics.storeVisibility === 'HIDDEN' ? 'hidden' : 'visible']">
-              {{ adminMetrics.storeVisibility === 'HIDDEN' ? '已隐藏' : '展示中' }}
-            </span>
-          </div>
-          <div class="admin-detail-grid">
-            <div><strong>{{ formatNumber(adminMetrics.download) }}</strong><span>下载</span></div>
-            <div><strong>{{ formatNumber(adminMetrics.purchase) }}</strong><span>购买</span></div>
-            <div><strong>{{ formatScore(adminMetrics.score) }}</strong><span>评分</span></div>
-            <div><strong>{{ adminMetrics.storeWeight ?? 20 }}</strong><span>权重</span></div>
-          </div>
-          <div class="admin-detail-lines">
-            <div>设计师：{{ designerLabel }}</div>
-            <div>上线时间：{{ formatDate(adminMetrics.lastGoLive) }}</div>
-            <div v-if="adminMetrics.storeVisibilityReason">原因：{{ adminMetrics.storeVisibilityReason }}</div>
-          </div>
-          <div v-if="adminMetrics.categories?.length" class="admin-category-list">
-            <span v-for="category in adminMetrics.categories" :key="category.id">
-              {{ category.name }}
-            </span>
-          </div>
-          <div class="admin-detail-actions">
-            <button type="button" @click="toggleAdminVisibility">
-              {{ adminMetrics.storeVisibility === 'HIDDEN' ? '恢复展示' : '隐藏应用' }}
-            </button>
-            <button type="button" @click="editAdminWeight">调整权重</button>
-            <button type="button" @click="categoryEditorVisible = true">编辑分类</button>
-            <button type="button" @click="handleOpenInStudio">跳转 Studio</button>
-          </div>
-        </section>
+        <ProductAdminPanel
+          v-if="isAdmin && adminMetrics"
+          :product="product"
+          :metrics="adminMetrics"
+          variant="detail"
+          @changed="loadAdminMetrics"
+        />
         <div v-if="product?.garminStoreUrl" class="install-section">
           <div class="install-title">{{ t('product.installTitle') }}</div>
           <div class="install-subtitle">{{ t('product.installSubtitle') }}</div>
@@ -273,13 +248,6 @@
         </section>
       </div>
     </div>
-    <AdminCategoryEditorDialog
-      v-if="isAdmin"
-      v-model="categoryEditorVisible"
-      :app-id="product?.appId ? Number(product.appId) : null"
-      :selected-categories="adminMetrics?.categories || []"
-      @saved="loadAdminMetrics"
-    />
   </div>
 </template>
 
@@ -308,15 +276,15 @@ import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/lo
 import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
 import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
-import { fetchAdminStoreMetrics, getMyProductRating, getProductRating, getProductReviews, updateProductRating, updateProductStoreDisplay } from '@/api/product'
-import { openStudioDesign, openStudioDesignCopy } from '@/utils/studio'
+import { fetchAdminStoreMetrics, getMyProductRating, getProductRating, getProductReviews, updateProductRating } from '@/api/product'
+import { openStudioDesignCopy } from '@/utils/studio'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 import { useCartCheckout } from '@/composables/useCartCheckout'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { hasActiveBundle } from '@/utils/entitlements'
-import AdminCategoryEditorDialog from '@/components/AdminCategoryEditorDialog.vue'
+import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 
 const route = useRoute()
@@ -329,7 +297,6 @@ const { loading: checkoutLoading, checkout } = useCartCheckout()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
-const categoryEditorVisible = ref(false)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)
 const ratingSubmitting = ref(false)
@@ -354,12 +321,6 @@ const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
-})
-const designerLabel = computed(() => {
-  const designer = adminMetrics.value?.designer
-  if (!designer) return '-'
-  const name = designer.nickname || designer.username || 'Designer'
-  return `${name} #${designer.id}`
 })
 
 const toggleCart = () => {
@@ -446,16 +407,6 @@ const handleCustomizeInStudio = () => {
   openStudioDesignCopy(designId)
 }
 
-const handleOpenInStudio = () => {
-  const designId = product.value?.designId?.trim()
-  if (!designId) {
-    ElMessage.error('Studio design is not available')
-    return
-  }
-
-  openStudioDesign(designId)
-}
-
 const formatNumber = (value?: number | null) => {
   if (value == null) return '0'
   return new Intl.NumberFormat('en-US').format(value)
@@ -463,11 +414,6 @@ const formatNumber = (value?: number | null) => {
 
 const formatDisplayDownloadCount = (value?: number | null) => {
   return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
-}
-
-const formatScore = (value?: number | null) => {
-  if (value == null) return '-'
-  return Number(value).toFixed(2)
 }
 
 const formatDisplayRating = (value?: number | null) => {
@@ -556,45 +502,6 @@ const submitRating = async () => {
   } finally {
     ratingSubmitting.value = false
   }
-}
-
-const toggleAdminVisibility = async () => {
-  if (!product.value?.appId || !adminMetrics.value) return
-  const hidden = adminMetrics.value.storeVisibility === 'HIDDEN'
-  let reason = adminMetrics.value.storeVisibilityReason || ''
-  if (!hidden) {
-    const result = await ElMessageBox.prompt('隐藏原因', '隐藏应用', {
-      confirmButtonText: '隐藏',
-      cancelButtonText: '取消',
-      inputValue: reason,
-    })
-    reason = String(result.value || '').trim()
-  }
-  await updateProductStoreDisplay(Number(product.value.appId), {
-    storeVisibility: hidden ? 'VISIBLE' : 'HIDDEN',
-    weight: adminMetrics.value.storeWeight ?? 20,
-    reason,
-  })
-  ElMessage.success(hidden ? '应用已恢复展示' : '应用已隐藏')
-  await loadAdminMetrics()
-}
-
-const editAdminWeight = async () => {
-  if (!product.value?.appId || !adminMetrics.value) return
-  const result = await ElMessageBox.prompt('请输入 0-99 的整数，数值越大越靠前', '展示权重', {
-    confirmButtonText: '保存',
-    cancelButtonText: '取消',
-    inputValue: String(adminMetrics.value.storeWeight ?? 20),
-    inputPattern: /^(?:[0-9]|[1-9][0-9])$/,
-    inputErrorMessage: '请输入 0-99 的整数',
-  })
-  await updateProductStoreDisplay(Number(product.value.appId), {
-    storeVisibility: adminMetrics.value.storeVisibility || 'VISIBLE',
-    weight: Number(result.value),
-    reason: adminMetrics.value.storeVisibilityReason || '',
-  })
-  ElMessage.success('权重已更新')
-  await loadAdminMetrics()
 }
 
 // QR Code functionality
@@ -1247,90 +1154,6 @@ onMounted(async () => {
 .product-rate-star:disabled {
   cursor: wait;
   opacity: 0.7;
-}
-.admin-detail-panel {
-  width: var(--detail-content-width);
-  display: grid;
-  gap: 12px;
-  margin: 0 0 22px;
-  padding: 14px;
-  border: 1px solid rgba(15, 107, 104, 0.18);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow-sm);
-  color: #334155;
-}
-.admin-detail-header,
-.admin-detail-actions,
-.admin-category-list {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.admin-detail-header {
-  justify-content: space-between;
-  font-weight: 750;
-  color: var(--color-ink);
-}
-.admin-state {
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-}
-.admin-state.visible {
-  color: var(--color-brand-strong);
-  background: var(--color-brand-soft);
-}
-.admin-state.hidden {
-  color: #b42318;
-  background: rgba(180, 35, 24, 0.1);
-}
-.admin-detail-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-}
-.admin-detail-grid div {
-  display: grid;
-  gap: 2px;
-  padding: 8px 6px;
-  border-radius: 8px;
-  background: #f8fafc;
-  text-align: center;
-}
-.admin-detail-grid strong {
-  color: var(--color-ink);
-  font-size: 0.95rem;
-}
-.admin-detail-grid span,
-.admin-detail-lines {
-  font-size: 0.76rem;
-  color: #64748b;
-}
-.admin-detail-lines {
-  display: grid;
-  gap: 4px;
-}
-.admin-category-list span {
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 0.76rem;
-}
-.admin-detail-actions button {
-  min-height: 30px;
-  padding: 0 10px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  border-radius: 8px;
-  background: #fff;
-  color: #334155;
-  cursor: pointer;
-}
-.admin-detail-actions button:hover {
-  border-color: rgba(15, 107, 104, 0.34);
-  color: var(--color-brand-strong);
 }
 .product-btn {
   width: var(--detail-content-width);
