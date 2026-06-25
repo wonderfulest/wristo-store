@@ -178,6 +178,26 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/Creators.vue')
   },
   {
+    path: '/daily',
+    name: 'WristoDailyIntro',
+    component: () => import('@/views/daily/WristoDailyIntro.vue'),
+    meta: {
+      title: 'Wristo Daily | Personalized Garmin Reminder Plans',
+      description: 'Preview Wristo Daily reminder plans for easy runs, race week preparation, and sleep wind down routines.',
+      noindex: true
+    }
+  },
+  {
+    path: '/daily/:dailySlug',
+    name: 'WristoDailyTemplateIntro',
+    component: () => import('@/views/daily/WristoDailyIntro.vue'),
+    meta: {
+      title: 'Wristo Daily | Personalized Garmin Reminder Plans',
+      description: 'Preview Wristo Daily reminder plans for easy runs, race week preparation, and sleep wind down routines.',
+      noindex: true
+    }
+  },
+  {
     path: '/studio/membership',
     name: 'StudioMembership',
     component: () => import('@/views/StudioMembership.vue'),

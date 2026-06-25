@@ -80,6 +80,11 @@ const staticSeoByPath: Record<string, SeoConfig> = {
     title: 'Garmin Watch Face Creators | Wristo',
     description: 'Learn about Wristo creators and publishing Garmin watch faces.',
   },
+  '/daily': {
+    title: 'Wristo Daily | Personalized Garmin Reminder Plans',
+    description: 'Preview Wristo Daily reminder plans for easy runs, race week preparation, and sleep wind down routines.',
+    noindex: true,
+  },
   '/studio/membership': {
     title: 'Studio Membership | Wristo',
     description: 'Choose a Wristo Studio membership plan and pay securely on wristo.io.',
@@ -111,6 +116,7 @@ const noindexPrefixes = [
   '/unsubscribe',
   '/code',
   '/unlock',
+  '/daily',
   '/studio/membership',
 ]
 
@@ -166,6 +172,15 @@ export function getRouteSeo(route: RouteLocationNormalizedLoaded): SeoConfig {
       description: 'View Wristo bundle details and included Garmin watch faces.',
       path,
       type: 'product',
+    }
+  }
+
+  if (canonicalMatchPath.startsWith('/daily/')) {
+    return {
+      title: 'Wristo Daily | Personalized Garmin Reminder Plans',
+      description: 'Preview Wristo Daily reminder plans for easy runs, race week preparation, and sleep wind down routines.',
+      path,
+      noindex: true,
     }
   }
 
