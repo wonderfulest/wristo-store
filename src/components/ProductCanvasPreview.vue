@@ -672,6 +672,62 @@ const addGoalBarElement = (
   element: RuntimeDesignElement,
   transform: PreviewTransform,
 ) => {
+  if (element.variant === 'segmented') {
+    const segments = Math.max(1, Math.round(numberValue(element.segments, 10)))
+    const progress = Math.max(0, Math.min(1, numberValue(element.progress, 0.68)))
+    const width = numberValue(element.width, 120) * transform.scaleX
+    const height = Math.max(2, numberValue(element.height, 10) * transform.scaleY)
+    const gap = Math.max(0, numberValue(element.gap, 2) * transform.uniformScale)
+    const segmentWidth = Math.max(1, (width - gap * (segments - 1)) / segments)
+    const activeTotal = progress * segments
+    const fullActive = Math.floor(activeTotal)
+    const remainder = activeTotal - fullActive
+    const alignRight = element.progressAlign === 'right'
+    const left = scaledX(element.left, transform) - width / 2
+    const top = scaledY(element.top, transform) - height / 2
+    const radius = numberValue(element.borderRadius, 2) * transform.uniformScale
+    const strokeWidth = numberValue(element.borderWidth, 0) * transform.uniformScale
+
+    for (let index = 0; index < segments; index += 1) {
+      const x = left + index * (segmentWidth + gap)
+      const rect = new Rect({
+        left: x,
+        top,
+        width: segmentWidth,
+        height,
+        originX: 'left',
+        originY: 'top',
+        fill: element.bgColor ?? 'rgba(255,255,255,0.18)',
+        stroke: strokeWidth > 0 ? element.borderColor ?? '#FFFFFF' : undefined,
+        strokeWidth,
+        rx: radius,
+        ry: radius,
+      })
+      lockObject(rect as any)
+      fabricCanvas?.add(rect)
+
+      const progressIndex = alignRight ? segments - 1 - index : index
+      if (progressIndex < fullActive || (progressIndex === fullActive && remainder > 0)) {
+        const activeWidth = progressIndex < fullActive ? segmentWidth : Math.max(0, Math.min(1, remainder)) * segmentWidth
+        const activeLeft = alignRight ? x + segmentWidth - activeWidth : x
+        const activeRect = new Rect({
+          left: activeLeft,
+          top,
+          width: activeWidth,
+          height,
+          originX: 'left',
+          originY: 'top',
+          fill: element.color ?? element.fill ?? '#1dbf73',
+          rx: Math.min(radius, activeWidth / 2),
+          ry: radius,
+        })
+        lockObject(activeRect as any)
+        fabricCanvas?.add(activeRect)
+      }
+    }
+    return
+  }
+
   const width = numberValue(element.width, 90) * transform.scaleX
   const height = Math.max(4, numberValue(element.height, 12) * transform.scaleY)
   const progress = Math.max(0, Math.min(1, numberValue(element.progress, 0.68)))
@@ -709,38 +765,6 @@ const addGoalBarElement = (
   fabricCanvas?.add(progressElement)
 }
 
-const addGoalSegmentBarElement = (
-  element: RuntimeDesignElement,
-  transform: PreviewTransform,
-) => {
-  const segments = Math.max(1, Math.round(numberValue(element.segments, 10)))
-  const progress = Math.max(0, Math.min(1, numberValue(element.progress, 0.68)))
-  const width = numberValue(element.width, 120) * transform.scaleX
-  const height = Math.max(2, numberValue(element.height, 10) * transform.scaleY)
-  const gap = Math.max(0, numberValue(element.gap, 2) * transform.uniformScale)
-  const segmentWidth = Math.max(1, (width - gap * (segments - 1)) / segments)
-  const activeCount = Math.round(progress * segments)
-  const left = scaledX(element.left, transform) - width / 2
-  const top = scaledY(element.top, transform) - height / 2
-  const radius = numberValue(element.borderRadius, 2) * transform.uniformScale
-
-  for (let index = 0; index < segments; index += 1) {
-    const rect = new Rect({
-      left: left + index * (segmentWidth + gap),
-      top,
-      width: segmentWidth,
-      height,
-      originX: 'left',
-      originY: 'top',
-      fill: index < activeCount ? element.color ?? element.fill ?? '#1dbf73' : element.bgColor ?? 'rgba(255,255,255,0.18)',
-      rx: radius,
-      ry: radius,
-    })
-    lockObject(rect as any)
-    fabricCanvas?.add(rect)
-  }
-}
-
 const addGoalArcElement = (
   element: RuntimeDesignElement,
   transform: PreviewTransform,
@@ -749,10 +773,22 @@ const addGoalArcElement = (
   const cy = scaledY(element.top, transform)
   const startAngle = numberValue(element.startAngle, -90)
   const endAngle = numberValue(element.endAngle, 270)
+  const counterClockwise = Boolean(element.counterClockwise)
   const progress = Math.max(0, Math.min(1, numberValue(element.progress, 0.68)))
   const radius = numberValue(element.radius, 80) * transform.uniformScale
   const bgRadius = numberValue(element.bgRadius ?? element.radius, 80) * transform.uniformScale
-  const sweep = endAngle - startAngle
+  const getSignedSweep = () => {
+    let start = ((startAngle % 360) + 360) % 360
+    let end = ((endAngle % 360) + 360) % 360
+    if (counterClockwise) {
+      if (end > start) end -= 360
+    } else if (end < start) {
+      end += 360
+    }
+    return end - start
+  }
+  const sweep = getSignedSweep()
+  const direction = sweep < 0 ? -1 : 1
   const progressEnd = startAngle + sweep * progress
 
   const pointOnArc = (arcRadius: number, angle: number) => {
@@ -764,6 +800,7 @@ const addGoalArcElement = (
   }
 
   const makeArc = (arcRadius: number, from: number, to: number, stroke: unknown, strokeWidth: unknown) => {
+    if (Math.abs(to - from) < 0.001) return
     const start = pointOnArc(arcRadius, from)
     const end = pointOnArc(arcRadius, to)
     const largeArcFlag = Math.abs(to - from) > 180 ? 1 : 0
@@ -775,6 +812,30 @@ const addGoalArcElement = (
     })
     lockObject(arc as any)
     fabricCanvas?.add(arc as any)
+  }
+
+  if (element.segmentMode) {
+    const segments = Math.max(1, Math.floor(numberValue(element.segments, 12)))
+    const totalAngle = Math.abs(sweep)
+    const sliceAngle = totalAngle / segments
+    const visibleGap = Math.min(Math.max(0, numberValue(element.gapAngle, 2)), Math.max(0, sliceAngle - 0.1))
+    const visibleAngle = Math.max(0.1, sliceAngle - visibleGap)
+    const activeAngle = totalAngle * progress
+
+    for (let index = 0; index < segments; index += 1) {
+      const segmentStartDistance = index * sliceAngle + visibleGap / 2
+      const segmentEndDistance = segmentStartDistance + visibleAngle
+      const segmentStart = startAngle + direction * segmentStartDistance
+      const segmentEnd = startAngle + direction * segmentEndDistance
+      makeArc(bgRadius, segmentStart, segmentEnd, element.bgColor, element.bgStrokeWidth ?? element.strokeWidth)
+
+      const activeEndDistance = Math.min(segmentEndDistance, Math.max(segmentStartDistance, activeAngle))
+      const activeVisibleAngle = activeEndDistance - segmentStartDistance
+      if (activeVisibleAngle > 0.001) {
+        makeArc(radius, segmentStart, segmentStart + direction * activeVisibleAngle, element.color ?? element.fill, element.strokeWidth)
+      }
+    }
+    return
   }
 
   makeArc(bgRadius, startAngle, endAngle, element.bgColor, element.bgStrokeWidth ?? element.strokeWidth)
@@ -794,11 +855,6 @@ const addChartElement = (
     addGoalBarElement(element, transform)
     return
   }
-  if (type === 'goalSegmentBar') {
-    addGoalSegmentBarElement(element, transform)
-    return
-  }
-
   if (type.includes('arc')) {
     const radius = numberValue(element.radius ?? element.width, 60) * transform.uniformScale
     const left = scaledX(element.left, transform)
