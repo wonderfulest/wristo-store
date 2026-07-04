@@ -85,10 +85,9 @@
           v-if="product?.appId && !hasBundleEntitlement"
           type="button"
           class="product-btn product-btn-buy"
-          :disabled="checkoutLoading"
           @click="handleBuyNow"
         >
-          {{ checkoutLoading ? t('product.openingCheckout') : t('product.buyNow') }}
+          {{ t('product.buyNow') }}
           <el-icon class="btn-icon"><CreditCard /></el-icon>
         </button>
         <button
@@ -254,7 +253,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import {
   Check,
   CreditCard,
@@ -279,7 +278,6 @@ import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCou
 import { fetchAdminStoreMetrics, getMyProductRating, getProductRating, getProductReviews, updateProductRating } from '@/api/product'
 import { openStudioDesignCopy } from '@/utils/studio'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
-import { useCartCheckout } from '@/composables/useCartCheckout'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
@@ -293,7 +291,6 @@ const productStore = useProductStore()
 const cartStore = useCartStore()
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
-const { loading: checkoutLoading, checkout } = useCartCheckout()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
@@ -337,31 +334,12 @@ const toggleCart = () => {
   })
 }
 
-const normalizeEmail = (email: string) => email.trim().toLowerCase()
-
-const promptCheckoutEmail = async () => {
-  const accountEmail = userStore.userInfo?.email
-  if (accountEmail) return normalizeEmail(accountEmail)
-  const result = await ElMessageBox.prompt(t('cart.emailNote'), t('cart.checkoutEmail'), {
-    confirmButtonText: t('cart.continue'),
-    cancelButtonText: t('subscriptionManagement.cancel'),
-    inputType: 'email',
-    inputPlaceholder: t('cart.emailPlaceholder'),
-    inputPattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-    inputErrorMessage: t('cart.error.emailInvalid'),
-  })
-  return normalizeEmail(String(result.value || ''))
-}
-
-const handleBuyNow = async () => {
+const handleBuyNow = () => {
   if (!product.value?.appId) return
-  try {
-    const email = await promptCheckoutEmail()
-    if (!email) return
-    checkout([{ appId: product.value.appId, quantity: 1 }], email)
-  } catch (error) {
-    // User cancelled the prompt.
-  }
+  router.push({
+    path: addLocaleToPath('/purchase-options', localeStore.currentLocale),
+    query: { appId: String(product.value.appId) }
+  })
 }
 
 const handleDownload = () => {

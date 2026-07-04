@@ -80,16 +80,21 @@
 import { onMounted, ref, computed, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
+import { useCartStore } from '@/store/cart'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
 import type { SubscriptionPlan } from '@/api/subscription'
 import { checkDiscount, getBundleProductsForPurchase, getBundlesForPurchase } from '@/api/purchase'
+import { getProductDetail } from '@/api/product'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 
 const router = useRouter()
 const route = useRoute()
 const store = useShopOptionsStore()
+const cartStore = useCartStore()
+const localeStore = useLocaleStore()
 const { t } = useI18n()
 
 // 订阅计划相关
@@ -104,6 +109,7 @@ const isCodePurchaseEntry = computed(() => {
 
 const bundlesFromApi = ref<Bundle[]>([])
 const loadingBundleProductIds = ref<Set<number>>(new Set())
+const productFromQuery = ref<ProductVO | null>(null)
 
 const normalizedBundleType = (bundleItem?: Bundle | null) => {
   return String(bundleItem?.bundleType || '').trim().toLowerCase()
@@ -121,10 +127,10 @@ const isGlobalPremiumBundle = (bundleItem: Bundle) => {
 }
 
 const product = computed<ProductVO | null>(() => {
-  if (!isCodePurchaseEntry.value) return null
+  if (!isCodePurchaseEntry.value) return productFromQuery.value
 
   const baseProduct = purchaseData.value?.product
-  if (!baseProduct) return null
+  if (!baseProduct) return productFromQuery.value
 
   return baseProduct as ProductVO
 })
@@ -154,6 +160,12 @@ const activeDiscountCode = computed(() => {
 
 const priceIdFromQuery = computed(() => {
   const raw = route.query?.priceId
+  const id = Array.isArray(raw) ? raw[0] : raw
+  return (id ? String(id) : '').trim()
+})
+
+const appIdFromQuery = computed(() => {
+  const raw = route.query?.appId
   const id = Array.isArray(raw) ? raw[0] : raw
   return (id ? String(id) : '').trim()
 })
@@ -413,6 +425,11 @@ const selectBundle = (bundleItem?: Bundle) => {
 // 处理购买单个产品
 const handleBuyProduct = () => {
   if (product.value) {
+    if (!isCodePurchaseEntry.value) {
+      cartStore.add(product.value)
+      router.push(addLocaleToPath('/user/cart', localeStore.currentLocale))
+      return
+    }
     store.setSelectedProduct(product.value as ProductVO)
     router.push({ name: 'Checkout' })
   }
@@ -529,6 +546,27 @@ const loadBundlesForCurrentEntry = () => {
     })
 }
 
+const loadProductForCurrentEntry = () => {
+  if (isCodePurchaseEntry.value) {
+    productFromQuery.value = null
+    return
+  }
+
+  if (!appIdFromQuery.value) {
+    productFromQuery.value = null
+    return
+  }
+
+  getProductDetail(appIdFromQuery.value)
+    .then((detail) => {
+      productFromQuery.value = detail || null
+      runDiscountChecks()
+    })
+    .catch(() => {
+      productFromQuery.value = null
+    })
+}
+
 const syncEntryContext = () => {
   const shouldResetByPremiumPath = route.path === '/premium' || route.name === 'Premium'
   const shouldResetProductContext = shouldResetByPremiumPath || !isCodePurchaseEntry.value
@@ -536,6 +574,7 @@ const syncEntryContext = () => {
     store.reset()
   }
 
+  loadProductForCurrentEntry()
   loadBundlesForCurrentEntry()
   runDiscountChecks()
   scrollToBundleSubscriptionCard()
@@ -553,7 +592,7 @@ watch(
 )
 
 watch(
-  () => [route.name, route.query.source],
+  () => [route.name, route.query.source, route.query.appId],
   () => {
     syncEntryContext()
   }
