@@ -8,14 +8,16 @@
           <h1 class="page-title">Purchase records</h1>
           <p class="page-subtitle">Review orders, receipts, and app unlock history in one place.</p>
         </div>
-        <button class="profile-link" type="button" @click="navigateToProfile">
-          <Icon icon="mdi:account-outline" width="18" aria-hidden="true" />
-          Profile
-        </button>
-        <button class="billing-link" type="button" @click="openPaddleCustomerPortal">
-          <Icon icon="solar:bill-list-line-duotone" width="18" aria-hidden="true" />
-          Billing & invoices
-        </button>
+        <div class="header-actions" aria-label="Account actions">
+          <button class="profile-link" type="button" @click="navigateToProfile">
+            <Icon icon="mdi:account-outline" width="18" aria-hidden="true" />
+            Profile
+          </button>
+          <button class="billing-link" type="button" @click="openPaddleCustomerPortal">
+            <Icon icon="solar:bill-list-line-duotone" width="18" aria-hidden="true" />
+            Billing & invoices
+          </button>
+        </div>
       </div>
 
       <div v-if="isLoading" class="loading-panel" aria-live="polite" aria-label="Loading purchase records">
@@ -36,11 +38,6 @@
             <Icon icon="solar:receipt-list-line-duotone" width="22" aria-hidden="true" />
             <span class="summary-label">Records</span>
             <strong class="summary-value">{{ records.length }}</strong>
-          </div>
-          <div class="summary-item">
-            <Icon icon="solar:wallet-money-line-duotone" width="22" aria-hidden="true" />
-            <span class="summary-label">Paid</span>
-            <strong class="summary-value">{{ totalSpendLabel }}</strong>
           </div>
           <div class="summary-item">
             <Icon icon="solar:box-line-duotone" width="22" aria-hidden="true" />
@@ -91,11 +88,19 @@
                 <span v-if="item.transactionId" class="txn-chip" :title="item.transactionId">
                   #{{ formatTransactionId(item.transactionId) }}
                 </span>
+                <span v-if="isGiftRecord(item)" class="channel-chip" :title="item.origin || 'Gift channel'">
+                  <Icon icon="solar:gift-line-duotone" width="14" aria-hidden="true" />
+                  {{ getGiftChannelLabel(item) }}
+                </span>
               </div>
             </div>
 
             <div class="record-side">
-              <strong class="record-amount">{{ formatAmount(item) }}</strong>
+              <div v-if="isGiftRecord(item)" class="gift-state">
+                <strong>{{ getGiftStatusLabel(item) }}</strong>
+                <span>{{ getGiftChannelLabel(item) }}</span>
+              </div>
+              <strong v-else class="record-amount">{{ formatAmount(item) }}</strong>
               <div class="record-actions" aria-label="Record actions">
                 <router-link
                   v-if="item.product?.garminStoreUrl"
@@ -223,17 +228,6 @@ const sortedRecords = computed(() => {
   })
 })
 
-const paidRecords = computed(() => {
-  return records.value.filter(record => record.status === 1)
-})
-
-const totalSpendLabel = computed(() => {
-  const currencies = new Set(paidRecords.value.map(record => record.currencyCode || record.countryCode).filter(Boolean))
-  const total = paidRecords.value.reduce((sum, record) => sum + Number(record.total || 0), 0) / 100
-  const currency = currencies.size === 1 ? Array.from(currencies)[0] : ''
-  return `${total.toFixed(2)}${currency ? ` ${currency}` : ''}`
-})
-
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) {
@@ -264,12 +258,36 @@ const formatAmount = (record: PurchaseRecord) => {
   return `${(Number(record.total || 0) / 100).toFixed(2)}${currency ? ` ${currency}` : ''}`
 }
 
+const isGiftRecord = (record: PurchaseRecord) => {
+  return (record.paymentMethod || '').toLowerCase() === 'gift'
+    || (record.origin || '').toLowerCase().startsWith('gift:')
+}
+
+const getGiftChannelLabel = (record: PurchaseRecord) => {
+  const origin = (record.origin || '').toLowerCase()
+  const channel = origin.startsWith('gift:') ? origin.slice(5) : ''
+  const labels: Record<string, string> = {
+    taobao: 'Taobao',
+    xiaohongshu: 'Xiaohongshu',
+    xianyu: 'Xianyu',
+    other: 'Other',
+  }
+  return labels[channel] || 'Partner Order'
+}
+
+const getGiftStatusLabel = (record: PurchaseRecord) => {
+  return record.status === 1 ? 'Activated' : (record.statusDesc || 'Pending')
+}
+
 const getStatusClass = (status: number) => {
   return status === 1 ? 'success' : 'failed'
 }
 
 const getStatusLabel = (record: PurchaseRecord) => {
   if (record.status === 1) {
+    if (isGiftRecord(record)) {
+      return 'Activated'
+    }
     return 'Paid'
   }
   return record.statusDesc || 'Failed'
@@ -309,6 +327,9 @@ const formatPaymentMethod = (paymentMethod: string) => {
   if (!paymentMethod) {
     return 'Pay'
   }
+  if (paymentMethod.toLowerCase() === 'gift') {
+    return 'Partner Order'
+  }
   const normalized = paymentMethod.replace(/[_-]+/g, ' ').trim()
   if (!normalized) {
     return 'Pay'
@@ -318,6 +339,9 @@ const formatPaymentMethod = (paymentMethod: string) => {
 
 const getPaymentIcon = (paymentMethod: string) => {
   const normalized = (paymentMethod || '').toLowerCase()
+  if (normalized === 'gift') {
+    return 'solar:gift-line-duotone'
+  }
   if (normalized.includes('paypal')) {
     return 'simple-icons:paypal'
   }
@@ -360,7 +384,8 @@ onMounted(async () => {
 }
 
 .page-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
@@ -391,6 +416,14 @@ onMounted(async () => {
   color: var(--color-muted);
   font-size: 1rem;
   line-height: 1.6;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-bottom: 2px;
 }
 
 .profile-link,
@@ -438,45 +471,56 @@ onMounted(async () => {
 .record-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 760px;
 }
 
 .summary-item {
-  min-height: 104px;
+  min-height: 92px;
   display: grid;
-  grid-template-columns: 34px 1fr;
-  align-items: start;
-  gap: 8px 12px;
-  padding: 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 18px;
+  background:
+    linear-gradient(135deg, rgba(15, 107, 104, 0.055), rgba(255, 255, 255, 0) 48%),
+    var(--color-surface);
+  border: 1px solid rgba(17, 24, 39, 0.09);
   border-radius: 8px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.055), 0 1px 2px rgba(17, 24, 39, 0.06);
 }
 
 .summary-item > svg {
   grid-row: span 2;
+  width: 38px;
+  height: 38px;
+  padding: 8px;
   color: var(--color-brand);
+  background: rgba(15, 107, 104, 0.09);
+  border: 1px solid rgba(15, 107, 104, 0.12);
+  border-radius: 8px;
 }
 
 .summary-label {
   display: block;
   color: var(--color-muted);
+  align-self: end;
 }
 
 .summary-value {
   display: block;
   color: var(--color-ink);
-  font-size: 1.55rem;
+  font-size: 1.72rem;
   font-weight: 800;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
+  align-self: start;
 }
 
 .record-list,
@@ -567,6 +611,7 @@ onMounted(async () => {
 .kind-badge,
 .meta-chip,
 .txn-chip,
+.channel-chip,
 .status-badge {
   min-height: 26px;
   display: inline-flex;
@@ -599,6 +644,12 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
 }
 
+.channel-chip {
+  color: #9a3412;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
 .status-badge {
   flex-shrink: 0;
   padding-inline: 8px;
@@ -628,6 +679,29 @@ onMounted(async () => {
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
+}
+
+.gift-state {
+  min-width: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  text-align: right;
+}
+
+.gift-state strong {
+  color: #027a48;
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.gift-state span {
+  color: #9a3412;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1.1;
 }
 
 .record-actions {
@@ -813,6 +887,7 @@ onMounted(async () => {
 @media (max-width: 900px) {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
   }
 }
 
@@ -828,13 +903,18 @@ onMounted(async () => {
 
   .page-header {
     align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+    padding-bottom: 0;
   }
 
   .profile-link,
   .billing-link {
-    width: 100%;
+    flex: 1 1 0;
   }
 
   .record-row {
@@ -875,21 +955,15 @@ onMounted(async () => {
 
 @media (max-width: 520px) {
   .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .summary-item {
-    min-height: 88px;
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .summary-item > svg {
-    grid-row: auto;
+    min-height: 82px;
   }
 
   .summary-value {
-    font-size: 1.35rem;
+    font-size: 1.45rem;
   }
 
   .record-title-line {
