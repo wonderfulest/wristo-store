@@ -1,26 +1,57 @@
 <template>
   <div class="category-detail-page">
-    <div class="category-header" v-if="series">
-      <img v-if="series.image" :src="series.image" :alt="series.name" class="category-image" />
-      <h1 class="category-title">{{ series.name }}</h1>
-    </div>
+    <section v-if="series" class="category-hero" :class="{ 'has-banner': categoryBannerUrl }">
+      <img
+        v-if="categoryBannerUrl"
+        :src="categoryBannerUrl"
+        :alt="`${series.name} banner`"
+        class="category-hero-image"
+      />
+      <div class="category-hero-overlay" aria-hidden="true"></div>
 
-    <div v-if="series" class="category-toolbar" aria-label="Category product sorting">
-      <span class="category-sort-label">Sort by</span>
-      <div class="category-sort-options" role="group" aria-label="Sort products">
-        <button
-          v-for="option in sortOptions"
-          :key="option.value"
-          type="button"
-          class="category-sort-btn"
-          :class="{ active: selectedOrderBy === option.value }"
-          :aria-pressed="selectedOrderBy === option.value"
-          @click="selectOrder(option.value)"
-        >
-          {{ option.label }}
-        </button>
+      <div class="category-hero-content">
+        <div class="category-heading">
+          <img v-if="series.image" :src="series.image" :alt="series.name" class="category-image" />
+          <div class="category-title-group">
+            <p class="category-kicker">Collection</p>
+            <h1 class="category-title">{{ series.name }}</h1>
+          </div>
+        </div>
+
+        <div class="category-discovery-panel" aria-label="Category discovery controls">
+          <div class="category-filter-row" aria-label="Refine loaded products">
+            <button
+              v-for="option in filterOptions"
+              :key="option.value"
+              type="button"
+              class="category-filter-chip"
+              :class="{ active: selectedFilter === option.value }"
+              :aria-pressed="selectedFilter === option.value"
+              @click="selectFilter(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+
+          <div class="category-toolbar" aria-label="Category product sorting">
+            <span class="category-sort-label">Sort</span>
+            <div class="category-sort-options" role="group" aria-label="Sort products">
+              <button
+                v-for="option in sortOptions"
+                :key="option.value"
+                type="button"
+                class="category-sort-btn"
+                :class="{ active: selectedOrderBy === option.value }"
+                :aria-pressed="selectedOrderBy === option.value"
+                @click="selectOrder(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
     <section v-if="isAdmin" class="admin-category-panel" aria-label="Category display management">
       <div class="admin-panel-head">
@@ -116,9 +147,9 @@
       </div>
     </section>
 
-    <div v-if="products.length > 0" class="product-list">
+    <div v-if="filteredProducts.length > 0" class="product-list">
       <product-card
-        v-for="product in products"
+        v-for="product in filteredProducts"
         :key="product.appId"
         :product="product"
         :admin-metrics="adminMetricsMap.get(product.appId) || null"
@@ -137,11 +168,15 @@
     </div>
     
     <!-- No more data tip -->
-    <div v-if="!hasMore && products.length > 0" class="no-more-tip">
+    <div v-if="!hasMore && filteredProducts.length > 0" class="no-more-tip">
       <p>You've reached the end.</p>
     </div>
     
     <div v-else-if="products.length === 0 && !loading" class="empty-tip">No products found in this series.</div>
+    <div v-else-if="products.length > 0 && filteredProducts.length === 0 && !loading" class="empty-tip">
+      <p>No matches in the loaded apps.</p>
+      <button type="button" class="empty-reset-btn" @click="selectFilter('all')">Clear filter</button>
+    </div>
   </div>
 </template>
 
@@ -192,6 +227,16 @@ const sortOptions: { label: string; value: CategoryProductOrderBy }[] = [
   { label: 'Most downloaded', value: 'download:desc' },
   { label: 'Top rated', value: 'rating:desc,download:desc' },
 ]
+type CategoryFilterValue = 'all' | 'amoled' | 'data' | 'analog' | 'minimal' | 'budget' | 'rated'
+const filterOptions: { label: string; value: CategoryFilterValue }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'AMOLED', value: 'amoled' },
+  { label: 'Data-rich', value: 'data' },
+  { label: 'Analog', value: 'analog' },
+  { label: 'Minimal', value: 'minimal' },
+  { label: 'Under $2', value: 'budget' },
+  { label: '4.5+ rating', value: 'rated' },
+]
 
 const normalizeOrderBy = (value: unknown): CategoryProductOrderBy => {
   return value === 'rating' || value === 'rating:desc,download:desc'
@@ -204,6 +249,42 @@ const orderByToQuery = (orderBy: CategoryProductOrderBy) => {
 }
 
 const selectedOrderBy = computed(() => normalizeOrderBy(route.query.sort))
+
+const categoryBannerUrl = computed(() => {
+  return series.value?.banner?.url || null
+})
+
+const normalizeFilter = (value: unknown): CategoryFilterValue => {
+  const raw = Array.isArray(value) ? value[0] : value
+  return filterOptions.some((option) => option.value === raw)
+    ? raw as CategoryFilterValue
+    : 'all'
+}
+
+const selectedFilter = computed(() => normalizeFilter(route.query.filter))
+
+const productSearchText = (product: ProductBaseVO) => {
+  return `${product.name || ''} ${product.designId || ''}`.toLowerCase()
+}
+
+const productMatchesFilter = (product: ProductBaseVO, filter: CategoryFilterValue) => {
+  if (filter === 'all') return true
+  const text = productSearchText(product)
+  if (filter === 'amoled') return /amoled|black|neon|cyber|halo|night|dark/.test(text)
+  if (filter === 'data') return /data|digital|weather|sport|metric|dashboard|utility|calendar|health/.test(text)
+  if (filter === 'analog') return /analog|classic|hand|dial|pointer/.test(text)
+  if (filter === 'minimal') return /minimal|simple|clean|strokes|daily|plain/.test(text)
+  if (filter === 'budget') return Number(product.price || 0) <= 2
+  if (filter === 'rated') {
+    const rating = Number(product.averageRating ?? product.score ?? 0)
+    return Number.isFinite(rating) && rating >= 4.5
+  }
+  return true
+}
+
+const filteredProducts = computed(() => {
+  return products.value.filter((product) => productMatchesFilter(product, selectedFilter.value))
+})
 
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
@@ -445,6 +526,17 @@ const selectOrder = async (orderBy: CategoryProductOrderBy) => {
   })
 }
 
+const selectFilter = async (filter: CategoryFilterValue) => {
+  if (filter === selectedFilter.value) return
+  await router.replace({
+    path: route.path,
+    query: {
+      ...route.query,
+      filter: filter === 'all' ? undefined : filter,
+    },
+  })
+}
+
 // 滚动到底部自动加载更多
 const handleScroll = () => {
   // 清除之前的定时器
@@ -504,7 +596,7 @@ const applyCategorySeo = () => {
     title: `${series.value.name} Garmin Watch Faces | Wristo`,
     description: `Browse ${series.value.name} Garmin watch faces and Connect IQ apps on Wristo.`,
     path,
-    image: series.value.image,
+    image: categoryBannerUrl.value || series.value.image,
     jsonLd: [
       {
         '@context': 'https://schema.org',
@@ -601,40 +693,126 @@ onBeforeUnmount(() => {
 .category-detail-page {
   max-width: var(--container);
   margin: 0 auto;
-  padding: 56px 20px 80px;
+  padding: 32px 20px 80px;
 }
 
-.category-header {
+.category-hero {
+  position: relative;
+  display: grid;
+  min-height: clamp(260px, 28vw, 340px);
+  margin-bottom: 28px;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(15, 107, 104, 0.16), transparent 28%),
+    linear-gradient(135deg, #ffffff 0%, #eef7f5 100%);
+  box-shadow: 0 18px 44px rgba(17, 24, 39, 0.1);
+}
+
+.category-hero-image,
+.category-hero-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.category-hero-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.category-hero-overlay {
+  background:
+    linear-gradient(90deg, rgba(15, 23, 42, 0.72) 0%, rgba(15, 23, 42, 0.26) 42%, rgba(15, 23, 42, 0.08) 100%),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.44) 0%, rgba(15, 23, 42, 0.02) 62%);
+}
+
+.category-hero:not(.has-banner) .category-hero-overlay {
+  background: linear-gradient(135deg, rgba(15, 107, 104, 0.1), rgba(255, 255, 255, 0.34));
+}
+
+.category-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: inherit;
+  padding: clamp(22px, 3vw, 36px);
+}
+
+.category-heading {
   display: flex;
   align-items: center;
-  gap: 32px;
-  margin-bottom: 36px;
-  padding: 28px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
+  gap: 18px;
+  max-width: 720px;
 }
+
 .category-image {
-  width: 96px;
-  height: 96px;
+  width: clamp(68px, 8vw, 96px);
+  height: clamp(68px, 8vw, 96px);
+  flex: 0 0 auto;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: var(--shadow-md);
+  border: 4px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.2);
 }
+
+.category-title-group {
+  min-width: 0;
+}
+
+.category-kicker {
+  margin: 0 0 6px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.category-hero:not(.has-banner) .category-kicker {
+  color: var(--color-brand-strong);
+}
+
 .category-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  color: var(--color-ink);
   margin: 0;
+  color: #fff;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 0.98;
+  text-wrap: balance;
+  text-shadow: 0 12px 34px rgba(15, 23, 42, 0.28);
+}
+
+.category-hero:not(.has-banner) .category-title {
+  color: var(--color-ink);
+  text-shadow: none;
+}
+
+.category-discovery-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(14px);
 }
 
 .category-toolbar {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  margin: -12px 0 28px;
+  gap: 10px;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .category-sort-label {
@@ -649,15 +827,15 @@ onBeforeUnmount(() => {
   gap: 4px;
   padding: 4px;
   border: 1px solid rgba(15, 23, 42, 0.1);
-  border-radius: 12px;
+  border-radius: 14px;
   background: rgba(255, 255, 255, 0.82);
 }
 
 .category-sort-btn {
-  min-height: 34px;
-  padding: 0 12px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: #475569;
   font: inherit;
@@ -666,8 +844,53 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
+.category-sort-btn:hover,
+.category-sort-btn:focus-visible {
+  color: var(--color-brand-strong);
+  outline: none;
+}
+
 .category-sort-btn.active {
   background: var(--color-brand);
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(15, 107, 104, 0.18);
+}
+
+.category-filter-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  min-width: 0;
+  padding: 2px;
+  scrollbar-width: thin;
+}
+
+.category-filter-chip {
+  min-height: 44px;
+  flex: 0 0 auto;
+  padding: 0 14px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.category-filter-chip:hover,
+.category-filter-chip:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(15, 107, 104, 0.26);
+  color: var(--color-brand-strong);
+  outline: none;
+}
+
+.category-filter-chip.active {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
   color: #fff;
   box-shadow: 0 8px 18px rgba(15, 107, 104, 0.18);
 }
@@ -953,6 +1176,27 @@ onBeforeUnmount(() => {
   padding: 60px 20px;
 }
 
+.empty-tip p {
+  margin: 0 0 16px;
+}
+
+.empty-reset-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(15, 107, 104, 0.22);
+  border-radius: 999px;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.empty-reset-btn:hover,
+.empty-reset-btn:focus-visible {
+  border-color: var(--color-brand);
+  outline: none;
+}
+
 /* Loading styles */
 .loading-container {
   display: flex;
@@ -1002,16 +1246,27 @@ onBeforeUnmount(() => {
     grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
     gap: 16px;
   }
-  .category-header {
+
+  .category-detail-page {
+    padding-top: 24px;
+  }
+
+  .category-hero {
+    min-height: 300px;
+  }
+
+  .category-hero-content {
+    gap: 22px;
+  }
+
+  .category-discovery-panel {
+    align-items: stretch;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 18px;
+    gap: 10px;
   }
 
   .category-toolbar {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    margin-top: -18px;
+    justify-content: space-between;
   }
 
   .admin-panel-head,
@@ -1041,6 +1296,11 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 480px) {
+  .category-hero {
+    min-height: 340px;
+    border-radius: 20px;
+  }
+
   .product-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 15px;
@@ -1054,15 +1314,21 @@ onBeforeUnmount(() => {
     padding: 20px;
   }
   
-  .category-header {
+  .category-heading {
+    align-items: flex-start;
     flex-direction: column;
-    text-align: center;
-    gap: 16px;
+    gap: 14px;
   }
 
   .category-toolbar,
   .category-sort-options {
     width: 100%;
+  }
+
+  .category-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .category-sort-btn {

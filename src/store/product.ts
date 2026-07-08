@@ -4,6 +4,7 @@ import { searchProducts, getNewProducts, getSeries,
   searchProductsV2,
 } from '@/api/product'
 import type { ProductBaseVO, ProductVO, Series, PageResult } from '@/types'
+import { toPublicSeriesList } from '@/utils/publicSeries'
 
 const withSeriesImage = (list: Series[]) => {
   return (list || []).map((s) => ({
@@ -110,8 +111,10 @@ export const useProductStore = defineStore('product', {
 
     async getHotSeries(limit = 8) {
       try {
-        const response: Series[] = await getHotSeries(limit * 3)
-        this.hotSeries = uniqueByRepresentativeProduct(withSeriesImage(response || [])).slice(0, limit)
+        const response: Series[] = await getHotSeries(Math.max(limit * 4, 40))
+        this.hotSeries = uniqueByRepresentativeProduct(
+          toPublicSeriesList(withSeriesImage(response || []), { limit })
+        )
         return this.hotSeries
       } catch (error) {
         console.error('获取热门系列失败:', error)
@@ -122,7 +125,7 @@ export const useProductStore = defineStore('product', {
     async getSeries() {
       try {
         const response: Series[] = await getSeries()
-        this.seriesList = withSeriesImage(response || [])
+        this.seriesList = toPublicSeriesList(withSeriesImage(response || []), { includeSeasonal: true })
         return this.seriesList
       } catch (error) {
         console.error('获取系列失败:', error)

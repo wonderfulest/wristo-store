@@ -24,6 +24,8 @@
             <span class="series-name">{{ series.name }}</span>
             <span class="series-arrow">&rarr;</span>
           </div>
+          <p v-if="series.publicTagline" class="series-tagline">{{ series.publicTagline }}</p>
+          <span v-if="series.appCount != null" class="series-count">{{ series.appCount }} apps</span>
         </div>
       </div>
     </div>
@@ -38,7 +40,7 @@ import { useI18n } from '@/i18n';
 const { t } = useI18n();
 
 defineProps<{
-  seriesList: Series[];
+  seriesList: Array<Series & { publicTagline?: string }>;
 }>();
 
 defineEmits(['series-click']);
@@ -171,6 +173,21 @@ defineEmits(['series-click']);
   justify-content: center;
   margin-top: 18px;
   gap: 8px;
+}
+
+.series-tagline {
+  margin: 8px 0 0;
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.series-count {
+  margin-top: 6px;
+  color: var(--color-subtle);
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .series-name {

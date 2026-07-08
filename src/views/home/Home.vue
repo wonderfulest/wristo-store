@@ -76,7 +76,7 @@ const handleSubmitSearch = async (term: string) => {
 onMounted(async () => {
   try {
     [seriesList.value, hotProducts.value, newProducts.value] = await Promise.all([
-      productStore.getHotSeries(),
+      productStore.getHotSeries(10),
       productStore.getHotProducts(),
       productStore.getNewProducts(30)
     ]);
