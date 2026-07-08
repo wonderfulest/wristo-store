@@ -97,9 +97,9 @@ export const useProductStore = defineStore('product', {
       }
     },
 
-    async getNewProducts() {
+    async getNewProducts(limit = 30) {
       try {
-        const response: ProductBaseVO[] = await getNewProducts()
+        const response: ProductBaseVO[] = await getNewProducts(limit)
         this.newProducts = response || []
         return this.newProducts
       } catch (error) {

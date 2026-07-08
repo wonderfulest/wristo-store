@@ -78,7 +78,7 @@ onMounted(async () => {
     [seriesList.value, hotProducts.value, newProducts.value] = await Promise.all([
       productStore.getHotSeries(),
       productStore.getHotProducts(),
-      productStore.getNewProducts()
+      productStore.getNewProducts(30)
     ]);
   } catch (error) {
     console.error('Failed to fetch initial data:', error);

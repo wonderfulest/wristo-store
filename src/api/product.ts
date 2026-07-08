@@ -34,7 +34,7 @@ export const searchProductsV2 = (keyword: string, pageNum = 1, pageSize = 24): P
 }
 
 // 获取新品
-export const getNewProducts = (limit = 16, weight?: number): Promise<ProductBaseVO[]> => {
+export const getNewProducts = (limit = 30, weight?: number): Promise<ProductBaseVO[]> => {
   const params: { limit: number; weight?: number } = { limit }
   if (weight !== undefined) {
     params.weight = weight
