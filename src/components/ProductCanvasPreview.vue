@@ -29,7 +29,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
-  Canvas as FabricCanvas,
   Circle,
   FabricText,
   Image as FabricImage,
@@ -37,6 +36,7 @@ import {
   Path,
   Polyline,
   Rect,
+  StaticCanvas as FabricStaticCanvas,
   type FabricObject,
 } from 'fabric'
 import { getProductPreviewConfig, getProductPreviewConfigByDesignId, getPublicFontBySlug } from '@/api/product'
@@ -66,7 +66,7 @@ const deviceDetail = ref<GarminDeviceVO | null>(null)
 const deviceFrameNaturalSize = ref({ width: 0, height: 0 })
 const deviceFrameFailed = ref(false)
 
-let fabricCanvas: FabricCanvas | null = null
+let fabricCanvas: FabricStaticCanvas | null = null
 let resizeObserver: ResizeObserver | null = null
 let tickTimer: number | null = null
 let renderToken = 0
@@ -196,6 +196,15 @@ const normalizeFontUrl = (url: string): string => {
   return `${location.origin}${url.startsWith('/') ? '' : '/'}${url}`
 }
 
+const normalizePreviewAssetUrl = (url: string): string => {
+  if (/^(https?:|blob:|data:)/i.test(url)) return url
+  if (url.startsWith('/assets/')) {
+    const studioUrl = String(import.meta.env.VITE_WRISTO_STUDIO_URL || 'https://studio.wristo.io').replace(/\/$/, '')
+    return `${studioUrl}${url}`
+  }
+  return `${location.origin}${url.startsWith('/') ? '' : '/'}${url}`
+}
+
 const loadFont = async (slug: string): Promise<boolean> => {
   if (!slug || slug === 'Arial') return true
   if (loadedFonts.has(slug)) return true
@@ -251,6 +260,45 @@ const resolveMetricValue = (key?: unknown): string => {
   return sampleValues[normalized] ?? sampleValues[normalized.replace(/_/g, '')] ?? '68'
 }
 
+const resolveMetricOption = (element: RuntimeDesignElement): Record<string, any> | null => {
+  const properties = config.value?.properties || {}
+  const propertyKey = String(element.dataProperty ?? element.goalProperty ?? '').trim()
+  const property = propertyKey ? properties[propertyKey] : null
+  const options = Array.isArray(property?.options) ? property.options : []
+  const selectedValue = property?.value
+  const metricSymbol = String(element.metricSymbol ?? '').trim()
+  const selected = options.find((option: any) => {
+    return (
+      (selectedValue !== undefined && String(option?.value) === String(selectedValue)) ||
+      (metricSymbol && String(option?.metricSymbol) === metricSymbol)
+    )
+  })
+  return selected || null
+}
+
+const resolveElementMetricValue = (element: RuntimeDesignElement): string => {
+  const metric = resolveMetricOption(element)
+  const defaultValue = metric?.defaultValue
+  if (defaultValue !== undefined && defaultValue !== null && String(defaultValue).trim()) {
+    return String(defaultValue)
+  }
+  return resolveMetricValue(element.dataProperty ?? element.goalProperty ?? element.metricSymbol)
+}
+
+const resolveElementMetricLabel = (element: RuntimeDesignElement): string => {
+  const metric = resolveMetricOption(element)
+  if (!metric) return String(element.label ?? element.text ?? 'Label')
+  const enLabel = metric.enLabel
+  if (enLabel && typeof enLabel === 'object') {
+    const labelLengthType = numberValue(config.value?.labelLengthType, 0)
+    const key = labelLengthType === 1 ? 'short' : labelLengthType === 2 ? 'medium' : 'long'
+    const preferred = String(enLabel[key] ?? enLabel.short ?? enLabel.medium ?? enLabel.long ?? '').trim()
+    if (preferred) return applyTextCase(preferred, config.value?.textCase)
+  }
+  const label = String(metric.label ?? element.label ?? element.text ?? 'Label').trim()
+  return applyTextCase(label || 'Label', config.value?.textCase)
+}
+
 const resolveTemplate = (template: string): string => {
   return template.replace(/\{\{([^}]+)\}\}/g, (_match, rawKey: string) => {
     return resolveMetricValue(rawKey)
@@ -283,6 +331,17 @@ const inferDesignBounds = (rawConfig: RuntimeDesignConfig, elements: RuntimeDesi
   const configHeight = numberValue(rawConfig.height ?? rawConfig.designHeight ?? rawConfig.watchHeight, 0)
   if (configWidth > 0 && configHeight > 0) {
     return { width: configWidth, height: configHeight }
+  }
+
+  const coordinateCandidates = elements.flatMap((element) => [
+    numberValue(element.left),
+    numberValue(element.top),
+    numberValue(element.x2),
+    numberValue(element.y2),
+  ])
+  const maxCoordinate = Math.max(...coordinateCandidates.filter((value) => Number.isFinite(value)), 454)
+  if (maxCoordinate <= 600) {
+    return { width: 454, height: 454 }
   }
 
   const candidates = elements.flatMap((element) => [
@@ -339,7 +398,7 @@ const getPreviewLayout = (designBounds: DesignBounds): PreviewLayout => {
   const frameLayout = getFrameLayout(width, height)
   if (frameLayout) return frameLayout
 
-  const previewScale = 0.82
+  const previewScale = 1
   const designAspect = designBounds.width / Math.max(1, designBounds.height)
   const maxWidth = width * previewScale
   const maxHeight = height * previewScale
@@ -537,10 +596,10 @@ const resolveText = (element: RuntimeDesignElement): string => {
     return formatDate(element.formatter, config.value?.textCase)
   }
   if (type === 'data') {
-    return resolveMetricValue(element.dataProperty ?? element.goalProperty ?? element.metricSymbol)
+    return resolveElementMetricValue(element)
   }
   if (type === 'label') {
-    return String(element.label ?? element.text ?? element.metricSymbol ?? 'DATA')
+    return resolveElementMetricLabel(element)
   }
   if (type === 'unit') {
     return String(element.unit ?? element.text ?? '')
@@ -567,6 +626,7 @@ const addTextElement = (
     textAlign: element.textAlign ?? 'center',
   } as any)
   setBaseProps(text as any, element, transform)
+  ;(text as any).__wristoPreviewElement = element
   fabricCanvas?.add(text)
 }
 
@@ -639,12 +699,16 @@ const addHandElement = (
   const x2 = cx + Math.cos(radians) * length
   const y2 = cy + Math.sin(radians) * length
 
-  fabricCanvas?.add(new Line([cx, cy, x2, y2], {
+  const line = new Line([cx, cy, x2, y2], {
     stroke: element.fill ?? element.stroke ?? '#ffffff',
     strokeWidth: Math.max(2, numberValue(element.strokeWidth ?? element.width, 4) * transform.uniformScale),
     selectable: false,
     evented: false,
-  }))
+  })
+  ;(line as any).__wristoPreviewElement = element
+  ;(line as any).__wristoPreviewTransform = transform
+  ;(line as any).__wristoPreviewHandLine = true
+  fabricCanvas?.add(line)
 }
 
 const addHandImageElement = async (
@@ -657,7 +721,14 @@ const addHandImageElement = async (
     return
   }
 
-  const image = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' } as any)
+  let image: FabricImage
+  try {
+    image = await FabricImage.fromURL(normalizePreviewAssetUrl(url), { crossOrigin: 'anonymous' } as any)
+  } catch (error) {
+    console.warn('[ProductCanvasPreview] skipped hand image, using line fallback', url, error)
+    addHandElement(element, transform)
+    return
+  }
   const targetHeight = numberValue(element.targetHeight ?? element.height, image.height ?? 120) * transform.uniformScale
   image.set({
     scaleX: targetHeight / Math.max(1, numberValue(image.height, 1)),
@@ -665,6 +736,7 @@ const addHandImageElement = async (
     angle: timeAngleForHand(elementType(element), element.angle),
   } as any)
   setBaseProps(image as any, element, transform)
+  ;(image as any).__wristoPreviewElement = element
   fabricCanvas?.add(image)
 }
 
@@ -920,7 +992,7 @@ const addImageElement = async (
 ) => {
   const url = String(element.imageUrl ?? element.url ?? element.src ?? '')
   if (!url) return
-  const image = await FabricImage.fromURL(url, { crossOrigin: 'anonymous' } as any)
+  const image = await FabricImage.fromURL(normalizePreviewAssetUrl(url), { crossOrigin: 'anonymous' } as any)
   const targetWidth = numberValue(element.width, numberValue(image.width, 80)) * transform.scaleX
   const targetHeight = numberValue(element.height, numberValue(image.height, 80)) * transform.scaleY
   image.set({
@@ -943,12 +1015,20 @@ const addImageLikeElement = async (
     const fallbackSize = type === 'romans' || type === 'tick12' || type === 'tick60'
       ? Math.max(designWidth, designHeight)
       : 80
-    await addImageElement({
-      ...element,
-      width: element.width ?? element.height ?? fallbackSize,
-      height: element.height ?? element.width ?? fallbackSize,
-    }, transform)
-    return
+    try {
+      await addImageElement({
+        ...element,
+        width: element.width ?? element.height ?? fallbackSize,
+        height: element.height ?? element.width ?? fallbackSize,
+      }, transform)
+      return
+    } catch (error) {
+      if (type !== 'tick12' && type !== 'tick60' && type !== 'centerCap') {
+        console.warn('[ProductCanvasPreview] skipped image element', url, error)
+        return
+      }
+      console.warn('[ProductCanvasPreview] skipped dial image, using vector fallback', url, error)
+    }
   }
 
   if (type === 'tick12' || type === 'tick60') {
@@ -1013,6 +1093,21 @@ const addConfigBackgroundImage = async (
 
 const addDisplayBackplate = (layout: PreviewLayout) => {
   const rect = layout.displayRect
+  if (!hasDeviceFrameGeometry.value) {
+    const backplate = new Circle({
+      left: rect.left + rect.width / 2,
+      top: rect.top + rect.height / 2,
+      radius: Math.min(rect.width, rect.height) / 2,
+      originX: 'center',
+      originY: 'center',
+      fill: '#050505',
+      selectable: false,
+      evented: false,
+    })
+    fabricCanvas?.add(backplate)
+    return
+  }
+
   const shape = displayShape.value
   const shouldUseRect = shape.includes('rect') || shape.includes('square') || Math.abs(rect.width - rect.height) > 2
 
@@ -1058,9 +1153,9 @@ const renderPreview = async () => {
   const transform = toTransform(layout, designBounds)
 
   if (!fabricCanvas) {
-    fabricCanvas = new FabricCanvas(canvasRef.value, {
-      selection: false,
+    fabricCanvas = new FabricStaticCanvas(canvasRef.value, {
       preserveObjectStacking: true,
+      renderOnAddRemove: false,
     })
   }
 
@@ -1097,6 +1192,64 @@ const renderPreview = async () => {
 
   fabricCanvas.renderAll()
   hasRendered.value = true
+}
+
+const updateHandLine = (
+  line: Line,
+  element: RuntimeDesignElement,
+  transform: PreviewTransform,
+) => {
+  const baseAngle = timeAngleForHand(elementType(element), element.angle)
+  const length = numberValue(element.length ?? element.targetHeight ?? element.height, 120) * transform.uniformScale
+  const cx = scaledX(element.left ?? 227, transform)
+  const cy = scaledY(element.top ?? 227, transform)
+  const radians = (baseAngle - 90) * Math.PI / 180
+  line.set({
+    x1: cx,
+    y1: cy,
+    x2: cx + Math.cos(radians) * length,
+    y2: cy + Math.sin(radians) * length,
+  } as any)
+  line.setCoords()
+}
+
+const updateRuntimeObjects = () => {
+  if (!fabricCanvas || !config.value || !hasRendered.value) return
+
+  let changed = false
+  for (const object of fabricCanvas.getObjects()) {
+    const element = (object as any).__wristoPreviewElement as RuntimeDesignElement | undefined
+    if (!element) continue
+    const type = elementType(element)
+
+    if (type.endsWith('Hand')) {
+      if ((object as any).__wristoPreviewHandLine) {
+        const transform = (object as any).__wristoPreviewTransform as PreviewTransform | undefined
+        if (transform) {
+          updateHandLine(object as Line, element, transform)
+          changed = true
+        }
+      } else {
+        object.set('angle', timeAngleForHand(type, element.angle))
+        object.setCoords()
+        changed = true
+      }
+      continue
+    }
+
+    if (object instanceof FabricText) {
+      const nextText = resolveText(element)
+      if (object.text !== nextText) {
+        object.set('text', nextText)
+        object.setCoords()
+        changed = true
+      }
+    }
+  }
+
+  if (changed) {
+    fabricCanvas.renderAll()
+  }
 }
 
 const loadConfig = async () => {
@@ -1179,9 +1332,7 @@ const handleDeviceFrameError = () => {
 const startTicking = () => {
   if (tickTimer != null) return
   tickTimer = window.setInterval(() => {
-    if (config.value && hasRendered.value) {
-      renderPreview()
-    }
+    updateRuntimeObjects()
   }, 1000)
 }
 
