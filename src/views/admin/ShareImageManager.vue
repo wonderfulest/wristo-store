@@ -117,7 +117,7 @@
               multiple
               :auto-upload="false"
               :limit="MAX_SHARE_IMAGES"
-              accept="image/png,image/jpeg,image/webp"
+              :accept="shareImageAccept"
               :disabled="uploading || remainingSlots === 0"
               :on-exceed="handleExceed"
             >
@@ -206,6 +206,8 @@ import {
   MAX_SHARE_IMAGE_FILE_SIZE_BYTES,
   SUPPORTED_SHARE_IMAGE_TYPES,
 } from '@/utils/productShareImagePolicy'
+
+const shareImageAccept = [...SUPPORTED_SHARE_IMAGE_TYPES].join(',')
 
 const products = ref<ProductVO[]>([])
 const productsLoading = ref(false)
