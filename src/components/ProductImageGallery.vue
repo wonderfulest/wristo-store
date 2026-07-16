@@ -1,6 +1,16 @@
 <template>
   <section class="product-gallery" :aria-label="`${productName} image gallery`">
-    <div class="product-gallery__stage">
+    <div
+      class="product-gallery__stage"
+      tabindex="0"
+      aria-label="Product image carousel"
+      @keydown.left.prevent="showPreviousImage"
+      @keydown.right.prevent="showNextImage"
+      @keydown.enter.self="showPreview"
+      @keydown.space.self.prevent="showPreview"
+      @touchstart="handleTouchStart"
+      @touchend="handleTouchEnd"
+    >
       <el-image
         v-if="selectedItem"
         :key="selectedItem.key"
@@ -28,57 +38,181 @@
       >
         <span aria-hidden="true">W</span>
       </div>
+
+      <template v-if="availableItems.length > 1">
+        <button
+          type="button"
+          class="product-gallery__carousel-button product-gallery__carousel-button--previous"
+          aria-label="Previous image"
+          @click.stop="showPreviousImage"
+        >
+          <span aria-hidden="true">‹</span>
+        </button>
+        <button
+          type="button"
+          class="product-gallery__carousel-button product-gallery__carousel-button--next"
+          aria-label="Next image"
+          @click.stop="showNextImage"
+        >
+          <span aria-hidden="true">›</span>
+        </button>
+      </template>
     </div>
 
     <div
-      v-if="availableItems.length > 1"
+      v-if="editable || availableItems.length > 1"
       class="product-gallery__thumbnails"
       role="group"
       aria-label="Choose a product image"
     >
-      <button
+      <div
         v-for="item in availableItems"
         :key="item.key"
-        type="button"
-        class="product-gallery__thumbnail"
-        :class="{ 'product-gallery__thumbnail--active': item.url === selectedUrl }"
-        :aria-label="`View ${item.alt}`"
-        :aria-current="item.url === selectedUrl ? 'true' : undefined"
-        @click="selectImage(item)"
+        :ref="(element) => setThumbnailRef(item.key, element)"
+        class="product-gallery__thumbnail-item"
+        :class="{
+          'product-gallery__thumbnail-item--share': editable && item.kind === 'share',
+          'product-gallery__thumbnail-item--dragging': draggedSourceId === item.sourceId,
+        }"
+        :draggable="editable && item.kind === 'share' && !busy"
+        @dragstart="handleDragStart(item, $event)"
+        @dragend="handleDragEnd"
+        @dragover.prevent
+        @drop.prevent="handleDrop(item)"
       >
-        <img :src="item.url" :alt="item.alt" loading="lazy" @error="handleImageError(item)" />
-      </button>
+        <span
+          v-if="editable && item.kind === 'share'"
+          class="product-gallery__drag-handle"
+          aria-hidden="true"
+        >
+          ⋮⋮
+        </span>
+        <button
+          type="button"
+          class="product-gallery__thumbnail"
+          :class="{ 'product-gallery__thumbnail--active': item.url === selectedUrl }"
+          :aria-label="`View ${item.alt}`"
+          :aria-current="item.url === selectedUrl ? 'true' : undefined"
+          @click="selectImage(item)"
+        >
+          <img :src="item.url" :alt="item.alt" loading="lazy" @error="handleImageError(item)" />
+        </button>
+
+        <div
+          v-if="editable && item.kind === 'share'"
+          class="product-gallery__thumbnail-actions"
+        >
+          <button
+            type="button"
+            class="product-gallery__manage-button"
+            aria-label="Move image left"
+            :disabled="busy || isFirstShareImage(item)"
+            @click.stop="moveImage(item, -1)"
+          >
+            ←
+          </button>
+          <button
+            type="button"
+            class="product-gallery__manage-button"
+            aria-label="Move image right"
+            :disabled="busy || isLastShareImage(item)"
+            @click.stop="moveImage(item, 1)"
+          >
+            →
+          </button>
+          <button
+            type="button"
+            class="product-gallery__manage-button product-gallery__manage-button--delete"
+            aria-label="Delete image"
+            :aria-busy="deletingId === item.sourceId ? 'true' : undefined"
+            :disabled="busy"
+            @click.stop="deleteImage(item)"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+
+      <div v-if="editable" class="product-gallery__add-item">
+        <input
+          ref="fileInputRef"
+          class="product-gallery__file-input"
+          type="file"
+          multiple
+          :accept="shareImageAccept"
+          :disabled="busy || !canAddImages"
+          @change="handleFileSelection"
+        />
+        <button
+          type="button"
+          class="product-gallery__add-button"
+          :disabled="busy || !canAddImages"
+          @click="openFilePicker"
+        >
+          <span class="product-gallery__add-icon" aria-hidden="true">+</span>
+          <span>{{ uploading ? 'Uploading…' : 'Add images' }}</span>
+          <small>8 image limit</small>
+        </button>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import type { ImageInstance } from 'element-plus'
 
 import {
   createProductGalleryItems,
+  moveShareImageIds,
   resolveAvailableGalleryItems,
+  resolveCircularGalleryUrl,
   resolveGallerySelectedIndex,
   resolveSelectionAfterItemsChange,
   type ProductGalleryItem,
   type ProductShareImageSource,
 } from '@/utils/productGallery'
+import { SUPPORTED_SHARE_IMAGE_TYPES } from '@/utils/productShareImagePolicy'
 
 const props = withDefaults(
   defineProps<{
     images: ProductShareImageSource[]
     fallbackImageUrl?: string | null
     productName: string
+    editable?: boolean
+    canAddImages?: boolean
+    uploading?: boolean
+    deletingId?: number | null
+    reordering?: boolean
   }>(),
   {
     fallbackImageUrl: null,
+    editable: false,
+    canAddImages: true,
+    uploading: false,
+    deletingId: null,
+    reordering: false,
   },
 )
+
+const emit = defineEmits<{
+  'add-images': [files: File[]]
+  'delete-image': [id: number]
+  'reorder-images': [ids: number[]]
+}>()
 
 const failedUrls = ref<Set<string>>(new Set())
 const selectedUrl = ref<string | null>(null)
 const mainImageRef = ref<ImageInstance | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const thumbnailRefs = new Map<string, HTMLElement>()
+const draggedSourceId = ref<number | null>(null)
+const touchStart = ref<{ x: number; y: number } | null>(null)
+
+const shareImageAccept = [...SUPPORTED_SHARE_IMAGE_TYPES].join(',')
+const busy = computed(
+  () => props.uploading || props.deletingId !== null || props.reordering,
+)
 
 const galleryItems = computed(() =>
   createProductGalleryItems(props.images, props.fallbackImageUrl, props.productName),
@@ -98,8 +232,45 @@ const selectedIndex = computed(() =>
   resolveGallerySelectedIndex(availableItems.value, selectedUrl.value),
 )
 
+const shareImageIds = computed(() =>
+  props.images
+    .map((image) => image.id)
+    .filter((imageId): imageId is number => typeof imageId === 'number'),
+)
+
 const selectImage = (item: ProductGalleryItem) => {
   selectedUrl.value = item.url
+}
+
+const showAdjacentImage = (delta: -1 | 1) => {
+  if (availableItems.value.length < 2) return
+  selectedUrl.value = resolveCircularGalleryUrl(
+    availableItems.value,
+    selectedUrl.value,
+    delta,
+  )
+}
+
+const showPreviousImage = () => showAdjacentImage(-1)
+const showNextImage = () => showAdjacentImage(1)
+
+const handleTouchStart = (event: TouchEvent) => {
+  const touch = event.touches[0]
+  touchStart.value = touch ? { x: touch.clientX, y: touch.clientY } : null
+}
+
+const handleTouchEnd = (event: TouchEvent) => {
+  const start = touchStart.value
+  const touch = event.changedTouches[0]
+  touchStart.value = null
+  if (!start || !touch) return
+
+  const deltaX = start.x - touch.clientX
+  const deltaY = start.y - touch.clientY
+  if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) return
+
+  if (deltaX > 0) showNextImage()
+  else showPreviousImage()
 }
 
 const handleImageError = (item: ProductGalleryItem) => {
@@ -108,6 +279,97 @@ const handleImageError = (item: ProductGalleryItem) => {
 
 const showPreview = () => {
   mainImageRef.value?.showPreview()
+}
+
+const setThumbnailRef = (key: string, element: unknown) => {
+  if (element instanceof HTMLElement) thumbnailRefs.set(key, element)
+  else thumbnailRefs.delete(key)
+}
+
+const scrollActiveThumbnailIntoView = async () => {
+  await nextTick()
+  const item = selectedItem.value
+  if (!item) return
+
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+  thumbnailRefs.get(item.key)?.scrollIntoView({
+    behavior: reducedMotion ? 'auto' : 'smooth',
+    block: 'nearest',
+    inline: 'nearest',
+  })
+}
+
+const openFilePicker = () => {
+  if (!props.editable || busy.value || !props.canAddImages) return
+  fileInputRef.value?.click()
+}
+
+const handleFileSelection = (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ''
+  if (!props.editable || busy.value || !props.canAddImages || files.length === 0) return
+  emit('add-images', files)
+}
+
+const deleteImage = (item: ProductGalleryItem) => {
+  if (!props.editable || busy.value || item.kind !== 'share') return
+  if (typeof item.sourceId !== 'number') return
+  emit('delete-image', item.sourceId)
+}
+
+const emitReorder = (reorderedIds: number[]) => {
+  if (reorderedIds.every((id, index) => id === shareImageIds.value[index])) return
+  emit('reorder-images', reorderedIds)
+}
+
+const moveImage = (item: ProductGalleryItem, delta: -1 | 1) => {
+  if (!props.editable || busy.value || item.kind !== 'share') return
+  if (typeof item.sourceId !== 'number') return
+  emitReorder(moveShareImageIds(shareImageIds.value, item.sourceId, delta))
+}
+
+const isFirstShareImage = (item: ProductGalleryItem) =>
+  typeof item.sourceId !== 'number' || shareImageIds.value.indexOf(item.sourceId) <= 0
+
+const isLastShareImage = (item: ProductGalleryItem) => {
+  if (typeof item.sourceId !== 'number') return true
+  return shareImageIds.value.indexOf(item.sourceId) === shareImageIds.value.length - 1
+}
+
+const handleDragStart = (item: ProductGalleryItem, event: DragEvent) => {
+  if (!props.editable || busy.value || item.kind !== 'share') {
+    event.preventDefault()
+    return
+  }
+  if (typeof item.sourceId !== 'number') {
+    event.preventDefault()
+    return
+  }
+
+  draggedSourceId.value = item.sourceId
+  event.dataTransfer?.setData('text/plain', String(item.sourceId))
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+}
+
+const handleDragEnd = () => {
+  draggedSourceId.value = null
+}
+
+const handleDrop = (targetItem: ProductGalleryItem) => {
+  const sourceId = draggedSourceId.value
+  draggedSourceId.value = null
+  if (!props.editable || busy.value || sourceId === null || targetItem.kind !== 'share') return
+  if (typeof targetItem.sourceId !== 'number' || sourceId === targetItem.sourceId) return
+
+  const reorderedIds = [...shareImageIds.value]
+  const sourceIndex = reorderedIds.indexOf(sourceId)
+  const targetIndex = reorderedIds.indexOf(targetItem.sourceId)
+  if (sourceIndex < 0 || targetIndex < 0) return
+
+  reorderedIds.splice(sourceIndex, 1)
+  reorderedIds.splice(targetIndex, 0, sourceId)
+  emitReorder(reorderedIds)
 }
 
 watch(
@@ -121,6 +383,8 @@ watch(
   },
   { immediate: true, flush: 'sync' },
 )
+
+watch(selectedUrl, scrollActiveThumbnailIntoView, { flush: 'post' })
 
 watch(
   [() => props.images, () => props.fallbackImageUrl],
@@ -144,6 +408,7 @@ watch(
 }
 
 .product-gallery__stage {
+  position: relative;
   aspect-ratio: 1;
   min-width: 0;
   overflow: hidden;
@@ -153,17 +418,25 @@ watch(
   box-shadow:
     0 18px 48px rgb(31 70 68 / 8%),
     0 2px 8px rgb(31 70 68 / 5%);
+  touch-action: pan-y;
+}
+
+.product-gallery__stage:focus-visible,
+.product-gallery__main-image:focus-visible,
+.product-gallery button:focus-visible {
+  outline: 3px solid rgb(15 159 154 / 30%);
+  outline-offset: 2px;
+}
+
+.product-gallery__stage:focus-visible,
+.product-gallery__main-image:focus-visible {
+  outline-offset: -4px;
 }
 
 .product-gallery__main-image {
   width: 100%;
   height: 100%;
   cursor: zoom-in;
-}
-
-.product-gallery__main-image:focus-visible {
-  outline: 3px solid rgb(15 159 154 / 28%);
-  outline-offset: -4px;
 }
 
 .product-gallery__placeholder {
@@ -191,22 +464,92 @@ watch(
   letter-spacing: -0.08em;
 }
 
+.product-gallery__carousel-button {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgb(15 159 154 / 18%);
+  border-radius: 50%;
+  place-items: center;
+  color: #156f6b;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 8px 22px rgb(31 70 68 / 14%);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.product-gallery__carousel-button:hover {
+  color: #fff;
+  background: var(--gallery-accent);
+  box-shadow: 0 9px 24px rgb(15 159 154 / 24%);
+}
+
+.product-gallery__carousel-button span {
+  margin-top: -3px;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.product-gallery__carousel-button--previous {
+  left: 14px;
+}
+
+.product-gallery__carousel-button--next {
+  right: 14px;
+}
+
 .product-gallery__thumbnails {
   display: flex;
   gap: 10px;
   max-width: 100%;
-  padding: 2px 2px 6px;
+  padding: 2px 2px 8px;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: rgb(15 159 154 / 32%) transparent;
 }
 
+.product-gallery__thumbnail-item,
+.product-gallery__add-item {
+  position: relative;
+  flex: 0 0 72px;
+  width: 72px;
+}
+
+.product-gallery__thumbnail-item--share {
+  padding-top: 14px;
+  cursor: grab;
+}
+
+.product-gallery__thumbnail-item--dragging {
+  opacity: 0.55;
+}
+
+.product-gallery__drag-handle {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  color: #71918f;
+  font-size: 15px;
+  letter-spacing: -0.22em;
+  line-height: 1;
+  transform: translateX(-50%) rotate(90deg);
+}
+
 .product-gallery__thumbnail {
-  flex: 0 0 66px;
+  display: block;
   width: 66px;
   height: 66px;
   overflow: hidden;
+  margin: 0 auto;
   padding: 3px;
   border: 1px solid var(--gallery-border);
   border-radius: 12px;
@@ -231,16 +574,95 @@ watch(
   transform: translateY(-1px);
 }
 
-.product-gallery__thumbnail:focus-visible {
-  outline: 3px solid rgb(15 159 154 / 22%);
-  outline-offset: 2px;
-  border-color: var(--gallery-accent);
-}
-
 .product-gallery__thumbnail--active {
   border-color: var(--gallery-accent);
   background: var(--gallery-accent-soft);
   box-shadow: 0 5px 14px rgb(15 159 154 / 16%);
+}
+
+.product-gallery__thumbnail-actions {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  padding-top: 5px;
+}
+
+.product-gallery__manage-button {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  padding: 0;
+  border: 1px solid #dce9e7;
+  border-radius: 6px;
+  place-items: center;
+  color: #277b77;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.product-gallery__manage-button:hover:not(:disabled) {
+  border-color: rgb(15 159 154 / 55%);
+  background: var(--gallery-accent-soft);
+}
+
+.product-gallery__manage-button--delete {
+  color: #b34444;
+}
+
+.product-gallery button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.product-gallery__add-item {
+  align-self: flex-start;
+  padding-top: 14px;
+}
+
+.product-gallery__file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.product-gallery__add-button {
+  display: grid;
+  width: 72px;
+  min-height: 92px;
+  padding: 8px 4px;
+  border: 1px dashed rgb(15 159 154 / 48%);
+  border-radius: 12px;
+  place-content: center;
+  gap: 3px;
+  color: #277b77;
+  background: rgb(232 248 246 / 62%);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.product-gallery__add-button:hover:not(:disabled) {
+  border-color: var(--gallery-accent);
+  background: var(--gallery-accent-soft);
+}
+
+.product-gallery__add-icon {
+  font-size: 23px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.product-gallery__add-button small {
+  color: #708b89;
+  font-size: 9px;
 }
 
 @media (max-width: 640px) {
@@ -253,19 +675,45 @@ watch(
     border-radius: 14px;
   }
 
+  .product-gallery__carousel-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .product-gallery__carousel-button--previous {
+    left: 10px;
+  }
+
+  .product-gallery__carousel-button--next {
+    right: 10px;
+  }
+
   .product-gallery__thumbnails {
     width: 100%;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
+  }
+
+  .product-gallery__drag-handle {
+    display: none;
+  }
+
+  .product-gallery__thumbnail-item--share,
+  .product-gallery__add-item {
+    padding-top: 0;
   }
 
   .product-gallery__thumbnail {
-    flex-basis: 64px;
     width: 64px;
     height: 64px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .product-gallery__thumbnails {
+    scroll-behavior: auto;
+  }
+
+  .product-gallery__carousel-button,
   .product-gallery__thumbnail {
     transition: none;
   }

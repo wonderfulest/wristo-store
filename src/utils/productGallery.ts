@@ -95,7 +95,14 @@ export const resolveSelectionAfterItemsChange = (
   const selectedIndex = beforeItems.findIndex((item) => item.url === selectedUrl)
   if (selectedIndex < 0) return afterItems[0].url
 
-  return afterItems[selectedIndex]?.url ?? afterItems[selectedIndex - 1]?.url ?? afterItems[0].url
+  if (afterItems[selectedIndex]) return afterItems[selectedIndex].url
+
+  const remainingUrls = new Set(afterItems.map((item) => item.url))
+  for (let index = selectedIndex - 1; index >= 0; index -= 1) {
+    if (remainingUrls.has(beforeItems[index].url)) return beforeItems[index].url
+  }
+
+  return afterItems[0].url
 }
 
 export const moveShareImageIds = (

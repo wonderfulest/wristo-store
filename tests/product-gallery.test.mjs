@@ -263,6 +263,25 @@ test('resolveSelectionAfterItemsChange selects the previous item after deleting 
   )
 })
 
+test('resolveSelectionAfterItemsChange finds the nearest surviving item before a removed tail', () => {
+  const extraItems = ['d', 'e'].map((id) => ({
+    key: `share-${id}`,
+    url: `https://cdn.example.com/${id}.png`,
+    alt: id.toUpperCase(),
+    kind: 'share',
+    sourceId: id,
+  }))
+
+  assert.equal(
+    resolveSelectionAfterItemsChange(
+      [...sourceGalleryItems, ...extraItems],
+      sourceGalleryItems.slice(0, 2),
+      extraItems[0].url,
+    ),
+    sourceGalleryItems[1].url,
+  )
+})
+
 test('resolveSelectionAfterItemsChange handles empty lists and selections absent before the change', () => {
   assert.equal(
     resolveSelectionAfterItemsChange(sourceGalleryItems, [], sourceGalleryItems[1].url),
@@ -331,6 +350,87 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.match(source, /resolveSelectionAfterItemsChange/)
   assert.doesNotMatch(source, /\bsourceItems\b/)
   assert.doesNotMatch(source, /\bfallbackItem\b/)
+})
+
+test('ProductImageGallery declares opt-in management props and typed events', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  for (const prop of [
+    /editable\?:\s*boolean/,
+    /canAddImages\?:\s*boolean/,
+    /uploading\?:\s*boolean/,
+    /deletingId\?:\s*number\s*\|\s*null/,
+    /reordering\?:\s*boolean/,
+  ]) {
+    assert.match(source, prop)
+  }
+  assert.match(source, /editable:\s*false/)
+  assert.match(source, /canAddImages:\s*true/)
+  assert.match(source, /uploading:\s*false/)
+  assert.match(source, /deletingId:\s*null/)
+  assert.match(source, /reordering:\s*false/)
+  assert.match(source, /'add-images':\s*\[files:\s*File\[\]\]/)
+  assert.match(source, /'delete-image':\s*\[id:\s*number\]/)
+  assert.match(source, /'reorder-images':\s*\[ids:\s*number\[\]\]/)
+})
+
+test('ProductImageGallery offers manual circular, keyboard, and touch navigation without autoplay', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /aria-label="Previous image"/)
+  assert.match(source, /aria-label="Next image"/)
+  assert.match(source, /resolveCircularGalleryUrl/)
+  assert.match(source, /@keydown\.left\.prevent="showPreviousImage"/)
+  assert.match(source, /@keydown\.right\.prevent="showNextImage"/)
+  assert.match(source, /@touchstart="handleTouchStart"/)
+  assert.match(source, /@touchend="handleTouchEnd"/)
+  assert.match(source, /Math\.abs\(deltaX\)\s*<\s*48/)
+  assert.match(source, /Math\.abs\(deltaX\)\s*<=\s*Math\.abs\(deltaY\)/)
+  assert.doesNotMatch(source, /setInterval|setTimeout|autoplay/i)
+})
+
+test('ProductImageGallery keeps thumbnails accessible and reveals the row for editable single images', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /v-if="editable\s*\|\|\s*availableItems\.length\s*>\s*1"/)
+  assert.match(source, /:aria-current="item\.url === selectedUrl \? 'true' : undefined"/)
+  assert.match(source, /:aria-label="`View \$\{item\.alt\}`"/)
+  assert.match(source, /thumbnailRefs/)
+  assert.match(source, /scrollIntoView/)
+  assert.match(source, /prefers-reduced-motion:\s*reduce/)
+})
+
+test('ProductImageGallery emits editable-only add and delete actions with shared upload policy', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /SUPPORTED_SHARE_IMAGE_TYPES/)
+  assert.match(source, /\[\.\.\.SUPPORTED_SHARE_IMAGE_TYPES\]\.join\(','\)/)
+  assert.match(source, /type="file"/)
+  assert.match(source, /multiple/)
+  assert.match(source, /@change="handleFileSelection"/)
+  assert.match(source, /input\.value\s*=\s*''/)
+  assert.match(source, /emit\('add-images',\s*files\)/)
+  assert.match(source, /Uploading…/)
+  assert.match(source, /Add images/)
+  assert.match(source, /8 image limit/)
+  assert.match(source, /item\.kind === 'share'/)
+  assert.match(source, /@click\.stop="deleteImage\(item\)"/)
+  assert.match(source, /emit\('delete-image',\s*item\.sourceId\)/)
+})
+
+test('ProductImageGallery reorders only share images and disables management while busy', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /const busy = computed\(/)
+  assert.match(source, /props\.uploading[\s\S]*props\.deletingId !== null[\s\S]*props\.reordering/)
+  assert.match(source, /:draggable="editable && item\.kind === 'share' && !busy"/)
+  assert.match(source, /@dragstart="handleDragStart\(item, \$event\)"/)
+  assert.match(source, /@drop(?:\.prevent)?="handleDrop\(item\)"/)
+  assert.match(source, /emit\('reorder-images',\s*reorderedIds\)/)
+  assert.match(source, /aria-label="Move image left"/)
+  assert.match(source, /aria-label="Move image right"/)
+  assert.match(source, /moveShareImageIds/)
+  assert.match(source, /:disabled="busy/)
 })
 
 test('public product share image DTO exposes only the public response fields', async () => {
