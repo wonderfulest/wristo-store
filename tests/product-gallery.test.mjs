@@ -43,6 +43,7 @@ const productGalleryModuleUrl =
 const {
   createProductGalleryItems,
   moveShareImageIds,
+  reorderProductShareImageSources,
   reorderShareImageIdsAtTarget,
   resolveAddImagesLabel,
   resolveAvailableGalleryItems,
@@ -351,6 +352,28 @@ test('reorderShareImageIdsAtTarget returns a copy for unknown and identical IDs'
   }
 })
 
+test('reorderProductShareImageSources returns a new complete source list in the requested order', () => {
+  const sources = [
+    { id: 10, imageUrl: 'ten.png' },
+    { id: 20, imageUrl: 'twenty.png' },
+    { id: 30, imageUrl: 'thirty.png' },
+  ]
+
+  const reordered = reorderProductShareImageSources?.(sources, [30, 10, 20])
+
+  assert.deepEqual(reordered, [sources[2], sources[0], sources[1]])
+  assert.notEqual(reordered, sources)
+  assert.deepEqual(sources.map((source) => source.id), [10, 20, 30])
+})
+
+test('reorderProductShareImageSources rejects duplicate, missing, and external IDs', () => {
+  const sources = [{ id: 10 }, { id: 20 }, { id: 30 }]
+
+  assert.equal(reorderProductShareImageSources?.(sources, [10, 10, 30]), null)
+  assert.equal(reorderProductShareImageSources?.(sources, [10, 20]), null)
+  assert.equal(reorderProductShareImageSources?.(sources, [10, 20, 99]), null)
+})
+
 test('resolveGallerySwipeDirection maps horizontal swipes to carousel deltas', () => {
   assert.equal(resolveGallerySwipeDirection?.(100, 100, 40, 106), 1)
   assert.equal(resolveGallerySwipeDirection?.(100, 100, 160, 96), -1)
@@ -607,7 +630,7 @@ test('ShareImageManager consumes upload limits only from the shared policy', asy
   assert.match(source, /file\.size > MAX_SHARE_IMAGE_FILE_SIZE_BYTES/)
 })
 
-test('public API uses the public DTO while the gallery depends only on its source contract', async () => {
+test('public API uses the public DTO while ProductDetail and the gallery use the source contract', async () => {
   const [productApiSource, productImageGallerySource, productDetailSource] = await Promise.all([
     readFile(productApiUrl, 'utf8'),
     readFile(productImageGalleryUrl, 'utf8'),
@@ -632,14 +655,51 @@ test('public API uses the public DTO while the gallery depends only on its sourc
     /type ProductShareImageSource[\s\S]*?from ['"]@\/utils\/productGallery['"]/,
   )
   assert.ok(productDetailTypeImport, 'Expected ProductDetail type import block')
-  assert.match(productDetailTypeImport, /\bProductShareImagePublicVO\b/)
+  assert.doesNotMatch(productDetailTypeImport, /\bProductShareImagePublicVO\b/)
   assert.match(
     productDetailSource,
-    /const shareImages = ref<ProductShareImagePublicVO\[\]>\(\[\]\)/,
+    /type ProductShareImageSource[\s\S]*?from ['"]@\/utils\/productGallery['"]/,
+  )
+  assert.match(
+    productDetailSource,
+    /const shareImages = ref<ProductShareImageSource\[\]>\(\[\]\)/,
   )
 })
 
-test('ProductDetail loads public share images and renders ProductImageGallery', async () => {
+test('ProductDetail wires admin-only gallery management and all busy states', async () => {
+  const productDetailSource = await readFile(productDetailUrl, 'utf8')
+
+  assert.match(productDetailSource, /import \{ ElMessage, ElMessageBox \} from ['"]element-plus['"]/)
+  for (const apiName of [
+    'fetchProductShareImages',
+    'uploadProductShareImages',
+    'deleteProductShareImage',
+    'reorderProductShareImages',
+  ]) {
+    assert.match(productDetailSource, new RegExp(`\\b${apiName}\\b`))
+  }
+  for (const policyName of [
+    'MAX_SHARE_IMAGES',
+    'MAX_SHARE_IMAGE_FILE_SIZE_BYTES',
+    'SUPPORTED_SHARE_IMAGE_TYPES',
+  ]) {
+    assert.match(productDetailSource, new RegExp(`\\b${policyName}\\b`))
+  }
+
+  assert.match(productDetailSource, /const shareImagesUploading = ref\(false\)/)
+  assert.match(productDetailSource, /const shareImageDeletingId = ref<number \| null>\(null\)/)
+  assert.match(productDetailSource, /const shareImagesReordering = ref\(false\)/)
+  assert.match(productDetailSource, /:editable="isAdmin"/)
+  assert.match(productDetailSource, /:can-add-images="shareImages\.length < MAX_SHARE_IMAGES"/)
+  assert.match(productDetailSource, /:uploading="shareImagesUploading"/)
+  assert.match(productDetailSource, /:deleting-id="shareImageDeletingId"/)
+  assert.match(productDetailSource, /:reordering="shareImagesReordering"/)
+  assert.match(productDetailSource, /@add-images="handleAddShareImages"/)
+  assert.match(productDetailSource, /@delete-image="handleDeleteShareImage"/)
+  assert.match(productDetailSource, /@reorder-images="handleReorderShareImages"/)
+})
+
+test('ProductDetail loads admin images only for admins and preserves the public read branch', async () => {
   const [productDetailSource, productApiSource] = await Promise.all([
     readFile(productDetailUrl, 'utf8'),
     readFile(productApiUrl, 'utf8'),
@@ -657,7 +717,10 @@ test('ProductDetail loads public share images and renders ProductImageGallery', 
   assert.match(productDetailSource, /:fallback-image-url="productPreviewFallback"/)
   assert.match(productDetailSource, /:product-name="product\?\.name \|\| t\('product\.previewAlt'\)"/)
   assert.match(productDetailSource, /const loadProductShareImages = async \(\) =>/)
-  assert.match(productDetailSource, /await getProductShareImages\(product\.value\.appId\)/)
+  assert.match(
+    productDetailSource,
+    /isAdmin\.value\s*\?\s*await fetchProductShareImages\(Number\(product\.value\.appId\)\)\s*:\s*await getProductShareImages\(product\.value\.appId\)/,
+  )
   assert.match(productDetailSource, /Array\.isArray\([^)]+\)\s*\?[^:]+:\s*\[\]/)
   assert.match(
     productDetailSource,
@@ -671,4 +734,57 @@ test('ProductDetail loads public share images and renders ProductImageGallery', 
   assert.doesNotMatch(productDetailSource, /\.product-image-wrap\s*\{/)
   assert.doesNotMatch(productDetailSource, /\.product-image\s*\{/)
   assert.doesNotMatch(productDetailSource, /\.product-image-fallback\s*\{/)
+})
+
+test('ProductDetail validates additions before upload and replaces the returned complete list', async () => {
+  const source = await readFile(productDetailUrl, 'utf8')
+  const handler = source.slice(
+    source.indexOf('const handleAddShareImages'),
+    source.indexOf('const handleDeleteShareImage'),
+  )
+
+  assert.match(handler, /if \(!isAdmin\.value \|\| !product\.value\?\.appId/)
+  assert.match(handler, /files\.length === 0/)
+  assert.match(handler, /MAX_SHARE_IMAGES - shareImages\.value\.length/)
+  assert.match(handler, /SUPPORTED_SHARE_IMAGE_TYPES\.has\(file\.type\)/)
+  assert.match(handler, /file\.size > MAX_SHARE_IMAGE_FILE_SIZE_BYTES/)
+  assert.match(handler, /shareImagesUploading\.value = true/)
+  assert.match(handler, /shareImages\.value = await uploadProductShareImages/)
+  assert.match(handler, /ElMessage\.success\('Images added'\)/)
+  assert.match(handler, /finally[\s\S]*shareImagesUploading\.value = false/)
+  assert.match(handler, /ElMessage\.(?:warning|error)\(['"`][A-Za-z]/)
+})
+
+test('ProductDetail confirms deletion, mutates after success, and always clears deleting state', async () => {
+  const source = await readFile(productDetailUrl, 'utf8')
+  const handler = source.slice(
+    source.indexOf('const handleDeleteShareImage'),
+    source.indexOf('const handleReorderShareImages'),
+  )
+
+  assert.match(handler, /await ElMessageBox\.confirm\(/)
+  assert.match(handler, /await deleteProductShareImage\(/)
+  assert.ok(
+    handler.indexOf('await deleteProductShareImage(') < handler.indexOf('shareImages.value = shareImages.value.filter'),
+    'Deletion must update local state only after the API succeeds',
+  )
+  assert.match(handler, /item\.id !== imageId/)
+  assert.match(handler, /ElMessage\.success\('Image deleted'\)/)
+  assert.match(handler, /finally[\s\S]*shareImageDeletingId\.value = null/)
+})
+
+test('ProductDetail optimistically reorders only complete IDs and rolls back on failure', async () => {
+  const source = await readFile(productDetailUrl, 'utf8')
+  const handler = source.slice(
+    source.indexOf('const handleReorderShareImages'),
+    source.indexOf('const loadRatingState'),
+  )
+
+  assert.match(handler, /shareImagesReordering\.value/)
+  assert.match(handler, /reorderProductShareImageSources\(shareImages\.value, imageIds\)/)
+  assert.match(handler, /const snapshot = \[\.\.\.shareImages\.value\]/)
+  assert.match(handler, /shareImages\.value = optimisticImages/)
+  assert.match(handler, /shareImages\.value = await reorderProductShareImages/)
+  assert.match(handler, /catch \(error\)[\s\S]*shareImages\.value = snapshot[\s\S]*ElMessage\.error\(/)
+  assert.match(handler, /finally[\s\S]*shareImagesReordering\.value = false/)
 })

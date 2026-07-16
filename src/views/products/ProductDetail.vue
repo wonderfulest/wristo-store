@@ -6,6 +6,14 @@
           :images="shareImages"
           :fallback-image-url="productPreviewFallback"
           :product-name="product?.name || t('product.previewAlt')"
+          :editable="isAdmin"
+          :can-add-images="shareImages.length < MAX_SHARE_IMAGES"
+          :uploading="shareImagesUploading"
+          :deleting-id="shareImageDeletingId"
+          :reordering="shareImagesReordering"
+          @add-images="handleAddShareImages"
+          @delete-image="handleDeleteShareImage"
+          @reorder-images="handleReorderShareImages"
         />
         <button
           v-if="product?.designId"
@@ -247,7 +255,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   Check,
   CreditCard,
@@ -264,7 +272,6 @@ import { useUserStore } from '@/store/user'
 import type {
   GarminDeviceBaseVO,
   ProductReviewVO,
-  ProductShareImagePublicVO,
   ProductStoreMetricsVO,
   ProductVO,
 } from '@/types'
@@ -292,6 +299,21 @@ import { hasActiveBundle } from '@/utils/entitlements'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
+import {
+  reorderProductShareImageSources,
+  type ProductShareImageSource,
+} from '@/utils/productGallery'
+import {
+  MAX_SHARE_IMAGES,
+  MAX_SHARE_IMAGE_FILE_SIZE_BYTES,
+  SUPPORTED_SHARE_IMAGE_TYPES,
+} from '@/utils/productShareImagePolicy'
+import {
+  deleteProductShareImage,
+  fetchProductShareImages,
+  reorderProductShareImages,
+  uploadProductShareImages,
+} from '@/api/product-share-images'
 
 const route = useRoute()
 const router = useRouter()
@@ -301,7 +323,10 @@ const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
-const shareImages = ref<ProductShareImagePublicVO[]>([])
+const shareImages = ref<ProductShareImageSource[]>([])
+const shareImagesUploading = ref(false)
+const shareImageDeletingId = ref<number | null>(null)
+const shareImagesReordering = ref(false)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)
@@ -432,11 +457,96 @@ const loadProductShareImages = async () => {
   }
 
   try {
-    const images = await getProductShareImages(product.value.appId)
+    const images = isAdmin.value
+      ? await fetchProductShareImages(Number(product.value.appId))
+      : await getProductShareImages(product.value.appId)
     shareImages.value = Array.isArray(images) ? images : []
   } catch (error) {
     console.warn('Failed to load product share images:', error)
     shareImages.value = []
+  }
+}
+
+const handleAddShareImages = async (files: File[]) => {
+  if (!isAdmin.value || !product.value?.appId || shareImagesUploading.value) return
+  if (files.length === 0) return
+
+  const remainingSlots = MAX_SHARE_IMAGES - shareImages.value.length
+  if (files.length > remainingSlots) {
+    ElMessage.warning(`You can add up to ${remainingSlots} more images`)
+    return
+  }
+
+  if (files.some((file) => !SUPPORTED_SHARE_IMAGE_TYPES.has(file.type))) {
+    ElMessage.warning('Unsupported image format. Use PNG, JPEG, or WebP')
+    return
+  }
+
+  if (files.some((file) => file.size > MAX_SHARE_IMAGE_FILE_SIZE_BYTES)) {
+    ElMessage.warning('Each image must be 10 MB or smaller')
+    return
+  }
+
+  shareImagesUploading.value = true
+  try {
+    shareImages.value = await uploadProductShareImages(Number(product.value.appId), files)
+    ElMessage.success('Images added')
+  } catch (error) {
+    ElMessage.error('Failed to add images')
+  } finally {
+    shareImagesUploading.value = false
+  }
+}
+
+const handleDeleteShareImage = async (imageId: number) => {
+  if (!isAdmin.value || !product.value?.appId || shareImageDeletingId.value !== null) return
+
+  try {
+    await ElMessageBox.confirm(
+      'Delete this image? This action cannot be undone.',
+      'Delete image',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      },
+    )
+  } catch (error) {
+    return
+  }
+
+  shareImageDeletingId.value = imageId
+  try {
+    await deleteProductShareImage(Number(product.value.appId), imageId)
+    shareImages.value = shareImages.value.filter((item) => item.id !== imageId)
+    ElMessage.success('Image deleted')
+  } catch (error) {
+    ElMessage.error('Failed to delete image')
+  } finally {
+    shareImageDeletingId.value = null
+  }
+}
+
+const handleReorderShareImages = async (imageIds: number[]) => {
+  if (!isAdmin.value || !product.value?.appId || shareImagesReordering.value) return
+
+  const optimisticImages = reorderProductShareImageSources(shareImages.value, imageIds)
+  if (!optimisticImages) {
+    ElMessage.error('Unable to reorder images')
+    return
+  }
+
+  const snapshot = [...shareImages.value]
+  shareImagesReordering.value = true
+  shareImages.value = optimisticImages
+  try {
+    shareImages.value = await reorderProductShareImages(Number(product.value.appId), imageIds)
+    ElMessage.success('Images reordered')
+  } catch (error) {
+    shareImages.value = snapshot
+    ElMessage.error('Failed to reorder images')
+  } finally {
+    shareImagesReordering.value = false
   }
 }
 

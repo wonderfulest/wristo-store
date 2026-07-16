@@ -162,6 +162,30 @@ export const reorderShareImageIdsAtTarget = (
   return reorderedIds
 }
 
+export const reorderProductShareImageSources = (
+  sources: readonly ProductShareImageSource[],
+  imageIds: readonly number[],
+): ProductShareImageSource[] | null => {
+  if (imageIds.length !== sources.length) return null
+
+  const sourcesById = new Map<number, ProductShareImageSource>()
+  for (const source of sources) {
+    if (typeof source.id !== 'number' || sourcesById.has(source.id)) return null
+    sourcesById.set(source.id, source)
+  }
+
+  if (new Set(imageIds).size !== imageIds.length) return null
+
+  const reorderedSources: ProductShareImageSource[] = []
+  for (const imageId of imageIds) {
+    const source = sourcesById.get(imageId)
+    if (!source) return null
+    reorderedSources.push(source)
+  }
+
+  return reorderedSources
+}
+
 export const resolveGallerySelectedIndex = (
   items: readonly ProductGalleryItem[],
   selectedUrl: string | null,
