@@ -4,14 +4,20 @@
       <el-image
         v-if="selectedItem"
         :key="selectedItem.key"
+        ref="mainImageRef"
         class="product-gallery__main-image"
         :src="selectedItem.url"
         :alt="selectedItem.alt"
+        role="button"
+        tabindex="0"
+        :aria-label="`Preview ${selectedItem.alt} fullscreen`"
         fit="contain"
         :preview-src-list="previewSrcList"
         :initial-index="selectedIndex"
         preview-teleported
         @error="handleImageError(selectedItem)"
+        @keydown.enter="showPreview"
+        @keydown.space.prevent="showPreview"
       />
 
       <div
@@ -27,6 +33,7 @@
     <div
       v-if="availableItems.length > 1"
       class="product-gallery__thumbnails"
+      role="group"
       aria-label="Choose a product image"
     >
       <button
@@ -34,9 +41,9 @@
         :key="item.key"
         type="button"
         class="product-gallery__thumbnail"
-        :class="{ 'product-gallery__thumbnail--active': item.key === selectedKey }"
+        :class="{ 'product-gallery__thumbnail--active': item.url === selectedUrl }"
         :aria-label="`View ${item.alt}`"
-        :aria-current="item.key === selectedKey ? 'true' : undefined"
+        :aria-current="item.url === selectedUrl ? 'true' : undefined"
         @click="selectImage(item)"
       >
         <img :src="item.url" :alt="item.alt" loading="lazy" @error="handleImageError(item)" />
@@ -47,10 +54,14 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { ImageInstance } from 'element-plus'
 
 import type { ProductShareImageVO } from '@/types'
 import {
   createProductGalleryItems,
+  resolveAvailableGalleryItems,
+  resolveGallerySelectedIndex,
+  selectGalleryUrlAfterFailure,
   type ProductGalleryItem,
 } from '@/utils/productGallery'
 
@@ -66,56 +77,64 @@ const props = withDefaults(
 )
 
 const failedUrls = ref<Set<string>>(new Set())
-const selectedKey = ref<string | null>(null)
+const selectedUrl = ref<string | null>(null)
+const mainImageRef = ref<ImageInstance | null>(null)
 
 const galleryItems = computed(() =>
   createProductGalleryItems(props.images, props.fallbackImageUrl, props.productName),
 )
 
-const shareItems = computed(() =>
-  createProductGalleryItems(props.images, null, props.productName),
+const sourceItems = computed(() =>
+  galleryItems.value[0]?.key === 'fallback' ? [] : galleryItems.value,
 )
 
-const fallbackItems = computed(() =>
-  createProductGalleryItems([], props.fallbackImageUrl, props.productName),
+const fallbackItem = computed(
+  () => createProductGalleryItems([], props.fallbackImageUrl, props.productName)[0] ?? null,
 )
 
-const availableItems = computed(() => {
-  const availableSourceItems = galleryItems.value.filter(
-    (item) => !failedUrls.value.has(item.url),
-  )
-
-  if (availableSourceItems.length > 0 || shareItems.value.length === 0) {
-    return availableSourceItems
-  }
-
-  return fallbackItems.value.filter((item) => !failedUrls.value.has(item.url))
-})
+const availableItems = computed(() =>
+  resolveAvailableGalleryItems(sourceItems.value, fallbackItem.value, failedUrls.value),
+)
 
 const selectedItem = computed(
-  () => availableItems.value.find((item) => item.key === selectedKey.value) ?? null,
+  () => availableItems.value.find((item) => item.url === selectedUrl.value) ?? null,
 )
 
 const previewSrcList = computed(() => availableItems.value.map((item) => item.url))
 
-const selectedIndex = computed(() => {
-  const index = availableItems.value.findIndex((item) => item.key === selectedKey.value)
-  return index >= 0 ? index : 0
-})
+const selectedIndex = computed(() =>
+  resolveGallerySelectedIndex(availableItems.value, selectedUrl.value),
+)
 
 const selectImage = (item: ProductGalleryItem) => {
-  selectedKey.value = item.key
+  selectedUrl.value = item.url
 }
 
 const handleImageError = (item: ProductGalleryItem) => {
+  const beforeItems = availableItems.value
+  const selectedUrlBeforeFailure = selectedUrl.value
   failedUrls.value = new Set([...failedUrls.value, item.url])
+  const afterItems = availableItems.value
+
+  if (item.url === selectedUrlBeforeFailure) {
+    selectedUrl.value = selectGalleryUrlAfterFailure(
+      beforeItems,
+      afterItems,
+      selectedUrlBeforeFailure,
+      item.url,
+    )
+  }
+}
+
+const showPreview = () => {
+  mainImageRef.value?.showPreview()
 }
 
 watch(
   availableItems,
   (items) => {
-    if (!items.some((item) => item.key === selectedKey.value)) {
-      selectedKey.value = items[0]?.key ?? null
+    if (!items.some((item) => item.url === selectedUrl.value)) {
+      selectedUrl.value = items[0]?.url ?? null
     }
   },
   { immediate: true },
@@ -158,6 +177,11 @@ watch(
   width: 100%;
   height: 100%;
   cursor: zoom-in;
+}
+
+.product-gallery__main-image:focus-visible {
+  outline: 3px solid rgb(15 159 154 / 28%);
+  outline-offset: -4px;
 }
 
 .product-gallery__placeholder {

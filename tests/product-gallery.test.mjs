@@ -20,8 +20,22 @@ const productGalleryModuleUrl =
   `data:text/javascript;base64,${Buffer.from(productGalleryModuleCode).toString('base64')}`
 const {
   createProductGalleryItems,
+  resolveAvailableGalleryItems,
+  resolveGallerySelectedIndex,
   resolveProductShareImageUrl,
+  selectGalleryUrlAfterFailure,
 } = await import(productGalleryModuleUrl)
+
+const sourceGalleryItems = [
+  { key: 'share-a', url: 'https://cdn.example.com/a.png', alt: 'A' },
+  { key: 'share-b', url: 'https://cdn.example.com/b.png', alt: 'B' },
+  { key: 'share-c', url: 'https://cdn.example.com/c.png', alt: 'C' },
+]
+const fallbackGalleryItem = {
+  key: 'fallback',
+  url: 'https://cdn.example.com/fallback.png',
+  alt: 'Fallback',
+}
 
 test('resolveProductShareImageUrl prefers trimmed imageUrl over nested image URL', () => {
   assert.equal(
@@ -107,17 +121,76 @@ test('createProductGalleryItems returns an empty list when share images and fall
   assert.deepEqual(createProductGalleryItems([], '   ', 'Product name'), [])
 })
 
+test('resolveAvailableGalleryItems filters failed share URLs without mixing in fallback', () => {
+  assert.deepEqual(
+    resolveAvailableGalleryItems(
+      sourceGalleryItems,
+      fallbackGalleryItem,
+      new Set([sourceGalleryItems[0].url]),
+    ),
+    sourceGalleryItems.slice(1),
+  )
+})
+
+test('resolveAvailableGalleryItems returns fallback only after every share image fails', () => {
+  assert.deepEqual(
+    resolveAvailableGalleryItems(
+      sourceGalleryItems,
+      fallbackGalleryItem,
+      new Set(sourceGalleryItems.map((item) => item.url)),
+    ),
+    [fallbackGalleryItem],
+  )
+})
+
+test('selectGalleryUrlAfterFailure selects the next image when selected B fails', () => {
+  assert.equal(
+    selectGalleryUrlAfterFailure(
+      sourceGalleryItems,
+      [sourceGalleryItems[0], sourceGalleryItems[2]],
+      sourceGalleryItems[1].url,
+      sourceGalleryItems[1].url,
+    ),
+    sourceGalleryItems[2].url,
+  )
+})
+
+test('selectGalleryUrlAfterFailure selects the previous image when the final image fails', () => {
+  assert.equal(
+    selectGalleryUrlAfterFailure(
+      sourceGalleryItems,
+      sourceGalleryItems.slice(0, 2),
+      sourceGalleryItems[2].url,
+      sourceGalleryItems[2].url,
+    ),
+    sourceGalleryItems[1].url,
+  )
+})
+
+test('resolveGallerySelectedIndex returns the selected preview index', () => {
+  assert.equal(
+    resolveGallerySelectedIndex(sourceGalleryItems, sourceGalleryItems[1].url),
+    1,
+  )
+  assert.equal(resolveGallerySelectedIndex(sourceGalleryItems, 'missing'), 0)
+})
+
 test('ProductImageGallery exposes accessible preview, selection, failure, and responsive contracts', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
   assert.match(source, /:preview-src-list="previewSrcList"/)
   assert.match(source, /:initial-index="selectedIndex"/)
   assert.match(source, /preview-teleported/)
+  assert.match(source, /showPreview/)
+  assert.match(source, /@keydown\.(?:enter|space)/)
+  assert.match(source, /tabindex="0"/)
+  assert.match(source, /role="button"/)
   assert.match(source, /<button/)
   assert.match(source, /:aria-current="[^\"]+"/)
   assert.match(source, /@click="selectImage\([^\"]+\)"/)
   assert.match(source, /@error="handleImageError\([^\"]+\)"/)
   assert.match(source, /v-if="availableItems\.length > 1"/)
+  assert.match(source, /role="group"/)
   assert.match(source, /overflow-x:\s*auto/)
   assert.match(source, /@media\s*\([^)]*max-width:/)
 })

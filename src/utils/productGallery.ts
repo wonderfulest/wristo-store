@@ -44,3 +44,40 @@ export const createProductGalleryItems = (
 
   return [{ key: 'fallback', url: fallbackUrl, alt: productName }]
 }
+
+export const resolveAvailableGalleryItems = (
+  sourceItems: readonly ProductGalleryItem[],
+  fallbackItem: ProductGalleryItem | null | undefined,
+  failedUrls: ReadonlySet<string>,
+): ProductGalleryItem[] => {
+  const availableSourceItems = sourceItems.filter((item) => !failedUrls.has(item.url))
+  if (availableSourceItems.length > 0) return availableSourceItems
+
+  return fallbackItem && !failedUrls.has(fallbackItem.url) ? [fallbackItem] : []
+}
+
+export const selectGalleryUrlAfterFailure = (
+  beforeItems: readonly ProductGalleryItem[],
+  afterItems: readonly ProductGalleryItem[],
+  selectedUrl: string | null,
+  failedUrl: string,
+): string | null => {
+  if (afterItems.length === 0) return null
+
+  if (selectedUrl !== failedUrl && afterItems.some((item) => item.url === selectedUrl)) {
+    return selectedUrl
+  }
+
+  const failedIndex = beforeItems.findIndex((item) => item.url === failedUrl)
+  if (failedIndex < 0) return afterItems[0].url
+
+  return afterItems[failedIndex]?.url ?? afterItems[failedIndex - 1]?.url ?? afterItems[0].url
+}
+
+export const resolveGallerySelectedIndex = (
+  items: readonly ProductGalleryItem[],
+  selectedUrl: string | null,
+): number => {
+  const index = items.findIndex((item) => item.url === selectedUrl)
+  return index >= 0 ? index : 0
+}
