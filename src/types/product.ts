@@ -21,6 +21,23 @@ export interface PaymentVO {
   paddlePriceId: string
 }
 
+export interface ProductShareImageVO {
+  id: number
+  productId: number
+  imageId: number
+  type: 'share'
+  sortOrder: number
+  altText?: string | null
+  imageUrl?: string | null
+  fileName?: string | null
+  isActive: number
+  image?: {
+    id: number
+    name?: string | null
+    url?: string | null
+  } | null
+}
+
 export interface GarminDeviceBaseVO {
   id: number
   deviceId: string

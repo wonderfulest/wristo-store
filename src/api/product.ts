@@ -1,5 +1,5 @@
 import instance from '@/config/axios'
-import type { DesignFontVO, ImageVO, ProductBaseVO, ProductPreviewConfigVO, ProductRatingStatsVO, ProductReviewVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
+import type { DesignFontVO, ImageVO, ProductBaseVO, ProductPreviewConfigVO, ProductRatingStatsVO, ProductReviewVO, ProductShareImageVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
 
 export interface CategoryPageData {
   total: number
@@ -112,6 +112,10 @@ export const getProductDetail = (appId: string): Promise<ProductVO> => {
   return instance.get(`/public/products/app/${appId}`, {
     params: { populate: '*' }
   })
+}
+
+export const getProductShareImages = (appId: string | number): Promise<ProductShareImageVO[]> => {
+  return instance.get(`/public/products/app/${appId}/share-images`)
 }
 
 // 获取商品 Studio 动态预览配置

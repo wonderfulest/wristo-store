@@ -1,20 +1,7 @@
 import instance from '@/config/axios'
+import type { ProductShareImageVO } from '@/types'
 
-export interface ProductShareImageVO {
-  id: number
-  productId: number
-  imageId: number
-  type: 'share'
-  sortOrder: number
-  altText?: string | null
-  imageUrl?: string | null
-  fileName?: string | null
-  image?: {
-    id: number
-    name?: string | null
-    url?: string | null
-  } | null
-}
+export type { ProductShareImageVO }
 
 export const fetchProductShareImages = (appId: number): Promise<ProductShareImageVO[]> => {
   return instance.get(`/admin/products/${appId}/share-images`)
