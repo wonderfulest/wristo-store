@@ -42,10 +42,19 @@ router.beforeEach((to, from, next) => {
     localeStore.syncDocumentLang()
 
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+    const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
 
     if (requiresAuth && !userStore.userInfo) {
       redirectToSsoLogin('store')
       return
+    }
+
+    if (requiresAdmin) {
+      const isAdmin = userStore.userInfo?.roles?.some(role => role.roleCode === 'ROLE_ADMIN') === true
+      if (!isAdmin) {
+        next(normalizedRouteLang ? `/${normalizedRouteLang}` : '/')
+        return
+      }
     }
     
     next()

@@ -178,6 +178,18 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/Creators.vue')
   },
   {
+    path: '/admin/share-images',
+    name: 'AdminShareImages',
+    component: () => import('@/views/admin/ShareImageManager.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Share Image Library | Wristo',
+      description: 'Manage application share images.',
+      noindex: true
+    }
+  },
+  {
     path: '/daily',
     name: 'WristoDailyIntro',
     component: () => import('@/views/daily/WristoDailyIntro.vue'),

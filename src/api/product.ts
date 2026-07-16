@@ -18,6 +18,14 @@ export interface CategoryMutationPayload {
   isActive?: number | null
 }
 
+export interface AdminProductPageQuery {
+  pageNum: number
+  pageSize: number
+  name?: string
+  orderBy?: string
+  populate?: string
+}
+
 
 // 搜索商品
 export const searchProducts = (keyword: string): Promise<ProductBaseVO[]> => {
@@ -31,6 +39,10 @@ export const searchProductsV2 = (keyword: string, pageNum = 1, pageSize = 24): P
   return instance.get('/public/products/search/v2', {
     params: { keyword, pageNum, pageSize }
   })
+}
+
+export const fetchAdminProductPage = (query: AdminProductPageQuery): Promise<PageResult<ProductVO>> => {
+  return instance.post('/admin/products/page?populate=*', query)
 }
 
 // 获取新品

@@ -182,6 +182,19 @@
                     <Icon icon="solar:arrow-right-up-line-duotone" width="18" height="18" aria-hidden="true" />
                   </el-dropdown-item>
                 </div>
+                <div v-if="isAdmin" class="user-dropdown-section">
+                  <span class="user-dropdown-section-title">Administration</span>
+                  <el-dropdown-item command="share-images" class="user-dropdown-item">
+                    <span class="user-dropdown-icon accent">
+                      <Icon icon="solar:gallery-wide-bold-duotone" width="18" height="18" aria-hidden="true" />
+                    </span>
+                    <span class="user-dropdown-copy">
+                      <strong>Share images</strong>
+                      <small>Manage assets for every app</small>
+                    </span>
+                    <Icon icon="solar:arrow-right-up-line-duotone" width="18" height="18" aria-hidden="true" />
+                  </el-dropdown-item>
+                </div>
                 <el-dropdown-item divided command="logout" class="user-dropdown-item user-dropdown-logout">
                   <span class="user-dropdown-icon danger">
                     <el-icon><SwitchButton /></el-icon>
@@ -333,6 +346,10 @@
                 <Icon icon="material-symbols:workspace-premium-outline" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.membership') }}</span>
               </button>
+              <button v-if="isAdmin" class="mobile-action-btn" @click="handleUserMenuCommand('share-images'); closeMobileMenu()">
+                <Icon icon="solar:gallery-wide-bold-duotone" width="18" height="18" aria-hidden="true" />
+                <span>Share images</span>
+              </button>
               <button class="mobile-action-btn logout" @click="handleUserMenuCommand('logout'); closeMobileMenu()">
                 <el-icon><SwitchButton /></el-icon>
                 <span>{{ t('nav.logout') }}</span>
@@ -479,6 +496,9 @@ const handleUserMenuCommand = (command: string) => {
       break;
     case 'studio':
       openStudio();
+      break;
+    case 'share-images':
+      router.push(localizedPath('/admin/share-images'));
       break;
     case 'logout':
       userStore.logout();
