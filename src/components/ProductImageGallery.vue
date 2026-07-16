@@ -2,6 +2,7 @@
   <section class="product-gallery" :aria-label="`${productName} image gallery`">
     <div
       class="product-gallery__stage"
+      :style="galleryStageStyle"
       tabindex="0"
       role="group"
       aria-roledescription="carousel"
@@ -162,6 +163,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import type { CSSProperties } from 'vue'
 import type { ImageInstance } from 'element-plus'
 
 import {
@@ -233,6 +235,12 @@ const availableItems = computed(() =>
 const selectedItem = computed(
   () => availableItems.value.find((item) => item.url === selectedUrl.value) ?? null,
 )
+
+const galleryStageStyle = computed<CSSProperties>(() => ({
+  '--gallery-backdrop-image': selectedItem.value
+    ? `url(${JSON.stringify(selectedItem.value.url)})`
+    : 'none',
+}))
 
 const previewSrcList = computed(() => availableItems.value.map((item) => item.url))
 
@@ -425,6 +433,7 @@ watch(
 
 .product-gallery__stage {
   position: relative;
+  isolation: isolate;
   aspect-ratio: 1;
   min-width: 0;
   overflow: hidden;
@@ -435,6 +444,33 @@ watch(
     0 18px 48px rgb(31 70 68 / 8%),
     0 2px 8px rgb(31 70 68 / 5%);
   touch-action: pan-y pinch-zoom;
+}
+
+.product-gallery__stage::before,
+.product-gallery__stage::after {
+  position: absolute;
+  pointer-events: none;
+  content: '';
+}
+
+.product-gallery__stage::before {
+  z-index: 0;
+  inset: -26px;
+  background-image: var(--gallery-backdrop-image);
+  background-position: center;
+  background-size: cover;
+  filter: blur(22px) saturate(0.82);
+  opacity: 0.5;
+  transform: scale(1.08);
+  transition: opacity 180ms ease;
+}
+
+.product-gallery__stage::after {
+  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 58%), rgb(244 249 248 / 36%)),
+    radial-gradient(circle at 50% 48%, transparent 38%, rgb(255 255 255 / 22%) 100%);
 }
 
 .product-gallery__stage:focus-visible,
@@ -448,12 +484,20 @@ watch(
 }
 
 .product-gallery__main-image {
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   cursor: zoom-in;
 }
 
+.product-gallery__main-image :deep(.el-image__inner) {
+  filter: drop-shadow(0 12px 24px rgb(19 48 46 / 14%));
+}
+
 .product-gallery__placeholder {
+  position: relative;
+  z-index: 2;
   display: grid;
   width: 100%;
   height: 100%;
@@ -481,6 +525,7 @@ watch(
 .product-gallery__carousel-button {
   position: absolute;
   top: 50%;
+  z-index: 3;
   display: grid;
   width: 42px;
   height: 42px;
@@ -523,8 +568,14 @@ watch(
   display: flex;
   gap: 10px;
   max-width: 100%;
-  padding: 2px 2px 8px;
+  padding: 8px;
   overflow-x: auto;
+  border: 1px solid rgb(31 70 68 / 8%);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 68%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 82%),
+    0 8px 24px rgb(31 70 68 / 5%);
   overscroll-behavior-inline: contain;
   scroll-behavior: smooth;
   scrollbar-width: thin;
@@ -684,6 +735,11 @@ watch(
     border-radius: 14px;
   }
 
+  .product-gallery__stage::before {
+    inset: -20px;
+    filter: blur(18px) saturate(0.82);
+  }
+
   .product-gallery__carousel-button {
     width: 38px;
     height: 38px;
@@ -699,7 +755,8 @@ watch(
 
   .product-gallery__thumbnails {
     width: 100%;
-    padding-bottom: 6px;
+    padding: 6px;
+    border-radius: 14px;
   }
 
   .product-gallery__drag-handle {
@@ -723,7 +780,8 @@ watch(
   }
 
   .product-gallery__carousel-button,
-  .product-gallery__thumbnail {
+  .product-gallery__thumbnail,
+  .product-gallery__stage::before {
     transition: none;
   }
 }

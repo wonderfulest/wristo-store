@@ -433,6 +433,25 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.doesNotMatch(source, /\bfallbackItem\b/)
 })
 
+test('ProductImageGallery uses an image-derived ambient backdrop without cropping the foreground', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /:style="galleryStageStyle"/)
+  assert.match(source, /--gallery-backdrop-image/)
+  assert.match(source, /JSON\.stringify\(selectedItem\.value\.url\)/)
+  assert.match(source, /\.product-gallery__stage::before/)
+  assert.match(source, /background-image:\s*var\(--gallery-backdrop-image\)/)
+  assert.match(source, /background-size:\s*cover/)
+  assert.match(source, /filter:\s*blur\(/)
+  assert.match(source, /\.product-gallery__stage::after/)
+  assert.match(source, /fit="contain"/)
+  assert.match(source, /\.product-gallery__main-image\s*:deep\(\.el-image__inner\)/)
+  assert.match(source, /filter:\s*drop-shadow\(/)
+  assert.match(source, /\.product-gallery__thumbnails\s*\{[\s\S]*?border:/)
+  assert.match(source, /\.product-gallery__thumbnails\s*\{[\s\S]*?background:/)
+  assert.match(source, /prefers-reduced-motion:\s*reduce[\s\S]*?\.product-gallery__stage::before/)
+})
+
 test('ProductImageGallery declares opt-in management props and typed events', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
