@@ -5,6 +5,7 @@ import test from 'node:test'
 import { transformWithEsbuild } from 'vite'
 
 const productGalleryUrl = new URL('../src/utils/productGallery.ts', import.meta.url)
+const productImageGalleryUrl = new URL('../src/components/ProductImageGallery.vue', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
 const { code: productGalleryModuleCode } = await transformWithEsbuild(
   productGallerySource,
@@ -104,4 +105,19 @@ test('createProductGalleryItems uses the trimmed fallback only when no share ima
 
 test('createProductGalleryItems returns an empty list when share images and fallback are empty', () => {
   assert.deepEqual(createProductGalleryItems([], '   ', 'Product name'), [])
+})
+
+test('ProductImageGallery exposes accessible preview, selection, failure, and responsive contracts', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /:preview-src-list="previewSrcList"/)
+  assert.match(source, /:initial-index="selectedIndex"/)
+  assert.match(source, /preview-teleported/)
+  assert.match(source, /<button/)
+  assert.match(source, /:aria-current="[^\"]+"/)
+  assert.match(source, /@click="selectImage\([^\"]+\)"/)
+  assert.match(source, /@error="handleImageError\([^\"]+\)"/)
+  assert.match(source, /v-if="availableItems\.length > 1"/)
+  assert.match(source, /overflow-x:\s*auto/)
+  assert.match(source, /@media\s*\([^)]*max-width:/)
 })
