@@ -116,38 +116,97 @@ test('identity changes load the matching list and stale public or admin response
   t.after(harness.stop)
 
   assert.equal(publicRequests.length, 1)
+  assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  assert.equal(harness.management.shareImagesBusy.value, true)
+  assert.equal(harness.management.canManageShareImages.value, false)
   harness.isAdmin.value = true
-  await flush()
   assert.equal(adminRequests.length, 1)
+  assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  assert.equal(harness.management.canManageShareImages.value, false)
+  await flush()
 
   publicRequests[0].resolve([makeImage(1, 'late-public')])
   await flush()
   assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, true)
 
   adminRequests[0].resolve([makeImage(2, 'admin')])
   await flush()
   assert.deepEqual(harness.management.shareImages.value, [makeImage(2, 'admin')])
+  assert.equal(harness.management.shareImagesLoading.value, false)
+  assert.equal(harness.management.shareImagesBusy.value, false)
+  assert.equal(harness.management.canManageShareImages.value, true)
 
-  const pendingAdminReload = harness.management.loadProductShareImages()
+  const pendingAdminReload = harness.management.loadProductShareImages({ preserveExisting: true })
   assert.equal(adminRequests.length, 2)
+  assert.deepEqual(harness.management.shareImages.value, [makeImage(2, 'admin')])
+  assert.equal(harness.management.shareImagesLoading.value, true)
   harness.isAdmin.value = false
-  await flush()
   assert.equal(publicRequests.length, 2)
+  assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  assert.equal(harness.management.canManageShareImages.value, false)
+  await flush()
 
   adminRequests[1].resolve([makeImage(3, 'late-admin')])
   await pendingAdminReload
-  assert.deepEqual(harness.management.shareImages.value, [makeImage(2, 'admin')])
+  assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, true)
 
   publicRequests[1].resolve([makeImage(4, 'public')])
   await flush()
   assert.deepEqual(harness.management.shareImages.value, [makeImage(4, 'public')])
+  assert.equal(harness.management.shareImagesLoading.value, false)
+  assert.equal(harness.management.canManageShareImages.value, false)
 
   harness.appId.value = 99
-  await flush()
   assert.equal(publicRequests.length, 3)
+  assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  await flush()
   publicRequests[2].resolve([makeImage(5, 'next-app')])
   await flush()
   assert.deepEqual(harness.management.shareImages.value, [makeImage(5, 'next-app')])
+  assert.equal(harness.management.shareImagesLoading.value, false)
+})
+
+test('loading participates in shared busy and blocks every mutation handler', async (t) => {
+  const loadRequest = deferred()
+  let uploadCalls = 0
+  let deleteCalls = 0
+  let reorderCalls = 0
+  const harness = createHarness({
+    fetchAdminImages: () => loadRequest.promise,
+    uploadImages: () => {
+      uploadCalls += 1
+      return Promise.resolve([])
+    },
+    deleteImage: () => {
+      deleteCalls += 1
+      return Promise.resolve()
+    },
+    reorderImages: () => {
+      reorderCalls += 1
+      return Promise.resolve([])
+    },
+  })
+  t.after(harness.stop)
+
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  assert.equal(harness.management.shareImagesBusy.value, true)
+  assert.equal(harness.management.canManageShareImages.value, false)
+  await harness.management.addShareImages([{ type: 'image/png', size: 1, name: 'blocked.png' }])
+  await harness.management.deleteShareImage(1)
+  await harness.management.reorderShareImages([])
+  assert.deepEqual([uploadCalls, deleteCalls, reorderCalls], [0, 0, 0])
+
+  loadRequest.resolve([makeImage(1)])
+  await flush()
+  assert.equal(harness.management.shareImagesLoading.value, false)
+  assert.equal(harness.management.shareImagesBusy.value, false)
+  assert.equal(harness.management.canManageShareImages.value, true)
 })
 
 test('shared busy blocks other mutations and deletion confirmation always clears pending state', async (t) => {
@@ -308,17 +367,23 @@ test('reorder failure rolls back, reloads admin truth, and ignores an older reco
   assert.deepEqual(harness.management.shareImages.value, initialImages)
   assert.equal(adminFetchCalls, 2)
   assert.equal(harness.management.shareImagesReordering.value, true)
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  assert.equal(harness.management.shareImagesBusy.value, true)
+  assert.equal(harness.management.canManageShareImages.value, false)
 
-  const latestReloadPromise = harness.management.loadProductShareImages()
+  const latestReloadPromise = harness.management.loadProductShareImages({ preserveExisting: true })
   assert.equal(adminFetchCalls, 3)
   recoveryReload.resolve([makeImage(9, 'stale-recovery')])
   await reorderPromise
   assert.deepEqual(harness.management.shareImages.value, initialImages)
+  assert.equal(harness.management.shareImagesLoading.value, true)
+  assert.equal(harness.management.shareImagesBusy.value, true)
 
   const serverImages = [makeImage(3, 'server-three'), makeImage(2, 'server-two')]
   newestReload.resolve(serverImages)
   await latestReloadPromise
   assert.deepEqual(harness.management.shareImages.value, serverImages)
+  assert.equal(harness.management.shareImagesLoading.value, false)
   assert.equal(harness.management.shareImagesReordering.value, false)
   assert.equal(harness.messages.error.length, 0)
   assert.equal(harness.warnings.length, 1)
@@ -344,6 +409,7 @@ test('failed reorder recovery reload preserves the rolled-back snapshot', async 
   assert.equal(adminFetchCalls, 2)
   assert.deepEqual(harness.management.shareImages.value, snapshot)
   assert.equal(harness.management.shareImagesBusy.value, false)
+  assert.equal(harness.management.shareImagesLoading.value, false)
   assert.equal(harness.management.shareImagesReordering.value, false)
   assert.equal(harness.messages.error.length, 0)
 })
@@ -365,4 +431,5 @@ test('ordinary reload failure keeps the default clear-on-error behavior', async 
   await harness.management.loadProductShareImages()
 
   assert.deepEqual(harness.management.shareImages.value, [])
+  assert.equal(harness.management.shareImagesLoading.value, false)
 })

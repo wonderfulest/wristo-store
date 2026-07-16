@@ -30,6 +30,10 @@ interface ProductShareImageManagementDependencies {
   logWarning: (message: string, error: unknown) => void
 }
 
+interface ProductShareImageLoadOptions {
+  preserveExisting?: boolean
+}
+
 const isMessageBoxDismissal = (error: unknown) => error === 'cancel' || error === 'close'
 
 export const useProductShareImageManagement = (
@@ -37,14 +41,22 @@ export const useProductShareImageManagement = (
   dependencies: ProductShareImageManagementDependencies,
 ) => {
   const shareImages = ref<ProductShareImageSource[]>([])
+  const shareImagesLoading = ref(false)
   const shareImagesUploading = ref(false)
   const shareImageDeletingId = ref<number | null>(null)
   const shareImagesReordering = ref(false)
   const shareImagesBusy = computed(
     () =>
+      shareImagesLoading.value ||
       shareImagesUploading.value ||
       shareImageDeletingId.value !== null ||
       shareImagesReordering.value,
+  )
+  const canManageShareImages = computed(
+    () =>
+      state.isAdmin.value &&
+      Boolean(state.appId.value) &&
+      !shareImagesLoading.value,
   )
   let requestVersion = 0
 
@@ -54,17 +66,17 @@ export const useProductShareImageManagement = (
   const matchesRequest = (version: number, appId: number, admin: boolean) =>
     requestVersion === version && matchesIdentity(appId, admin)
 
-  const loadProductShareImages = async ({ clearOnError = true } = {}) => {
+  const loadProductShareImages = async (
+    { preserveExisting = false }: ProductShareImageLoadOptions = {},
+  ) => {
     const appId = Number(state.appId.value)
     const admin = state.isAdmin.value
     const version = ++requestVersion
-
-    if (!appId) {
-      if (matchesRequest(version, appId, admin)) shareImages.value = []
-      return
-    }
+    shareImagesLoading.value = true
+    if (!preserveExisting) shareImages.value = []
 
     try {
+      if (!appId) return
       const images = admin
         ? await dependencies.fetchAdminImages(appId)
         : await dependencies.fetchPublicImages(appId)
@@ -74,7 +86,11 @@ export const useProductShareImageManagement = (
     } catch (error) {
       if (!matchesRequest(version, appId, admin)) return
       dependencies.logWarning('Failed to load product share images:', error)
-      if (clearOnError) shareImages.value = []
+      if (!preserveExisting) shareImages.value = []
+    } finally {
+      if (matchesRequest(version, appId, admin)) {
+        shareImagesLoading.value = false
+      }
     }
   }
 
@@ -83,11 +99,11 @@ export const useProductShareImageManagement = (
     () => {
       void loadProductShareImages()
     },
-    { immediate: true },
+    { immediate: true, flush: 'sync' },
   )
 
   const canStartMutation = () =>
-    state.isAdmin.value && Boolean(state.appId.value) && !shareImagesBusy.value
+    canManageShareImages.value && !shareImagesBusy.value
 
   const addShareImages = async (files: File[]) => {
     if (!canStartMutation() || files.length === 0) return
@@ -179,7 +195,7 @@ export const useProductShareImageManagement = (
       if (matchesRequest(version, appId, true)) shareImages.value = snapshot
       dependencies.logWarning('Failed to reorder product share images:', error)
       if (matchesIdentity(appId, true)) {
-        await loadProductShareImages({ clearOnError: false })
+        await loadProductShareImages({ preserveExisting: true })
       }
     } finally {
       shareImagesReordering.value = false
@@ -188,10 +204,12 @@ export const useProductShareImageManagement = (
 
   return {
     shareImages,
+    shareImagesLoading,
     shareImagesUploading,
     shareImageDeletingId,
     shareImagesReordering,
     shareImagesBusy,
+    canManageShareImages,
     loadProductShareImages,
     addShareImages,
     deleteShareImage,

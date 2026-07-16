@@ -695,8 +695,12 @@ test('ProductDetail wires admin-only gallery management and all busy states', as
   assert.match(productDetailSource, /shareImagesUploading/)
   assert.match(productDetailSource, /shareImageDeletingId/)
   assert.match(productDetailSource, /shareImagesReordering/)
-  assert.match(productDetailSource, /:editable="isAdmin"/)
-  assert.match(productDetailSource, /:can-add-images="shareImages\.length < MAX_SHARE_IMAGES"/)
+  assert.match(productDetailSource, /canManageShareImages/)
+  assert.match(productDetailSource, /:editable="canManageShareImages"/)
+  assert.match(
+    productDetailSource,
+    /:can-add-images="canManageShareImages && shareImages\.length < MAX_SHARE_IMAGES"/,
+  )
   assert.match(productDetailSource, /:uploading="shareImagesUploading"/)
   assert.match(productDetailSource, /:deleting-id="shareImageDeletingId"/)
   assert.match(productDetailSource, /:reordering="shareImagesReordering"/)

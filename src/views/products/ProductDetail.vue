@@ -6,8 +6,8 @@
           :images="shareImages"
           :fallback-image-url="productPreviewFallback"
           :product-name="product?.name || t('product.previewAlt')"
-          :editable="isAdmin"
-          :can-add-images="shareImages.length < MAX_SHARE_IMAGES"
+          :editable="canManageShareImages"
+          :can-add-images="canManageShareImages && shareImages.length < MAX_SHARE_IMAGES"
           :uploading="shareImagesUploading"
           :deleting-id="shareImageDeletingId"
           :reordering="shareImagesReordering"
@@ -348,6 +348,7 @@ const {
   shareImagesUploading,
   shareImageDeletingId,
   shareImagesReordering,
+  canManageShareImages,
   addShareImages: handleAddShareImages,
   deleteShareImage: handleDeleteShareImage,
   reorderShareImages: handleReorderShareImages,
