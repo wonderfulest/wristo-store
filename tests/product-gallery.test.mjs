@@ -40,21 +40,43 @@ const productGalleryModuleUrl =
   `data:text/javascript;base64,${Buffer.from(productGalleryModuleCode).toString('base64')}`
 const {
   createProductGalleryItems,
+  moveShareImageIds,
   resolveAvailableGalleryItems,
+  resolveCircularGalleryUrl,
   resolveGallerySelectedIndex,
   resolveProductShareImageUrl,
-  selectGalleryUrlAfterFailure,
+  resolveSelectionAfterItemsChange,
 } = await import(productGalleryModuleUrl)
 
 const sourceGalleryItems = [
-  { key: 'share-a', url: 'https://cdn.example.com/a.png', alt: 'A' },
-  { key: 'share-b', url: 'https://cdn.example.com/b.png', alt: 'B' },
-  { key: 'share-c', url: 'https://cdn.example.com/c.png', alt: 'C' },
+  {
+    key: 'share-a',
+    url: 'https://cdn.example.com/a.png',
+    alt: 'A',
+    kind: 'share',
+    sourceId: 'a',
+  },
+  {
+    key: 'share-b',
+    url: 'https://cdn.example.com/b.png',
+    alt: 'B',
+    kind: 'share',
+    sourceId: 'b',
+  },
+  {
+    key: 'share-c',
+    url: 'https://cdn.example.com/c.png',
+    alt: 'C',
+    kind: 'share',
+    sourceId: 'c',
+  },
 ]
 const fallbackGalleryItem = {
-  key: 'fallback',
+  key: 'fixed',
   url: 'https://cdn.example.com/fallback.png',
   alt: 'Fallback',
+  kind: 'fixed',
+  sourceId: null,
 }
 
 test('resolveProductShareImageUrl prefers trimmed imageUrl over nested image URL', () => {
@@ -77,28 +99,40 @@ test('resolveProductShareImageUrl falls back to the trimmed nested image URL', (
   )
 })
 
-test('createProductGalleryItems filters empty URLs, preserves input order, and keeps the first duplicate', () => {
+test('createProductGalleryItems keeps the fixed app image first and preserves valid share image order', () => {
   const items = createProductGalleryItems(
     [
       { id: 3, imageUrl: '  https://cdn.example.com/third.png  ', altText: ' Third ' },
       { id: 1, imageUrl: '   ', image: { url: '   ' }, altText: 'Empty' },
       { id: 2, image: { url: ' https://cdn.example.com/second.png ' } },
       { id: 4, imageUrl: 'https://cdn.example.com/third.png', altText: 'Duplicate' },
+      { id: 5, imageUrl: 'https://cdn.example.com/fallback.png', altText: 'Fixed duplicate' },
     ],
-    'https://cdn.example.com/fallback.png',
+    '  https://cdn.example.com/fallback.png  ',
     'Product name',
   )
 
   assert.deepEqual(items, [
     {
+      key: 'fixed',
+      url: 'https://cdn.example.com/fallback.png',
+      alt: 'Product name',
+      kind: 'fixed',
+      sourceId: null,
+    },
+    {
       key: 'share-3',
       url: 'https://cdn.example.com/third.png',
       alt: 'Third',
+      kind: 'share',
+      sourceId: 3,
     },
     {
       key: 'share-2',
       url: 'https://cdn.example.com/second.png',
       alt: 'Product name',
+      kind: 'share',
+      sourceId: 2,
     },
   ])
 })
@@ -112,26 +146,37 @@ test('createProductGalleryItems uses trimmed alt text before the product name', 
     ),
     [
       {
+        key: 'fixed',
+        url: 'https://cdn.example.com/fallback.png',
+        alt: 'Product name',
+        kind: 'fixed',
+        sourceId: null,
+      },
+      {
         key: 'share-hero',
         url: 'https://cdn.example.com/hero.png',
         alt: 'Hero view',
+        kind: 'share',
+        sourceId: 'hero',
       },
     ],
   )
 })
 
-test('createProductGalleryItems uses the trimmed fallback only when no share image is valid', () => {
+test('createProductGalleryItems returns valid share images when the fixed image is empty', () => {
   assert.deepEqual(
     createProductGalleryItems(
-      [{ id: 1, imageUrl: '  ', image: { url: '' } }],
-      '  https://cdn.example.com/fallback.png  ',
+      [{ id: 1, imageUrl: '  https://cdn.example.com/share.png  ' }],
+      '   ',
       'Product name',
     ),
     [
       {
-        key: 'fallback',
-        url: 'https://cdn.example.com/fallback.png',
+        key: 'share-1',
+        url: 'https://cdn.example.com/share.png',
         alt: 'Product name',
+        kind: 'share',
+        sourceId: 1,
       },
     ],
   )
@@ -141,50 +186,111 @@ test('createProductGalleryItems returns an empty list when share images and fall
   assert.deepEqual(createProductGalleryItems([], '   ', 'Product name'), [])
 })
 
-test('resolveAvailableGalleryItems filters failed share URLs without mixing in fallback', () => {
+test('resolveAvailableGalleryItems filters failed URLs from the complete item list', () => {
+  const items = [fallbackGalleryItem, ...sourceGalleryItems]
   assert.deepEqual(
     resolveAvailableGalleryItems(
-      sourceGalleryItems,
-      fallbackGalleryItem,
-      new Set([sourceGalleryItems[0].url]),
+      items,
+      new Set([fallbackGalleryItem.url, sourceGalleryItems[1].url]),
     ),
-    sourceGalleryItems.slice(1),
+    [sourceGalleryItems[0], sourceGalleryItems[2]],
   )
 })
 
-test('resolveAvailableGalleryItems returns fallback only after every share image fails', () => {
+test('resolveAvailableGalleryItems returns an empty list when every URL failed', () => {
   assert.deepEqual(
     resolveAvailableGalleryItems(
       sourceGalleryItems,
-      fallbackGalleryItem,
       new Set(sourceGalleryItems.map((item) => item.url)),
     ),
-    [fallbackGalleryItem],
+    [],
   )
 })
 
-test('selectGalleryUrlAfterFailure selects the next image when selected B fails', () => {
+test('resolveCircularGalleryUrl wraps in both directions', () => {
   assert.equal(
-    selectGalleryUrlAfterFailure(
+    resolveCircularGalleryUrl(sourceGalleryItems, sourceGalleryItems[2].url, 1),
+    sourceGalleryItems[0].url,
+  )
+  assert.equal(
+    resolveCircularGalleryUrl(sourceGalleryItems, sourceGalleryItems[0].url, -1),
+    sourceGalleryItems[2].url,
+  )
+  assert.equal(
+    resolveCircularGalleryUrl(sourceGalleryItems, sourceGalleryItems[1].url, 1),
+    sourceGalleryItems[2].url,
+  )
+})
+
+test('resolveCircularGalleryUrl handles empty items and missing selections', () => {
+  assert.equal(resolveCircularGalleryUrl([], null, 1), null)
+  assert.equal(resolveCircularGalleryUrl(sourceGalleryItems, 'missing', 1), sourceGalleryItems[0].url)
+  assert.equal(resolveCircularGalleryUrl(sourceGalleryItems, 'missing', -1), sourceGalleryItems[2].url)
+})
+
+test('resolveSelectionAfterItemsChange preserves an existing selection', () => {
+  assert.equal(
+    resolveSelectionAfterItemsChange(
+      sourceGalleryItems,
+      sourceGalleryItems.slice().reverse(),
+      sourceGalleryItems[1].url,
+    ),
+    sourceGalleryItems[1].url,
+  )
+})
+
+test('resolveSelectionAfterItemsChange selects the item at the deleted selection index', () => {
+  assert.equal(
+    resolveSelectionAfterItemsChange(
       sourceGalleryItems,
       [sourceGalleryItems[0], sourceGalleryItems[2]],
-      sourceGalleryItems[1].url,
       sourceGalleryItems[1].url,
     ),
     sourceGalleryItems[2].url,
   )
 })
 
-test('selectGalleryUrlAfterFailure selects the previous image when the final image fails', () => {
+test('resolveSelectionAfterItemsChange selects the previous item after deleting the final selection', () => {
   assert.equal(
-    selectGalleryUrlAfterFailure(
+    resolveSelectionAfterItemsChange(
       sourceGalleryItems,
       sourceGalleryItems.slice(0, 2),
-      sourceGalleryItems[2].url,
       sourceGalleryItems[2].url,
     ),
     sourceGalleryItems[1].url,
   )
+})
+
+test('resolveSelectionAfterItemsChange handles empty lists and selections absent before the change', () => {
+  assert.equal(
+    resolveSelectionAfterItemsChange(sourceGalleryItems, [], sourceGalleryItems[1].url),
+    null,
+  )
+  assert.equal(
+    resolveSelectionAfterItemsChange(sourceGalleryItems, sourceGalleryItems, 'missing'),
+    sourceGalleryItems[0].url,
+  )
+  assert.equal(
+    resolveSelectionAfterItemsChange([], sourceGalleryItems, null),
+    sourceGalleryItems[0].url,
+  )
+})
+
+test('moveShareImageIds swaps a known image with its adjacent item', () => {
+  assert.deepEqual(moveShareImageIds([10, 20, 30], 20, -1), [20, 10, 30])
+  assert.deepEqual(moveShareImageIds([10, 20, 30], 20, 1), [10, 30, 20])
+})
+
+test('moveShareImageIds returns a copy at boundaries and for unknown IDs', () => {
+  const ids = [10, 20, 30]
+  for (const result of [
+    moveShareImageIds(ids, 10, -1),
+    moveShareImageIds(ids, 30, 1),
+    moveShareImageIds(ids, 99, 1),
+  ]) {
+    assert.deepEqual(result, ids)
+    assert.notEqual(result, ids)
+  }
 })
 
 test('resolveGallerySelectedIndex returns the selected preview index', () => {
@@ -213,6 +319,9 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.match(source, /role="group"/)
   assert.match(source, /overflow-x:\s*auto/)
   assert.match(source, /@media\s*\([^)]*max-width:/)
+  assert.match(source, /resolveSelectionAfterItemsChange/)
+  assert.doesNotMatch(source, /\bsourceItems\b/)
+  assert.doesNotMatch(source, /\bfallbackItem\b/)
 })
 
 test('public product share image DTO exposes only the public response fields', async () => {
@@ -262,7 +371,7 @@ test('admin product share image DTO and API retain the full admin contract', asy
   )
 })
 
-test('public share image consumers use the minimal public DTO', async () => {
+test('public API uses the public DTO while the gallery depends only on its source contract', async () => {
   const [productApiSource, productImageGallerySource, productDetailSource] = await Promise.all([
     readFile(productApiUrl, 'utf8'),
     readFile(productImageGalleryUrl, 'utf8'),
@@ -279,11 +388,12 @@ test('public share image consumers use the minimal public DTO', async () => {
   assert.match(productApiSource, /import type \{[^}]*\bProductShareImagePublicVO\b[^}]*\} from ['"]@\/types['"]/)
   assert.match(publicApiBlock, /Promise<ProductShareImagePublicVO\[\]>/)
   assert.ok(galleryPropsBlock, 'Expected ProductImageGallery defineProps block')
-  assert.match(galleryPropsBlock, /^\s*images:\s*ProductShareImagePublicVO\[\]/m)
+  assert.match(galleryPropsBlock, /^\s*images:\s*ProductShareImageSource\[\]/m)
   assert.doesNotMatch(galleryPropsBlock, /\bProductShareImageVO\b/)
+  assert.doesNotMatch(productImageGallerySource, /\bProductShareImagePublicVO\b/)
   assert.match(
     productImageGallerySource,
-    /import type \{ ProductShareImagePublicVO \} from ['"]@\/types['"]/,
+    /type ProductShareImageSource[\s\S]*?from ['"]@\/utils\/productGallery['"]/,
   )
   assert.ok(productDetailTypeImport, 'Expected ProductDetail type import block')
   assert.match(productDetailTypeImport, /\bProductShareImagePublicVO\b/)

@@ -56,18 +56,18 @@
 import { computed, ref, watch } from 'vue'
 import type { ImageInstance } from 'element-plus'
 
-import type { ProductShareImagePublicVO } from '@/types'
 import {
   createProductGalleryItems,
   resolveAvailableGalleryItems,
   resolveGallerySelectedIndex,
-  selectGalleryUrlAfterFailure,
+  resolveSelectionAfterItemsChange,
   type ProductGalleryItem,
+  type ProductShareImageSource,
 } from '@/utils/productGallery'
 
 const props = withDefaults(
   defineProps<{
-    images: ProductShareImagePublicVO[]
+    images: ProductShareImageSource[]
     fallbackImageUrl?: string | null
     productName: string
   }>(),
@@ -84,16 +84,8 @@ const galleryItems = computed(() =>
   createProductGalleryItems(props.images, props.fallbackImageUrl, props.productName),
 )
 
-const sourceItems = computed(() =>
-  galleryItems.value[0]?.key === 'fallback' ? [] : galleryItems.value,
-)
-
-const fallbackItem = computed(
-  () => createProductGalleryItems([], props.fallbackImageUrl, props.productName)[0] ?? null,
-)
-
 const availableItems = computed(() =>
-  resolveAvailableGalleryItems(sourceItems.value, fallbackItem.value, failedUrls.value),
+  resolveAvailableGalleryItems(galleryItems.value, failedUrls.value),
 )
 
 const selectedItem = computed(
@@ -111,19 +103,7 @@ const selectImage = (item: ProductGalleryItem) => {
 }
 
 const handleImageError = (item: ProductGalleryItem) => {
-  const beforeItems = availableItems.value
-  const selectedUrlBeforeFailure = selectedUrl.value
   failedUrls.value = new Set([...failedUrls.value, item.url])
-  const afterItems = availableItems.value
-
-  if (item.url === selectedUrlBeforeFailure) {
-    selectedUrl.value = selectGalleryUrlAfterFailure(
-      beforeItems,
-      afterItems,
-      selectedUrlBeforeFailure,
-      item.url,
-    )
-  }
 }
 
 const showPreview = () => {
@@ -132,12 +112,14 @@ const showPreview = () => {
 
 watch(
   availableItems,
-  (items) => {
-    if (!items.some((item) => item.url === selectedUrl.value)) {
-      selectedUrl.value = items[0]?.url ?? null
-    }
+  (items, beforeItems) => {
+    selectedUrl.value = resolveSelectionAfterItemsChange(
+      beforeItems ?? [],
+      items,
+      selectedUrl.value,
+    )
   },
-  { immediate: true },
+  { immediate: true, flush: 'sync' },
 )
 
 watch(
