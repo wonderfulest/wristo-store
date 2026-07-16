@@ -299,21 +299,14 @@ import { hasActiveBundle } from '@/utils/entitlements'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
-import {
-  reorderProductShareImageSources,
-  type ProductShareImageSource,
-} from '@/utils/productGallery'
-import {
-  MAX_SHARE_IMAGES,
-  MAX_SHARE_IMAGE_FILE_SIZE_BYTES,
-  SUPPORTED_SHARE_IMAGE_TYPES,
-} from '@/utils/productShareImagePolicy'
+import { MAX_SHARE_IMAGES } from '@/utils/productShareImagePolicy'
 import {
   deleteProductShareImage,
   fetchProductShareImages,
   reorderProductShareImages,
   uploadProductShareImages,
 } from '@/api/product-share-images'
+import { useProductShareImageManagement } from '@/composables/useProductShareImageManagement'
 
 const route = useRoute()
 const router = useRouter()
@@ -323,10 +316,6 @@ const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
-const shareImages = ref<ProductShareImageSource[]>([])
-const shareImagesUploading = ref(false)
-const shareImageDeletingId = ref<number | null>(null)
-const shareImagesReordering = ref(false)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)
@@ -353,6 +342,37 @@ const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
 })
+const shareImageAppId = computed(() => product.value?.appId ?? null)
+const {
+  shareImages,
+  shareImagesUploading,
+  shareImageDeletingId,
+  shareImagesReordering,
+  addShareImages: handleAddShareImages,
+  deleteShareImage: handleDeleteShareImage,
+  reorderShareImages: handleReorderShareImages,
+} = useProductShareImageManagement(
+  { appId: shareImageAppId, isAdmin },
+  {
+    fetchPublicImages: getProductShareImages,
+    fetchAdminImages: fetchProductShareImages,
+    uploadImages: uploadProductShareImages,
+    deleteImage: deleteProductShareImage,
+    reorderImages: reorderProductShareImages,
+    confirmDelete: () =>
+      ElMessageBox.confirm(
+        'Delete this image? This action cannot be undone.',
+        'Delete image',
+        {
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel',
+          type: 'warning',
+        },
+      ),
+    message: ElMessage,
+    logWarning: (message, error) => console.warn(message, error),
+  },
+)
 
 const toggleCart = () => {
   if (!isCartEnabled) return
@@ -447,106 +467,6 @@ const loadAdminMetrics = async () => {
     adminMetrics.value = list?.[0] || null
   } catch (error) {
     adminMetrics.value = null
-  }
-}
-
-const loadProductShareImages = async () => {
-  if (!product.value?.appId) {
-    shareImages.value = []
-    return
-  }
-
-  try {
-    const images = isAdmin.value
-      ? await fetchProductShareImages(Number(product.value.appId))
-      : await getProductShareImages(product.value.appId)
-    shareImages.value = Array.isArray(images) ? images : []
-  } catch (error) {
-    console.warn('Failed to load product share images:', error)
-    shareImages.value = []
-  }
-}
-
-const handleAddShareImages = async (files: File[]) => {
-  if (!isAdmin.value || !product.value?.appId || shareImagesUploading.value) return
-  if (files.length === 0) return
-
-  const remainingSlots = MAX_SHARE_IMAGES - shareImages.value.length
-  if (files.length > remainingSlots) {
-    ElMessage.warning(`You can add up to ${remainingSlots} more images`)
-    return
-  }
-
-  if (files.some((file) => !SUPPORTED_SHARE_IMAGE_TYPES.has(file.type))) {
-    ElMessage.warning('Unsupported image format. Use PNG, JPEG, or WebP')
-    return
-  }
-
-  if (files.some((file) => file.size > MAX_SHARE_IMAGE_FILE_SIZE_BYTES)) {
-    ElMessage.warning('Each image must be 10 MB or smaller')
-    return
-  }
-
-  shareImagesUploading.value = true
-  try {
-    shareImages.value = await uploadProductShareImages(Number(product.value.appId), files)
-    ElMessage.success('Images added')
-  } catch (error) {
-    ElMessage.error('Failed to add images')
-  } finally {
-    shareImagesUploading.value = false
-  }
-}
-
-const handleDeleteShareImage = async (imageId: number) => {
-  if (!isAdmin.value || !product.value?.appId || shareImageDeletingId.value !== null) return
-
-  try {
-    await ElMessageBox.confirm(
-      'Delete this image? This action cannot be undone.',
-      'Delete image',
-      {
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        type: 'warning',
-      },
-    )
-  } catch (error) {
-    return
-  }
-
-  shareImageDeletingId.value = imageId
-  try {
-    await deleteProductShareImage(Number(product.value.appId), imageId)
-    shareImages.value = shareImages.value.filter((item) => item.id !== imageId)
-    ElMessage.success('Image deleted')
-  } catch (error) {
-    ElMessage.error('Failed to delete image')
-  } finally {
-    shareImageDeletingId.value = null
-  }
-}
-
-const handleReorderShareImages = async (imageIds: number[]) => {
-  if (!isAdmin.value || !product.value?.appId || shareImagesReordering.value) return
-
-  const optimisticImages = reorderProductShareImageSources(shareImages.value, imageIds)
-  if (!optimisticImages) {
-    ElMessage.error('Unable to reorder images')
-    return
-  }
-
-  const snapshot = [...shareImages.value]
-  shareImagesReordering.value = true
-  shareImages.value = optimisticImages
-  try {
-    shareImages.value = await reorderProductShareImages(Number(product.value.appId), imageIds)
-    ElMessage.success('Images reordered')
-  } catch (error) {
-    shareImages.value = snapshot
-    ElMessage.error('Failed to reorder images')
-  } finally {
-    shareImagesReordering.value = false
   }
 }
 
@@ -935,7 +855,6 @@ onMounted(async () => {
     loadRatingState(),
     loadProductReviews(),
     loadAdminMetrics(),
-    loadProductShareImages(),
   ])
   applySeo(productSeo(product.value, route.path))
 
