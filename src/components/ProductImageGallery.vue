@@ -3,6 +3,8 @@
     <div
       class="product-gallery__stage"
       tabindex="0"
+      role="group"
+      aria-roledescription="carousel"
       aria-label="Product image carousel"
       @keydown.left.prevent="showPreviousImage"
       @keydown.right.prevent="showNextImage"
@@ -10,6 +12,7 @@
       @keydown.space.self.prevent="showPreview"
       @touchstart="handleTouchStart"
       @touchend="handleTouchEnd"
+      @touchcancel="handleTouchCancel"
     >
       <el-image
         v-if="selectedItem"
@@ -18,16 +21,13 @@
         class="product-gallery__main-image"
         :src="selectedItem.url"
         :alt="selectedItem.alt"
-        role="button"
-        tabindex="0"
         :aria-label="`Preview ${selectedItem.alt} fullscreen`"
         fit="contain"
         :preview-src-list="previewSrcList"
         :initial-index="selectedIndex"
         preview-teleported
         @error="handleImageError(selectedItem)"
-        @keydown.enter="showPreview"
-        @keydown.space.prevent="showPreview"
+        @click="showPreview"
       />
 
       <div
@@ -141,11 +141,14 @@
           multiple
           :accept="shareImageAccept"
           :disabled="busy || !canAddImages"
+          tabindex="-1"
+          aria-hidden="true"
           @change="handleFileSelection"
         />
         <button
           type="button"
           class="product-gallery__add-button"
+          :aria-label="addImagesLabel"
           :disabled="busy || !canAddImages"
           @click="openFilePicker"
         >
@@ -164,10 +167,12 @@ import type { ImageInstance } from 'element-plus'
 import {
   createProductGalleryItems,
   moveShareImageIds,
+  reorderShareImageIdsBeforeTarget,
   resolveAddImagesLabel,
   resolveAvailableGalleryItems,
   resolveCircularGalleryUrl,
   resolveGallerySelectedIndex,
+  resolveGallerySwipeDirection,
   resolveSelectionAfterItemsChange,
   type ProductGalleryItem,
   type ProductShareImageSource,
@@ -268,12 +273,18 @@ const handleTouchEnd = (event: TouchEvent) => {
   touchStart.value = null
   if (!start || !touch) return
 
-  const deltaX = start.x - touch.clientX
-  const deltaY = start.y - touch.clientY
-  if (Math.abs(deltaX) < 48 || Math.abs(deltaX) <= Math.abs(deltaY)) return
+  const direction = resolveGallerySwipeDirection(
+    start.x,
+    start.y,
+    touch.clientX,
+    touch.clientY,
+  )
+  if (direction === 1) showNextImage()
+  else if (direction === -1) showPreviousImage()
+}
 
-  if (deltaX > 0) showNextImage()
-  else showPreviousImage()
+const handleTouchCancel = () => {
+  touchStart.value = null
 }
 
 const handleImageError = (item: ProductGalleryItem) => {
@@ -291,11 +302,15 @@ const setThumbnailRef = (key: string, element: unknown) => {
 
 const scrollActiveThumbnailIntoView = async () => {
   await nextTick()
+  if (typeof window === 'undefined') return
   const item = selectedItem.value
   if (!item) return
 
+  const thumbnail = thumbnailRefs.get(item.key)
+  if (!thumbnail || typeof thumbnail.scrollIntoView !== 'function') return
+
   const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-  thumbnailRefs.get(item.key)?.scrollIntoView({
+  thumbnail.scrollIntoView({
     behavior: reducedMotion ? 'auto' : 'smooth',
     block: 'nearest',
     inline: 'nearest',
@@ -365,13 +380,11 @@ const handleDrop = (targetItem: ProductGalleryItem) => {
   if (!props.editable || busy.value || sourceId === null || targetItem.kind !== 'share') return
   if (typeof targetItem.sourceId !== 'number' || sourceId === targetItem.sourceId) return
 
-  const reorderedIds = [...shareImageIds.value]
-  const sourceIndex = reorderedIds.indexOf(sourceId)
-  const targetIndex = reorderedIds.indexOf(targetItem.sourceId)
-  if (sourceIndex < 0 || targetIndex < 0) return
-
-  reorderedIds.splice(sourceIndex, 1)
-  reorderedIds.splice(targetIndex, 0, sourceId)
+  const reorderedIds = reorderShareImageIdsBeforeTarget(
+    shareImageIds.value,
+    sourceId,
+    targetItem.sourceId,
+  )
   emitReorder(reorderedIds)
 }
 
@@ -421,18 +434,16 @@ watch(
   box-shadow:
     0 18px 48px rgb(31 70 68 / 8%),
     0 2px 8px rgb(31 70 68 / 5%);
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
 }
 
 .product-gallery__stage:focus-visible,
-.product-gallery__main-image:focus-visible,
 .product-gallery button:focus-visible {
   outline: 3px solid rgb(15 159 154 / 30%);
   outline-offset: 2px;
 }
 
-.product-gallery__stage:focus-visible,
-.product-gallery__main-image:focus-visible {
+.product-gallery__stage:focus-visible {
   outline-offset: -4px;
 }
 

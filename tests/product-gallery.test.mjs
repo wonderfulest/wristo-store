@@ -43,9 +43,11 @@ const productGalleryModuleUrl =
 const {
   createProductGalleryItems,
   moveShareImageIds,
+  reorderShareImageIdsBeforeTarget,
   resolveAddImagesLabel,
   resolveAvailableGalleryItems,
   resolveCircularGalleryUrl,
+  resolveGallerySwipeDirection,
   resolveGallerySelectedIndex,
   resolveProductShareImageUrl,
   resolveSelectionAfterItemsChange,
@@ -322,6 +324,40 @@ test('moveShareImageIds returns a copy at boundaries and for unknown IDs', () =>
   }
 })
 
+test('reorderShareImageIdsBeforeTarget inserts before the target in both directions', () => {
+  const ids = [1, 2, 3]
+  const movedRight = reorderShareImageIdsBeforeTarget?.(ids, 1, 3)
+  const movedLeft = reorderShareImageIdsBeforeTarget?.(ids, 3, 1)
+
+  assert.deepEqual(movedRight, [2, 1, 3])
+  assert.deepEqual(movedLeft, [3, 1, 2])
+  assert.deepEqual(ids, [1, 2, 3])
+  assert.notEqual(movedRight, ids)
+  assert.notEqual(movedLeft, ids)
+})
+
+test('reorderShareImageIdsBeforeTarget returns a copy for unknown and identical IDs', () => {
+  const ids = [1, 2, 3]
+  for (const result of [
+    reorderShareImageIdsBeforeTarget?.(ids, 99, 2),
+    reorderShareImageIdsBeforeTarget?.(ids, 2, 99),
+    reorderShareImageIdsBeforeTarget?.(ids, 2, 2),
+  ]) {
+    assert.deepEqual(result, ids)
+    assert.notEqual(result, ids)
+  }
+})
+
+test('resolveGallerySwipeDirection maps horizontal swipes to carousel deltas', () => {
+  assert.equal(resolveGallerySwipeDirection?.(100, 100, 40, 106), 1)
+  assert.equal(resolveGallerySwipeDirection?.(100, 100, 160, 96), -1)
+})
+
+test('resolveGallerySwipeDirection ignores short and predominantly vertical gestures', () => {
+  assert.equal(resolveGallerySwipeDirection?.(100, 100, 53, 100), null)
+  assert.equal(resolveGallerySwipeDirection?.(100, 100, 40, 180), null)
+})
+
 test('resolveAddImagesLabel prioritizes upload progress', () => {
   assert.equal(resolveAddImagesLabel?.(true, true), 'Uploading…')
 })
@@ -350,8 +386,10 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.match(source, /preview-teleported/)
   assert.match(source, /showPreview/)
   assert.match(source, /@keydown\.(?:enter|space)/)
-  assert.match(source, /tabindex="0"/)
-  assert.match(source, /role="button"/)
+  assert.equal((source.match(/tabindex="0"/g) ?? []).length, 1)
+  assert.match(source, /aria-roledescription="carousel"/)
+  assert.match(source, /@click="showPreview"/)
+  assert.doesNotMatch(source, /role="button"/)
   assert.match(source, /<button/)
   assert.match(source, /:aria-current="[^\"]+"/)
   assert.match(source, /@click="selectImage\([^\"]+\)"/)
@@ -397,8 +435,9 @@ test('ProductImageGallery offers manual circular, keyboard, and touch navigation
   assert.match(source, /@keydown\.right\.prevent="showNextImage"/)
   assert.match(source, /@touchstart="handleTouchStart"/)
   assert.match(source, /@touchend="handleTouchEnd"/)
-  assert.match(source, /Math\.abs\(deltaX\)\s*<\s*48/)
-  assert.match(source, /Math\.abs\(deltaX\)\s*<=\s*Math\.abs\(deltaY\)/)
+  assert.match(source, /@touchcancel="handleTouchCancel"/)
+  assert.match(source, /resolveGallerySwipeDirection/)
+  assert.match(source, /touch-action:\s*pan-y pinch-zoom/)
   assert.doesNotMatch(source, /setInterval|setTimeout|autoplay/i)
 })
 
@@ -410,6 +449,8 @@ test('ProductImageGallery keeps thumbnails accessible and reveals the row for ed
   assert.match(source, /:aria-label="`View \$\{item\.alt\}`"/)
   assert.match(source, /thumbnailRefs/)
   assert.match(source, /scrollIntoView/)
+  assert.match(source, /typeof window === 'undefined'/)
+  assert.match(source, /typeof thumbnail\.scrollIntoView !== 'function'/)
   assert.match(source, /prefers-reduced-motion:\s*reduce/)
 })
 
@@ -420,7 +461,11 @@ test('ProductImageGallery emits editable-only add and delete actions with shared
   assert.match(source, /\[\.\.\.SUPPORTED_SHARE_IMAGE_TYPES\]\.join\(','\)/)
   assert.match(source, /type="file"/)
   assert.match(source, /multiple/)
+  assert.match(source, /tabindex="-1"/)
+  assert.match(source, /aria-hidden="true"/)
   assert.match(source, /@change="handleFileSelection"/)
+  assert.match(source, /:aria-label="addImagesLabel"/)
+  assert.match(source, /@click="openFilePicker"/)
   assert.match(source, /input\.value\s*=\s*''/)
   assert.match(source, /emit\('add-images',\s*files\)/)
   assert.match(source, /resolveAddImagesLabel/)
@@ -439,6 +484,7 @@ test('ProductImageGallery reorders only share images and disables management whi
   assert.match(source, /:draggable="editable && item\.kind === 'share' && !busy"/)
   assert.match(source, /@dragstart="handleDragStart\(item, \$event\)"/)
   assert.match(source, /@drop(?:\.prevent)?="handleDrop\(item\)"/)
+  assert.match(source, /reorderShareImageIdsBeforeTarget/)
   assert.match(source, /emit\('reorder-images',\s*reorderedIds\)/)
   assert.match(source, /aria-label="Move image left"/)
   assert.match(source, /aria-label="Move image right"/)

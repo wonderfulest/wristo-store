@@ -81,6 +81,19 @@ export const resolveCircularGalleryUrl = (
   return items[nextIndex].url
 }
 
+export const resolveGallerySwipeDirection = (
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  threshold = 48,
+): -1 | 1 | null => {
+  const deltaX = startX - endX
+  const deltaY = startY - endY
+  if (Math.abs(deltaX) < threshold || Math.abs(deltaX) <= Math.abs(deltaY)) return null
+  return deltaX > 0 ? 1 : -1
+}
+
 export const resolveAddImagesLabel = (
   uploading: boolean,
   canAddImages: boolean,
@@ -130,6 +143,21 @@ export const moveShareImageIds = (
   movedIds[sourceIndex] = movedIds[targetIndex]
   movedIds[targetIndex] = sourceId
   return movedIds
+}
+
+export const reorderShareImageIdsBeforeTarget = (
+  ids: readonly number[],
+  sourceId: number,
+  targetId: number,
+): number[] => {
+  const reorderedIds = [...ids]
+  const sourceIndex = reorderedIds.indexOf(sourceId)
+  const targetIndex = reorderedIds.indexOf(targetId)
+  if (sourceIndex < 0 || targetIndex < 0 || sourceId === targetId) return reorderedIds
+
+  reorderedIds.splice(sourceIndex, 1)
+  reorderedIds.splice(reorderedIds.indexOf(targetId), 0, sourceId)
+  return reorderedIds
 }
 
 export const resolveGallerySelectedIndex = (
