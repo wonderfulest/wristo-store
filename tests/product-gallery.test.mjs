@@ -10,6 +10,8 @@ const productDetailUrl = new URL('../src/views/products/ProductDetail.vue', impo
 const productApiUrl = new URL('../src/api/product.ts', import.meta.url)
 const productTypesUrl = new URL('../src/types/product.ts', import.meta.url)
 const productShareImagesAdminApiUrl = new URL('../src/api/product-share-images.ts', import.meta.url)
+const productShareImagePolicyUrl = new URL('../src/utils/productShareImagePolicy.ts', import.meta.url)
+const shareImageManagerUrl = new URL('../src/views/admin/ShareImageManager.vue', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
 
 const extractInterfaceBody = (source, interfaceName) => {
@@ -277,8 +279,15 @@ test('resolveSelectionAfterItemsChange handles empty lists and selections absent
 })
 
 test('moveShareImageIds swaps a known image with its adjacent item', () => {
-  assert.deepEqual(moveShareImageIds([10, 20, 30], 20, -1), [20, 10, 30])
-  assert.deepEqual(moveShareImageIds([10, 20, 30], 20, 1), [10, 30, 20])
+  const ids = [10, 20, 30]
+
+  assert.deepEqual(moveShareImageIds(ids, 20, -1), [20, 10, 30])
+  assert.deepEqual(moveShareImageIds(ids, 20, 1), [10, 30, 20])
+  assert.deepEqual(ids, [10, 20, 30])
+  assert.match(
+    extractExportedConstBlock(productGallerySource, 'moveShareImageIds'),
+    /ids:\s*readonly number\[\]/,
+  )
 })
 
 test('moveShareImageIds returns a copy at boundaries and for unknown IDs', () => {
@@ -369,6 +378,71 @@ test('admin product share image DTO and API retain the full admin contract', asy
     extractExportedConstBlock(adminApiSource, 'uploadProductShareImages'),
     /Promise<ProductShareImageVO\[\]>/,
   )
+})
+
+test('admin share image reorder API uses the atomic order endpoint and payload contract', async () => {
+  const adminApiSource = await readFile(productShareImagesAdminApiUrl, 'utf8')
+  const reorderApiBlock = extractExportedConstBlock(
+    adminApiSource,
+    'reorderProductShareImages',
+  )
+
+  assert.match(reorderApiBlock, /productImageIds:\s*number\[\]/)
+  assert.match(reorderApiBlock, /Promise<ProductShareImageVO\[\]>/)
+  assert.match(
+    reorderApiBlock,
+    /instance\.put\(`\/admin\/products\/\$\{appId\}\/share-images\/order`,\s*\{\s*productImageIds\s*\}\)/,
+  )
+})
+
+test('share image upload policy exports the exact shared limits', async () => {
+  const policySource = await readFile(productShareImagePolicyUrl, 'utf8')
+  const { code } = await transformWithEsbuild(
+    policySource,
+    productShareImagePolicyUrl.pathname,
+    {
+      loader: 'ts',
+      format: 'esm',
+      target: 'es2020',
+    },
+  )
+  const policyModuleUrl =
+    `data:text/javascript;base64,${Buffer.from(code).toString('base64')}`
+  const policy = await import(policyModuleUrl)
+
+  assert.equal(policy.MAX_SHARE_IMAGES, 8)
+  assert.equal(policy.MAX_SHARE_IMAGE_FILE_SIZE_BYTES, 10 * 1024 * 1024)
+  assert.deepEqual(
+    [...policy.SUPPORTED_SHARE_IMAGE_TYPES],
+    ['image/png', 'image/jpeg', 'image/webp'],
+  )
+})
+
+test('ShareImageManager consumes upload limits only from the shared policy', async () => {
+  const source = await readFile(shareImageManagerUrl, 'utf8')
+  const policyImport = source.match(
+    /^import\s*\{([^}]*)\}\s*from\s*['"]@\/utils\/productShareImagePolicy['"]$/m,
+  )
+
+  assert.ok(policyImport, 'Expected ShareImageManager to import the shared policy')
+  const importedNames = policyImport[1]
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .sort()
+  assert.deepEqual(importedNames, [
+    'MAX_SHARE_IMAGES',
+    'MAX_SHARE_IMAGE_FILE_SIZE_BYTES',
+    'SUPPORTED_SHARE_IMAGE_TYPES',
+  ].sort())
+
+  for (const name of importedNames) {
+    assert.doesNotMatch(source, new RegExp(`^const\\s+${name}\\s*=`, 'm'))
+  }
+  assert.doesNotMatch(source, /^const\s+MAX_FILE_SIZE_BYTES\s*=/m)
+  assert.doesNotMatch(source, /^const\s+SUPPORTED_TYPES\s*=/m)
+  assert.match(source, /SUPPORTED_SHARE_IMAGE_TYPES\.has\(file\.type\)/)
+  assert.match(source, /file\.size > MAX_SHARE_IMAGE_FILE_SIZE_BYTES/)
 })
 
 test('public API uses the public DTO while the gallery depends only on its source contract', async () => {

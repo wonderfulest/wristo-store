@@ -201,10 +201,11 @@ import {
   type ProductShareImageVO,
 } from '@/api/product-share-images'
 import type { ProductVO } from '@/types'
-
-const MAX_SHARE_IMAGES = 8
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024
-const SUPPORTED_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
+import {
+  MAX_SHARE_IMAGES,
+  MAX_SHARE_IMAGE_FILE_SIZE_BYTES,
+  SUPPORTED_SHARE_IMAGE_TYPES,
+} from '@/utils/productShareImagePolicy'
 
 const products = ref<ProductVO[]>([])
 const productsLoading = ref(false)
@@ -293,12 +294,12 @@ const handleUpload = async () => {
     ElMessage.warning(`Each app can have at most ${MAX_SHARE_IMAGES} share images`)
     return
   }
-  const invalidType = files.find(file => !SUPPORTED_TYPES.has(file.type))
+  const invalidType = files.find(file => !SUPPORTED_SHARE_IMAGE_TYPES.has(file.type))
   if (invalidType) {
     ElMessage.error(`${invalidType.name} must be a PNG, JPEG, or WebP image`)
     return
   }
-  const oversized = files.find(file => file.size > MAX_FILE_SIZE_BYTES)
+  const oversized = files.find(file => file.size > MAX_SHARE_IMAGE_FILE_SIZE_BYTES)
   if (oversized) {
     ElMessage.error(`${oversized.name} exceeds the 10 MB limit`)
     return

@@ -99,7 +99,7 @@ export const resolveSelectionAfterItemsChange = (
 }
 
 export const moveShareImageIds = (
-  ids: number[],
+  ids: readonly number[],
   imageId: number,
   delta: -1 | 1,
 ): number[] => {

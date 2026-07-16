@@ -24,3 +24,10 @@ export const deleteProductShareImage = (
 ): Promise<void> => {
   return instance.delete(`/admin/products/${appId}/share-images/${productImageId}`)
 }
+
+export const reorderProductShareImages = (
+  appId: number,
+  productImageIds: number[],
+): Promise<ProductShareImageVO[]> => {
+  return instance.put(`/admin/products/${appId}/share-images/order`, { productImageIds })
+}
