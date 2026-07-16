@@ -1,10 +1,26 @@
 import assert from 'node:assert/strict'
+import { Buffer } from 'node:buffer'
+import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import { transformWithEsbuild } from 'vite'
 
-import {
+const productGalleryUrl = new URL('../src/utils/productGallery.ts', import.meta.url)
+const productGallerySource = await readFile(productGalleryUrl, 'utf8')
+const { code: productGalleryModuleCode } = await transformWithEsbuild(
+  productGallerySource,
+  productGalleryUrl.pathname,
+  {
+    loader: 'ts',
+    format: 'esm',
+    target: 'es2020',
+  },
+)
+const productGalleryModuleUrl =
+  `data:text/javascript;base64,${Buffer.from(productGalleryModuleCode).toString('base64')}`
+const {
   createProductGalleryItems,
   resolveProductShareImageUrl,
-} from '../src/utils/productGallery.ts'
+} = await import(productGalleryModuleUrl)
 
 test('resolveProductShareImageUrl prefers trimmed imageUrl over nested image URL', () => {
   assert.equal(
