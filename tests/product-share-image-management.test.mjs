@@ -323,3 +323,46 @@ test('reorder failure rolls back, reloads admin truth, and ignores an older reco
   assert.equal(harness.messages.error.length, 0)
   assert.equal(harness.warnings.length, 1)
 })
+
+test('failed reorder recovery reload preserves the rolled-back snapshot', async (t) => {
+  const snapshot = [makeImage(1), makeImage(2), makeImage(3)]
+  let adminFetchCalls = 0
+  const harness = createHarness({
+    fetchAdminImages: () => {
+      adminFetchCalls += 1
+      return adminFetchCalls === 1
+        ? Promise.resolve(snapshot)
+        : Promise.reject(new Error('recovery reload failed'))
+    },
+    reorderImages: () => Promise.reject(new Error('reorder failed')),
+  })
+  t.after(harness.stop)
+  await flush()
+
+  await harness.management.reorderShareImages([3, 1, 2])
+
+  assert.equal(adminFetchCalls, 2)
+  assert.deepEqual(harness.management.shareImages.value, snapshot)
+  assert.equal(harness.management.shareImagesBusy.value, false)
+  assert.equal(harness.management.shareImagesReordering.value, false)
+  assert.equal(harness.messages.error.length, 0)
+})
+
+test('ordinary reload failure keeps the default clear-on-error behavior', async (t) => {
+  let adminFetchCalls = 0
+  const harness = createHarness({
+    fetchAdminImages: () => {
+      adminFetchCalls += 1
+      return adminFetchCalls === 1
+        ? Promise.resolve([makeImage(1)])
+        : Promise.reject(new Error('ordinary reload failed'))
+    },
+  })
+  t.after(harness.stop)
+  await flush()
+  assert.deepEqual(harness.management.shareImages.value, [makeImage(1)])
+
+  await harness.management.loadProductShareImages()
+
+  assert.deepEqual(harness.management.shareImages.value, [])
+})

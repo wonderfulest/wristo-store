@@ -54,7 +54,7 @@ export const useProductShareImageManagement = (
   const matchesRequest = (version: number, appId: number, admin: boolean) =>
     requestVersion === version && matchesIdentity(appId, admin)
 
-  const loadProductShareImages = async () => {
+  const loadProductShareImages = async ({ clearOnError = true } = {}) => {
     const appId = Number(state.appId.value)
     const admin = state.isAdmin.value
     const version = ++requestVersion
@@ -74,7 +74,7 @@ export const useProductShareImageManagement = (
     } catch (error) {
       if (!matchesRequest(version, appId, admin)) return
       dependencies.logWarning('Failed to load product share images:', error)
-      shareImages.value = []
+      if (clearOnError) shareImages.value = []
     }
   }
 
@@ -178,7 +178,9 @@ export const useProductShareImageManagement = (
     } catch (error) {
       if (matchesRequest(version, appId, true)) shareImages.value = snapshot
       dependencies.logWarning('Failed to reorder product share images:', error)
-      if (matchesIdentity(appId, true)) await loadProductShareImages()
+      if (matchesIdentity(appId, true)) {
+        await loadProductShareImages({ clearOnError: false })
+      }
     } finally {
       shareImagesReordering.value = false
     }
