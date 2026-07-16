@@ -6,6 +6,8 @@ import { transformWithEsbuild } from 'vite'
 
 const productGalleryUrl = new URL('../src/utils/productGallery.ts', import.meta.url)
 const productImageGalleryUrl = new URL('../src/components/ProductImageGallery.vue', import.meta.url)
+const productDetailUrl = new URL('../src/views/products/ProductDetail.vue', import.meta.url)
+const productApiUrl = new URL('../src/api/product.ts', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
 const { code: productGalleryModuleCode } = await transformWithEsbuild(
   productGallerySource,
@@ -193,4 +195,40 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.match(source, /role="group"/)
   assert.match(source, /overflow-x:\s*auto/)
   assert.match(source, /@media\s*\([^)]*max-width:/)
+})
+
+test('ProductDetail loads public share images and renders ProductImageGallery', async () => {
+  const [productDetailSource, productApiSource] = await Promise.all([
+    readFile(productDetailUrl, 'utf8'),
+    readFile(productApiUrl, 'utf8'),
+  ])
+
+  assert.match(
+    productApiSource,
+    /export const getProductShareImages[\s\S]*?instance\.get\(`\/public\/products\/app\/\$\{appId\}\/share-images`\)/,
+  )
+  assert.match(
+    productDetailSource,
+    /import ProductImageGallery from ['"]@\/components\/ProductImageGallery\.vue['"]/,
+  )
+  assert.match(productDetailSource, /<ProductImageGallery[\s\S]*?:images="shareImages"/)
+  assert.match(productDetailSource, /:fallback-image-url="productPreviewFallback"/)
+  assert.match(productDetailSource, /:product-name="product\?\.name \|\| t\('product\.previewAlt'\)"/)
+  assert.match(productDetailSource, /ProductShareImageVO/)
+  assert.match(productDetailSource, /const shareImages = ref<ProductShareImageVO\[\]>\(\[\]\)/)
+  assert.match(productDetailSource, /const loadProductShareImages = async \(\) =>/)
+  assert.match(productDetailSource, /await getProductShareImages\(product\.value\.appId\)/)
+  assert.match(productDetailSource, /Array\.isArray\([^)]+\)\s*\?[^:]+:\s*\[\]/)
+  assert.match(
+    productDetailSource,
+    /const loadProductShareImages[\s\S]*?catch \(error\)[\s\S]*?console\.warn\([\s\S]*?shareImages\.value = \[\]/,
+  )
+  assert.match(
+    productDetailSource,
+    /product\.value = productDetail[\s\S]*?Promise\.all\(\[[\s\S]*?loadRatingState\(\)[\s\S]*?loadProductReviews\(\)[\s\S]*?loadAdminMetrics\(\)[\s\S]*?loadProductShareImages\(\)[\s\S]*?\]\)/,
+  )
+  assert.doesNotMatch(productDetailSource, /class="product-image-wrap"/)
+  assert.doesNotMatch(productDetailSource, /\.product-image-wrap\s*\{/)
+  assert.doesNotMatch(productDetailSource, /\.product-image\s*\{/)
+  assert.doesNotMatch(productDetailSource, /\.product-image-fallback\s*\{/)
 })

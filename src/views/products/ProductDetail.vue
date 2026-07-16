@@ -2,17 +2,11 @@
   <div class="product-detail-page">
     <div class="product-detail-main">
       <div class="product-visual-wrap">
-        <!-- 左侧兜底预览图 -->
-        <div class="product-image-wrap">
-          <img
-            v-if="productPreviewFallback"
-            :src="productPreviewFallback"
-            :alt="product?.name || t('product.previewAlt')"
-            class="product-image"
-            loading="eager"
-          />
-          <div v-else class="product-image-fallback">W</div>
-        </div>
+        <ProductImageGallery
+          :images="shareImages"
+          :fallback-image-url="productPreviewFallback"
+          :product-name="product?.name || t('product.previewAlt')"
+        />
         <button
           v-if="product?.designId"
           type="button"
@@ -267,7 +261,13 @@ import {
 import { useProductStore } from '@/store/product'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
-import type { GarminDeviceBaseVO, ProductReviewVO, ProductStoreMetricsVO, ProductVO } from '@/types'
+import type {
+  GarminDeviceBaseVO,
+  ProductReviewVO,
+  ProductShareImageVO,
+  ProductStoreMetricsVO,
+  ProductVO,
+} from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
@@ -275,7 +275,14 @@ import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/lo
 import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
 import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
-import { fetchAdminStoreMetrics, getMyProductRating, getProductRating, getProductReviews, updateProductRating } from '@/api/product'
+import {
+  fetchAdminStoreMetrics,
+  getMyProductRating,
+  getProductRating,
+  getProductReviews,
+  getProductShareImages,
+  updateProductRating,
+} from '@/api/product'
 import { openStudioDesignCopy } from '@/utils/studio'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 import { useI18n } from '@/i18n'
@@ -284,6 +291,7 @@ import { isCartEnabled } from '@/config/features'
 import { hasActiveBundle } from '@/utils/entitlements'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
+import ProductImageGallery from '@/components/ProductImageGallery.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -293,6 +301,7 @@ const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
+const shareImages = ref<ProductShareImageVO[]>([])
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)
@@ -413,6 +422,21 @@ const loadAdminMetrics = async () => {
     adminMetrics.value = list?.[0] || null
   } catch (error) {
     adminMetrics.value = null
+  }
+}
+
+const loadProductShareImages = async () => {
+  if (!product.value?.appId) {
+    shareImages.value = []
+    return
+  }
+
+  try {
+    const images = await getProductShareImages(product.value.appId)
+    shareImages.value = Array.isArray(images) ? images : []
+  } catch (error) {
+    console.warn('Failed to load product share images:', error)
+    shareImages.value = []
   }
 }
 
@@ -797,7 +821,12 @@ onMounted(async () => {
   product.value = productDetail
   reviewRating.value = product.value.myRating || 0
   reviewComment.value = product.value.myComment || ''
-  await Promise.all([loadRatingState(), loadProductReviews(), loadAdminMetrics()])
+  await Promise.all([
+    loadRatingState(),
+    loadProductReviews(),
+    loadAdminMetrics(),
+    loadProductShareImages(),
+  ])
   applySeo(productSeo(product.value, route.path))
 
   // 恢复页面状态（如果用户从外部链接返回）
@@ -853,39 +882,6 @@ onMounted(async () => {
   flex-direction: column;
   align-items: stretch;
   gap: 18px;
-}
-.product-image-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  min-height: 320px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-line);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: var(--radius-lg);
-  display: block;
-}
-.product-image-fallback {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-brand);
-  font-size: 4rem;
-  font-weight: 900;
-  letter-spacing: 0;
 }
 .product-info-wrap {
   --detail-content-width: min(100%, 560px);
@@ -1720,11 +1716,6 @@ onMounted(async () => {
     min-width: 0;
   }
   
-  .product-image-wrap {
-    height: 280px;
-    min-height: 0;
-  }
-  
   .install-methods {
     flex-direction: column;
     gap: 18px;
@@ -1780,10 +1771,6 @@ onMounted(async () => {
   
   .product-visual-wrap {
     width: 240px;
-  }
-  
-  .product-image-wrap {
-    height: 240px;
   }
   
   .product-title {
@@ -1856,10 +1843,6 @@ onMounted(async () => {
   
   .product-visual-wrap {
     width: 200px;
-  }
-  
-  .product-image-wrap {
-    height: 200px;
   }
   
   .product-title {
