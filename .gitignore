@@ -66,3 +66,6 @@ coverage/
 .eslintcache
 .stylelintcache
 .playwright-cli/
+
+# Local feature worktrees
+.worktrees/
