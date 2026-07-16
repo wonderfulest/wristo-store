@@ -1,5 +1,5 @@
 import instance from '@/config/axios'
-import type { DesignFontVO, ImageVO, ProductBaseVO, ProductPreviewConfigVO, ProductRatingStatsVO, ProductReviewVO, ProductShareImageVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
+import type { DesignFontVO, ImageVO, ProductBaseVO, ProductPreviewConfigVO, ProductRatingStatsVO, ProductReviewVO, ProductShareImagePublicVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
 
 export interface CategoryPageData {
   total: number
@@ -114,7 +114,7 @@ export const getProductDetail = (appId: string): Promise<ProductVO> => {
   })
 }
 
-export const getProductShareImages = (appId: string | number): Promise<ProductShareImageVO[]> => {
+export const getProductShareImages = (appId: string | number): Promise<ProductShareImagePublicVO[]> => {
   return instance.get(`/public/products/app/${appId}/share-images`)
 }
 

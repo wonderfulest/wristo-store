@@ -38,6 +38,13 @@ export interface ProductShareImageVO {
   } | null
 }
 
+export interface ProductShareImagePublicVO {
+  id: number
+  sortOrder: number | null
+  altText: string | null
+  imageUrl: string
+}
+
 export interface GarminDeviceBaseVO {
   id: number
   deviceId: string

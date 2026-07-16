@@ -56,7 +56,7 @@
 import { computed, ref, watch } from 'vue'
 import type { ImageInstance } from 'element-plus'
 
-import type { ProductShareImageVO } from '@/types'
+import type { ProductShareImagePublicVO } from '@/types'
 import {
   createProductGalleryItems,
   resolveAvailableGalleryItems,
@@ -67,7 +67,7 @@ import {
 
 const props = withDefaults(
   defineProps<{
-    images: ProductShareImageVO[]
+    images: ProductShareImagePublicVO[]
     fallbackImageUrl?: string | null
     productName: string
   }>(),

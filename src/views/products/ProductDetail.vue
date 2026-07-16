@@ -264,7 +264,7 @@ import { useUserStore } from '@/store/user'
 import type {
   GarminDeviceBaseVO,
   ProductReviewVO,
-  ProductShareImageVO,
+  ProductShareImagePublicVO,
   ProductStoreMetricsVO,
   ProductVO,
 } from '@/types'
@@ -301,7 +301,7 @@ const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const product = ref<ProductVO | null>(null)
-const shareImages = ref<ProductShareImageVO[]>([])
+const shareImages = ref<ProductShareImagePublicVO[]>([])
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)

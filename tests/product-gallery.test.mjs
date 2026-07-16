@@ -8,7 +8,25 @@ const productGalleryUrl = new URL('../src/utils/productGallery.ts', import.meta.
 const productImageGalleryUrl = new URL('../src/components/ProductImageGallery.vue', import.meta.url)
 const productDetailUrl = new URL('../src/views/products/ProductDetail.vue', import.meta.url)
 const productApiUrl = new URL('../src/api/product.ts', import.meta.url)
+const productTypesUrl = new URL('../src/types/product.ts', import.meta.url)
+const productShareImagesAdminApiUrl = new URL('../src/api/product-share-images.ts', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
+
+const extractInterfaceBody = (source, interfaceName) => {
+  const match = source.match(
+    new RegExp(`export interface ${interfaceName}\\s*\\{([\\s\\S]*?)^\\}`, 'm'),
+  )
+  assert.ok(match, `Expected exported interface ${interfaceName}`)
+  return match[1]
+}
+
+const extractExportedConstBlock = (source, functionName) => {
+  const startMarker = `export const ${functionName}`
+  const start = source.indexOf(startMarker)
+  assert.notEqual(start, -1, `Expected exported function ${functionName}`)
+  const nextExport = source.indexOf('\nexport const ', start + startMarker.length)
+  return source.slice(start, nextExport === -1 ? source.length : nextExport)
+}
 const { code: productGalleryModuleCode } = await transformWithEsbuild(
   productGallerySource,
   productGalleryUrl.pathname,
@@ -197,6 +215,84 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.match(source, /@media\s*\([^)]*max-width:/)
 })
 
+test('public product share image DTO exposes only the public response fields', async () => {
+  const productTypesSource = await readFile(productTypesUrl, 'utf8')
+  const publicDtoBody = extractInterfaceBody(productTypesSource, 'ProductShareImagePublicVO')
+  const publicFields = [...publicDtoBody.matchAll(/^\s*(\w+)(\?)?:\s*([^\n]+)$/gm)].map(
+    ([, name, optional, type]) => ({ name, optional: Boolean(optional), type: type.trim() }),
+  )
+
+  assert.deepEqual(publicFields, [
+    { name: 'id', optional: false, type: 'number' },
+    { name: 'sortOrder', optional: false, type: 'number | null' },
+    { name: 'altText', optional: false, type: 'string | null' },
+    { name: 'imageUrl', optional: false, type: 'string' },
+  ])
+})
+
+test('admin product share image DTO and API retain the full admin contract', async () => {
+  const [productTypesSource, adminApiSource] = await Promise.all([
+    readFile(productTypesUrl, 'utf8'),
+    readFile(productShareImagesAdminApiUrl, 'utf8'),
+  ])
+  const adminDtoBody = extractInterfaceBody(productTypesSource, 'ProductShareImageVO')
+
+  for (const field of [
+    'id',
+    'productId',
+    'imageId',
+    'type',
+    'sortOrder',
+    'altText',
+    'imageUrl',
+    'fileName',
+    'isActive',
+    'image',
+  ]) {
+    assert.match(adminDtoBody, new RegExp(`^\\s*${field}\\??:`, 'm'))
+  }
+  assert.match(adminApiSource, /import type \{ ProductShareImageVO \} from ['"]@\/types['"]/)
+  assert.match(
+    extractExportedConstBlock(adminApiSource, 'fetchProductShareImages'),
+    /Promise<ProductShareImageVO\[\]>/,
+  )
+  assert.match(
+    extractExportedConstBlock(adminApiSource, 'uploadProductShareImages'),
+    /Promise<ProductShareImageVO\[\]>/,
+  )
+})
+
+test('public share image consumers use the minimal public DTO', async () => {
+  const [productApiSource, productImageGallerySource, productDetailSource] = await Promise.all([
+    readFile(productApiUrl, 'utf8'),
+    readFile(productImageGalleryUrl, 'utf8'),
+    readFile(productDetailUrl, 'utf8'),
+  ])
+  const publicApiBlock = extractExportedConstBlock(productApiSource, 'getProductShareImages')
+  const galleryPropsBlock = productImageGallerySource.match(
+    /defineProps<\{([\s\S]*?)\}>\(\)/,
+  )?.[1]
+  const productDetailTypeImport = productDetailSource.match(
+    /import type \{([\s\S]*?)\} from ['"]@\/types['"]/,
+  )?.[1]
+
+  assert.match(productApiSource, /import type \{[^}]*\bProductShareImagePublicVO\b[^}]*\} from ['"]@\/types['"]/)
+  assert.match(publicApiBlock, /Promise<ProductShareImagePublicVO\[\]>/)
+  assert.ok(galleryPropsBlock, 'Expected ProductImageGallery defineProps block')
+  assert.match(galleryPropsBlock, /^\s*images:\s*ProductShareImagePublicVO\[\]/m)
+  assert.doesNotMatch(galleryPropsBlock, /\bProductShareImageVO\b/)
+  assert.match(
+    productImageGallerySource,
+    /import type \{ ProductShareImagePublicVO \} from ['"]@\/types['"]/,
+  )
+  assert.ok(productDetailTypeImport, 'Expected ProductDetail type import block')
+  assert.match(productDetailTypeImport, /\bProductShareImagePublicVO\b/)
+  assert.match(
+    productDetailSource,
+    /const shareImages = ref<ProductShareImagePublicVO\[\]>\(\[\]\)/,
+  )
+})
+
 test('ProductDetail loads public share images and renders ProductImageGallery', async () => {
   const [productDetailSource, productApiSource] = await Promise.all([
     readFile(productDetailUrl, 'utf8'),
@@ -214,8 +310,6 @@ test('ProductDetail loads public share images and renders ProductImageGallery', 
   assert.match(productDetailSource, /<ProductImageGallery[\s\S]*?:images="shareImages"/)
   assert.match(productDetailSource, /:fallback-image-url="productPreviewFallback"/)
   assert.match(productDetailSource, /:product-name="product\?\.name \|\| t\('product\.previewAlt'\)"/)
-  assert.match(productDetailSource, /ProductShareImageVO/)
-  assert.match(productDetailSource, /const shareImages = ref<ProductShareImageVO\[\]>\(\[\]\)/)
   assert.match(productDetailSource, /const loadProductShareImages = async \(\) =>/)
   assert.match(productDetailSource, /await getProductShareImages\(product\.value\.appId\)/)
   assert.match(productDetailSource, /Array\.isArray\([^)]+\)\s*\?[^:]+:\s*\[\]/)
