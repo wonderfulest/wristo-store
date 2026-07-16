@@ -150,8 +150,7 @@
           @click="openFilePicker"
         >
           <span class="product-gallery__add-icon" aria-hidden="true">+</span>
-          <span>{{ uploading ? 'Uploading…' : 'Add images' }}</span>
-          <small>8 image limit</small>
+          <span>{{ addImagesLabel }}</span>
         </button>
       </div>
     </div>
@@ -165,6 +164,7 @@ import type { ImageInstance } from 'element-plus'
 import {
   createProductGalleryItems,
   moveShareImageIds,
+  resolveAddImagesLabel,
   resolveAvailableGalleryItems,
   resolveCircularGalleryUrl,
   resolveGallerySelectedIndex,
@@ -212,6 +212,9 @@ const touchStart = ref<{ x: number; y: number } | null>(null)
 const shareImageAccept = [...SUPPORTED_SHARE_IMAGE_TYPES].join(',')
 const busy = computed(
   () => props.uploading || props.deletingId !== null || props.reordering,
+)
+const addImagesLabel = computed(() =>
+  resolveAddImagesLabel(props.uploading, props.canAddImages),
 )
 
 const galleryItems = computed(() =>
@@ -658,11 +661,6 @@ watch(
   font-size: 23px;
   font-weight: 300;
   line-height: 1;
-}
-
-.product-gallery__add-button small {
-  color: #708b89;
-  font-size: 9px;
 }
 
 @media (max-width: 640px) {

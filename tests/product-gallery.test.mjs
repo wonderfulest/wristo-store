@@ -43,6 +43,7 @@ const productGalleryModuleUrl =
 const {
   createProductGalleryItems,
   moveShareImageIds,
+  resolveAddImagesLabel,
   resolveAvailableGalleryItems,
   resolveCircularGalleryUrl,
   resolveGallerySelectedIndex,
@@ -321,6 +322,18 @@ test('moveShareImageIds returns a copy at boundaries and for unknown IDs', () =>
   }
 })
 
+test('resolveAddImagesLabel prioritizes upload progress', () => {
+  assert.equal(resolveAddImagesLabel?.(true, true), 'Uploading…')
+})
+
+test('resolveAddImagesLabel invites uploads while capacity remains', () => {
+  assert.equal(resolveAddImagesLabel?.(false, true), 'Add images')
+})
+
+test('resolveAddImagesLabel reports the image limit when uploads are unavailable', () => {
+  assert.equal(resolveAddImagesLabel?.(false, false), '8 image limit')
+})
+
 test('resolveGallerySelectedIndex returns the selected preview index', () => {
   assert.equal(
     resolveGallerySelectedIndex(sourceGalleryItems, sourceGalleryItems[1].url),
@@ -410,9 +423,9 @@ test('ProductImageGallery emits editable-only add and delete actions with shared
   assert.match(source, /@change="handleFileSelection"/)
   assert.match(source, /input\.value\s*=\s*''/)
   assert.match(source, /emit\('add-images',\s*files\)/)
-  assert.match(source, /Uploading…/)
-  assert.match(source, /Add images/)
-  assert.match(source, /8 image limit/)
+  assert.match(source, /resolveAddImagesLabel/)
+  assert.equal((source.match(/\{\{ addImagesLabel \}\}/g) ?? []).length, 1)
+  assert.doesNotMatch(source, /<small>8 image limit<\/small>/)
   assert.match(source, /item\.kind === 'share'/)
   assert.match(source, /@click\.stop="deleteImage\(item\)"/)
   assert.match(source, /emit\('delete-image',\s*item\.sourceId\)/)

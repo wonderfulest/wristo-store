@@ -81,6 +81,14 @@ export const resolveCircularGalleryUrl = (
   return items[nextIndex].url
 }
 
+export const resolveAddImagesLabel = (
+  uploading: boolean,
+  canAddImages: boolean,
+): string => {
+  if (uploading) return 'Uploading…'
+  return canAddImages ? 'Add images' : '8 image limit'
+}
+
 export const resolveSelectionAfterItemsChange = (
   beforeItems: readonly ProductGalleryItem[],
   afterItems: readonly ProductGalleryItem[],
