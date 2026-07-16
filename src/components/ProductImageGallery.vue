@@ -167,7 +167,7 @@ import type { ImageInstance } from 'element-plus'
 import {
   createProductGalleryItems,
   moveShareImageIds,
-  reorderShareImageIdsBeforeTarget,
+  reorderShareImageIdsAtTarget,
   resolveAddImagesLabel,
   resolveAvailableGalleryItems,
   resolveCircularGalleryUrl,
@@ -380,7 +380,7 @@ const handleDrop = (targetItem: ProductGalleryItem) => {
   if (!props.editable || busy.value || sourceId === null || targetItem.kind !== 'share') return
   if (typeof targetItem.sourceId !== 'number' || sourceId === targetItem.sourceId) return
 
-  const reorderedIds = reorderShareImageIdsBeforeTarget(
+  const reorderedIds = reorderShareImageIdsAtTarget(
     shareImageIds.value,
     sourceId,
     targetItem.sourceId,

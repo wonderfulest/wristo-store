@@ -43,7 +43,7 @@ const productGalleryModuleUrl =
 const {
   createProductGalleryItems,
   moveShareImageIds,
-  reorderShareImageIdsBeforeTarget,
+  reorderShareImageIdsAtTarget,
   resolveAddImagesLabel,
   resolveAvailableGalleryItems,
   resolveCircularGalleryUrl,
@@ -324,24 +324,27 @@ test('moveShareImageIds returns a copy at boundaries and for unknown IDs', () =>
   }
 })
 
-test('reorderShareImageIdsBeforeTarget inserts before the target in both directions', () => {
+test('reorderShareImageIdsAtTarget follows drag direction around the target', () => {
   const ids = [1, 2, 3]
-  const movedRight = reorderShareImageIdsBeforeTarget?.(ids, 1, 3)
-  const movedLeft = reorderShareImageIdsBeforeTarget?.(ids, 3, 1)
+  const adjacentRight = reorderShareImageIdsAtTarget?.(ids, 2, 3)
+  const movedToEnd = reorderShareImageIdsAtTarget?.(ids, 1, 3)
+  const movedLeft = reorderShareImageIdsAtTarget?.(ids, 3, 1)
 
-  assert.deepEqual(movedRight, [2, 1, 3])
+  assert.deepEqual(adjacentRight, [1, 3, 2])
+  assert.deepEqual(movedToEnd, [2, 3, 1])
   assert.deepEqual(movedLeft, [3, 1, 2])
   assert.deepEqual(ids, [1, 2, 3])
-  assert.notEqual(movedRight, ids)
+  assert.notEqual(adjacentRight, ids)
+  assert.notEqual(movedToEnd, ids)
   assert.notEqual(movedLeft, ids)
 })
 
-test('reorderShareImageIdsBeforeTarget returns a copy for unknown and identical IDs', () => {
+test('reorderShareImageIdsAtTarget returns a copy for unknown and identical IDs', () => {
   const ids = [1, 2, 3]
   for (const result of [
-    reorderShareImageIdsBeforeTarget?.(ids, 99, 2),
-    reorderShareImageIdsBeforeTarget?.(ids, 2, 99),
-    reorderShareImageIdsBeforeTarget?.(ids, 2, 2),
+    reorderShareImageIdsAtTarget?.(ids, 99, 2),
+    reorderShareImageIdsAtTarget?.(ids, 2, 99),
+    reorderShareImageIdsAtTarget?.(ids, 2, 2),
   ]) {
     assert.deepEqual(result, ids)
     assert.notEqual(result, ids)
@@ -484,7 +487,7 @@ test('ProductImageGallery reorders only share images and disables management whi
   assert.match(source, /:draggable="editable && item\.kind === 'share' && !busy"/)
   assert.match(source, /@dragstart="handleDragStart\(item, \$event\)"/)
   assert.match(source, /@drop(?:\.prevent)?="handleDrop\(item\)"/)
-  assert.match(source, /reorderShareImageIdsBeforeTarget/)
+  assert.match(source, /reorderShareImageIdsAtTarget/)
   assert.match(source, /emit\('reorder-images',\s*reorderedIds\)/)
   assert.match(source, /aria-label="Move image left"/)
   assert.match(source, /aria-label="Move image right"/)

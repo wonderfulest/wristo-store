@@ -145,7 +145,7 @@ export const moveShareImageIds = (
   return movedIds
 }
 
-export const reorderShareImageIdsBeforeTarget = (
+export const reorderShareImageIdsAtTarget = (
   ids: readonly number[],
   sourceId: number,
   targetId: number,
@@ -156,7 +156,9 @@ export const reorderShareImageIdsBeforeTarget = (
   if (sourceIndex < 0 || targetIndex < 0 || sourceId === targetId) return reorderedIds
 
   reorderedIds.splice(sourceIndex, 1)
-  reorderedIds.splice(reorderedIds.indexOf(targetId), 0, sourceId)
+  const targetIndexAfterRemoval = reorderedIds.indexOf(targetId)
+  const insertionIndex = sourceIndex < targetIndex ? targetIndexAfterRemoval + 1 : targetIndexAfterRemoval
+  reorderedIds.splice(insertionIndex, 0, sourceId)
   return reorderedIds
 }
 
