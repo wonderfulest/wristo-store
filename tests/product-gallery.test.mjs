@@ -732,11 +732,24 @@ test('ProductDetail loads admin images only for admins and preserves the public 
   assert.match(productDetailSource, /fetchAdminImages: fetchProductShareImages/)
   assert.match(
     productDetailSource,
-    /product\.value = productDetail[\s\S]*?Promise\.all\(\[[\s\S]*?loadRatingState\(\)[\s\S]*?loadProductReviews\(\)[\s\S]*?loadAdminMetrics\(\)[\s\S]*?\]\)/,
+    /useLatestRouteProductLoad<ProductVO>\([\s\S]*?commitProduct:[\s\S]*?product\.value = productDetail[\s\S]*?loadDownstream:[\s\S]*?Promise\.all\(\[[\s\S]*?loadRatingState\(context\)[\s\S]*?loadProductReviews\(context\)[\s\S]*?loadAdminMetricsFor\(context\)[\s\S]*?\]\)/,
   )
   assert.doesNotMatch(productDetailSource, /loadProductShareImages\(\)/)
   assert.doesNotMatch(productDetailSource, /class="product-image-wrap"/)
   assert.doesNotMatch(productDetailSource, /\.product-image-wrap\s*\{/)
   assert.doesNotMatch(productDetailSource, /\.product-image\s*\{/)
   assert.doesNotMatch(productDetailSource, /\.product-image-fallback\s*\{/)
+})
+
+test('ProductDetail watches route product IDs immediately instead of loading details only on mount', async () => {
+  const productDetailSource = await readFile(productDetailUrl, 'utf8')
+
+  assert.match(
+    productDetailSource,
+    /watch\(\s*\(\) => route\.params\.id,[\s\S]*?loadRouteProduct[\s\S]*?immediate:\s*true/,
+  )
+  assert.match(productDetailSource, /useLatestRouteProductLoad/)
+  assert.match(productDetailSource, /const shareImageAppId = computed\(\(\) => product\.value\?\.appId \?\? null\)/)
+  const mountedBlock = productDetailSource.slice(productDetailSource.indexOf('onMounted('))
+  assert.doesNotMatch(mountedBlock, /getProductDetail|loadRatingState|loadProductReviews|loadAdminMetrics|applySeo/)
 })

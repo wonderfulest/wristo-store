@@ -1,5 +1,8 @@
 <template>
-  <div class="product-detail-page">
+  <div
+    class="product-detail-page"
+    :aria-busy="productDetailLoading ? 'true' : 'false'"
+  >
     <div class="product-detail-main">
       <div class="product-visual-wrap">
         <ProductImageGallery
@@ -43,7 +46,7 @@
           :product="product"
           :metrics="adminMetrics"
           variant="detail"
-          @changed="loadAdminMetrics"
+          @changed="() => loadAdminMetrics()"
         />
         <div v-if="product?.garminStoreUrl" class="install-section">
           <div class="install-title">{{ t('product.installTitle') }}</div>
@@ -253,7 +256,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, nextTick, computed } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -307,6 +310,11 @@ import {
   uploadProductShareImages,
 } from '@/api/product-share-images'
 import { useProductShareImageManagement } from '@/composables/useProductShareImageManagement'
+import {
+  useLatestRouteProductLoad,
+  type LatestProductLoadGuard,
+  type LatestRouteProductLoadContext,
+} from '@/composables/useLatestRouteProductLoad'
 
 const route = useRoute()
 const router = useRouter()
@@ -461,51 +469,81 @@ const formatDate = (value?: string | null) => {
   return date.toLocaleString()
 }
 
-const loadAdminMetrics = async () => {
-  if (!isAdmin.value || !product.value?.appId) return
+const loadAdminMetricsFor = async (guard: LatestProductLoadGuard) => {
+  if (!guard.isCurrent()) return
+  if (!isAdmin.value) {
+    guard.commit(() => {
+      adminMetrics.value = null
+    })
+    return
+  }
   try {
-    const list = await fetchAdminStoreMetrics([Number(product.value.appId)])
-    adminMetrics.value = list?.[0] || null
+    const list = await fetchAdminStoreMetrics([guard.appId])
+    guard.commit(() => {
+      adminMetrics.value = list?.[0] || null
+    })
   } catch (error) {
-    adminMetrics.value = null
+    guard.commit(() => {
+      adminMetrics.value = null
+    })
   }
 }
 
-const loadRatingState = async () => {
-  if (!product.value?.appId) return
+const loadAdminMetrics = async () => {
+  const appId = product.value?.appId
+  if (!appId) return
+  await loadAdminMetricsFor(captureCurrentProductGuard(appId))
+}
+
+const loadRatingState = async (guard: LatestProductLoadGuard) => {
+  if (!guard.isCurrent()) return
   try {
     const stats = userStore.token
-      ? await getMyProductRating(product.value.appId)
-      : await getProductRating(product.value.appId)
-    product.value = {
-      ...product.value,
-      averageRating: stats.averageRating ?? product.value.averageRating,
-      ratingCount: stats.ratingCount ?? product.value.ratingCount,
-      myRating: stats.myRating ?? product.value.myRating,
-      myComment: stats.myComment ?? product.value.myComment,
-    }
-    reviewRating.value = product.value.myRating || 0
-    reviewComment.value = product.value.myComment || ''
+      ? await getMyProductRating(guard.appId)
+      : await getProductRating(guard.appId)
+    guard.commit(() => {
+      if (!product.value) return
+      product.value = {
+        ...product.value,
+        averageRating: stats.averageRating ?? product.value.averageRating,
+        ratingCount: stats.ratingCount ?? product.value.ratingCount,
+        myRating: stats.myRating ?? product.value.myRating,
+        myComment: stats.myComment ?? product.value.myComment,
+      }
+      reviewRating.value = product.value.myRating || 0
+      reviewComment.value = product.value.myComment || ''
+    })
   } catch (error) {
-    reviewRating.value = product.value?.myRating || 0
-    reviewComment.value = product.value?.myComment || ''
+    guard.commit(() => {
+      reviewRating.value = product.value?.myRating || 0
+      reviewComment.value = product.value?.myComment || ''
+    })
   }
 }
 
-const loadProductReviews = async () => {
-  if (!product.value?.appId) return
-  reviewsLoading.value = true
+const loadProductReviews = async (guard: LatestProductLoadGuard) => {
+  if (!guard.commit(() => {
+    reviewsLoading.value = true
+  })) return
   try {
-    productReviews.value = await getProductReviews(product.value.appId)
+    const reviews = await getProductReviews(guard.appId)
+    guard.commit(() => {
+      productReviews.value = reviews
+    })
   } catch (error) {
-    productReviews.value = []
+    guard.commit(() => {
+      productReviews.value = []
+    })
   } finally {
-    reviewsLoading.value = false
+    guard.commit(() => {
+      reviewsLoading.value = false
+    })
   }
 }
 
 const submitRating = async () => {
-  if (!product.value?.appId || ratingSubmitting.value) return
+  const appId = product.value?.appId
+  if (!appId || ratingSubmitting.value) return
   if (!userStore.userInfo?.id) {
     ElMessage.info(t('product.loginToRate'))
     redirectToSsoLogin('store', 500)
@@ -515,25 +553,37 @@ const submitRating = async () => {
     ElMessage.info(t('product.selectRating'))
     return
   }
-  ratingSubmitting.value = true
+  const guard = captureCurrentProductGuard(appId)
+  const submittedRating = reviewRating.value
+  const submittedComment = reviewComment.value
+  if (!guard.commit(() => {
+    ratingSubmitting.value = true
+  })) return
   try {
-    const stats = await updateProductRating(product.value.appId, reviewRating.value, reviewComment.value)
-    product.value = {
-      ...product.value,
-      averageRating: stats.averageRating ?? product.value.averageRating,
-      ratingCount: stats.ratingCount ?? product.value.ratingCount,
-      myRating: stats.myRating ?? reviewRating.value,
-      myComment: stats.myComment ?? reviewComment.value,
+    const stats = await updateProductRating(appId, submittedRating, submittedComment)
+    const committed = guard.commit(() => {
+      if (!product.value) return
+      product.value = {
+        ...product.value,
+        averageRating: stats.averageRating ?? product.value.averageRating,
+        ratingCount: stats.ratingCount ?? product.value.ratingCount,
+        myRating: stats.myRating ?? submittedRating,
+        myComment: stats.myComment ?? submittedComment,
+      }
+      reviewComment.value = product.value.myComment || ''
+    })
+    if (committed) {
+      ElMessage.success(t('product.reviewSaved'))
+      await loadProductReviews(guard)
     }
-    reviewComment.value = product.value.myComment || ''
-    ElMessage.success(t('product.reviewSaved'))
-    await loadProductReviews()
   } catch (error: any) {
-    if (error?.code === 401 || error?.response?.status === 401) {
+    if (guard.isCurrent() && (error?.code === 401 || error?.response?.status === 401)) {
       redirectToSsoLogin('store', 500)
     }
   } finally {
-    ratingSubmitting.value = false
+    guard.commit(() => {
+      ratingSubmitting.value = false
+    })
   }
 }
 
@@ -833,51 +883,86 @@ const shareQRCode = async () => {
   }
 }
 
-onMounted(async () => {
-  loadSelectedDeviceFromStorage()
+const resetProductDetailState = () => {
+  product.value = null
+  adminMetrics.value = null
+  showDeviceSelector.value = false
+  ratingSubmitting.value = false
+  reviewsLoading.value = false
+  productReviews.value = []
+  reviewRating.value = 0
+  reviewComment.value = ''
+  isProductDescriptionExpanded.value = false
+}
 
-  let productId = route.params.id
-  if (Array.isArray(productId)) productId = productId[0]
-  if (!productId) {
-    await router.replace(getNotFoundPath())
-    return
-  }
-
-  const productDetail = await productStore.getProductDetail(productId)
-  if (!productDetail?.appId) {
-    await router.replace(getNotFoundPath())
-    return
-  }
-
-  product.value = productDetail
-  reviewRating.value = product.value.myRating || 0
-  reviewComment.value = product.value.myComment || ''
-  await Promise.all([
-    loadRatingState(),
-    loadProductReviews(),
-    loadAdminMetrics(),
-  ])
-  applySeo(productSeo(product.value, route.path))
-
+const restoreProductDetailState = (
+  context: LatestRouteProductLoadContext<ProductVO>,
+) => {
   // 恢复页面状态（如果用户从外部链接返回）
   try {
     const savedState = sessionStorage.getItem('productDetailState')
     if (savedState) {
       const state = JSON.parse(savedState)
       // 检查是否是同一个产品页面，且时间不超过30分钟
-      if (state.productId === productId && (Date.now() - state.timestamp) < 30 * 60 * 1000) {
+      if (String(state.productId) === context.routeId && (Date.now() - state.timestamp) < 30 * 60 * 1000) {
         // 恢复滚动位置
         setTimeout(() => {
+          if (!context.isCurrent()) return
           window.scrollTo(0, state.scrollPosition)
         }, 100)
 
         // 清除已使用的状态
-        sessionStorage.removeItem('productDetailState')
+        context.commit(() => {
+          sessionStorage.removeItem('productDetailState')
+        })
       }
     }
   } catch (error) {
-    console.warn('Failed to restore page state:', error)
+    if (context.isCurrent()) {
+      console.warn('Failed to restore page state:', error)
+    }
   }
+}
+
+const {
+  productDetailLoading,
+  loadRouteProduct,
+  captureCurrentProductGuard,
+} = useLatestRouteProductLoad<ProductVO>({
+  resetState: resetProductDetailState,
+  fetchProduct: (productId) => productStore.getProductDetail(productId),
+  commitProduct: (productDetail) => {
+    product.value = productDetail
+    reviewRating.value = productDetail.myRating || 0
+    reviewComment.value = productDetail.myComment || ''
+  },
+  getCurrentAppId: () => product.value?.appId ?? null,
+  loadDownstream: async (context) => {
+    await Promise.all([
+      loadRatingState(context),
+      loadProductReviews(context),
+      loadAdminMetricsFor(context),
+    ])
+    context.commit(() => {
+      if (!product.value) return
+      applySeo(productSeo(product.value, route.path))
+      restoreProductDetailState(context)
+    })
+  },
+  handleMissing: () => router.replace(getNotFoundPath()),
+  logWarning: (message, error) => console.warn(message, error),
+})
+
+watch(
+  () => route.params.id,
+  (nextProductId) => {
+    void loadRouteProduct(nextProductId)
+  },
+  { immediate: true, flush: 'sync' },
+)
+
+onMounted(() => {
+  loadSelectedDeviceFromStorage()
 })
 </script>
 
