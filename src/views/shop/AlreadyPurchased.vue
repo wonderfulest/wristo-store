@@ -387,7 +387,7 @@ function handleResendCode() {
   cursor: pointer;
   text-decoration: none;
   transition: color 180ms ease, background 180ms ease;
-  min-height: 28px;
+  min-height: 44px;
   padding: 0 4px;
   margin-left: 2px;
   border-radius: 8px;

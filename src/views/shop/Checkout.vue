@@ -46,14 +46,16 @@
                     <h3>{{ t('checkout.completeOrder') }}</h3>
                     <p>{{ t('checkout.deliveryNote') }}</p>
                 </div>
-                <label class="input-label">{{ t('checkout.emailForReceipt') }}</label>
+                <label class="input-label" for="checkout-email">{{ t('checkout.emailForReceipt') }}</label>
                 <input
+                    id="checkout-email"
                     v-model="email"
                     :class="['input', { 'email-input-highlight': shouldHighlightEmail }]"
                     :placeholder="t('cart.emailPlaceholder')"
                     :disabled="isEmailLocked"
                     type="email"
                     autocomplete="email"
+                    :aria-invalid="Boolean(emailError)"
                     aria-describedby="checkout-email-help checkout-email-error"
                 />
                 <div v-if="isEmailLocked" class="email-locked-hint">

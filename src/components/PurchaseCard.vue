@@ -1,13 +1,18 @@
 <template>
-  <div
+  <article
     :class="['purchase-card', { active: isSelected }]"
-    role="button"
-    tabindex="0"
-    :aria-pressed="isSelected"
     @click="handleSelect"
-    @keydown.enter.prevent="handleSelect"
-    @keydown.space.prevent="handleSelect"
   >
+    <button
+      v-if="showButton"
+      type="button"
+      class="purchase-card-select"
+      :aria-label="t('purchaseCard.selectOption', { title: displayTitle })"
+      :aria-pressed="isSelected"
+      @click.stop="handleSelect"
+    >
+      <span class="selection-indicator" aria-hidden="true">{{ isSelected ? '✓' : '' }}</span>
+    </button>
     <!-- 折扣和Lifetime License标签 -->
     <div v-if="cappedDiscount > 0" class="discount-badge">
       {{ cappedDiscount }}% {{ t('purchaseCard.off') }}
@@ -92,7 +97,7 @@
     >
       {{ buttonText }}
     </button>
-  </div>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -405,9 +410,45 @@ onUnmounted(() => {
   border-color: rgba(212, 175, 55, 0.42);
 }
 
-.purchase-card:focus-visible {
-  outline: 3px solid rgba(212, 175, 55, 0.42);
-  outline-offset: 4px;
+.purchase-card-select {
+  min-width: 44px;
+  min-height: 44px;
+  position: absolute;
+  top: 42px;
+  right: 14px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(15, 107, 104, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--color-brand-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.purchase-card-select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.selection-indicator {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.purchase-card.active .purchase-card-select {
+  color: #fff;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
 }
 
 .purchase-card.active {
@@ -497,6 +538,7 @@ onUnmounted(() => {
   gap: 8px;
   margin-top: 30px;
   margin-bottom: 16px;
+  padding-right: 56px;
   padding-bottom: 18px;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
 }

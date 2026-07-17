@@ -618,8 +618,8 @@ h1 {
 }
 
 .remove-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -710,7 +710,7 @@ h1 {
 }
 
 .recommend-search-btn {
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -762,7 +762,7 @@ h1 {
 .email-lock input {
   width: 100%;
   min-width: 0;
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 12px;
   border: 1px solid rgba(15, 23, 42, 0.14);
   border-radius: var(--radius-sm);
@@ -785,8 +785,10 @@ h1 {
 }
 
 .cart-email-login {
-  display: inline;
-  padding: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 4px;
   border: none;
   background: transparent;
   color: var(--color-brand);

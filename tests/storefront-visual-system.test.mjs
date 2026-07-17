@@ -412,3 +412,55 @@ test('activation and payment success public copy is localized in English and Chi
   assert.match(activation, /t\('activation\.title'\)/)
   assert.match(success, /t\('paymentSuccess\.title'\)/)
 })
+
+test('transaction controls expose 44px touch targets in their actual selector blocks', async () => {
+  const [cart, activation, purchaseCard] = await Promise.all([
+    read('../src/views/user-center/CartList.vue'),
+    read('../src/views/shop/AlreadyPurchased.vue'),
+    read('../src/components/PurchaseCard.vue'),
+  ])
+  const selectorBlock = (source, selector) => {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return source.match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`, 's'))?.[1] ?? ''
+  }
+
+  const removeButton = selectorBlock(cart, '.remove-btn')
+  assert.match(removeButton, /width:\s*44px/)
+  assert.match(removeButton, /height:\s*44px/)
+  assert.match(selectorBlock(cart, '.recommend-search-btn'), /min-height:\s*44px/)
+  assert.match(selectorBlock(cart, '.email-lock input'), /min-height:\s*44px/)
+  assert.match(selectorBlock(cart, '.cart-email-login'), /min-height:\s*44px/)
+  assert.match(selectorBlock(activation, '.help-link-inline'), /min-height:\s*44px/)
+  assert.match(selectorBlock(purchaseCard, '.purchase-card-select'), /min-height:\s*44px/)
+  assert.match(selectorBlock(purchaseCard, '.purchase-card-select'), /min-width:\s*44px/)
+})
+
+test('checkout email field has an explicit label and invalid state wiring', async () => {
+  const checkout = await read('../src/views/shop/Checkout.vue')
+
+  assert.match(checkout, /<label class="input-label" for="checkout-email">/)
+  assert.match(checkout, /<input[\s\S]{0,400}id="checkout-email"/)
+  assert.match(checkout, /<input[\s\S]{0,500}:aria-invalid="Boolean\(emailError\)"/)
+  assert.match(checkout, /aria-describedby="checkout-email-help checkout-email-error"/)
+  assert.match(checkout, /id="checkout-email-error"[^>]*role="alert"/)
+})
+
+test('purchase cards use sibling selection and buy controls without interactive nesting', async () => {
+  const source = await read('../src/components/PurchaseCard.vue')
+  const { descriptor } = parse(source, { filename: 'PurchaseCard.vue' })
+  assert.ok(descriptor.template)
+  const result = compileTemplate({
+    source: descriptor.template.content,
+    filename: 'PurchaseCard.vue',
+    id: 'purchase-card-accessibility',
+  })
+
+  assert.deepEqual(result.errors, [])
+  assert.match(source, /<article[\s\S]{0,180}:class="\['purchase-card'/)
+  assert.doesNotMatch(source, /<article[^>]*(?:role="button"|tabindex="0")/)
+  assert.match(source, /<button[\s\S]{0,240}class="purchase-card-select"[\s\S]{0,240}@click\.stop="handleSelect"/)
+  assert.match(source, /class="purchase-card-select"[\s\S]*<\/button>[\s\S]*<button[\s\S]*commerce-primary-action/)
+  assert.match(source, /emit\('select'\)/)
+  assert.match(source, /emit\('buy'\)/)
+  assert.match(source, /emit\('loadMoreBundleItems'\)/)
+})
