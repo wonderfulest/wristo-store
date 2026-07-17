@@ -239,6 +239,38 @@ test('category browse states are actionable, localized and preserve filtering se
   assert.match(i18n, /zh:\s*\{[\s\S]*'category\.collection':/)
 })
 
+test('category filters use explicit numeric product fields and never infer style from names', async () => {
+  const categories = await read('../src/views/products/Categories.vue')
+
+  assert.doesNotMatch(categories, /productSearchText|designId/)
+  assert.doesNotMatch(categories, /'amoled'|'minimal'|'analog'|'data'/)
+  assert.match(categories, /type CategoryFilterValue = 'all' \| 'free' \| 'popular'/)
+  assert.match(categories, /Number\(product\.price \|\| 0\) === 0/)
+  assert.match(categories, /Number\(product\.download \|\| 0\)/)
+})
+
+test('category load-more errors remain retryable and never render as the end state', async () => {
+  const categories = await read('../src/views/products/Categories.vue')
+
+  assert.match(categories, /const loadMoreError = ref\(false\)/)
+  assert.match(categories, /const failedPage = ref<number \| null>\(null\)/)
+  assert.match(categories, /@click="loadMore"/)
+  assert.match(categories, /v-if="loadMoreError && products\.length > 0"[^>]*role="alert"/)
+  assert.match(categories, /!loadMoreError && !hasMore/)
+  assert.doesNotMatch(categories, /currentPage\.value\+\+/)
+})
+
+test('active category controls retain the shared visible focus ring', async () => {
+  const categories = await read('../src/views/products/Categories.vue')
+
+  const sortFocusBlock = categories.match(/\.category-sort-btn:focus-visible\s*\{([^}]*)\}/s)?.[1] ?? ''
+  const filterFocusBlock = categories.match(/\.category-filter-chip:focus-visible\s*\{([^}]*)\}/s)?.[1] ?? ''
+  assert.match(sortFocusBlock, /box-shadow:\s*var\(--focus-ring\);/)
+  assert.match(filterFocusBlock, /box-shadow:\s*var\(--focus-ring\);/)
+  assert.match(categories, /\.category-sort-btn\.active:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\);/s)
+  assert.match(categories, /\.category-filter-chip\.active:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\);/s)
+})
+
 test('browse grids keep five, four, three and two columns without collapsing narrow phones', async () => {
   const sources = await Promise.all([
     '../src/views/products/Categories.vue',

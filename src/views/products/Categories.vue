@@ -175,8 +175,13 @@
     </div>
     
     <!-- No more data tip -->
-    <div v-if="!loading && !hasMore && filteredProducts.length > 0" class="no-more-tip" role="status">
+    <div v-if="!loading && !loadMoreError && !hasMore && filteredProducts.length > 0" class="no-more-tip" role="status">
       <p>{{ t('category.end') }}</p>
+    </div>
+
+    <div v-if="loadMoreError && products.length > 0" class="load-more-error" role="alert">
+      <span>{{ t('category.loadMoreError') }}</span>
+      <button type="button" class="state-action-btn" @click="loadMore">{{ t('category.retry') }}</button>
     </div>
 
     <div v-if="loadError && products.length === 0 && !loading" class="state-card" role="alert">
@@ -221,6 +226,12 @@ import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue
 import { Icon } from '@iconify/vue'
 import { absoluteUrl, applySeo } from '@/seo'
 import { useI18n } from '@/i18n'
+import {
+  beginCategoryPageRequest,
+  commitCategoryPageFailure,
+  commitCategoryPageSuccess,
+  type CategoryPageState,
+} from './categoryBrowseState'
 
 const route = useRoute()
 const router = useRouter()
@@ -232,7 +243,9 @@ const products = ref<ProductBaseVO[]>([])
 const adminMetricsMap = ref<Map<number, ProductStoreMetricsVO | null>>(new Map())
 const loading = ref(false)
 const loadError = ref(false)
+const loadMoreError = ref(false)
 const currentPage = ref(1)
+const failedPage = ref<number | null>(null)
 const hasMore = ref(true)
 const pageSize = 24
 let scrollTimeout: number | null = null
@@ -251,16 +264,12 @@ const sortOptions: { label: string; value: CategoryProductOrderBy }[] = [
   { label: 'Most downloaded', value: 'download:desc' },
   { label: 'Top rated', value: 'rating:desc,download:desc' },
 ]
-type CategoryFilterValue = 'all' | 'amoled' | 'data' | 'analog' | 'minimal' | 'budget' | 'rated'
-const filterOptions: { label: string; value: CategoryFilterValue }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'AMOLED', value: 'amoled' },
-  { label: 'Data-rich', value: 'data' },
-  { label: 'Analog', value: 'analog' },
-  { label: 'Minimal', value: 'minimal' },
-  { label: 'Under $2', value: 'budget' },
-  { label: '4.5+ rating', value: 'rated' },
-]
+type CategoryFilterValue = 'all' | 'free' | 'popular'
+const filterOptions = computed<{ label: string; value: CategoryFilterValue }[]>(() => [
+  { label: t('category.filterAll'), value: 'all' },
+  { label: t('category.filterFree'), value: 'free' },
+  { label: t('category.filterPopular'), value: 'popular' },
+])
 
 const normalizeOrderBy = (value: unknown): CategoryProductOrderBy => {
   return value === 'rating' || value === 'rating:desc,download:desc'
@@ -287,30 +296,30 @@ const categoryAccent = computed(() => {
 
 const normalizeFilter = (value: unknown): CategoryFilterValue => {
   const raw = Array.isArray(value) ? value[0] : value
-  return filterOptions.some((option) => option.value === raw)
+  return filterOptions.value.some((option) => option.value === raw)
     ? raw as CategoryFilterValue
     : 'all'
 }
 
 const selectedFilter = computed(() => normalizeFilter(route.query.filter))
 
-const productSearchText = (product: ProductBaseVO) => {
-  return `${product.name || ''} ${product.designId || ''}`.toLowerCase()
-}
-
 const productMatchesFilter = (product: ProductBaseVO, filter: CategoryFilterValue) => {
   if (filter === 'all') return true
-  const text = productSearchText(product)
-  if (filter === 'amoled') return /amoled|black|neon|cyber|halo|night|dark/.test(text)
-  if (filter === 'data') return /data|digital|weather|sport|metric|dashboard|utility|calendar|health/.test(text)
-  if (filter === 'analog') return /analog|classic|hand|dial|pointer/.test(text)
-  if (filter === 'minimal') return /minimal|simple|clean|strokes|daily|plain/.test(text)
-  if (filter === 'budget') return Number(product.price || 0) <= 2
-  if (filter === 'rated') {
-    const rating = Number(product.averageRating ?? product.score ?? 0)
-    return Number.isFinite(rating) && rating >= 4.5
-  }
+  if (filter === 'free') return Number(product.price || 0) === 0
+  if (filter === 'popular') return Number(product.download || 0) >= 1000
   return true
+}
+
+const getPageState = (): CategoryPageState => ({
+  currentPage: currentPage.value,
+  failedPage: failedPage.value,
+  hasMore: hasMore.value,
+})
+
+const applyPageState = (state: CategoryPageState) => {
+  currentPage.value = state.currentPage
+  failedPage.value = state.failedPage
+  hasMore.value = state.hasMore
 }
 
 const filteredProducts = computed(() => {
@@ -467,14 +476,18 @@ const createCategory = async () => {
 
 const fetchSeriesAndProducts = async (reset = true) => {
   loadError.value = false
+  loadMoreError.value = false
   if (reset) {
     // 重置状态
     products.value = []
     adminMetricsMap.value = new Map()
     currentPage.value = 1
+    failedPage.value = null
     hasMore.value = true
   }
-  
+
+  const pageState = getPageState()
+  const request = beginCategoryPageRequest(pageState, reset)
   loading.value = true
 
   try {
@@ -487,7 +500,7 @@ const fetchSeriesAndProducts = async (reset = true) => {
     if (series.value) {
       const response: PageResult<ProductBaseVO> = await getProductsByCategory(
         slug, 
-        currentPage.value, 
+        request.page,
         pageSize,
         selectedOrderBy.value
       )
@@ -501,19 +514,23 @@ const fetchSeriesAndProducts = async (reset = true) => {
 
       applyCategorySeo()
       
-      // 检查是否还有更多数据
-      hasMore.value = (response.list?.length || 0) === pageSize
+      applyPageState(commitCategoryPageSuccess(pageState, request, response.list?.length || 0, pageSize))
     } else {
       products.value = []
+      failedPage.value = null
       hasMore.value = false
     }
   } catch (error) {
-    loadError.value = true
     console.error('Failed to fetch products:', error)
     if (reset) {
+      loadError.value = true
       products.value = []
+      failedPage.value = null
+      hasMore.value = false
+    } else {
+      loadMoreError.value = true
+      applyPageState(commitCategoryPageFailure(pageState, request))
     }
-    hasMore.value = false
   } finally {
     loading.value = false
   }
@@ -546,8 +563,6 @@ const handleRemovedFromCurrentCategory = (appId: number) => {
 
 const loadMore = async () => {
   if (loading.value || !hasMore.value) return
-  
-  currentPage.value++
   await fetchSeriesAndProducts(false)
 }
 
@@ -614,7 +629,7 @@ const handleScroll = () => {
     // 更宽松的触发条件：滚动到60%时触发加载，或者距离底部400px时触发
     const shouldLoad = scrollProgress >= 0.6 || remainingHeight <= 400
     
-    if (shouldLoad && !loading.value && hasMore.value) {
+    if (shouldLoad && !loading.value && !loadMoreError.value && hasMore.value) {
       console.log('Auto loading more apps triggered')
       loadMore()
     }
@@ -666,7 +681,7 @@ onMounted(() => {
   
   // 定期检查是否需要加载更多（备用方案）
   const checkInterval = setInterval(() => {
-    if (!loading.value && hasMore.value) {
+    if (!loading.value && !loadMoreError.value && hasMore.value) {
       const scrollTop = Math.max(
         window.pageYOffset,
         document.documentElement.scrollTop,
@@ -891,16 +906,25 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.category-sort-btn:hover,
+.category-sort-btn:hover {
+  color: var(--color-brand-strong);
+  outline: none;
+}
+
 .category-sort-btn:focus-visible {
   color: var(--color-brand-strong);
   outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .category-sort-btn.active {
   background: var(--color-brand);
   color: #fff;
   box-shadow: 0 8px 18px rgba(15, 107, 104, 0.18);
+}
+
+.category-sort-btn.active:focus-visible {
+  box-shadow: var(--focus-ring);
 }
 
 .category-filter-row {
@@ -927,12 +951,18 @@ onBeforeUnmount(() => {
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
 }
 
-.category-filter-chip:hover,
-.category-filter-chip:focus-visible {
+.category-filter-chip:hover {
   transform: translateY(-1px);
   border-color: rgba(15, 107, 104, 0.26);
   color: var(--color-brand-strong);
   outline: none;
+}
+
+.category-filter-chip:focus-visible {
+  border-color: rgba(15, 107, 104, 0.26);
+  color: var(--color-brand-strong);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .category-filter-chip.active {
@@ -940,6 +970,10 @@ onBeforeUnmount(() => {
   border-color: var(--color-brand);
   color: #fff;
   box-shadow: 0 8px 18px rgba(15, 107, 104, 0.18);
+}
+
+.category-filter-chip.active:focus-visible {
+  box-shadow: var(--focus-ring);
 }
 
 .admin-category-panel {
@@ -1299,6 +1333,16 @@ onBeforeUnmount(() => {
   color: var(--color-muted);
   margin: 0;
   font-weight: 500;
+}
+
+.load-more-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  color: var(--color-muted);
+  text-align: center;
 }
 
 @media (max-width: 1200px) {
