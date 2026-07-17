@@ -811,23 +811,15 @@ h1 {
 }
 
 .checkout-btn {
-  min-height: 48px;
+  --commerce-primary-width: 100%;
+  --commerce-primary-disabled-cursor: wait;
+  --commerce-primary-disabled-opacity: 0.72;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 999px;
-  background: var(--color-brand);
-  color: #fff;
-  font-weight: 800;
 }
 
-.checkout-btn:disabled {
-  cursor: wait;
-  opacity: 0.72;
-}
-
-.checkout-btn:focus-visible,
 .browse-btn:focus-visible,
 .recommend-search-btn:focus-visible,
 .remove-btn:focus-visible,
@@ -877,7 +869,7 @@ h1 {
   }
 
   .checkout-btn {
-    width: 100%;
+    --commerce-primary-mobile-width: 100%;
   }
 
   .inline-checkout-shell {

@@ -19,6 +19,18 @@ const selectorBlock = (source, selector) => {
   return source.match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`, 's'))?.[1] ?? ''
 }
 
+const declarationsForSelector = (source, selector, includeStates = true) => {
+  const style = source.match(/<style\s+scoped>([\s\S]*?)<\/style>/)?.[1] ?? source
+  const declarations = []
+  for (const match of style.matchAll(/(?:^|})\s*([^{}]+)\{([^{}]*)\}/gm)) {
+    const selectors = match[1].split(',').map((value) => value.trim())
+    if (selectors.some((value) => value === selector || (includeStates && value.startsWith(`${selector}:`)))) {
+      declarations.push(...[...match[2].matchAll(/^\s*([\w-]+)\s*:/gm)].map(([, property]) => property))
+    }
+  }
+  return declarations.filter((property) => !property.startsWith('--'))
+}
+
 const cssVariables = (source) => Object.fromEntries(
   [...source.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map(([, name, value]) => [name, value.trim()]),
 )
@@ -107,25 +119,35 @@ test('mobile product action presentation only exposes executable actions', async
 })
 
 test('mobile transaction layer is shared and remains above the footer without a layout trap', async () => {
-  const [css, layout, footer, header, mobileActionBar] = await Promise.all([
+  const [css, layout, footer, header, floatingActions, mobileActionBar] = await Promise.all([
     read('../src/style.css'),
     read('../src/components/Layout.vue'),
     read('../src/components/Footer.vue'),
     read('../src/components/Header.vue'),
+    read('../src/components/FloatingActions/FloatingActions.vue'),
     read('../src/components/storefront/MobileProductActionBar.vue'),
   ])
   const variables = cssVariables(css)
 
   assert.match(css, /--layer-footer:\s*\d+;/)
   assert.match(css, /--layer-mobile-transaction:\s*\d+;/)
+  assert.match(css, /--layer-floating-actions:\s*\d+;/)
   assert.match(css, /--layer-header:\s*\d+;/)
+  assert.match(css, /--layer-header-overlay:\s*\d+;/)
   assert.match(css, /--layer-header-menu:\s*\d+;/)
   assert.ok(Number(variables['--layer-mobile-transaction']) > Number(variables['--layer-footer']))
+  assert.ok(Number(variables['--layer-floating-actions']) > Number(variables['--layer-mobile-transaction']))
+  assert.ok(Number(variables['--layer-header']) > Number(variables['--layer-floating-actions']))
+  assert.ok(Number(variables['--layer-header-overlay']) > Number(variables['--layer-floating-actions']))
   assert.ok(Number(variables['--layer-header']) > Number(variables['--layer-mobile-transaction']))
   assert.ok(Number(variables['--layer-header-menu']) > Number(variables['--layer-header']))
   assert.match(selectorBlock(footer, '.footer'), /z-index:\s*var\(--layer-footer\)/)
   assert.match(selectorBlock(mobileActionBar, '.mobile-product-action-bar'), /z-index:\s*var\(--layer-mobile-transaction\)/)
+  assert.match(selectorBlock(floatingActions, '.floating-actions'), /z-index:\s*var\(--layer-floating-actions\)/)
+  assert.match(floatingActions, /<Teleport\s+to="body">/)
+  assert.doesNotMatch(floatingActions, /z-index:\s*9999/)
   assert.match(selectorBlock(header, '.header-bar'), /z-index:\s*var\(--layer-header\)/)
+  assert.match(selectorBlock(header, '.mobile-overlay'), /z-index:\s*var\(--layer-header-overlay\)/)
   assert.match(selectorBlock(header, '.mobile-nav'), /z-index:\s*var\(--layer-header-menu\)/)
   assert.doesNotMatch(selectorBlock(layout, '.layout-main'), /isolation:\s*isolate/)
 })
@@ -165,7 +187,7 @@ test('series counts, category sorting and popularity labels are localized in Eng
   ])
 
   assert.doesNotMatch(seriesCard, /\{\{\s*series\.appCount\s*\}\}\s*apps/)
-  assert.match(seriesCard, /t\('series\.appCount',\s*\{\s*count:\s*series\.appCount\s*\}\)/)
+  assert.match(seriesCard, /formatSeriesAppCount\(series\.appCount\)/)
   assert.doesNotMatch(categories, /Most downloaded|Top rated/)
   assert.match(categories, /t\('category\.sortMostDownloaded'\)/)
   assert.match(categories, /t\('category\.sortTopRated'\)/)
@@ -173,7 +195,8 @@ test('series counts, category sorting and popularity labels are localized in Eng
   assert.match(productCard, /:aria-label="t\('product\.popularityAria'\)"/)
 
   for (const key of [
-    'series.appCount',
+    'series.appCount.one',
+    'series.appCount.other',
     'category.sortMostDownloaded',
     'category.sortTopRated',
     'product.popularityAria',
@@ -181,6 +204,68 @@ test('series counts, category sorting and popularity labels are localized in Eng
     const escaped = key.replaceAll('.', '\\.')
     assert.match(i18n, new RegExp(`const en = \\{[\\s\\S]*'${escaped}':`))
     assert.match(i18n, new RegExp(`zh:\\s*\\{[\\s\\S]*'${escaped}':`))
+  }
+  assert.match(i18n, /'series\.appCount\.one':\s*'\{count\} app'/)
+  assert.match(i18n, /'series\.appCount\.other':\s*'\{count\} apps'/)
+})
+
+test('commerce consumers inherit core page, panel and primary-action declarations', async () => {
+  const consumers = Object.fromEntries(await Promise.all([
+    ['checkout', '../src/views/shop/Checkout.vue'],
+    ['activation', '../src/views/shop/AlreadyPurchased.vue'],
+    ['success', '../src/views/shop/Success.vue'],
+    ['purchaseOptions', '../src/views/shop/PurchaseOptions.vue'],
+    ['cartPage', '../src/views/user-center/CartListPage.vue'],
+    ['cart', '../src/views/user-center/CartList.vue'],
+    ['purchaseCard', '../src/components/PurchaseCard.vue'],
+  ].map(async ([name, path]) => [name, await read(path)])))
+
+  const pageCore = new Set(['width', 'max-width', 'padding', 'padding-inline', 'padding-block'])
+  for (const [consumer, selector] of [
+    ['checkout', '.checkout'],
+    ['activation', '.already-purchased-page'],
+    ['success', '.success-page'],
+    ['purchaseOptions', '.purchase-options'],
+    ['cartPage', '.cart-page-shell'],
+  ]) {
+    const duplicates = declarationsForSelector(consumers[consumer], selector, false)
+      .filter((property) => pageCore.has(property))
+    assert.deepEqual(duplicates, [], `${consumer} ${selector} must inherit commerce-page sizing and gutters`)
+  }
+
+  const panelCore = new Set(['background', 'background-color', 'border', 'border-radius', 'box-shadow'])
+  for (const [consumer, selector] of [
+    ['activation', '.content-container'],
+    ['checkout', '.checkout-main'],
+    ['purchaseOptions', '.cards-container'],
+    ['success', '.success-hero'],
+    ['success', '.confirmation-panel'],
+    ['success', '.order-panel'],
+    ['success', '.account-panel'],
+    ['cartPage', '.cart-list-page'],
+  ]) {
+    const duplicates = declarationsForSelector(consumers[consumer], selector, false)
+      .filter((property) => panelCore.has(property))
+    assert.deepEqual(duplicates, [], `${consumer} ${selector} must inherit commerce-panel surface`)
+  }
+
+  const actionCore = new Set([
+    'width', 'min-height', 'padding', 'border', 'border-color', 'border-radius',
+    'background', 'background-color', 'color', 'box-shadow', 'transition', 'outline',
+    'outline-offset', 'cursor', 'opacity', 'transform', 'filter', 'font-size', 'font-weight',
+  ])
+  for (const [consumer, selector] of [
+    ['checkout', '.purchase-btn'],
+    ['activation', '.activation-btn'],
+    ['success', '.primary-action'],
+    ['cart', '.checkout-btn'],
+    ['purchaseCard', '.buy-btn'],
+    ['purchaseCard', '.buy-btn-bundle'],
+    ['purchaseCard', '.buy-btn-product'],
+  ]) {
+    const duplicates = declarationsForSelector(consumers[consumer], selector)
+      .filter((property) => actionCore.has(property))
+    assert.deepEqual(duplicates, [], `${consumer} ${selector} must inherit commerce-primary-action styling`)
   }
 })
 
@@ -192,19 +277,19 @@ test('shared commerce selectors define the real responsive and accessible visual
   const actionFocus = selectorBlock(css, '.commerce-primary-action:focus-visible')
   const actionDisabled = selectorBlock(css, '.commerce-primary-action:disabled')
 
-  assert.match(page, /width:\s*min\(100%,\s*var\(--container\)\)/)
-  assert.match(page, /padding-inline:\s*var\(--page-gutter\)/)
-  assert.match(panel, /background:\s*var\(--color-surface\)/)
-  assert.match(panel, /border:\s*1px solid var\(--color-line\)/)
-  assert.match(panel, /border-radius:\s*var\(--radius-(?:md|lg)\)/)
-  assert.match(panel, /box-shadow:\s*var\(--shadow-(?:sm|md)\)/)
-  assert.match(action, /min-height:\s*(?:44|48)px/)
-  assert.match(action, /background:\s*var\(--color-brand\)/)
-  assert.match(action, /color:\s*#fff(?:fff)?/i)
+  assert.match(page, /width:\s*min\(100%,\s*var\(--commerce-page-width,\s*var\(--container\)\)\)/)
+  assert.match(page, /padding-inline:\s*var\(--commerce-page-gutter,\s*var\(--page-gutter\)\)/)
+  assert.match(panel, /background:\s*var\(--commerce-panel-background,\s*var\(--color-surface\)\)/)
+  assert.match(panel, /border:\s*var\(--commerce-panel-border,\s*1px solid var\(--color-line\)\)/)
+  assert.match(panel, /border-radius:\s*var\(--commerce-panel-radius,\s*var\(--radius-lg\)\)/)
+  assert.match(panel, /box-shadow:\s*var\(--commerce-panel-shadow,\s*var\(--shadow-md\)\)/)
+  assert.match(action, /min-height:\s*var\(--commerce-primary-min-height,\s*48px\)/)
+  assert.match(action, /background:\s*var\(--commerce-primary-background,\s*var\(--color-brand\)\)/)
+  assert.match(action, /color:\s*var\(--commerce-primary-color,\s*#fff\)/i)
   assert.match(action, /transition:/)
   assert.match(actionFocus, /box-shadow:\s*var\(--focus-ring\)/)
-  assert.match(actionDisabled, /cursor:\s*not-allowed/)
-  assert.match(actionDisabled, /opacity:/)
+  assert.match(actionDisabled, /cursor:\s*var\(--commerce-primary-disabled-cursor,\s*not-allowed\)/)
+  assert.match(actionDisabled, /opacity:\s*var\(--commerce-primary-disabled-opacity,/)
   assert.match(css, /@media\s*\(max-width:\s*768px\)[\s\S]*?\.commerce-page\s*\{/)
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.commerce-primary-action\s*\{[^}]*transition(?:-duration)?:\s*(?:none|0\.01ms)/s)
 })

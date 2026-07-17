@@ -188,6 +188,11 @@ function handleResendCode() {
 
 <style scoped>
 .already-purchased-page {
+  --commerce-page-width: 100%;
+  --commerce-page-padding-block: 20px;
+  --commerce-page-gutter: 20px;
+  --commerce-page-mobile-padding-block: 16px;
+  --commerce-page-mobile-gutter: 16px;
   min-height: calc(100dvh - 64px - 58px - 40px);
   display: flex;
   align-items: center;
@@ -197,21 +202,21 @@ function handleResendCode() {
     radial-gradient(circle at 18% 0%, rgba(15, 107, 104, 0.12), transparent 28rem),
     radial-gradient(circle at 92% 8%, rgba(245, 158, 11, 0.14), transparent 24rem),
     linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 100%);
-  padding: 20px;
   box-sizing: border-box;
   overflow: visible;
 }
 
 .content-container {
-  background:
+  --commerce-panel-background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(248, 250, 252, 0.94));
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 24px;
-  box-shadow:
+  --commerce-panel-border: 1px solid rgba(15, 23, 42, 0.08);
+  --commerce-panel-radius: 24px;
+  --commerce-panel-mobile-radius: 20px;
+  --commerce-panel-shadow:
     0 24px 70px rgba(15, 23, 42, 0.10),
     0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 36px;
   width: 100%;
   max-width: 540px;
@@ -401,54 +406,36 @@ function handleResendCode() {
 }
 
 .activation-btn {
+  --commerce-primary-width: 100%;
+  --commerce-primary-min-height: 58px;
+  --commerce-primary-padding: 14px 18px;
+  --commerce-primary-border: 0;
+  --commerce-primary-radius: 16px;
+  --commerce-primary-background:
+    linear-gradient(135deg, #0f6b68 0%, #0b827d 52%, #f59e0b 100%);
+  --commerce-primary-shadow:
+    0 18px 42px rgba(15, 107, 104, 0.26),
+    0 10px 24px rgba(245, 158, 11, 0.20),
+    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+  --commerce-primary-hover-shadow:
+    0 22px 56px rgba(15, 107, 104, 0.30),
+    0 16px 34px rgba(245, 158, 11, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+  --commerce-primary-hover-transform: translateY(-2px);
+  --commerce-primary-hover-filter: saturate(1.05);
+  --commerce-primary-disabled-background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+  --commerce-primary-disabled-opacity: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 58px;
-  background:
-    linear-gradient(135deg, #0f6b68 0%, #0b827d 52%, #f59e0b 100%);
-  color: #fff;
-  border: none;
-  border-radius: 16px;
-  padding: 14px 18px;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease, background 180ms ease;
   letter-spacing: 0;
-  width: 100%;
   margin-top: 2px;
-  box-shadow:
-    0 18px 42px rgba(15, 107, 104, 0.26),
-    0 10px 24px rgba(245, 158, 11, 0.20),
-    0 0 0 1px rgba(255, 255, 255, 0.22) inset;
 }
 
 .activation-btn :deep(svg) {
   width: 20px;
   height: 20px;
-}
-
-.activation-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  filter: saturate(1.05);
-  box-shadow:
-    0 22px 56px rgba(15, 107, 104, 0.30),
-    0 16px 34px rgba(245, 158, 11, 0.24),
-    0 0 0 1px rgba(255, 255, 255, 0.28) inset;
-}
-
-.activation-btn:focus-visible {
-  outline: 3px solid rgba(15, 107, 104, 0.28);
-  outline-offset: 4px;
-}
-
-.activation-btn:disabled {
-  background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
 .message {
@@ -517,13 +504,12 @@ function handleResendCode() {
 @media (prefers-reduced-motion: reduce) {
   .email-input,
   .code-input,
-  .help-link-inline,
-  .activation-btn {
+  .help-link-inline {
     transition: none;
   }
 
-  .activation-btn:hover:not(:disabled) {
-    transform: none;
+  .activation-btn {
+    --commerce-primary-hover-transform: none;
   }
 
   .loading-spinner {
@@ -535,14 +521,15 @@ function handleResendCode() {
   .already-purchased-page {
     align-items: flex-start;
     min-height: 100dvh;
-    padding: 16px;
+    --commerce-page-mobile-padding-block: 16px;
+    --commerce-page-mobile-gutter: 16px;
   }
 
   .content-container {
     padding: 28px 22px;
     gap: 16px;
     max-width: 100%;
-    border-radius: 20px;
+    --commerce-panel-mobile-radius: 20px;
   }
 
   .code-logo {
@@ -557,14 +544,15 @@ function handleResendCode() {
 
 @media (max-width: 480px) {
   .already-purchased-page {
+    --commerce-page-mobile-padding-block: 12px;
+    --commerce-page-mobile-gutter: 12px;
     min-height: 100dvh;
-    padding: 12px;
   }
 
   .content-container {
+    --commerce-panel-mobile-radius: 16px;
     padding: 22px 16px;
     gap: 12px;
-    border-radius: 16px;
   }
 
   .code-logo {
@@ -606,9 +594,9 @@ function handleResendCode() {
   }
   
   .activation-btn {
-    min-height: 50px;
-    padding: 10px 14px;
-    font-size: 0.94rem;
+    --commerce-primary-mobile-min-height: 50px;
+    --commerce-primary-padding: 10px 14px;
+    --commerce-primary-font-size: 0.94rem;
   }
 
   .message {

@@ -86,7 +86,7 @@ const handleClick = () => {
   position: fixed;
   right: 16px;
   bottom: 48px;
-  z-index: 9999;
+  z-index: var(--layer-floating-actions);
 
   display: flex;
   flex-direction: column;

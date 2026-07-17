@@ -601,9 +601,12 @@ watch(
 
 <style scoped>
 .purchase-options {
-  max-width: 1400px;
+  --commerce-page-width: 1400px;
+  --commerce-page-padding-block: 40px 56px;
+  --commerce-page-gutter: 16px;
+  --commerce-page-mobile-padding-block: 28px 80px;
+  --commerce-page-mobile-gutter: 16px;
   margin: 0px auto 40px;
-  padding: 40px 16px 56px;
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
   color: #171717;
@@ -818,7 +821,8 @@ watch(
 
 @media (max-width: 768px) {
   .purchase-options {
-    padding: 28px 16px 80px 16px;
+    --commerce-page-mobile-padding-block: 28px 80px;
+    --commerce-page-mobile-gutter: 16px;
   }
   
   .cards-container {
@@ -860,7 +864,8 @@ watch(
 
 @media (max-width: 480px) {
   .purchase-options {
-    padding: 16px 12px 100px 12px;
+    --commerce-page-mobile-padding-block: 16px 100px;
+    --commerce-page-mobile-gutter: 12px;
   }
   
   .cards-container {
@@ -897,7 +902,8 @@ watch(
 
 @media (max-width: 360px) {
   .purchase-options {
-    padding: 16px 8px 100px 8px;
+    --commerce-page-mobile-padding-block: 16px 100px;
+    --commerce-page-mobile-gutter: 8px;
   }
   
   .cards-container {
@@ -1240,7 +1246,8 @@ watch(
   }
   
   .purchase-options {
-    padding: 24px 12px 60px;
+    --commerce-page-mobile-padding-block: 24px 60px;
+    --commerce-page-mobile-gutter: 12px;
   }
   
   .title {

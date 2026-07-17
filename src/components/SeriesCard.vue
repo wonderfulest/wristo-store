@@ -8,7 +8,7 @@
     <span class="series-card__body">
       <strong>{{ series.name }}</strong>
       <span v-if="series.publicTagline" class="series-card__tagline">{{ series.publicTagline }}</span>
-      <span v-if="series.appCount != null" class="series-card__count">{{ t('series.appCount', { count: series.appCount }) }}</span>
+      <span v-if="series.appCount != null" class="series-card__count">{{ formatSeriesAppCount(series.appCount) }}</span>
     </span>
     <span class="series-card__arrow" aria-hidden="true">&#8599;</span>
   </button>
@@ -28,6 +28,10 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const formatSeriesAppCount = (count: number) => t(
+  count === 1 ? 'series.appCount.one' : 'series.appCount.other',
+  { count },
+)
 </script>
 
 <style scoped>

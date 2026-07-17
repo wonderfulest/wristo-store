@@ -365,11 +365,11 @@ test('commerce journey shares an accessible transaction shell without changing c
   for (const source of [cart, checkout, activation, success, purchaseCard]) {
     assert.match(source, /commerce-primary-action/)
   }
-  assert.match(css, /\.commerce-page\s*\{[^}]*width:\s*min\(100%,\s*var\(--container\)\);[^}]*padding-inline:\s*var\(--page-gutter\);/s)
-  assert.match(css, /\.commerce-panel\s*\{[^}]*border:\s*1px solid var\(--color-line\);[^}]*background:\s*var\(--color-surface\);[^}]*box-shadow:\s*var\(--shadow-md\);/s)
-  assert.match(css, /\.commerce-primary-action\s*\{[^}]*min-height:\s*48px;[^}]*background:\s*var\(--color-brand\);[^}]*transition:/s)
+  assert.match(css, /\.commerce-page\s*\{[^}]*width:\s*min\(100%,\s*var\(--commerce-page-width,\s*var\(--container\)\)\);[^}]*padding-inline:\s*var\(--commerce-page-gutter,\s*var\(--page-gutter\)\);/s)
+  assert.match(css, /\.commerce-panel\s*\{[^}]*border:\s*var\(--commerce-panel-border,[^;]+;[^}]*background:\s*var\(--commerce-panel-background,[^;]+;[^}]*box-shadow:\s*var\(--commerce-panel-shadow,[^;]+;/s)
+  assert.match(css, /\.commerce-primary-action\s*\{[^}]*min-height:\s*var\(--commerce-primary-min-height,\s*48px\);[^}]*background:\s*var\(--commerce-primary-background,[^;]+;[^}]*transition:/s)
   assert.match(css, /\.commerce-primary-action:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\);/s)
-  assert.match(css, /\.commerce-primary-action:disabled\s*\{[^}]*cursor:\s*not-allowed;[^}]*opacity:/s)
+  assert.match(css, /\.commerce-primary-action:disabled\s*\{[^}]*cursor:\s*var\(--commerce-primary-disabled-cursor,\s*not-allowed\);[^}]*opacity:\s*var\(--commerce-primary-disabled-opacity,/s)
 
   assert.match(cart, /checkCartPurchases/)
   assert.match(cart, /checkout\(items, email/)

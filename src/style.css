@@ -57,6 +57,7 @@
   --header-height: 72px;
   --layer-footer: 20;
   --layer-mobile-transaction: 30;
+  --layer-floating-actions: 35;
   --layer-header: 40;
   --layer-header-overlay: 41;
   --layer-header-menu: 42;
@@ -107,33 +108,48 @@ a:hover {
 
 .commerce-page {
   box-sizing: border-box;
-  width: min(100%, var(--container));
+  width: min(100%, var(--commerce-page-width, var(--container)));
   margin-inline: auto;
-  padding-block: var(--space-section);
-  padding-inline: var(--page-gutter);
+  padding-block: var(--commerce-page-padding-block, var(--space-section));
+  padding-inline: var(--commerce-page-gutter, var(--page-gutter));
 }
 
 .commerce-panel {
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
+  border: var(--commerce-panel-border, 1px solid var(--color-line));
+  border-radius: var(--commerce-panel-radius, var(--radius-lg));
+  background: var(--commerce-panel-background, var(--color-surface));
+  box-shadow: var(--commerce-panel-shadow, var(--shadow-md));
 }
 
 .commerce-primary-action {
-  min-height: 48px;
-  border: 1px solid var(--color-brand);
-  border-radius: 999px;
-  background: var(--color-brand);
-  color: #fff;
+  width: var(--commerce-primary-width, auto);
+  min-height: var(--commerce-primary-min-height, 48px);
+  padding: var(--commerce-primary-padding, 0 18px);
+  border: var(--commerce-primary-border, 1px solid var(--color-brand));
+  border-radius: var(--commerce-primary-radius, 999px);
+  background: var(--commerce-primary-background, var(--color-brand));
+  color: var(--commerce-primary-color, #fff);
+  box-shadow: var(--commerce-primary-shadow, none);
   font: inherit;
-  font-weight: 800;
-  transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, transform var(--motion-fast) ease;
+  font-size: var(--commerce-primary-font-size, 1rem);
+  font-weight: var(--commerce-primary-font-weight, 800);
+  cursor: pointer;
+  transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, color var(--motion-fast) ease, filter var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
 .commerce-primary-action:hover:not(:disabled) {
-  border-color: var(--color-brand-hover);
-  background: var(--color-brand-hover);
+  border-color: var(--commerce-primary-hover-border-color, var(--color-brand-hover));
+  background: var(--commerce-primary-hover-background, var(--color-brand-hover));
+  color: var(--commerce-primary-hover-color, var(--commerce-primary-color, #fff));
+  box-shadow: var(--commerce-primary-hover-shadow, var(--commerce-primary-shadow, none));
+  filter: var(--commerce-primary-hover-filter, none);
+  transform: var(--commerce-primary-hover-transform, translateY(-1px));
+}
+
+.commerce-primary-action:active:not(:disabled) {
+  background: var(--commerce-primary-active-background, var(--commerce-primary-hover-background, var(--color-brand-active)));
+  box-shadow: var(--commerce-primary-active-shadow, var(--commerce-primary-shadow, none));
+  transform: var(--commerce-primary-active-transform, translateY(0));
 }
 
 .commerce-primary-action:focus-visible {
@@ -142,8 +158,14 @@ a:hover {
 }
 
 .commerce-primary-action:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
+  border-color: var(--commerce-primary-disabled-border-color, transparent);
+  background: var(--commerce-primary-disabled-background, #94a3b8);
+  color: var(--commerce-primary-disabled-color, #fff);
+  box-shadow: var(--commerce-primary-disabled-shadow, none);
+  cursor: var(--commerce-primary-disabled-cursor, not-allowed);
+  opacity: var(--commerce-primary-disabled-opacity, 0.58);
+  filter: none;
+  transform: none;
 }
 
 body {
@@ -320,16 +342,17 @@ img {
 
 @media (max-width: 768px) {
   .commerce-page {
-    padding-block: var(--space-6);
-    padding-inline: var(--page-gutter);
+    padding-block: var(--commerce-page-mobile-padding-block, var(--commerce-page-padding-block, var(--space-6)));
+    padding-inline: var(--commerce-page-mobile-gutter, var(--commerce-page-gutter, var(--page-gutter)));
   }
 
   .commerce-panel {
-    border-radius: var(--radius-md);
+    border-radius: var(--commerce-panel-mobile-radius, var(--commerce-panel-radius, var(--radius-md)));
   }
 
   .commerce-primary-action {
-    width: 100%;
+    width: var(--commerce-primary-mobile-width, var(--commerce-primary-width, 100%));
+    min-height: var(--commerce-primary-mobile-min-height, var(--commerce-primary-min-height, 48px));
   }
 
   h1 {

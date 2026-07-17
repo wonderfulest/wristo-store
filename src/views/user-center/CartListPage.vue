@@ -15,15 +15,19 @@ import CartList from './CartList.vue'
 
 <style scoped>
 .cart-page-shell {
-  width: min(100% - 32px, 1180px);
+  --commerce-page-width: 1180px;
+  --commerce-page-padding-block: 0;
+  --commerce-page-gutter: 16px;
+  --commerce-page-mobile-padding-block: 0;
+  --commerce-page-mobile-gutter: 12px;
   margin: 48px auto 88px;
 }
 
 .cart-list-page {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  --commerce-panel-background: rgba(255, 255, 255, 0.92);
+  --commerce-panel-border: 1px solid var(--color-line);
+  --commerce-panel-radius: var(--radius-lg);
+  --commerce-panel-shadow: var(--shadow-md);
   padding: 32px;
 }
 
@@ -33,7 +37,8 @@ import CartList from './CartList.vue'
 
 @media (max-width: 640px) {
   .cart-page-shell {
-    width: min(100% - 24px, 860px);
+    --commerce-page-width: 860px;
+    --commerce-page-mobile-gutter: 12px;
     margin: 28px auto 64px;
   }
 

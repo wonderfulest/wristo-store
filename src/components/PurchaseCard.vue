@@ -844,77 +844,52 @@ onUnmounted(() => {
 
 /* 购买按钮 */
 .buy-btn {
-  border: none;
-  border-radius: 16px;
-  padding: 18px 2rem;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
+  --commerce-primary-width: 100%;
+  --commerce-primary-min-height: 56px;
+  --commerce-primary-padding: 18px 2rem;
+  --commerce-primary-border: 0;
+  --commerce-primary-radius: 16px;
+  --commerce-primary-font-size: 1rem;
+  --commerce-primary-font-weight: 700;
+  --commerce-primary-hover-transform: translateY(-2px);
   letter-spacing: 0;
   margin-top: auto;
-  width: 100%;
-  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease;
   flex-shrink: 0;
-  min-height: 56px;
   position: relative;
   overflow: hidden;
 }
 
 .buy-btn-bundle {
-  background: linear-gradient(135deg, #171717 0%, #2f2a20 55%, #8a6d1d 100%);
-  color: rgba(255, 255, 255, 0.98);
-  box-shadow:
+  --commerce-primary-background: linear-gradient(135deg, #171717 0%, #2f2a20 55%, #8a6d1d 100%);
+  --commerce-primary-color: rgba(255, 255, 255, 0.98);
+  --commerce-primary-shadow:
     0 18px 42px rgba(23, 23, 23, 0.22),
     0 16px 36px rgba(15, 23, 42, 0.16),
     0 0 0 1px rgba(255, 255, 255, 0.22) inset;
-}
-
-.buy-btn-product {
-  background: rgba(255, 255, 255, 0.88);
-  color: #171717;
-  border: 1px solid rgba(23, 23, 23, 0.18);
-  box-shadow:
-    0 12px 28px rgba(15, 23, 42, 0.10),
-    0 1px 0 rgba(255, 255, 255, 0.72) inset;
-}
-
-.buy-btn:hover {
-  transform: translateY(-2px);
-}
-
-.buy-btn:focus-visible {
-  outline: 3px solid rgba(212, 175, 55, 0.42);
-  outline-offset: 3px;
-}
-
-.buy-btn-bundle:hover {
-  box-shadow:
+  --commerce-primary-hover-background: linear-gradient(135deg, #171717 0%, #2f2a20 55%, #8a6d1d 100%);
+  --commerce-primary-hover-shadow:
     0 22px 56px rgba(23, 23, 23, 0.26),
     0 18px 48px rgba(15, 23, 42, 0.20),
     0 0 0 1px rgba(255, 255, 255, 0.28) inset;
-}
-
-.buy-btn-product:hover {
-  background: rgba(255, 255, 255, 0.94);
-  border-color: rgba(212, 175, 55, 0.48);
-  box-shadow:
-    0 16px 40px rgba(15, 23, 42, 0.12),
-    0 0 0 1px rgba(0, 122, 255, 0.10) inset;
-}
-
-.buy-btn:active {
-  transform: translateY(0);
-}
-
-.buy-btn-bundle:active {
-  box-shadow:
+  --commerce-primary-active-shadow:
     0 12px 30px rgba(0, 122, 255, 0.26),
     0 10px 26px rgba(0, 0, 0, 0.32),
     0 0 0 1px rgba(255, 255, 255, 0.18) inset;
 }
 
-.buy-btn-product:active {
-  box-shadow:
+.buy-btn-product {
+  --commerce-primary-background: rgba(255, 255, 255, 0.88);
+  --commerce-primary-color: #171717;
+  --commerce-primary-border: 1px solid rgba(23, 23, 23, 0.18);
+  --commerce-primary-shadow:
+    0 12px 28px rgba(15, 23, 42, 0.10),
+    0 1px 0 rgba(255, 255, 255, 0.72) inset;
+  --commerce-primary-hover-background: rgba(255, 255, 255, 0.94);
+  --commerce-primary-hover-border-color: rgba(212, 175, 55, 0.48);
+  --commerce-primary-hover-shadow:
+    0 16px 40px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(0, 122, 255, 0.10) inset;
+  --commerce-primary-active-shadow:
     0 10px 24px rgba(15, 23, 42, 0.10),
     0 0 0 1px rgba(0, 122, 255, 0.16) inset;
 }
@@ -977,11 +952,11 @@ onUnmounted(() => {
   }
   
   .buy-btn {
-    padding: 16px 1.5rem;
-    font-size: 1.05rem;
+    --commerce-primary-padding: 16px 1.5rem;
+    --commerce-primary-font-size: 1.05rem;
+    --commerce-primary-mobile-min-height: 52px;
+    --commerce-primary-radius: 12px;
     margin-top: 20px;
-    min-height: 52px;
-    border-radius: 12px;
   }
 }
 
@@ -1065,11 +1040,11 @@ onUnmounted(() => {
   }
   
   .buy-btn {
-    padding: 16px 1.2rem;
-    font-size: 1rem;
-    font-weight: 700;
-    min-height: 56px;
-    border-radius: 12px;
+    --commerce-primary-padding: 16px 1.2rem;
+    --commerce-primary-font-size: 1rem;
+    --commerce-primary-font-weight: 700;
+    --commerce-primary-mobile-min-height: 56px;
+    --commerce-primary-radius: 12px;
     margin-top: auto;
     margin-bottom: 0;
     letter-spacing: 0;
@@ -1119,9 +1094,9 @@ onUnmounted(() => {
   }
   
   .buy-btn {
-    padding: 14px 1rem;
-    font-size: 0.95rem;
-    min-height: 52px;
+    --commerce-primary-padding: 14px 1rem;
+    --commerce-primary-font-size: 0.95rem;
+    --commerce-primary-mobile-min-height: 52px;
   }
 }
 
@@ -1196,7 +1171,6 @@ onUnmounted(() => {
 @media (prefers-reduced-motion: reduce) {
   .purchase-card,
   .bundle-image-item,
-  .buy-btn,
   .discount-animate,
   .original-float-animate {
     animation: none !important;

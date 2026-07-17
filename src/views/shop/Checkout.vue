@@ -511,9 +511,12 @@ const handlePayment = async (isRetry = false) => {
 
 <style scoped>
 .checkout {
-    max-width: 1040px;
+    --commerce-page-width: 1040px;
+    --commerce-page-padding-block: 32px 0;
+    --commerce-page-gutter: 20px;
+    --commerce-page-mobile-padding-block: 24px 32px;
+    --commerce-page-mobile-gutter: 20px;
     margin: 0 auto 80px;
-    padding: 32px 20px 0 20px;
     font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     min-height: 100vh;
     box-sizing: border-box;
@@ -737,59 +740,41 @@ const handlePayment = async (isRetry = false) => {
 }
 
 .purchase-btn {
-    width: 100%;
-    background:
+    --commerce-primary-width: 100%;
+    --commerce-primary-min-height: 60px;
+    --commerce-primary-padding: 14px 18px;
+    --commerce-primary-border: 0;
+    --commerce-primary-radius: 16px;
+    --commerce-primary-background:
         linear-gradient(135deg, #0f6b68 0%, #0b827d 52%, #f59e0b 100%);
-    color: rgba(255, 255, 255, 0.98);
-    font-size: 1rem;
-    font-weight: 800;
-    padding: 14px 18px;
-    border-radius: 16px;
-    border: none;
+    --commerce-primary-color: rgba(255, 255, 255, 0.98);
+    --commerce-primary-font-size: 1rem;
+    --commerce-primary-font-weight: 800;
+    --commerce-primary-shadow:
+        0 18px 42px rgba(15, 107, 104, 0.26),
+        0 10px 24px rgba(245, 158, 11, 0.20),
+        0 0 0 1px rgba(255, 255, 255, 0.22) inset;
+    --commerce-primary-hover-shadow:
+        0 22px 56px rgba(15, 107, 104, 0.30),
+        0 16px 34px rgba(245, 158, 11, 0.24),
+        0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+    --commerce-primary-hover-transform: translateY(-2px);
+    --commerce-primary-hover-filter: saturate(1.05);
+    --commerce-primary-active-shadow:
+        0 12px 30px rgba(15, 107, 104, 0.22),
+        0 8px 18px rgba(245, 158, 11, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.18) inset;
+    --commerce-primary-disabled-background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
+    --commerce-primary-disabled-cursor: progress;
+    --commerce-primary-disabled-opacity: 1;
     margin-top: 18px;
-    cursor: pointer;
-    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 12px;
     position: relative;
-    box-shadow:
-        0 18px 42px rgba(15, 107, 104, 0.26),
-        0 10px 24px rgba(245, 158, 11, 0.20),
-        0 0 0 1px rgba(255, 255, 255, 0.22) inset;
     letter-spacing: 0;
-    min-height: 60px;
     text-align: left;
-}
-
-.purchase-btn:hover:not(:disabled) {
-    box-shadow:
-        0 22px 56px rgba(15, 107, 104, 0.30),
-        0 16px 34px rgba(245, 158, 11, 0.24),
-        0 0 0 1px rgba(255, 255, 255, 0.28) inset;
-    transform: translateY(-2px);
-    filter: saturate(1.05);
-}
-
-.purchase-btn:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow:
-        0 12px 30px rgba(15, 107, 104, 0.22),
-        0 8px 18px rgba(245, 158, 11, 0.18),
-        0 0 0 1px rgba(255, 255, 255, 0.18) inset;
-}
-
-.purchase-btn:focus-visible {
-    outline: 3px solid rgba(15, 107, 104, 0.28);
-    outline-offset: 4px;
-}
-
-.purchase-btn:disabled {
-    background: linear-gradient(135deg, #94a3b8 0%, #cbd5e1 100%);
-    cursor: progress;
-    transform: none;
-    box-shadow: none;
 }
 
 .purchase-btn-lock,
@@ -1053,7 +1038,8 @@ const handlePayment = async (isRetry = false) => {
 /* 响应式设计 - 平板 */
 @media (max-width: 768px) {
     .checkout {
-        padding: 24px 20px 32px 20px;
+        --commerce-page-mobile-padding-block: 24px 32px;
+        --commerce-page-mobile-gutter: 20px;
     }
     
     .title {
@@ -1100,7 +1086,8 @@ const handlePayment = async (isRetry = false) => {
 /* 手机端优化 */
 @media (max-width: 480px) {
     .checkout {
-        padding: 16px 16px 32px 16px;
+        --commerce-page-mobile-padding-block: 16px 32px;
+        --commerce-page-mobile-gutter: 16px;
         min-height: 100vh;
     }
     
@@ -1201,10 +1188,10 @@ const handlePayment = async (isRetry = false) => {
     }
     
     .purchase-btn {
-        font-size: 1rem;
-        padding: 13px 16px;
+        --commerce-primary-font-size: 1rem;
+        --commerce-primary-padding: 13px 16px;
+        --commerce-primary-mobile-min-height: 58px;
         margin-top: 16px;
-        min-height: 58px;
     }
     
     .pay-method-title {
@@ -1232,7 +1219,8 @@ const handlePayment = async (isRetry = false) => {
 /* 超小屏幕优化 */
 @media (max-width: 360px) {
     .checkout {
-        padding: 12px 12px 0 12px;
+        --commerce-page-mobile-padding-block: 12px 0;
+        --commerce-page-mobile-gutter: 12px;
     }
     
     .checkout-left {
@@ -1263,9 +1251,9 @@ const handlePayment = async (isRetry = false) => {
     }
     
     .purchase-btn {
-        font-size: 1rem;
-        padding: 12px 14px;
-        min-height: 48px;
+        --commerce-primary-font-size: 1rem;
+        --commerce-primary-padding: 12px 14px;
+        --commerce-primary-mobile-min-height: 48px;
     }
 
     .purchase-btn-subtitle {

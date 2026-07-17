@@ -190,10 +190,12 @@ function goToLogin() {
 
 <style scoped>
 .success-page {
-  width: 100%;
-  max-width: 1120px;
+  --commerce-page-width: 1120px;
+  --commerce-page-padding-block: 48px 0;
+  --commerce-page-gutter: 20px;
+  --commerce-page-mobile-padding-block: 24px 0;
+  --commerce-page-mobile-gutter: 14px;
   margin: 0 auto 88px;
-  padding: 48px 20px 0;
   color: var(--color-ink);
 }
 
@@ -207,17 +209,18 @@ function goToLogin() {
 .confirmation-panel,
 .order-panel,
 .account-panel {
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background:
+  --commerce-panel-border: 1px solid rgba(15, 23, 42, 0.08);
+  --commerce-panel-background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94));
-  box-shadow:
+  --commerce-panel-shadow:
     0 24px 70px rgba(15, 23, 42, 0.1),
     0 1px 0 rgba(255, 255, 255, 0.92) inset;
+  --commerce-panel-radius: var(--radius-lg);
+  --commerce-panel-mobile-radius: 18px;
 }
 
 .confirmation-panel {
   min-width: 0;
-  border-radius: var(--radius-lg);
   padding: clamp(28px, 5vw, 52px);
   position: relative;
   overflow: hidden;
@@ -328,28 +331,31 @@ function goToLogin() {
 .primary-action,
 .secondary-action,
 .ghost-action {
-  min-height: 48px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-radius: var(--radius-sm);
-  padding: 0 18px;
-  font-weight: 800;
   line-height: 1.2;
 }
 
 .primary-action {
-  color: #fff;
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-strong));
-  box-shadow: 0 14px 28px rgba(15, 107, 104, 0.22);
+  --commerce-primary-min-height: 48px;
+  --commerce-primary-padding: 0 18px;
+  --commerce-primary-border: 1px solid transparent;
+  --commerce-primary-radius: var(--radius-sm);
+  --commerce-primary-background: linear-gradient(135deg, var(--color-brand), var(--color-brand-strong));
+  --commerce-primary-shadow: 0 14px 28px rgba(15, 107, 104, 0.22);
+  --commerce-primary-hover-background: linear-gradient(135deg, var(--color-brand), var(--color-brand-strong));
+  --commerce-primary-hover-shadow: 0 18px 34px rgba(15, 107, 104, 0.26);
+  --commerce-primary-hover-transform: translateY(-1px);
 }
 
-.primary-action:hover {
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 18px 34px rgba(15, 107, 104, 0.26);
+.secondary-action,
+.ghost-action {
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  padding: 0 18px;
+  font-weight: 800;
 }
 
 .secondary-action {
@@ -377,7 +383,6 @@ function goToLogin() {
 }
 
 .order-panel {
-  border-radius: var(--radius-lg);
   padding: 28px;
   align-self: stretch;
 }
@@ -450,7 +455,6 @@ function goToLogin() {
   align-items: center;
   margin-top: 28px;
   padding: 26px 28px;
-  border-radius: var(--radius-lg);
 }
 
 .benefit-list {
@@ -491,14 +495,15 @@ function goToLogin() {
 
 @media (max-width: 640px) {
   .success-page {
+    --commerce-page-mobile-padding-block: 24px 0;
+    --commerce-page-mobile-gutter: 14px;
     margin-bottom: 56px;
-    padding: 24px 14px 0;
   }
 
   .confirmation-panel,
   .order-panel,
   .account-panel {
-    border-radius: 18px;
+    --commerce-panel-mobile-radius: 18px;
   }
 
   .next-step {
@@ -510,10 +515,18 @@ function goToLogin() {
     flex-direction: column;
   }
 
-  .primary-action,
   .secondary-action,
   .ghost-action {
     width: 100%;
+  }
+
+  .primary-action {
+    --commerce-primary-mobile-width: 100%;
+    --commerce-primary-mobile-min-height: 52px;
+  }
+
+  .secondary-action,
+  .ghost-action {
     min-height: 52px;
   }
 
