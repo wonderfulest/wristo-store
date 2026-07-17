@@ -91,6 +91,7 @@ a:hover {
 }
 
 .storefront-container {
+  box-sizing: border-box;
   width: min(100%, var(--container-wide));
   margin-inline: auto;
   padding-inline: var(--page-gutter);
@@ -257,6 +258,9 @@ img {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .storefront-enter {
     transform: none !important;
   }
 }

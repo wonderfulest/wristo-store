@@ -311,7 +311,7 @@ onUnmounted(() => {
 
 .footer-nav a,
 .footer-detail a {
-  min-height: 32px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   border-radius: 999px;

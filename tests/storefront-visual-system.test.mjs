@@ -15,6 +15,27 @@ test('global storefront tokens define spacing, surfaces, focus and reduced motio
   assert.match(css, /\.el-skeleton/)
 })
 
+test('shared storefront container owns its border-box sizing contract', async () => {
+  const css = await read('../src/style.css')
+  assert.match(css, /\.storefront-container\s*\{[^}]*box-sizing:\s*border-box;/s)
+})
+
+test('footer links preserve a 44px interactive target', async () => {
+  const footer = await read('../src/components/Footer.vue')
+  assert.match(footer, /\.footer-nav a,\s*\.footer-detail a\s*\{[^}]*min-height:\s*44px;/s)
+})
+
+test('reduced motion neutralizes storefront entry without breaking layout transforms', async () => {
+  const css = await read('../src/style.css')
+  const reducedMotionStart = css.indexOf('@media (prefers-reduced-motion: reduce)')
+  const reducedMotionEnd = css.indexOf('@media (max-width:', reducedMotionStart)
+  const reducedMotion = css.slice(reducedMotionStart, reducedMotionEnd)
+  const universalBlock = reducedMotion.match(/\*,\s*\*::before,\s*\*::after\s*\{([^}]*)\}/s)?.[1] ?? ''
+
+  assert.doesNotMatch(universalBlock, /transform:\s*none/)
+  assert.match(reducedMotion, /\.storefront-enter\s*\{[^}]*transform:\s*none\s*!important;/s)
+})
+
 test('layout exposes a shared content container without forcing viewport width', async () => {
   const source = await read('../src/components/Layout.vue')
   assert.match(source, /class="layout-root"/)
