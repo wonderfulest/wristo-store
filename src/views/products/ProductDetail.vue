@@ -30,7 +30,8 @@
       </div>
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
-        <h1 class="product-title">{{ product?.name }}</h1>
+        <aside class="product-purchase-panel">
+          <h1 class="product-title">{{ product?.name }}</h1>
         <div v-if="hasBundleEntitlement" class="product-activated-panel">
           <div class="product-activated-icon" aria-hidden="true">
             <el-icon><StarFilled /></el-icon>
@@ -41,6 +42,20 @@
           </div>
         </div>
         <div v-else class="product-price">${{ product?.price?.toFixed(2) }}</div>
+        <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
+          <div v-if="productUpdatedLabel" class="product-meta-item">
+            <dt>{{ t('product.lastUpdated') }}</dt>
+            <dd>{{ productUpdatedLabel }}</dd>
+          </div>
+          <div v-if="product?.devices?.length" class="product-meta-item">
+            <dt>{{ t('product.compatibility') }}</dt>
+            <dd>{{ t('product.compatibleDevices', { count: product.devices.length }) }}</dd>
+          </div>
+          <div v-if="selectedSupportedDevice" class="product-meta-item product-meta-item--supported">
+            <dt>{{ t('product.currentDevice') }}</dt>
+            <dd>{{ selectedSupportedDevice.displayName }}</dd>
+          </div>
+        </dl>
         <ProductAdminPanel
           v-if="isAdmin && adminMetrics"
           :product="product"
@@ -48,44 +63,6 @@
           variant="detail"
           @changed="() => loadAdminMetrics()"
         />
-        <div v-if="product?.garminStoreUrl" class="install-section">
-          <div class="install-title">{{ t('product.installTitle') }}</div>
-          <div class="install-subtitle">{{ t('product.installSubtitle') }}</div>
-          <div class="install-methods">
-            <div class="qrcode-section">
-              <div class="qrcode-title">{{ t('product.qrTitle') }}</div>
-              <div class="qrcode-container" ref="qrcodeBoxRef">
-                <qrcode-vue 
-                  ref="qrcodeRef"
-                  :value="product.garminStoreUrl" 
-                  :size="128" 
-                  :level="'M'" 
-                  :render-as="'canvas'"
-                  class="qrcode-img" 
-                />
-                <div class="qrcode-actions">
-                  <button class="qrcode-action-btn" @click="saveQRCode" :title="t('product.saveQr')">
-                    <el-icon><Download /></el-icon>
-                  </button>
-                  <button class="qrcode-action-btn" @click="shareQRCode" :title="t('product.shareQr')">
-                    <el-icon><Share /></el-icon>
-                  </button>
-                </div>
-              </div>
-              <div class="qrcode-help">
-                <span class="qrcode-help-text">{{ t('product.qrHelp') }}</span>
-              </div>
-            </div>
-            <div class="install-or">or</div>
-            <div class="button-section">
-              <div class="button-title">{{ t('product.websiteConfirmTitle') }}</div>
-              <button class="product-btn product-btn-download" @click="handleDownload">
-                {{ t('product.websiteOption') }}
-                <!-- <span class="icon-download-svg" v-html="DownloadSvg"></span> -->
-              </button>
-            </div>
-          </div>
-        </div>
         <button
           v-if="product?.appId && !hasBundleEntitlement"
           type="button"
@@ -105,6 +82,8 @@
           {{ isInCart ? t('cart.goToCart') : t('product.addToCart') }}
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
+        </aside>
+        <div class="product-detail-sections">
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
           <div
@@ -122,6 +101,43 @@
             {{ isProductDescriptionExpanded ? t('product.showLessDetails') : t('product.showMoreDetails') }}
           </button>
         </section>
+        <div v-if="product?.garminStoreUrl" class="install-section">
+          <div class="install-title">{{ t('product.installTitle') }}</div>
+          <div class="install-subtitle">{{ t('product.installSubtitle') }}</div>
+          <div class="install-methods">
+            <div class="qrcode-section">
+              <div class="qrcode-title">{{ t('product.qrTitle') }}</div>
+              <div class="qrcode-container" ref="qrcodeBoxRef">
+                <qrcode-vue
+                  ref="qrcodeRef"
+                  :value="product.garminStoreUrl"
+                  :size="128"
+                  :level="'M'"
+                  :render-as="'canvas'"
+                  class="qrcode-img"
+                />
+                <div class="qrcode-actions">
+                  <button class="qrcode-action-btn" @click="saveQRCode" :title="t('product.saveQr')">
+                    <el-icon><Download /></el-icon>
+                  </button>
+                  <button class="qrcode-action-btn" @click="shareQRCode" :title="t('product.shareQr')">
+                    <el-icon><Share /></el-icon>
+                  </button>
+                </div>
+              </div>
+              <div class="qrcode-help">
+                <span class="qrcode-help-text">{{ t('product.qrHelp') }}</span>
+              </div>
+            </div>
+            <div class="install-or">or</div>
+            <div class="button-section">
+              <div class="button-title">{{ t('product.websiteConfirmTitle') }}</div>
+              <button class="product-btn product-btn-download" @click="handleDownload">
+                {{ t('product.websiteOption') }}
+              </button>
+            </div>
+          </div>
+        </div>
         <!-- Supported Devices -->
         <div v-if="product?.devices && product.devices.length" class="devices-section">
           <div v-if="selectedSupportedDevice" class="current-device-support" role="status">
@@ -250,8 +266,18 @@
             </article>
           </div>
         </section>
+        </div>
       </div>
     </div>
+    <MobileProductActionBar
+      :visible="mobileActionVisible"
+      :price-label="mobilePriceLabel"
+      :primary-label="mobilePrimaryLabel"
+      :primary-disabled="false"
+      :secondary-label="mobileSecondaryLabel"
+      @primary="mobilePrimaryAction"
+      @secondary="toggleCart"
+    />
   </div>
 </template>
 
@@ -302,6 +328,7 @@ import { hasActiveBundle } from '@/utils/entitlements'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
+import MobileProductActionBar from '@/components/storefront/MobileProductActionBar.vue'
 import { MAX_SHARE_IMAGES } from '@/utils/productShareImagePolicy'
 import {
   deleteProductShareImage,
@@ -346,6 +373,20 @@ const displayRating = computed(() => {
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
 const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
+const mobileActionVisible = computed(() => Boolean(product.value?.appId))
+const mobilePriceLabel = computed(() =>
+  hasBundleEntitlement.value
+    ? t('product.activated')
+    : `$${product.value?.price?.toFixed(2) ?? '0.00'}`,
+)
+const mobilePrimaryLabel = computed(() =>
+  hasBundleEntitlement.value ? t('product.websiteOption') : t('product.buyNow'),
+)
+const mobileSecondaryLabel = computed(() =>
+  isCartEnabled && !hasBundleEntitlement.value
+    ? (isInCart.value ? t('cart.goToCart') : t('product.addToCart'))
+    : '',
+)
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
@@ -428,6 +469,9 @@ const handleDownload = () => {
     ElMessage.error('Download link is not available')
   }
 }
+
+const mobilePrimaryAction = () =>
+  hasBundleEntitlement.value ? handleDownload() : handleBuyNow()
 
 const handleUnlock = () => {
   console.log(product.value)
@@ -618,6 +662,18 @@ const selectedSupportedDevice = computed(() => {
   })
 
   return isSupported ? selected : null
+})
+
+const productUpdatedLabel = computed(() => {
+  const value = product.value?.updatedAt
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(localeStore.currentLocale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date)
 })
 
 const loadSelectedDeviceFromStorage = () => {
@@ -1008,6 +1064,61 @@ onMounted(() => {
   justify-content: flex-start;
   margin-top: 12px;
   min-width: 340px;
+}
+.product-purchase-panel {
+  position: sticky;
+  top: calc(var(--header-height) + 20px);
+  z-index: 4;
+  width: var(--detail-content-width);
+  padding: 28px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(18px);
+}
+.product-detail-sections {
+  display: grid;
+  width: var(--detail-content-width);
+  gap: 4px;
+  margin-top: 28px;
+}
+.product-meta-list {
+  display: grid;
+  width: 100%;
+  gap: 0;
+  margin: 0 0 20px;
+  padding: 0;
+  border-top: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+}
+.product-meta-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 11px 0;
+}
+.product-meta-item + .product-meta-item {
+  border-top: 1px solid var(--color-line);
+}
+.product-meta-item dt,
+.product-meta-item dd {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+.product-meta-item dt {
+  flex: 0 0 auto;
+  color: var(--color-muted);
+}
+.product-meta-item dd {
+  color: var(--color-ink);
+  font-weight: 750;
+  text-align: right;
+}
+.product-meta-item--supported dd {
+  color: var(--color-brand-strong);
 }
 .product-title {
   font-size: clamp(2.1rem, 4vw, 3.2rem);
@@ -1804,7 +1915,9 @@ onMounted(() => {
 }
 @media (max-width: 900px) {
   .product-detail-page {
-    padding: 40px 16px 120px 16px;
+    --mobile-product-action-reserve: 84px;
+    padding: 40px 16px;
+    padding-bottom: calc(40px + var(--mobile-product-action-reserve) + env(safe-area-inset-bottom));
   }
   
   .product-detail-main {
@@ -1820,6 +1933,19 @@ onMounted(() => {
     min-width: 0;
     width: 100%;
     max-width: 560px;
+  }
+  .product-purchase-panel {
+    position: static;
+    width: 100%;
+    padding: 24px;
+  }
+  .product-detail-sections {
+    width: 100%;
+    margin-top: 24px;
+  }
+  .product-purchase-panel > .product-btn-buy,
+  .product-purchase-panel > .product-btn-cart {
+    display: none;
   }
   
   .product-btn {
@@ -1877,7 +2003,8 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .product-detail-page {
-    padding: 32px 12px 100px 12px;
+    padding: 32px 12px;
+    padding-bottom: calc(32px + var(--mobile-product-action-reserve) + env(safe-area-inset-bottom));
   }
   
   .product-detail-main {
@@ -1890,6 +2017,9 @@ onMounted(() => {
   
   .product-title {
     font-size: 1.8rem;
+  }
+  .product-purchase-panel {
+    padding: 20px;
   }
   
   .product-btn {
@@ -1953,7 +2083,8 @@ onMounted(() => {
 
 @media (max-width: 360px) {
   .product-detail-page {
-    padding: 24px 8px 80px 8px;
+    padding: 24px 8px;
+    padding-bottom: calc(24px + var(--mobile-product-action-reserve) + env(safe-area-inset-bottom));
   }
   
   .product-visual-wrap {

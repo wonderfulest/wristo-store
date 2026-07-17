@@ -439,7 +439,7 @@ watch(
   overflow: hidden;
   border: 1px solid var(--gallery-border);
   border-radius: 18px;
-  background: linear-gradient(145deg, #ffffff 15%, #f7faf9 100%);
+  background: var(--color-stage);
   box-shadow:
     0 18px 48px rgb(31 70 68 / 8%),
     0 2px 8px rgb(31 70 68 / 5%);

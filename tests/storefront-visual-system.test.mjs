@@ -315,3 +315,33 @@ test('search and top apps expose semantic recoverable list failures', async () =
     assert.doesNotMatch(source, /icon="mdi:/)
   }
 })
+
+test('product detail keeps desktop purchase actions sticky and reserves mobile action space', async () => {
+  const [detail, mobileActionBar] = await Promise.all([
+    read('../src/views/products/ProductDetail.vue'),
+    read('../src/components/storefront/MobileProductActionBar.vue'),
+  ])
+
+  assert.match(detail, /class="product-purchase-panel"/)
+  assert.match(detail, /\.product-purchase-panel\s*\{[^}]*position:\s*sticky;/s)
+  assert.match(detail, /\.product-purchase-panel\s*\{[^}]*top:\s*calc\(var\(--header-height\)/s)
+  assert.match(detail, /<MobileProductActionBar/)
+  assert.match(detail, /:price-label="mobilePriceLabel"/)
+  assert.match(detail, /:primary-label="mobilePrimaryLabel"/)
+  assert.match(detail, /:secondary-label="mobileSecondaryLabel"/)
+  assert.match(detail, /@primary="mobilePrimaryAction"/)
+  assert.match(detail, /@secondary="toggleCart"/)
+  assert.match(detail, /@media\s*\(max-width:\s*900px\)[\s\S]*?padding-bottom:\s*calc\([^;]*var\(--mobile-product-action-reserve\)/)
+
+  assert.match(mobileActionBar, /visible:\s*boolean/)
+  assert.match(mobileActionBar, /priceLabel:\s*string/)
+  assert.match(mobileActionBar, /primaryLabel:\s*string/)
+  assert.match(mobileActionBar, /primaryDisabled\?:\s*boolean/)
+  assert.match(mobileActionBar, /secondaryLabel\?:\s*string/)
+  assert.match(mobileActionBar, /\(event:\s*'primary'\):\s*void/)
+  assert.match(mobileActionBar, /\(event:\s*'secondary'\):\s*void/)
+  assert.match(mobileActionBar, /env\(safe-area-inset-bottom\)/)
+  assert.match(mobileActionBar, /\.mobile-product-action-bar__primary[\s\S]*?min-height:\s*48px/)
+  assert.match(mobileActionBar, /mobile-product-action-bar__primary--wide/)
+  assert.match(mobileActionBar, /\.mobile-product-action-bar__primary--wide\s*\{[^}]*grid-column:\s*2\s*\/\s*-1;/s)
+})

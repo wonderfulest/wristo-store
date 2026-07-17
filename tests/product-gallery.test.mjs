@@ -452,6 +452,19 @@ test('ProductImageGallery uses an image-derived ambient backdrop without croppin
   assert.match(source, /prefers-reduced-motion:\s*reduce[\s\S]*?\.product-gallery__stage::before/)
 })
 
+test('ProductImageGallery preserves its interaction markers on the storefront stage surface', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /\.product-gallery__stage\s*\{[\s\S]*?background:\s*var\(--color-stage\)/)
+  assert.match(source, /fit="contain"/)
+  assert.match(source, /:style="galleryStageStyle"/)
+  assert.match(source, /--gallery-backdrop-image/)
+  assert.match(source, /@keydown\.left\.prevent="showPreviousImage"/)
+  assert.match(source, /@keydown\.right\.prevent="showNextImage"/)
+  assert.match(source, /:aria-current="item\.url === selectedUrl \? 'true' : undefined"/)
+  assert.match(source, /\.product-gallery__thumbnail--active/)
+})
+
 test('ProductImageGallery declares opt-in management props and typed events', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
