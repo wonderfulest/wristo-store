@@ -42,7 +42,7 @@
                   <span class="quantity-fixed">{{ t('cart.quantityFixed') }}</span>
                 </template>
               </span>
-              <span v-if="purchaseWarning(item.appId)" class="purchase-warning">
+              <span v-if="purchaseWarning(item.appId)" class="purchase-warning" role="alert">
                 {{ purchaseWarning(item.appId) }}
               </span>
             </span>
@@ -113,7 +113,7 @@
           </p>
         </div>
         <p v-if="checkoutEmailVisible && checkoutEmailError" class="cart-email-error" role="alert">{{ checkoutEmailError }}</p>
-        <button type="button" class="checkout-btn" :disabled="loading || checking || refreshingCart" @click="handleCheckout">
+        <button type="button" class="checkout-btn commerce-primary-action" :disabled="loading || checking || refreshingCart" :aria-busy="loading || checking || refreshingCart" @click="handleCheckout">
           <el-icon><CreditCard /></el-icon>
           <span>{{ checkoutButtonText }}</span>
         </button>
@@ -464,7 +464,7 @@ h1 {
 
 .cart-layout {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(320px, 3fr);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
   gap: 22px;
   align-items: flex-start;
 }
@@ -516,7 +516,7 @@ h1 {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: var(--radius-sm);
+  border-radius: 50%;
   background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
 }
 
@@ -631,7 +631,7 @@ h1 {
 
 .checkout-panel {
   position: sticky;
-  top: 92px;
+  top: calc(var(--header-height) + 24px);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -825,6 +825,15 @@ h1 {
   opacity: 0.72;
 }
 
+.checkout-btn:focus-visible,
+.browse-btn:focus-visible,
+.recommend-search-btn:focus-visible,
+.remove-btn:focus-visible,
+.item-main:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .inline-checkout-shell {
   overflow: hidden;
   margin-top: 2px;
@@ -863,6 +872,10 @@ h1 {
 
   .checkout-panel {
     position: static;
+  }
+
+  .checkout-btn {
+    width: 100%;
   }
 
   .inline-checkout-shell {

@@ -1,11 +1,11 @@
 <template>
-  <div class="cart-page-shell">
-    <div class="cart-list-page">
+  <main class="cart-page-shell commerce-page">
+    <div class="cart-list-page commerce-panel">
       <CartList />
     </div>
 
     <PremiumSuiteCard class="cart-premium-suite" />
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">
@@ -15,7 +15,7 @@ import CartList from './CartList.vue'
 
 <style scoped>
 .cart-page-shell {
-  width: min(100% - 32px, 960px);
+  width: min(100% - 32px, 1180px);
   margin: 48px auto 88px;
 }
 

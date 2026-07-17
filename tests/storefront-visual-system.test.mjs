@@ -345,3 +345,70 @@ test('product detail keeps desktop purchase actions sticky and reserves mobile a
   assert.match(mobileActionBar, /mobile-product-action-bar__primary--wide/)
   assert.match(mobileActionBar, /\.mobile-product-action-bar__primary--wide\s*\{[^}]*grid-column:\s*2\s*\/\s*-1;/s)
 })
+
+test('commerce journey shares an accessible transaction shell without changing checkout contracts', async () => {
+  const [cart, cartPage, purchaseOptions, checkout, activation, success, purchaseCard] = await Promise.all([
+    '../src/views/user-center/CartList.vue',
+    '../src/views/user-center/CartListPage.vue',
+    '../src/views/shop/PurchaseOptions.vue',
+    '../src/views/shop/Checkout.vue',
+    '../src/views/shop/AlreadyPurchased.vue',
+    '../src/views/shop/Success.vue',
+    '../src/components/PurchaseCard.vue',
+  ].map(read))
+
+  for (const source of [cartPage, purchaseOptions, checkout, activation, success]) {
+    assert.match(source, /commerce-page/)
+    assert.match(source, /commerce-panel/)
+  }
+  for (const source of [cart, checkout, activation, success, purchaseCard]) {
+    assert.match(source, /commerce-primary-action/)
+  }
+
+  assert.match(cart, /checkCartPurchases/)
+  assert.match(cart, /checkout\(items, email/)
+  assert.match(cart, /paddle-inline-checkout/)
+  assert.match(cart, /displayMode:\s*'inline'/)
+  assert.match(cart, /class="purchase-warning"[^>]*role="alert"/)
+  assert.match(cart, /class="checkout-btn[^\"]*commerce-primary-action[^\"]*"[^>]*:disabled=[^>]*:aria-busy=/)
+  assert.match(cart, /grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(340px,\s*420px\)/)
+  assert.match(cart, /top:\s*calc\(var\(--header-height\)\s*\+\s*24px\)/)
+
+  assert.match(checkout, /emailError/)
+  assert.match(checkout, /initializePaddle/)
+  assert.match(checkout, /window\.Paddle\.Checkout\.open\(checkoutOptions\)/)
+  assert.match(checkout, /role="alert"/)
+  assert.match(checkout, /class="purchase-btn[^\"]*commerce-primary-action[^\"]*"[\s\S]{0,220}:disabled="loading"[\s\S]{0,100}:aria-busy="loading"/)
+
+  assert.match(activation, /@submit\.prevent="handleActivation"/)
+  assert.match(activation, /activatePurchase\(email\.value, activationCode\.value\)/)
+  assert.match(activation, /class="message error-message"[^>]*role="alert"/)
+  assert.match(activation, /class="activation-btn[^\"]*commerce-primary-action[^\"]*"[^>]*:disabled=[^>]*:aria-busy=/)
+
+  assert.match(success, /store\.reset\(\)/)
+  assert.match(success, /router\.push\('\/code'\)/)
+  assert.match(success, /buildSsoSignupUrl\('store', \{ mode: 'signup' \}\)/)
+})
+
+test('activation and payment success public copy is localized in English and Chinese', async () => {
+  const [activation, success, i18n] = await Promise.all([
+    read('../src/views/shop/AlreadyPurchased.vue'),
+    read('../src/views/shop/Success.vue'),
+    read('../src/i18n.ts'),
+  ])
+
+  for (const key of [
+    'activation.eyebrow', 'activation.title', 'activation.description', 'activation.emailLabel',
+    'activation.codeLabel', 'activation.submit', 'activation.submitting', 'activation.syncNote',
+    'paymentSuccess.eyebrow', 'paymentSuccess.title', 'paymentSuccess.summary',
+    'paymentSuccess.nextStepTitle', 'paymentSuccess.orderSummary', 'paymentSuccess.accountBenefitManage',
+    'paymentSuccess.actionsAria',
+  ]) {
+    assert.match(i18n, new RegExp(`'${key.replace('.', '\\\.')}'`, 'g'))
+  }
+  assert.match(i18n, /const en = \{[\s\S]*'activation\.title':/)
+  assert.match(i18n, /zh:\s*\{[\s\S]*'activation\.title':/)
+  assert.match(i18n, /zh:\s*\{[\s\S]*'paymentSuccess\.title':/)
+  assert.match(activation, /t\('activation\.title'\)/)
+  assert.match(success, /t\('paymentSuccess\.title'\)/)
+})

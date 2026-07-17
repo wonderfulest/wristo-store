@@ -1,5 +1,5 @@
 <template>
-  <div class="purchase-options">
+  <main class="purchase-options commerce-page">
     <!-- <Logo /> -->
     <h2 class="title">{{ t('purchase.title') }}</h2>
     <p class="desc">{{ t('purchase.desc') }}</p>
@@ -13,7 +13,7 @@
       <span class="banner-text">{{ t('purchase.couponApplied') }}</span>
     </div>
     
-    <div id="bundle-subscription-card" class="cards-container">
+    <section id="bundle-subscription-card" class="cards-container commerce-panel">
       <!-- 套餐卡片 -->
       <PurchaseCard
         v-for="(bundleItem, index) in bundles"
@@ -72,8 +72,8 @@
           @subscribe="handleBuySubscription"
         />
       </div> -->
-    </div>
-  </div>
+    </section>
+  </main>
 </template>
 
 <script setup lang="ts">

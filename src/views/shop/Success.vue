@@ -1,66 +1,62 @@
 <template>
-  <main class="success-page" aria-labelledby="payment-success-title">
-    <section class="success-hero" aria-live="polite">
-      <div class="confirmation-panel">
+  <main class="success-page commerce-page" aria-labelledby="payment-success-title">
+    <section class="success-hero commerce-panel" aria-live="polite">
+      <div class="confirmation-panel commerce-panel">
         <div class="success-mark" aria-hidden="true">
           <el-icon><CircleCheckFilled /></el-icon>
         </div>
-        <p class="success-eyebrow">Secure payment complete</p>
-        <h1 id="payment-success-title">Payment Successful</h1>
-        <p class="success-message">
-          Thank you for your purchase. Your Wristo access is being prepared and your receipt will be sent by Paddle.
-        </p>
+        <p class="success-eyebrow">{{ t('paymentSuccess.eyebrow') }}</p>
+        <h1 id="payment-success-title">{{ t('paymentSuccess.title') }}</h1>
+        <p class="success-message">{{ t('paymentSuccess.summary') }}</p>
 
-        <div class="next-step" role="note" aria-label="Next step">
+        <div class="next-step" role="note" :aria-label="t('paymentSuccess.nextStepAria')">
           <div class="next-step-icon" aria-hidden="true">
             <el-icon><QuartzWatch /></el-icon>
           </div>
           <div>
-            <h2>Unlock on your Garmin watch</h2>
-            <p>
-              Keep your watch near your phone and allow Connect IQ to sync. Most purchases unlock automatically within 1-5 minutes.
-            </p>
+            <h2>{{ t('paymentSuccess.nextStepTitle') }}</h2>
+            <p>{{ t('paymentSuccess.nextStepDescription') }}</p>
           </div>
         </div>
 
-        <div class="action-buttons" aria-label="Payment success actions">
-          <button type="button" class="primary-action" @click="goToActivation">
+        <div class="action-buttons" :aria-label="t('paymentSuccess.actionsAria')">
+          <button type="button" class="primary-action commerce-primary-action" @click="goToActivation">
             <el-icon aria-hidden="true"><Lock /></el-icon>
-            <span>Open activation page</span>
+            <span>{{ t('paymentSuccess.openActivation') }}</span>
             <el-icon class="button-arrow" aria-hidden="true"><ArrowRight /></el-icon>
           </button>
           <button v-if="isLoggedIn" type="button" class="secondary-action" @click="goToPurchases">
             <el-icon aria-hidden="true"><Tickets /></el-icon>
-            <span>View purchases</span>
+            <span>{{ t('paymentSuccess.viewPurchases') }}</span>
           </button>
           <button type="button" class="ghost-action" @click="goHome">
             <el-icon aria-hidden="true"><House /></el-icon>
-            <span>Return home</span>
+            <span>{{ t('paymentSuccess.returnHome') }}</span>
           </button>
         </div>
       </div>
 
-      <aside class="order-panel" aria-label="Order summary">
+      <aside class="order-panel commerce-panel" :aria-label="t('paymentSuccess.orderSummary')">
         <div class="panel-heading">
-          <p class="summary-eyebrow">Order summary</p>
-          <h2>Your purchase details</h2>
+          <p class="summary-eyebrow">{{ t('paymentSuccess.orderSummary') }}</p>
+          <h2>{{ t('paymentSuccess.purchaseDetails') }}</h2>
         </div>
 
         <dl class="order-info">
           <div class="info-row">
-            <dt>Order ID</dt>
-            <dd>{{ referenceId || 'Processing' }}</dd>
+            <dt>{{ t('paymentSuccess.orderId') }}</dt>
+            <dd>{{ referenceId || t('paymentSuccess.processing') }}</dd>
           </div>
           <div class="info-row">
-            <dt>Product</dt>
-            <dd>{{ productName || 'Wristo watch face access' }}</dd>
+            <dt>{{ t('paymentSuccess.product') }}</dt>
+            <dd>{{ productName || t('paymentSuccess.productFallback') }}</dd>
           </div>
           <div class="info-row">
-            <dt>Amount</dt>
+            <dt>{{ t('paymentSuccess.amount') }}</dt>
             <dd>{{ formatCurrency(amount, currencyCode) }}</dd>
           </div>
           <div class="info-row">
-            <dt>Payment method</dt>
+            <dt>{{ t('paymentSuccess.paymentMethod') }}</dt>
             <dd>
               <el-icon aria-hidden="true"><CreditCard /></el-icon>
               Paddle
@@ -70,40 +66,38 @@
 
         <div class="support-strip">
           <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-          <span>Receipt, entitlement, and activation checks are tied to your purchase email.</span>
+          <span>{{ t('paymentSuccess.emailNotice') }}</span>
         </div>
       </aside>
     </section>
 
-    <section v-if="!isLoggedIn" class="account-panel" aria-labelledby="account-title">
+    <section v-if="!isLoggedIn" class="account-panel commerce-panel" aria-labelledby="account-title">
       <div class="account-copy">
-        <p class="summary-eyebrow">Save your access</p>
-        <h2 id="account-title">Create an account to manage this purchase</h2>
-        <p>
-          Use the same email from checkout to keep purchases, unlock history, and future watch face access in one place.
-        </p>
+        <p class="summary-eyebrow">{{ t('paymentSuccess.saveAccess') }}</p>
+        <h2 id="account-title">{{ t('paymentSuccess.accountTitle') }}</h2>
+        <p>{{ t('paymentSuccess.accountDescription') }}</p>
       </div>
-      <ul class="benefit-list" aria-label="Account benefits">
+      <ul class="benefit-list" :aria-label="t('paymentSuccess.accountBenefitsAria')">
         <li>
           <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-          <span>Manage all purchases</span>
+          <span>{{ t('paymentSuccess.accountBenefitManage') }}</span>
         </li>
         <li>
           <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-          <span>Track unlock status</span>
+          <span>{{ t('paymentSuccess.accountBenefitTrack') }}</span>
         </li>
         <li>
           <el-icon aria-hidden="true"><CircleCheckFilled /></el-icon>
-          <span>Recover access faster</span>
+          <span>{{ t('paymentSuccess.accountBenefitRecover') }}</span>
         </li>
       </ul>
       <div class="account-actions">
-        <button type="button" class="primary-action compact-action" @click="goToRegister">
+        <button type="button" class="secondary-action compact-action" @click="goToRegister">
           <el-icon aria-hidden="true"><UserFilled /></el-icon>
-          <span>Create account</span>
+          <span>{{ t('paymentSuccess.createAccount') }}</span>
         </button>
         <button type="button" class="secondary-action compact-action" @click="goToLogin">
-          <span>Sign in</span>
+          <span>{{ t('paymentSuccess.signIn') }}</span>
         </button>
       </div>
     </section>
@@ -126,10 +120,12 @@ import {
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
 import { buildSsoLoginUrl, buildSsoSignupUrl } from '@/utils/ssoRedirect'
+import { useI18n } from '@/i18n'
 
 const router = useRouter()
 const store = useShopOptionsStore()
 const userStore = useUserStore()
+const { t } = useI18n()
 const order = computed(() => store.order)
 const referenceId = computed(() => order.value?.referenceId)
 const productName = computed(() => order.value?.productName)

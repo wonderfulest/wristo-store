@@ -1,11 +1,11 @@
 <template>
-  <div class="already-purchased-page">
-    <div class="content-container">
+  <main class="already-purchased-page commerce-page">
+    <div class="content-container commerce-panel">
       <img class="code-logo" src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-logo-horizontal.svg" alt="Wristo" />
       <div class="header-section">
-        <p class="eyebrow">Already purchased</p>
-        <h1 class="title">Activate your purchase</h1>
-        <p class="desc">Restore premium access with the same purchase email and the 6-digit code on your Garmin watch.</p>
+        <p class="eyebrow">{{ t('activation.eyebrow') }}</p>
+        <h1 class="title">{{ t('activation.title') }}</h1>
+        <p class="desc">{{ t('activation.description') }}</p>
       </div>
       
       <div class="tip-card">
@@ -13,30 +13,30 @@
           <el-icon><QuartzWatch /></el-icon>
         </div>
         <div class="tip-content">
-          <strong>Where to find it</strong>
-          <span>The code appears on the watch face after the trial or purchase prompt shows.</span>
+          <strong>{{ t('activation.tipTitle') }}</strong>
+          <span>{{ t('activation.tipDescription') }}</span>
         </div>
       </div>
       
       <form class="activation-form" @submit.prevent="handleActivation">
         <div class="input-group">
-          <label class="input-label" for="purchase-email">Purchase email</label>
+          <label class="input-label" for="purchase-email">{{ t('activation.emailLabel') }}</label>
           <input 
             id="purchase-email"
             v-model="email" 
             type="email" 
-            placeholder="you@example.com" 
+            :placeholder="t('activation.emailPlaceholder')"
             class="email-input" 
             required 
             autocomplete="email"
             aria-describedby="purchase-email-help"
             @input="clearMessages"
           />
-          <div id="purchase-email-help" class="input-desc">Use the email address from the original payment.</div>
+          <div id="purchase-email-help" class="input-desc">{{ t('activation.emailHelp') }}</div>
         </div>
         
         <div class="input-group">
-          <label class="input-label" for="activation-code">6-digit code</label>
+          <label class="input-label" for="activation-code">{{ t('activation.codeLabel') }}</label>
           <input 
             id="activation-code"
             v-model="activationCode" 
@@ -52,36 +52,36 @@
             @input="handleCodeInput"
           />
           <div id="activation-code-help" class="input-desc">
-            Enter numbers only.
+            {{ t('activation.codeHelp') }}
             <span class="help-inline">
-              Not seeing your code? 
-              <button type="button" class="help-link-inline" @click="handleResendCode">Learn more</button>
+              {{ t('activation.codeMissing') }}
+              <button type="button" class="help-link-inline" @click="handleResendCode">{{ t('activation.learnMore') }}</button>
             </span>
           </div>
         </div>
         
-        <button type="submit" class="activation-btn" :disabled="loading || !isFormValid" :aria-busy="loading">
+        <button type="submit" class="activation-btn commerce-primary-action" :disabled="loading || !isFormValid" :aria-busy="loading">
           <span v-if="loading" class="loading-spinner"></span>
           <el-icon v-else aria-hidden="true"><ArrowRight /></el-icon>
-          <span v-if="loading">Activating...</span>
-          <span v-else>Activate Purchase</span>
+          <span v-if="loading">{{ t('activation.submitting') }}</span>
+          <span v-else>{{ t('activation.submit') }}</span>
         </button>
       </form>
 
-      <p class="sync-note">After activation, sync Garmin Connect. Most watch faces unlock within 1-5 minutes.</p>
+      <p class="sync-note">{{ t('activation.syncNote') }}</p>
       
-      <div v-if="error" class="message error-message">
+      <div v-if="error" class="message error-message" role="alert">
         <el-icon class="message-icon" aria-hidden="true"><WarningFilled /></el-icon>
         <div class="message-text">{{ error }}</div>
       </div>
       
-      <div v-if="success" class="message success-message">
+      <div v-if="success" class="message success-message" role="status">
         <el-icon class="message-icon" aria-hidden="true"><CircleCheckFilled /></el-icon>
         <div class="message-text">{{ successMessage }}</div>
       </div>
     </div>
     <SmartwatchCodeHelpModal v-model="showCodeHelpModal" />
-  </div>
+  </main>
 </template>
 
 <script setup lang="ts">
@@ -93,6 +93,7 @@ import SmartwatchCodeHelpModal from '@/components/SmartwatchCodeHelpModal.vue'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 import { ArrowRight, CircleCheckFilled, QuartzWatch, WarningFilled } from '@element-plus/icons-vue'
+import { useI18n } from '@/i18n'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -103,6 +104,7 @@ const error = ref('')
 const success = ref(false)
 const successMessage = ref('')
 const showCodeHelpModal = ref(false)
+const { t } = useI18n()
 
 const isFormValid = computed(() => {
   return email.value.trim() && activationCode.value.length === 6
@@ -135,12 +137,12 @@ async function handleActivation() {
   success.value = false
   
   if (!email.value.trim()) {
-    error.value = 'Please enter your email address'
+    error.value = t('activation.errorEmailRequired')
     return
   }
   
   if (activationCode.value.length !== 6) {
-    error.value = 'Please enter a valid 6-digit smartwatch code'
+    error.value = t('activation.errorCodeInvalid')
     return
   }
   
@@ -153,26 +155,26 @@ async function handleActivation() {
       // 根据返回值判断激活类型
       if (purchaseResult.subscription) {
         // 通过订阅计划激活
-        const subscriptionName = purchaseResult.subscription.name || 'Subscription Plan'
-        successMessage.value = `Your purchase has been successfully activated through ${subscriptionName}!`
-        ElMessage.success(`Activated via ${subscriptionName}!`)
+        const subscriptionName = purchaseResult.subscription.name || t('activation.subscriptionFallback')
+        successMessage.value = t('activation.successSubscription', { name: subscriptionName })
+        ElMessage.success(t('activation.toastSubscription', { name: subscriptionName }))
       } else if (purchaseResult.purchase) {
         // 通过产品购买激活
-        successMessage.value = 'Your purchase has been successfully activated through product purchase!'
-        ElMessage.success('Activated via product purchase!')
+        successMessage.value = t('activation.successProduct')
+        ElMessage.success(t('activation.toastProduct'))
       } else {
         // 默认激活成功消息
-        successMessage.value = 'Your purchase has been successfully activated!'
-        ElMessage.success('Purchase activated successfully!')
+        successMessage.value = t('activation.successDefault')
+        ElMessage.success(t('activation.toastDefault'))
       }
     } else {
-      error.value = 'Failed to activate purchase. No purchase record found for the provided email.';
+      error.value = t('activation.errorNotFound')
     }
   } catch (e: any) {
     if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
       error.value = e.msg
     } else {
-      error.value = 'Network error, please try again later.'
+      error.value = t('activation.errorNetwork')
     }
   } finally {
     loading.value = false

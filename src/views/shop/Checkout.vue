@@ -1,7 +1,7 @@
 <template>
-    <div class="checkout">
+    <main class="checkout commerce-page">
         <h2 class="title">{{ t('checkout.title') }}</h2>
-        <div class="checkout-main">
+        <div class="checkout-main commerce-panel">
             <div :class="['checkout-left', { 'checkout-left-bundle': isBundle }]">
                 <template v-if="isBundle">
                     <PurchaseCard
@@ -70,7 +70,7 @@
                 </div>
                 <button
                     type="button"
-                    class="purchase-btn"
+                    class="purchase-btn commerce-primary-action"
                     @click="() => handlePayment()"
                     :disabled="loading"
                     :aria-busy="loading"
@@ -99,7 +99,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </template>
 
 <script setup lang="ts">

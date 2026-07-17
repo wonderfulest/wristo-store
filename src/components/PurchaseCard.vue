@@ -87,7 +87,7 @@
     <button
       v-if="showButton"
       type="button"
-      :class="['buy-btn', type === 'bundle' ? 'buy-btn-bundle' : 'buy-btn-product']"
+      :class="['buy-btn', 'commerce-primary-action', type === 'bundle' ? 'buy-btn-bundle' : 'buy-btn-product']"
       @click="handleBuy"
     >
       {{ buttonText }}
