@@ -347,7 +347,8 @@ test('product detail keeps desktop purchase actions sticky and reserves mobile a
 })
 
 test('commerce journey shares an accessible transaction shell without changing checkout contracts', async () => {
-  const [cart, cartPage, purchaseOptions, checkout, activation, success, purchaseCard] = await Promise.all([
+  const [css, cart, cartPage, purchaseOptions, checkout, activation, success, purchaseCard] = await Promise.all([
+    '../src/style.css',
     '../src/views/user-center/CartList.vue',
     '../src/views/user-center/CartListPage.vue',
     '../src/views/shop/PurchaseOptions.vue',
@@ -364,6 +365,11 @@ test('commerce journey shares an accessible transaction shell without changing c
   for (const source of [cart, checkout, activation, success, purchaseCard]) {
     assert.match(source, /commerce-primary-action/)
   }
+  assert.match(css, /\.commerce-page\s*\{[^}]*width:\s*min\(100%,\s*var\(--container\)\);[^}]*padding-inline:\s*var\(--page-gutter\);/s)
+  assert.match(css, /\.commerce-panel\s*\{[^}]*border:\s*1px solid var\(--color-line\);[^}]*background:\s*var\(--color-surface\);[^}]*box-shadow:\s*var\(--shadow-md\);/s)
+  assert.match(css, /\.commerce-primary-action\s*\{[^}]*min-height:\s*48px;[^}]*background:\s*var\(--color-brand\);[^}]*transition:/s)
+  assert.match(css, /\.commerce-primary-action:focus-visible\s*\{[^}]*box-shadow:\s*var\(--focus-ring\);/s)
+  assert.match(css, /\.commerce-primary-action:disabled\s*\{[^}]*cursor:\s*not-allowed;[^}]*opacity:/s)
 
   assert.match(cart, /checkCartPurchases/)
   assert.match(cart, /checkout\(items, email/)

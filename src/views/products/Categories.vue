@@ -165,7 +165,6 @@
         class="product-item"
         @admin-changed="handleAdminChanged"
         @removed-from-current-category="handleRemovedFromCurrentCategory"
-        @click="goToProduct(product)"
       />
     </div>
     
@@ -226,6 +225,7 @@ import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue
 import { Icon } from '@iconify/vue'
 import { absoluteUrl, applySeo } from '@/seo'
 import { useI18n } from '@/i18n'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import {
   beginCategoryPageRequest,
   commitCategoryPageFailure,
@@ -237,6 +237,7 @@ const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const userStore = useUserStore()
+const localeStore = useLocaleStore()
 const { t } = useI18n()
 const series = ref<Series | null>(null)
 const products = ref<ProductBaseVO[]>([])
@@ -260,10 +261,10 @@ const newCategory = ref({
   sort: 0,
   isActive: true,
 })
-const sortOptions: { label: string; value: CategoryProductOrderBy }[] = [
-  { label: 'Most downloaded', value: 'download:desc' },
-  { label: 'Top rated', value: 'rating:desc,download:desc' },
-]
+const sortOptions = computed<{ label: string; value: CategoryProductOrderBy }[]>(() => [
+  { label: t('category.sortMostDownloaded'), value: 'download:desc' },
+  { label: t('category.sortTopRated'), value: 'rating:desc,download:desc' },
+])
 type CategoryFilterValue = 'all' | 'free' | 'popular'
 const filterOptions = computed<{ label: string; value: CategoryFilterValue }[]>(() => [
   { label: t('category.filterAll'), value: 'all' },
@@ -537,7 +538,7 @@ const fetchSeriesAndProducts = async (reset = true) => {
 }
 
 const goHome = () => {
-  router.push({ name: 'home' })
+  router.push(addLocaleToPath('/', localeStore.currentLocale))
 }
 
 const handleAdminChanged = async () => {
@@ -634,10 +635,6 @@ const handleScroll = () => {
       loadMore()
     }
   }, 100)
-}
-
-const goToProduct = (product: ProductBaseVO) => {
-  router.push({ name: 'product-detail', params: { id: product.appId } })
 }
 
 const applyCategorySeo = () => {

@@ -48,7 +48,6 @@ const contentSizedMain = computed(() => route.meta.contentSizedMain === true)
   min-width: 0;
   min-height: 0;
   overflow-x: hidden;
-  isolation: isolate;
   box-sizing: border-box;
   margin: 0;
   padding: 0;

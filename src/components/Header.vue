@@ -622,7 +622,7 @@ defineExpose({
   -webkit-backdrop-filter: blur(18px);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: var(--layer-header);
 }
 .header-inner {
   max-width: var(--container);
@@ -1378,7 +1378,7 @@ defineExpose({
   border-radius: 16px;
   cursor: pointer;
   padding: 0;
-  z-index: 42;
+  z-index: var(--layer-header-trigger);
   box-shadow:
     0 12px 28px rgba(17, 24, 39, 0.08),
     0 1px 0 rgba(255, 255, 255, 0.9) inset;
@@ -1441,7 +1441,7 @@ defineExpose({
   opacity: 0;
   visibility: hidden;
   transition: transform 220ms ease, opacity 220ms ease, visibility 220ms ease;
-  z-index: 41;
+  z-index: var(--layer-header-menu);
   overflow-y: auto;
   pointer-events: none;
 }
@@ -1815,7 +1815,7 @@ defineExpose({
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
-  z-index: 40;
+  z-index: var(--layer-header-overlay);
   pointer-events: none;
 }
 

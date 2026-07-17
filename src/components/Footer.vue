@@ -176,6 +176,7 @@ onUnmounted(() => {
   outline: none;
   transition: background var(--motion-base) ease, border-color var(--motion-base) ease, transform var(--motion-base) ease;
   position: relative;
+  z-index: var(--layer-footer);
   min-height: 24px; /* 最小高度 */
   display: flex;
   align-items: center;
@@ -196,7 +197,7 @@ onUnmounted(() => {
 @media (max-width: 768px) {
   .footer {
     position: relative;
-    z-index: 100;
+    z-index: var(--layer-footer);
     transform: none;
     transition: background var(--motion-base) ease, border-color var(--motion-base) ease;
     backdrop-filter: blur(20px);

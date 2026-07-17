@@ -126,7 +126,7 @@ watch(activeTab, loadData)
   padding: 0 16px;
   border-radius: 999px;
   background: transparent;
-  color: var(--color-muted);
+  color: var(--color-stage-muted);
 }
 
 .segment-btn.active {

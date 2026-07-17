@@ -50,6 +50,7 @@ defineEmits<{
 <style scoped>
 .mobile-product-action-bar {
   display: none;
+  z-index: var(--layer-mobile-transaction);
 }
 
 @media (max-width: 900px) {
@@ -58,7 +59,7 @@ defineEmits<{
     right: 0;
     bottom: 0;
     left: 0;
-    z-index: 40;
+    z-index: var(--layer-mobile-transaction);
     display: grid;
     grid-template-columns: minmax(72px, auto) minmax(0, 1fr) minmax(0, 1.35fr);
     align-items: center;

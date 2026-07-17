@@ -325,6 +325,7 @@ import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { hasActiveBundle } from '@/utils/entitlements'
+import { resolveMobileProductActionState } from '@/utils/productMobileAction'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
@@ -373,19 +374,30 @@ const displayRating = computed(() => {
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
 const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
-const mobileActionVisible = computed(() => Boolean(product.value?.appId))
+const mobileActionState = computed(() => resolveMobileProductActionState({
+  appId: product.value?.appId,
+  hasEntitlement: hasBundleEntitlement.value,
+  garminStoreUrl: product.value?.garminStoreUrl,
+  cartEnabled: isCartEnabled,
+  isInCart: isInCart.value,
+}))
+const mobileActionVisible = computed(() => mobileActionState.value.visible)
 const mobilePriceLabel = computed(() =>
   hasBundleEntitlement.value
     ? t('product.activated')
     : `$${product.value?.price?.toFixed(2) ?? '0.00'}`,
 )
 const mobilePrimaryLabel = computed(() =>
-  hasBundleEntitlement.value ? t('product.websiteOption') : t('product.buyNow'),
+  mobileActionState.value.primaryAction === 'download'
+    ? t('product.websiteOption')
+    : t('product.buyNow'),
 )
 const mobileSecondaryLabel = computed(() =>
-  isCartEnabled && !hasBundleEntitlement.value
-    ? (isInCart.value ? t('cart.goToCart') : t('product.addToCart'))
-    : '',
+  mobileActionState.value.secondaryAction === 'go-to-cart'
+    ? t('cart.goToCart')
+    : mobileActionState.value.secondaryAction === 'add-to-cart'
+      ? t('product.addToCart')
+      : '',
 )
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
@@ -470,8 +482,13 @@ const handleDownload = () => {
   }
 }
 
-const mobilePrimaryAction = () =>
-  hasBundleEntitlement.value ? handleDownload() : handleBuyNow()
+const mobilePrimaryAction = () => {
+  if (mobileActionState.value.primaryAction === 'download') {
+    handleDownload()
+  } else if (mobileActionState.value.primaryAction === 'buy') {
+    handleBuyNow()
+  }
+}
 
 const handleUnlock = () => {
   console.log(product.value)

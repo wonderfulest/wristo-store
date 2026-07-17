@@ -19,6 +19,7 @@
   --color-surface-soft: #eaf1ee;
   --color-stage: #0b1717;
   --color-stage-soft: #122625;
+  --color-stage-muted: #c4d2cf;
   --color-ink: #13201f;
   --color-muted: #60706d;
   --color-subtle: #899692;
@@ -48,11 +49,18 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
+  --space-8: 64px;
   --space-section: clamp(56px, 7vw, 96px);
   --page-gutter: clamp(16px, 4vw, 48px);
   --container: 1200px;
   --container-wide: 1380px;
   --header-height: 72px;
+  --layer-footer: 20;
+  --layer-mobile-transaction: 30;
+  --layer-header: 40;
+  --layer-header-overlay: 41;
+  --layer-header-menu: 42;
+  --layer-header-trigger: 43;
   --motion-fast: 160ms;
   --motion-base: 240ms;
   --focus-ring: 0 0 0 3px rgba(11,116,109,.22);
@@ -95,6 +103,47 @@ a:hover {
   width: min(100%, var(--container-wide));
   margin-inline: auto;
   padding-inline: var(--page-gutter);
+}
+
+.commerce-page {
+  box-sizing: border-box;
+  width: min(100%, var(--container));
+  margin-inline: auto;
+  padding-block: var(--space-section);
+  padding-inline: var(--page-gutter);
+}
+
+.commerce-panel {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.commerce-primary-action {
+  min-height: 48px;
+  border: 1px solid var(--color-brand);
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+
+.commerce-primary-action:hover:not(:disabled) {
+  border-color: var(--color-brand-hover);
+  background: var(--color-brand-hover);
+}
+
+.commerce-primary-action:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.commerce-primary-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 body {
@@ -263,9 +312,26 @@ img {
   .storefront-enter {
     transform: none !important;
   }
+
+  .commerce-primary-action {
+    transition-duration: 0.01ms;
+  }
 }
 
 @media (max-width: 768px) {
+  .commerce-page {
+    padding-block: var(--space-6);
+    padding-inline: var(--page-gutter);
+  }
+
+  .commerce-panel {
+    border-radius: var(--radius-md);
+  }
+
+  .commerce-primary-action {
+    width: 100%;
+  }
+
   h1 {
     font-size: 2.4em;
   }

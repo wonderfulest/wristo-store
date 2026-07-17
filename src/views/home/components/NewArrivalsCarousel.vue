@@ -16,8 +16,8 @@
                 role="button"
                 tabindex="0"
                 @click="handleProductClick(product.__origin)"
-                @keydown.enter.prevent="handleProductClick(product.__origin)"
-                @keydown.space.prevent="handleProductClick(product.__origin)"
+                @keydown.enter.self.prevent="handleProductClick(product.__origin)"
+                @keydown.space.self.prevent="handleProductClick(product.__origin)"
               >
                 <div
                   v-if="hasBundleEntitlement"
@@ -385,9 +385,11 @@ onUnmounted(() => {
 }
 
 .cart-toggle {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

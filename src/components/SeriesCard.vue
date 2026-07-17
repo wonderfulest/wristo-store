@@ -8,7 +8,7 @@
     <span class="series-card__body">
       <strong>{{ series.name }}</strong>
       <span v-if="series.publicTagline" class="series-card__tagline">{{ series.publicTagline }}</span>
-      <span v-if="series.appCount != null" class="series-card__count">{{ series.appCount }} apps</span>
+      <span v-if="series.appCount != null" class="series-card__count">{{ t('series.appCount', { count: series.appCount }) }}</span>
     </span>
     <span class="series-card__arrow" aria-hidden="true">&#8599;</span>
   </button>
@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import type { Series } from '@/types'
+import { useI18n } from '@/i18n'
 
 defineProps<{
   series: Series & { publicTagline?: string }
@@ -25,6 +26,8 @@ defineProps<{
 const emit = defineEmits<{
   (event: 'select', series: Series): void
 }>()
+
+const { t } = useI18n()
 </script>
 
 <style scoped>
