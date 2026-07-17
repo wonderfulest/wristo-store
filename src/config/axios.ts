@@ -19,10 +19,12 @@ const instance = axios.create({
 // 请求拦截器
 instance.interceptors.request.use(config => {
   const userStore = useUserStore()
+  const localeStore = useLocaleStore()
   const token = userStore.token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
+  config.headers['X-Lang'] = localeStore.currentLocale
 
   // Append device param ONLY for public products APIs
   try {
