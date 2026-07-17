@@ -466,7 +466,7 @@ onUnmounted(() => {
   border-color: rgba(212, 175, 55, 0.54);
 }
 
-.purchase-card > * {
+.purchase-card > :not(.purchase-card-select) {
   position: relative;
   z-index: 1;
 }

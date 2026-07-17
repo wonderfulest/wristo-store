@@ -464,3 +464,14 @@ test('purchase cards use sibling selection and buy controls without interactive 
   assert.match(source, /emit\('buy'\)/)
   assert.match(source, /emit\('loadMoreBundleItems'\)/)
 })
+
+test('purchase card stacking rules do not override the absolute selection control', async () => {
+  const purchaseCard = await read('../src/components/PurchaseCard.vue')
+
+  assert.match(
+    purchaseCard,
+    /\.purchase-card\s*>\s*:not\(\.purchase-card-select\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
+  )
+  assert.doesNotMatch(purchaseCard, /\.purchase-card\s*>\s*\*\s*\{[^}]*position:\s*relative;/s)
+  assert.match(purchaseCard, /\.purchase-card-select\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*3;/s)
+})
