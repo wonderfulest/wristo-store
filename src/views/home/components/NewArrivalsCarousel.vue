@@ -1,16 +1,13 @@
 <template>
   <section class="new-section">
     <div class="new-container">
-      <div class="new-header">
-        <div class="new-header-icon">
-          <Icon class="new-header-icon-inner" icon="solar:magic-stick-3-line-duotone" width="25" height="25" aria-hidden="true" />
-        </div>
-        <div class="new-heading-copy">
-          <span class="new-kicker">{{ t('home.newArrivalsKicker') }}</span>
-          <h2 class="new-title">{{ t('home.newArrivalsTitle') }}</h2>
-        </div>
-      </div>
-      <div class="new-carousel-wrap">
+      <SectionHeading
+        :kicker="t('home.newKicker')"
+        :title="t('home.newArrivalsTitle')"
+      />
+      <ProductGridSkeleton v-if="loading" :count="4" class="new-loading" />
+      <p v-else-if="error" class="section-status" role="status">{{ t('home.sectionUnavailable') }}</p>
+      <div v-else class="new-carousel-wrap">
         <div class="new-scroll" ref="scrollContainer">
           <div class="new-scroll-track">
             <div v-for="product in loopProducts" :key="`${product.appId}-${product.__loopKey}`" class="new-slide">
@@ -79,9 +76,13 @@ import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { hasActiveBundle } from '@/utils/entitlements'
+import SectionHeading from '@/components/storefront/SectionHeading.vue'
+import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue'
 
 const props = defineProps<{
   newProducts: ProductBaseVO[];
+  loading?: boolean;
+  error?: boolean;
 }>();
 
 const emit = defineEmits(['product-click']);
@@ -241,54 +242,24 @@ onUnmounted(() => {
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
+  padding-inline: var(--page-gutter);
 }
 
-.new-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
+.new-loading,
+.section-status {
+  margin-top: var(--space-6);
 }
 
-.new-header-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(223, 245, 241, 0.96), rgba(255, 247, 237, 0.92));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 14px 28px rgba(15, 107, 104, 0.12);
-  border: 1px solid rgba(15, 107, 104, 0.12);
-}
-
-.new-header-icon-inner {
-  color: var(--color-brand);
-}
-
-.new-heading-copy {
-  display: grid;
-  gap: 1px;
-}
-
-.new-kicker {
-  color: var(--color-accent);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.new-title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 2.45rem;
-  font-weight: 700;
-  color: var(--color-ink);
+.section-status {
+  padding: var(--space-5);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  background: var(--color-surface);
 }
 
 .new-carousel-wrap {
-  padding: 10px 16px 0;
+  padding: var(--space-5) 0 0;
   position: relative;
 }
 
@@ -439,21 +410,8 @@ onUnmounted(() => {
   }
   
   .new-container {
-    width: 95%;
-    padding: 0 12px;
-  }
-  
-  .new-header-icon {
-    width: 44px;
-    height: 44px;
-  }
-  
-  .new-header-icon-inner {
-    font-size: 20px;
-  }
-  
-  .new-title {
-    font-size: 2.05rem;
+    width: 100%;
+    padding-inline: var(--page-gutter);
   }
   
   .new-carousel-wrap {
@@ -483,10 +441,6 @@ onUnmounted(() => {
   .new-container {
     width: 100%;
     padding: 0 8px;
-  }
-  
-  .new-title {
-    font-size: 1.85rem;
   }
   
   .new-carousel-wrap {

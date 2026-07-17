@@ -14,12 +14,16 @@
     <!-- New Arrivals Carousel -->
     <NewArrivalsCarousel
       :new-products="newProducts"
+      :loading="loading"
+      :error="sectionErrors.newest"
       @product-click="goToProduct"
     />
 
     <!-- Series Section -->
     <SeriesSection 
       :series-list="seriesList"
+      :loading="loading"
+      :error="sectionErrors.series"
       @series-click="goToSeries"
     />
 
@@ -32,6 +36,8 @@
     <!-- Hot Products Section -->
     <HotProductsSection 
       :hot-products="hotProducts"
+      :loading="loading"
+      :error="sectionErrors.hot"
       @product-click="goToProduct"
       @more-click="goToTopApps"
     />
@@ -64,6 +70,8 @@ const searchTerm = ref('');
 const seriesList = ref<Series[]>([]);
 const hotProducts = ref<ProductBaseVO[]>([]);
 const newProducts = ref<ProductBaseVO[]>([]);
+const loading = ref(true)
+const sectionErrors = ref({ series: false, hot: false, newest: false })
 
 const handleSubmitSearch = async (term: string) => {
   const q = term.trim()
@@ -74,15 +82,19 @@ const handleSubmitSearch = async (term: string) => {
 
 // Fetch initial data
 onMounted(async () => {
-  try {
-    [seriesList.value, hotProducts.value, newProducts.value] = await Promise.all([
-      productStore.getHotSeries(10),
-      productStore.getHotProducts(),
-      productStore.getNewProducts(30)
-    ]);
-  } catch (error) {
-    console.error('Failed to fetch initial data:', error);
-  }
+  const [series, hot, newest] = await Promise.allSettled([
+    productStore.getHotSeries(10),
+    productStore.getHotProducts(),
+    productStore.getNewProducts(30),
+  ])
+
+  if (series.status === 'fulfilled') seriesList.value = series.value
+  else sectionErrors.value.series = true
+  if (hot.status === 'fulfilled') hotProducts.value = hot.value
+  else sectionErrors.value.hot = true
+  if (newest.status === 'fulfilled') newProducts.value = newest.value
+  else sectionErrors.value.newest = true
+  loading.value = false
 });
 
 const goToProduct = (product: ProductBaseVO) => {
@@ -104,8 +116,7 @@ const goToSeries = (series: Series) => {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
-  background:
-    linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 34%, #ffffff 100%);
+  background: var(--color-canvas);
 }
 .premium-suite-section {
   width: min(960px, calc(100% - 32px));

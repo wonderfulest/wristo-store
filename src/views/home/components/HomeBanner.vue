@@ -50,16 +50,14 @@
           </div>
         </div>
 
-        <div class="banner-art" aria-hidden="true">
+        <div class="banner-stage" aria-hidden="true">
+          <span class="banner-stage__index">0{{ activeSlideIndex + 1 }}</span>
+          <div class="banner-stage__halo"></div>
           <img :src="activeSlide.imageSrc" alt="" loading="eager" />
-          <span class="art-label art-label-top">
-            <Icon :icon="activeSlide.artTopIcon" width="18" height="18" />
-            {{ t(activeSlide.artTopKey) }}
-          </span>
-          <span class="art-label art-label-bottom">
-            <Icon :icon="activeSlide.artBottomIcon" width="18" height="18" />
-            {{ t(activeSlide.artBottomKey) }}
-          </span>
+          <div class="banner-stage__caption">
+            <span>{{ t(activeSlide.artTopKey) }}</span>
+            <strong>{{ t(activeSlide.artBottomKey) }}</strong>
+          </div>
         </div>
       </div>
 
@@ -223,6 +221,7 @@ const pauseCarousel = () => {
 }
 
 const resumeCarousel = () => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   if (!carouselTimer) {
     carouselTimer = window.setInterval(nextSlide, 6500)
   }
@@ -240,10 +239,8 @@ onBeforeUnmount(pauseCarousel)
 <style scoped>
 .home-banner {
   width: 100%;
-  padding: 24px 0 18px;
-  background:
-    radial-gradient(560px 320px at 12% 4%, rgba(245, 158, 11, 0.16), transparent 70%),
-    radial-gradient(620px 360px at 88% 8%, rgba(15, 107, 104, 0.16), transparent 70%);
+  padding: var(--space-5) 0 var(--space-4);
+  background: var(--color-canvas);
 }
 
 .banner-shell {
@@ -253,23 +250,9 @@ onBeforeUnmount(pauseCarousel)
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 251, 250, 0.78) 48%, rgba(223, 245, 241, 0.82) 100%);
-  box-shadow:
-    var(--shadow-lg),
-    0 1px 0 rgba(255, 255, 255, 0.7) inset;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-lg);
   border: 1px solid var(--color-line);
-}
-
-.banner-shell::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.82) 42%, rgba(255, 255, 255, 0.28) 100%),
-    radial-gradient(760px 420px at 74% 50%, rgba(15, 107, 104, 0.12), transparent 64%);
-  pointer-events: none;
 }
 
 .banner-content {
@@ -277,7 +260,7 @@ onBeforeUnmount(pauseCarousel)
   z-index: 2;
   min-height: 560px;
   display: grid;
-  grid-template-columns: minmax(0, 1.04fr) minmax(360px, 0.96fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
   align-items: center;
   gap: 26px;
   padding: 56px 56px 48px;
@@ -300,7 +283,7 @@ onBeforeUnmount(pauseCarousel)
 
 .banner-content.theme-studio .banner-code {
   color: #5b21b6;
-  background: rgba(237, 233, 254, 0.78);
+  background: transparent;
   border-color: rgba(124, 58, 237, 0.18);
 }
 
@@ -370,15 +353,15 @@ onBeforeUnmount(pauseCarousel)
   gap: 8px;
   padding: 0 18px;
   color: var(--color-brand-strong);
-  background: var(--color-brand-soft);
-  border-color: rgba(15, 107, 104, 0.18);
+  background: transparent;
+  border-color: rgba(15, 107, 104, 0.32);
 }
 
 .banner-secondary {
   padding: 0 18px;
   color: var(--color-brand-strong);
-  background: rgba(255, 255, 255, 0.76);
-  border-color: rgba(15, 107, 104, 0.14);
+  background: transparent;
+  border-color: transparent;
 }
 
 .banner-metrics {
@@ -407,21 +390,68 @@ onBeforeUnmount(pauseCarousel)
   font-size: 1.04rem;
 }
 
-.banner-art {
+.banner-stage {
   position: relative;
   justify-self: end;
   width: min(100%, 540px);
+  min-height: 440px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-display);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), transparent 42%),
+    var(--color-stage);
+  box-shadow: 0 28px 70px rgba(7, 35, 33, 0.24);
 }
 
-.banner-art img {
+.banner-stage img {
+  position: relative;
+  z-index: 2;
   display: block;
-  width: 100%;
+  width: min(88%, 470px);
   aspect-ratio: 4 / 3;
   object-fit: contain;
-  border-radius: 32px;
-  box-shadow: 0 28px 70px rgba(17, 24, 39, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.72);
+  filter: drop-shadow(0 28px 32px rgba(0, 0, 0, 0.36));
+}
+
+.banner-stage__index {
+  position: absolute;
+  top: var(--space-5);
+  left: var(--space-5);
+  z-index: 3;
+  color: rgba(255, 255, 255, 0.48);
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+}
+
+.banner-stage__halo {
+  position: absolute;
+  width: 68%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(216, 239, 234, 0.28), rgba(11, 116, 109, 0.08) 54%, transparent 72%);
+}
+
+.banner-stage__caption {
+  position: absolute;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 3;
+  display: grid;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.banner-stage__caption strong {
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .banner-carousel {
@@ -462,43 +492,16 @@ onBeforeUnmount(pauseCarousel)
   transform: scale(0.96);
 }
 
-.art-label {
-  position: absolute;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  color: var(--color-ink);
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(17, 24, 39, 0.08);
-  box-shadow: 0 14px 32px rgba(17, 24, 39, 0.12);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  font-weight: 800;
-  font-size: 0.9rem;
-}
-
-.art-label-top {
-  top: 22px;
-  left: -20px;
-}
-
-.art-label-bottom {
-  right: -16px;
-  bottom: 30px;
-}
-
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .banner-content {
     grid-template-columns: 1fr;
     padding: 44px 44px 64px;
   }
 
-  .banner-art {
+  .banner-stage {
     justify-self: center;
     width: min(100%, 480px);
+    min-height: min(420px, 62vw);
   }
 }
 
@@ -543,29 +546,9 @@ onBeforeUnmount(pauseCarousel)
     display: none;
   }
 
-  .art-label {
-    position: absolute;
-    min-height: 34px;
-    padding: 7px 10px;
-    font-size: 0.82rem;
-  }
-
-  .art-label-top {
-    top: 12px;
-    left: 12px;
-  }
-
-  .art-label-bottom {
-    right: 12px;
-    bottom: 12px;
-  }
-
-  .banner-art img {
-    border-radius: 22px;
-  }
-
-  .banner-art {
+  .banner-stage {
     width: min(100%, 310px);
+    min-height: min(360px, 92vw);
     justify-self: center;
   }
 
@@ -584,7 +567,8 @@ onBeforeUnmount(pauseCarousel)
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .carousel-dot {
+  .carousel-dot,
+  .banner-stage img {
     transition: none;
   }
 }

@@ -80,3 +80,42 @@ test('compiled product card keyboard handlers ignore events from nested controls
   const selfBeforePrevent = /_withKeys\(_withModifiers\([\s\S]*?\["self",\s*"prevent"\]\),\s*\["(?:enter|space)"\]\)/g
   assert.equal(result.code.match(selfBeforePrevent)?.length, 2)
 })
+
+test('home composes an editorial gallery with a motion-aware stage and shared headings', async () => {
+  const home = await read('../src/views/home/Home.vue')
+  const orderedSections = [
+    '<HomeBanner',
+    '<SearchSection',
+    '<NewArrivalsCarousel',
+    '<SeriesSection',
+    '<BrandsSection',
+    '<HotProductsSection',
+    '<PremiumSuiteCard',
+  ]
+  let previousIndex = -1
+  for (const section of orderedSections) {
+    const index = home.indexOf(section)
+    assert.ok(index > previousIndex, `${section} should follow the previous home section`)
+    previousIndex = index
+  }
+
+  const banner = await read('../src/views/home/components/HomeBanner.vue')
+  assert.match(banner, /class="banner-stage"/)
+  assert.equal(banner.match(/class="banner-primary"/g)?.length, 1)
+  assert.match(banner, /pauseCarousel/)
+  assert.match(banner, /resumeCarousel/)
+  assert.match(banner, /@media \(prefers-reduced-motion: reduce\)/)
+
+  const contentSections = await Promise.all([
+    '../src/views/home/components/NewArrivalsCarousel.vue',
+    '../src/views/home/components/SeriesSection.vue',
+    '../src/views/brands/BrandsSection.vue',
+    '../src/views/home/components/FeatureSection.vue',
+    '../src/views/home/components/HotProductsSection.vue',
+  ].map(read))
+  const sharedHeadingUses = contentSections.reduce(
+    (count, source) => count + (source.match(/<SectionHeading\b/g)?.length ?? 0),
+    0,
+  )
+  assert.ok(sharedHeadingUses >= 5, 'home content sections should share SectionHeading')
+})

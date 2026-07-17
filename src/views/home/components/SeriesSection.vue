@@ -1,297 +1,85 @@
 <template>
   <section class="series-section">
-    <div class="series-container">
-      <div class="series-header">
-        <div class="series-header-icon">
-          <Icon class="series-header-icon-inner" icon="solar:widget-6-line-duotone" width="25" height="25" aria-hidden="true" />
-        </div>
-        <div class="series-heading-copy">
-          <span class="series-kicker">{{ t('home.seriesKicker') }}</span>
-          <h2 class="series-title">{{ t('home.seriesTitle') }}</h2>
-        </div>
-      </div>
-      <div class="series-grid">
-        <div 
-          v-for="series in seriesList" 
-          :key="series.id" 
-          class="series-item" 
-          @click="$emit('series-click', series)"
-        >
-          <div class="series-img-wrap">
-            <img :src="series.image || ''" :alt="series.name" class="series-img" />
-          </div>
-          <div class="series-name-row">
-            <span class="series-name">{{ series.name }}</span>
-            <span class="series-arrow">&rarr;</span>
-          </div>
-          <p v-if="series.publicTagline" class="series-tagline">{{ series.publicTagline }}</p>
-          <span v-if="series.appCount != null" class="series-count">{{ series.appCount }} apps</span>
-        </div>
+    <div class="storefront-container">
+      <SectionHeading
+        :kicker="t('home.seriesKicker')"
+        :title="t('home.seriesTitle')"
+      />
+      <ProductGridSkeleton v-if="loading" :count="4" class="series-loading" />
+      <p v-else-if="error" class="section-status" role="status">{{ t('home.sectionUnavailable') }}</p>
+      <div v-else class="series-grid">
+        <SeriesCard
+          v-for="(series, index) in seriesList"
+          :key="series.id"
+          :series="series"
+          :index="index"
+          :style="{ '--series-accent': resolveSeriesAccent(series.slug) }"
+          @select="$emit('series-click', series)"
+        />
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue';
-import type { Series } from '@/types';
-import { useI18n } from '@/i18n';
+import type { CSSProperties } from 'vue'
+import type { Series } from '@/types'
+import { useI18n } from '@/i18n'
+import SeriesCard from '@/components/SeriesCard.vue'
+import SectionHeading from '@/components/storefront/SectionHeading.vue'
+import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue'
 
-const { t } = useI18n();
+const { t } = useI18n()
 
 defineProps<{
-  seriesList: Array<Series & { publicTagline?: string }>;
-}>();
+  seriesList: Array<Series & { publicTagline?: string }>
+  loading?: boolean
+  error?: boolean
+}>()
 
-defineEmits(['series-click']);
+defineEmits<{
+  (event: 'series-click', series: Series): void
+}>()
+
+const seriesAccents = ['#0b746d', '#c98919', '#6c7b64', '#a65a42', '#526c8a']
+
+const resolveSeriesAccent = (slug?: string) => {
+  const seed = (slug || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  return seriesAccents[seed % seriesAccents.length] as CSSProperties['color']
+}
 </script>
 
 <style scoped>
 .series-section {
-  padding: 64px 16px;
-  background: #f8fbfa;
-  box-sizing: border-box;
+  padding-block: var(--space-section);
+  background: var(--color-surface-soft);
 }
 
-.series-container {
-  width: 100%;
-  max-width: var(--container);
-  margin: 0 auto;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.series-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 40px;
-  justify-content: center;
-  gap: 14px;
-}
-
-.series-header-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  background:
-    linear-gradient(135deg, rgba(223, 245, 241, 0.96), rgba(255, 255, 255, 0.9));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 14px 28px rgba(15, 107, 104, 0.12);
-  border: 1px solid rgba(15, 107, 104, 0.12);
-}
-
-.series-header-icon-inner {
-  color: var(--color-brand);
-}
-
-.series-heading-copy {
-  display: grid;
-  gap: 1px;
-}
-
-.series-kicker {
-  color: var(--color-accent);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.series-title {
-  font-family: var(--font-display);
-  font-size: 2.45rem;
-  font-weight: 700;
-  color: var(--color-ink);
-  margin: 0;
+.series-grid,
+.series-loading,
+.section-status {
+  margin-top: var(--space-6);
 }
 
 .series-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 32px 16px;
-  justify-items: center;
-  align-items: start;
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 0;
-  box-sizing: border-box;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
 }
 
-.series-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 240px;
-  cursor: pointer;
-  transition: transform 0.3s ease;
-  justify-self: center;
-}
-
-.series-item:hover {
-  transform: translateY(-5px);
-}
-
-.series-img-wrap {
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: linear-gradient(180deg, #fff 0%, #eef5f3 100%);
-  box-shadow: var(--shadow-md);
+.section-status {
+  padding: var(--space-5);
   border: 1px solid var(--color-line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  margin: 0 auto;
-}
-
-.series-item:hover .series-img-wrap {
-  transform: scale(1.05);
-  box-shadow: var(--shadow-lg);
-}
-
-.series-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  display: block;
-  transition: transform 0.5s ease;
-}
-
-.series-item:hover .series-img {
-  transform: scale(1.1);
-}
-
-.series-name-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 18px;
-  gap: 8px;
-}
-
-.series-tagline {
-  margin: 8px 0 0;
+  border-radius: var(--radius-md);
   color: var(--color-muted);
-  font-size: 0.86rem;
-  line-height: 1.35;
-  text-align: center;
+  background: var(--color-surface);
 }
 
-.series-count {
-  margin-top: 6px;
-  color: var(--color-subtle);
-  font-size: 0.78rem;
-  font-weight: 700;
+@media (max-width: 900px) {
+  .series-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
-.series-name {
-  font-size: 1.15rem;
-  font-weight: 600;
-  color: var(--color-ink);
-  transition: color 0.3s ease;
-}
-
-.series-item:hover .series-name {
-  color: var(--color-brand);
-}
-
-.series-arrow {
-  font-size: 1.3rem;
-  color: var(--color-subtle);
-  margin-left: 2px;
-  font-weight: 400;
-  transition: transform 0.3s ease, color 0.3s ease;
-}
-
-.series-item:hover .series-arrow {
-  transform: translateX(5px);
-  color: var(--color-brand);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .series-section {
-    padding: 48px 12px;
-  }
-
-  .series-container {
-    padding: 0 8px;
-  }
-
-  .series-header {
-    margin-bottom: 32px;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .series-title {
-    font-size: 2.05rem;
-    text-align: center;
-  }
-
-  .series-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 20px 12px;
-    justify-content: center;
-    padding: 0 8px;
-  }
-
-  .series-item {
-    max-width: 180px;
-  }
-
-  .series-img-wrap {
-    width: 160px;
-    height: 160px;
-  }
-
-  .series-name {
-    font-size: 1.05rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .series-section {
-    padding: 40px 8px;
-  }
-
-  .series-container {
-    padding: 0 4px;
-  }
-
-  .series-title {
-    font-size: 1.85rem;
-  }
-
-  .series-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 8px;
-    padding: 0 4px;
-    justify-items: center;
-  }
-
-  .series-item {
-    max-width: 150px;
-    width: 100%;
-  }
-
-  .series-img-wrap {
-    width: 140px;
-    height: 140px;
-  }
-
-  .series-name {
-    font-size: 0.95rem;
-  }
-
-  .series-arrow {
-    font-size: 1.1rem;
-  }
+@media (max-width: 520px) {
+  .series-grid { grid-template-columns: 1fr; }
 }
 </style>

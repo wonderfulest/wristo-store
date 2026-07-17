@@ -139,9 +139,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .search-section {
-  min-height: 220px;
-  background:
-    linear-gradient(135deg, rgba(223, 245, 241, 0.9) 0%, rgba(255, 247, 237, 0.62) 48%, rgba(255, 255, 255, 0.86) 100%);
+  min-height: 180px;
+  background: var(--color-surface-soft);
   display: flex;
   align-items: center;
   border-block: 1px solid var(--color-line);
@@ -153,24 +152,22 @@ onBeforeUnmount(() => {
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-top: 32px;
-  margin-bottom: 32px;
+  margin-block: var(--space-6);
+  padding-inline: var(--page-gutter);
 }
 
 .search-bar-inner {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--color-surface);
   border-radius: 999px;
-  box-shadow:
-    var(--shadow-md),
-    0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  box-shadow: var(--shadow-sm);
   padding: 0 28px 0 22px;
   width: 56vw;
   min-width: 320px;
   max-width: 820px;
-  min-height: 72px;
+  min-height: 68px;
   display: flex;
   align-items: center;
-  border: 1px solid rgba(15, 107, 104, 0.12);
+  border: 1px solid var(--color-line);
 }
 
 .search-bar-input {

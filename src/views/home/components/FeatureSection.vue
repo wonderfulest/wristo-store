@@ -2,11 +2,11 @@
   <section class="feature-section">
     <div class="feature-panel">
       <div class="feature-copy">
-        <div class="feature-badge">{{ t('home.featureBadge') }}</div>
-        <h2 class="feature-title">{{ t('home.featureTitle') }}</h2>
-        <p class="feature-desc">
-          {{ t('home.featureDesc') }}
-        </p>
+        <SectionHeading
+          :kicker="t('home.featureBadge')"
+          :title="t('home.featureTitle')"
+          :description="t('home.featureDesc')"
+        />
 
         <div class="feature-actions">
           <button class="feature-cta" @click="goToPurchaseOptions">{{ t('home.featureCta') }}</button>
@@ -69,6 +69,7 @@ import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
+import SectionHeading from '@/components/storefront/SectionHeading.vue'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
@@ -95,9 +96,7 @@ const goToPurchaseOptions = () => {
   border-radius: 22px;
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(245, 251, 249, 0.9) 52%, rgba(223, 245, 241, 0.78) 100%);
-  box-shadow:
-    0 22px 60px rgba(17, 24, 39, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.82) inset;
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--color-line);
   padding: 34px;
   position: relative;
@@ -168,23 +167,23 @@ const goToPurchaseOptions = () => {
 }
 
 .feature-cta {
-  border: none;
+  border: 1px solid var(--color-line);
   border-radius: 999px;
   min-height: 46px;
   padding: 12px 22px;
   font-weight: 700;
   letter-spacing: 0;
-  color: #fff;
-  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-strong) 100%);
-  box-shadow: 0 10px 30px rgba(15, 107, 104, 0.18);
+  color: var(--color-brand-strong);
+  background: transparent;
+  box-shadow: none;
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .feature-cta:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 36px rgba(15, 107, 104, 0.22);
-  filter: saturate(1.05);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  background: var(--color-surface);
 }
 
 .feature-cta:active {

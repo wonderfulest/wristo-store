@@ -1,18 +1,17 @@
 <template>
   <section v-if="merchants.length" class="brands-section">
     <div class="brands-container">
-      <div class="brands-header">
-        <div class="brands-header-left">
-          <h2 class="brands-title">{{ t('home.brandsTitle') }}</h2>
-          <div class="brands-subtitle">
-            {{ t('home.brandsSubtitle') }}
-          </div>
-        </div>
-
-        <button class="brands-more" type="button" @click="goToBrands">
-          {{ t('home.brandsMore') }}
-        </button>
-      </div>
+      <SectionHeading
+        :kicker="t('home.brandsKicker')"
+        :title="t('home.brandsTitle')"
+        :description="t('home.brandsSubtitle')"
+      >
+        <template #action>
+          <button class="brands-more" type="button" @click="goToBrands">
+            {{ t('home.brandsMore') }}
+          </button>
+        </template>
+      </SectionHeading>
 
       <div class="brands-grid" :aria-label="t('home.brandsAria')">
         <button
@@ -38,6 +37,7 @@ import { getTopMerchants } from '@/api/merchant'
 import type { PublicMerchantVO } from '@/types/merchant'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
+import SectionHeading from '@/components/storefront/SectionHeading.vue'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
@@ -69,45 +69,20 @@ const getInitial = (name?: string) => {
 
 <style scoped>
 .brands-section {
-  padding: 46px 0;
-  background: #fff;
+  padding-block: var(--space-section);
+  background: var(--color-surface);
 }
 
 .brands-container {
   width: 100%;
-  max-width: var(--container);
+  max-width: var(--container-wide);
   margin: 0 auto;
-  padding: 0 16px;
-}
-
-.brands-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.brands-header-left {
-  min-width: 0;
-  text-align: left;
-}
-
-.brands-title {
-  font-family: var(--font-display);
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--color-ink);
-}
-
-.brands-subtitle {
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--color-muted);
+  padding-inline: var(--page-gutter);
 }
 
 .brands-more {
-  height: 32px;
-  padding: 0 12px;
+  min-height: 44px;
+  padding: 0 var(--space-4);
   border-radius: 999px;
   border: 1px solid var(--color-line);
   background: rgba(255, 255, 255, 0.75);
@@ -172,11 +147,7 @@ const getInitial = (name?: string) => {
 
 @media (max-width: 768px) {
   .brands-section {
-    padding: 22px 0;
-  }
-
-  .brands-title {
-    font-size: 1.35rem;
+    padding-block: var(--space-7);
   }
 
   .brands-grid {
@@ -197,10 +168,6 @@ const getInitial = (name?: string) => {
 }
 
 @media (max-width: 480px) {
-  .brands-title {
-    font-size: 1.75rem;
-  }
-
   .brands-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
