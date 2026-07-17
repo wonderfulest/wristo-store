@@ -34,19 +34,21 @@ const contentSizedMain = computed(() => route.meta.contentSizedMain === true)
   display: flex;
   flex-direction: column;
   background: var(--color-canvas);
-  width: 100vw;
-  max-width: 100vw;
+  width: 100%;
+  min-width: 0;
   overflow-x: hidden;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  scroll-padding-top: var(--header-height);
 }
 .layout-main {
   flex: 1;
   width: 100%;
+  min-width: 0;
   min-height: 0;
-  max-width: 100%;
   overflow-x: hidden;
+  isolation: isolate;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -56,31 +58,4 @@ const contentSizedMain = computed(() => route.meta.contentSizedMain === true)
   flex: 0 0 auto;
 }
 
-/* 移动端宽度修复 */
-@media (max-width: 768px) {
-  .layout-root {
-    width: 100vw;
-    max-width: 100vw;
-    min-width: 100vw;
-    overflow-x: hidden;
-    position: relative;
-  }
-  
-  .layout-main {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-    contain: layout style;
-  }
-}
-
-/* 全局重置，防止子元素溢出 */
-.layout-root * {
-  box-sizing: border-box;
-}
-
-/* 确保所有子元素不超出容器宽度 */
-.layout-root *:not(svg):not(path) {
-  /* max-width: 100%; */
-}
 </style> 

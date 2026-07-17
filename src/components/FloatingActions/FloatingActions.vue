@@ -20,7 +20,7 @@
         :title="t('cart.viewCart')"
       >
         <span class="fab-count">{{ cartStore.count }}</span>
-        <el-icon class="fab-icon"><ShoppingCart /></el-icon>
+        <Icon class="fab-icon" icon="solar:cart-3-line-duotone" aria-hidden="true" />
       </button>
       <button
         v-if="showPageActions && scrolled"
@@ -30,15 +30,7 @@
         aria-label="Back to top"
         title="Back to top"
       >
-        <svg
-          class="fab-icon"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <path d="M12 19V5" />
-          <path d="M5 12l7-7 7 7" />
-        </svg>
+        <Icon class="fab-icon" icon="solar:arrow-up-line-duotone" aria-hidden="true" />
       </button>
 
       <slot />
@@ -48,13 +40,12 @@
 
 <script setup lang="ts">
 import { useScrollVisibility } from './useScrollVisibility'
-// import { Icon } from '@iconify/vue'
+import { Icon } from '@iconify/vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { isCartEnabled } from '@/config/features'
-import { ShoppingCart } from '@element-plus/icons-vue'
 
 const props = withDefaults(
   defineProps<{
@@ -112,64 +103,57 @@ const handleClick = () => {
   height: 48px;
   padding: 0;
   border-radius: 999px;
-  border: 1px solid rgba(15, 107, 104, 0.22);
+  border: 1px solid rgba(11, 116, 109, 0.22);
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  background: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--color-surface) 92%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 
   color: var(--color-brand-strong);
 
   cursor: pointer;
-  box-shadow:
-    0 16px 34px rgba(17, 24, 39, 0.12),
-    0 8px 18px rgba(15, 107, 104, 0.14);
+  box-shadow: var(--surface-raised);
 
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    opacity 0.18s ease,
-    background 0.18s ease,
-    border-color 0.18s ease;
+    transform var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease,
+    opacity var(--motion-fast) ease,
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
 }
 
 .fab-btn:hover {
   transform: translateY(-2px);
-  border-color: rgba(15, 107, 104, 0.42);
+  border-color: rgba(11, 116, 109, 0.42);
   background: var(--color-brand);
   color: #fff;
   box-shadow:
-    0 20px 44px rgba(17, 24, 39, 0.16),
-    0 12px 26px rgba(15, 107, 104, 0.24);
+    0 20px 44px rgba(19, 32, 31, 0.16),
+    0 12px 26px rgba(11, 116, 109, 0.24);
 }
 
 .fab-btn:active {
   transform: translateY(0);
   box-shadow:
-    0 10px 24px rgba(17, 24, 39, 0.12),
-    0 6px 14px rgba(15, 107, 104, 0.18);
+    0 10px 24px rgba(19, 32, 31, 0.12),
+    0 6px 14px rgba(11, 116, 109, 0.18);
 }
 
 .fab-btn:focus-visible {
-  outline: 3px solid rgba(15, 107, 104, 0.22);
+  outline: 2px solid var(--color-brand);
   outline-offset: 3px;
   box-shadow:
-    0 16px 34px rgba(17, 24, 39, 0.12),
-    0 8px 18px rgba(15, 107, 104, 0.14);
+    var(--surface-raised),
+    var(--focus-ring);
 }
 
 .fab-icon {
   width: 22px;
   height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .fab-icon-solid {
@@ -181,7 +165,7 @@ const handleClick = () => {
 
 .fab-cart {
   background: var(--color-brand);
-  border-color: rgba(15, 107, 104, 0.42);
+  border-color: rgba(11, 116, 109, 0.42);
   color: #fff;
 }
 
@@ -219,9 +203,9 @@ const handleClick = () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-accent);
-  color: #111827;
-  border: 2px solid #fff;
+  background: var(--color-rating);
+  color: var(--color-stage);
+  border: 2px solid var(--color-surface);
   font-size: 11px;
   font-weight: 900;
   line-height: 1;
@@ -242,10 +226,6 @@ const handleClick = () => {
     gap: 8px;
   }
 
-  .fab-btn {
-    width: 44px;
-    height: 44px;
-  }
 }
 
 @media (max-width: 520px) {

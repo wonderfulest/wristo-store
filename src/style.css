@@ -5,46 +5,63 @@
 @tailwind utilities; */
 
 :root {
-  font-family: "DM Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
   color-scheme: light;
   color: var(--color-ink);
-  background-color: var(--color-canvas);
-
+  background: var(--color-canvas);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  --color-canvas: #f4f7f6;
-  --color-surface: #ffffff;
-  --color-surface-soft: #eef5f3;
-  --color-ink: #111827;
-  --color-muted: #667085;
-  --color-subtle: #98a2b3;
-  --color-line: rgba(17, 24, 39, 0.1);
-  --color-brand: #0f6b68;
-  --color-brand-strong: #064e4b;
-  --color-brand-soft: #dff5f1;
-  --color-brand-hover: #0b5f58;
-  --color-brand-active: #084b46;
-  --color-accent: #f59e0b;
+  --color-canvas: #f3f6f4;
+  --color-surface: #fffdf9;
+  --color-surface-soft: #eaf1ee;
+  --color-stage: #0b1717;
+  --color-stage-soft: #122625;
+  --color-ink: #13201f;
+  --color-muted: #60706d;
+  --color-subtle: #899692;
+  --color-line: rgba(19, 32, 31, 0.11);
+  --color-brand: #0b746d;
+  --color-brand-strong: #07534f;
+  --color-brand-soft: #d8efea;
+  --color-brand-hover: #08645f;
+  --color-brand-active: #064b47;
+  --color-rating: #c98919;
+  --color-danger: #b83b3b;
+  --color-accent: var(--color-rating);
   --font-display: "Playfair Display", Georgia, serif;
-  --font-body: "DM Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.06);
-  --shadow-md: 0 14px 34px rgba(17, 24, 39, 0.1);
-  --shadow-lg: 0 24px 70px rgba(17, 24, 39, 0.14);
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --font-body: "DM Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --surface-raised: 0 1px 0 rgba(255,255,255,.8) inset, 0 12px 32px rgba(25,48,45,.07);
+  --shadow-sm: 0 1px 3px rgba(25,48,45,.07);
+  --shadow-md: 0 14px 34px rgba(25,48,45,.10);
+  --shadow-lg: 0 24px 56px rgba(7,35,33,.16);
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-display: 36px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-section: clamp(56px, 7vw, 96px);
+  --page-gutter: clamp(16px, 4vw, 48px);
   --container: 1200px;
+  --container-wide: 1380px;
+  --header-height: 72px;
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --focus-ring: 0 0 0 3px rgba(11,116,109,.22);
   --el-color-primary: var(--color-brand);
-  --el-color-primary-light-3: #14998d;
-  --el-color-primary-light-5: #4fb7ae;
-  --el-color-primary-light-7: #94d6d0;
-  --el-color-primary-light-8: #bfe8e4;
-  --el-color-primary-light-9: rgba(15, 107, 104, 0.1);
+  --el-color-primary-light-3: #2b928a;
+  --el-color-primary-light-5: #69b3ac;
+  --el-color-primary-light-7: #a6d5d0;
+  --el-color-primary-light-8: #c6e5e1;
+  --el-color-primary-light-9: rgba(11,116,109,.09);
   --el-color-primary-dark-2: var(--color-brand-hover);
 }
 
@@ -73,6 +90,12 @@ a:hover {
   color: var(--color-brand-strong);
 }
 
+.storefront-container {
+  width: min(100%, var(--container-wide));
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
 body {
   margin: 0;
   min-width: 100%;
@@ -80,7 +103,7 @@ body {
   overflow-x: hidden;
   box-sizing: border-box;
   background:
-    radial-gradient(circle at 20% 0%, rgba(15, 107, 104, 0.08), transparent 32rem),
+    radial-gradient(circle at 20% 0%, rgba(11, 116, 109, 0.08), transparent 32rem),
     linear-gradient(180deg, #fbfdfc 0%, var(--color-canvas) 100%);
 }
 
@@ -99,16 +122,17 @@ button {
   background-color: var(--color-surface);
   cursor: pointer;
   color: inherit;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, background 180ms ease;
+  transition: border-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease, transform var(--motion-fast) ease, background var(--motion-fast) ease;
   touch-action: manipulation;
 }
 button:hover {
-  border-color: rgba(15, 107, 104, 0.35);
+  border-color: rgba(11, 116, 109, 0.35);
 }
-button:focus,
-button:focus-visible {
-  outline: 3px solid rgba(15, 107, 104, 0.22);
+
+:where(button, a, input, textarea, select):focus-visible {
+  outline: 2px solid var(--color-brand);
   outline-offset: 3px;
+  box-shadow: var(--focus-ring);
 }
 
 .el-button--primary {
@@ -131,6 +155,53 @@ button:focus-visible {
   --el-button-active-border-color: var(--color-brand-strong);
 }
 
+.el-button {
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-weight: 700;
+  transition: color var(--motion-fast) ease, border-color var(--motion-fast) ease, background var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+
+.el-input__wrapper,
+.el-select__wrapper,
+.el-textarea__inner {
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-line) inset;
+  transition: box-shadow var(--motion-fast) ease, background var(--motion-fast) ease;
+}
+
+.el-input__wrapper.is-focus,
+.el-select__wrapper.is-focused,
+.el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--color-brand) inset, var(--focus-ring);
+}
+
+.el-dropdown-menu,
+.el-popper.is-light {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+}
+
+.el-message {
+  border-color: var(--color-line);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(16px);
+}
+
+.el-skeleton {
+  --el-skeleton-color: var(--color-surface-soft);
+  --el-skeleton-to-color: #f7faf8;
+}
+
+.el-skeleton__item {
+  border-radius: var(--radius-sm);
+}
+
 .card {
   padding: 2em;
 }
@@ -140,7 +211,18 @@ img {
 }
 
 ::selection {
-  background: rgba(15, 107, 104, 0.18);
+  background: rgba(11, 116, 109, 0.18);
+}
+
+@keyframes storefront-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .cart-message {
@@ -175,6 +257,7 @@ img {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+    transform: none !important;
   }
 }
 
