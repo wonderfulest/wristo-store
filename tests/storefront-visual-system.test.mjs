@@ -52,3 +52,14 @@ test('storefront primitives expose heading and skeleton contracts', async () => 
   assert.match(skeleton, /product-grid-skeleton/)
   assert.match(skeleton, /aria-hidden="true"/)
 })
+
+test('product cards expose badges, keyboard access and mobile-friendly controls', async () => {
+  const card = await read('../src/components/ProductCard.vue')
+
+  assert.match(card, /product-badges/)
+  assert.match(card, /:aria-label="productAriaLabel"/)
+  assert.match(card, /@keydown\.enter/)
+  assert.match(card, /@keydown\.space/)
+  assert.match(card, /(?:min-)?width:\s*44px/)
+  assert.match(card, /@media \(max-width:\s*600px\)/)
+})

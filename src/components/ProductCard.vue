@@ -3,6 +3,7 @@
     class="product-card"
     role="button"
     tabindex="0"
+    :aria-label="productAriaLabel"
     @click="handleClick"
     @keydown.enter.prevent="handleClick"
     @keydown.space.prevent="handleClick"
@@ -13,7 +14,17 @@
       :title="t('product.activated')"
       :aria-label="t('product.activated')"
     >
-      <el-icon><StarFilled /></el-icon>
+      <Icon icon="solar:star-bold" width="16" height="16" aria-hidden="true" />
+    </div>
+    <div v-if="productBadges.length" class="product-badges" :aria-label="t('product.labelsAria')">
+      <span
+        v-for="badge in productBadges"
+        :key="badge.labelKey"
+        class="product-badge"
+        :class="`is-${badge.kind}`"
+      >
+        {{ t(badge.labelKey) }}
+      </span>
     </div>
     <div class="product-img-wrap">
       <img
@@ -28,11 +39,11 @@
       <div class="product-name">{{ product?.name }}</div>
       <div class="product-public-metrics" aria-label="Product popularity">
         <span>
-          <el-icon><Download /></el-icon>
+          <Icon icon="solar:download-minimalistic-line-duotone" width="16" height="16" aria-hidden="true" />
           {{ formatDisplayDownloadCount(product?.download) }}
         </span>
         <span>
-          <el-icon><StarFilled /></el-icon>
+          <Icon icon="solar:star-line-duotone" width="16" height="16" aria-hidden="true" />
           {{ formatProductRating(product?.averageRating, product?.score) }}
         </span>
       </div>
@@ -46,17 +57,17 @@
         @removed-from-current-category="handleRemovedFromCurrentCategory"
       />
       <div v-if="!hasBundleEntitlement" class="product-footer">
-        <div class="product-price">${{ product?.price?.toFixed(2) }}</div>
+        <div class="product-price">{{ formattedPrice }}</div>
         <button
           v-if="isCartEnabled"
           class="cart-toggle"
           type="button"
           :class="{ active: isInCart }"
-          :title="isInCart ? 'Remove from cart' : 'Add to cart'"
-          :aria-label="isInCart ? 'Remove from cart' : 'Add to cart'"
+          :title="isInCart ? t('cart.removeFromCart') : t('cart.addToCart')"
+          :aria-label="isInCart ? t('cart.removeFromCart') : t('cart.addToCart')"
           @click.stop="toggleCart"
         >
-          <el-icon><ShoppingCart /></el-icon>
+          <Icon icon="solar:cart-3-line-duotone" width="20" height="20" aria-hidden="true" />
         </button>
       </div>
     </div>
@@ -67,7 +78,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Download, ShoppingCart, StarFilled } from '@element-plus/icons-vue'
+import { Icon } from '@iconify/vue'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
@@ -78,6 +89,7 @@ import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCou
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { hasActiveBundle } from '@/utils/entitlements'
+import { resolveProductBadges } from '@/utils/productBadges'
 import { fetchAdminStoreMetricBatched, invalidateAdminStoreMetric } from '@/utils/adminStoreMetricsBatch'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import type { ProductStoreMetricsVO } from '@/types'
@@ -102,6 +114,11 @@ const localMetrics = ref<ProductStoreMetricsVO | null>(null)
 
 const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
 const productImageUrl = computed(() => getProductImageUrl(props.product))
+const productBadges = computed(() => resolveProductBadges(props.product))
+const formattedPrice = computed(() => Number(props.product?.price || 0) <= 0
+  ? t('product.badge.free')
+  : `$${Number(props.product?.price || 0).toFixed(2)}`)
+const productAriaLabel = computed(() => `${props.product?.name || ''}, ${formattedPrice.value}`)
 const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
@@ -181,29 +198,27 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 <style scoped>
 .product-card {
   position: relative;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%);
-  border-radius: 22px;
+  background: var(--surface-raised);
+  border-radius: 18px;
   overflow: visible;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow:
-    0 14px 34px rgba(17, 24, 39, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.86) inset;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  box-shadow: var(--shadow-sm);
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
   cursor: pointer;
   display: grid;
   grid-template-rows: auto 1fr;
   height: 100%;
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   text-align: left;
   color: var(--color-ink);
 }
 
 .cart-toggle {
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -226,11 +241,9 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 
 .product-card:hover,
 .product-card:focus-visible {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   border-color: rgba(15, 107, 104, 0.22);
-  box-shadow:
-    0 24px 70px rgba(17, 24, 39, 0.13),
-    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  box-shadow: 0 16px 38px rgba(17, 24, 39, 0.1);
 }
 
 .product-card:focus-visible {
@@ -244,12 +257,13 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   border-radius: 50%;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 38%, rgba(255, 255, 255, 0.98), transparent 46%),
-    linear-gradient(135deg, rgba(223, 245, 241, 0.94) 0%, rgba(255, 248, 235, 0.92) 100%);
+    radial-gradient(circle at 50% 35%, rgba(255, 255, 255, 0.98), transparent 42%),
+    linear-gradient(145deg, var(--color-stage) 0%, rgba(15, 23, 42, 0.08) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 28px rgba(17, 24, 39, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: inset 0 -18px 32px rgba(15, 23, 42, 0.07);
   box-sizing: border-box;
   flex-shrink: 0;
   transition: transform 300ms ease, box-shadow 300ms ease;
@@ -257,8 +271,8 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 }
 
 .product-card:hover .product-img-wrap {
-  transform: translateY(-4px) scale(1.06);
-  box-shadow: 0 16px 42px rgba(17, 24, 39, 0.16);
+  transform: translateY(-3px) scale(1.025);
+  box-shadow: inset 0 -18px 32px rgba(15, 23, 42, 0.08), 0 10px 24px rgba(17, 24, 39, 0.09);
 }
 
 .product-img {
@@ -305,6 +319,7 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   color: var(--color-muted);
   font-size: 0.82rem;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .product-public-metrics span {
@@ -315,7 +330,7 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   white-space: nowrap;
 }
 
-.product-public-metrics .el-icon {
+.product-public-metrics svg {
   color: var(--color-brand);
   font-size: 0.95rem;
 }
@@ -334,6 +349,7 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   background: rgba(15, 107, 104, 0.08);
   font-size: 1rem;
   font-weight: 850;
+  font-variant-numeric: tabular-nums;
   transition: color 180ms ease, background 180ms ease;
 }
 
@@ -367,6 +383,45 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   font-size: 0.86rem;
 }
 
+.product-badges {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 76px);
+}
+
+.product-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.08);
+  color: var(--color-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  backdrop-filter: blur(12px);
+}
+
+.product-badge.is-free,
+.product-badge.is-new {
+  color: var(--color-brand-strong);
+  background: rgba(223, 245, 241, 0.92);
+}
+
+.product-badge.is-popular {
+  color: #8a4b08;
+  background: rgba(255, 244, 214, 0.94);
+}
+
 .product-footer {
   display: flex;
   align-items: center;
@@ -374,13 +429,43 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   gap: 12px;
 }
 
-@media (max-width: 768px) {
-  .product-name {
-    font-size: 0.95rem;
+@media (max-width: 600px) {
+  .product-card {
+    padding: 9px;
+    border-radius: 15px;
   }
-  
+
+  .product-info {
+    padding: 10px 2px 2px;
+    gap: 5px;
+  }
+
+  .product-badges {
+    top: 15px;
+    left: 15px;
+    gap: 4px;
+    max-width: calc(100% - 54px);
+  }
+
+  .product-badge {
+    min-height: 22px;
+    padding-inline: 7px;
+    font-size: 0.62rem;
+  }
+
+  .product-name {
+    font-size: 0.9rem;
+  }
+
+  .product-public-metrics {
+    gap: 6px;
+    font-size: 0.75rem;
+  }
+
   .product-price {
-    font-size: 1rem;
+    min-height: 30px;
+    padding-inline: 9px;
+    font-size: 0.9rem;
   }
 }
 </style> 

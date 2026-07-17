@@ -63,6 +63,8 @@ export interface ProductBaseVO {
   heroFile: HeroFile | null
   fallbackImageUrl?: string | null
   download?: number | null
+  createdAt?: string | null
+  categories?: CategoryVO[] | null
   score?: number | null
   averageRating?: number | null
   ratingCount?: number | null
