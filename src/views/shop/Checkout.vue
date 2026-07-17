@@ -1,7 +1,7 @@
 <template>
     <main class="checkout commerce-page">
         <h2 class="title">{{ t('checkout.title') }}</h2>
-        <div class="checkout-main commerce-panel">
+        <div class="checkout-main">
             <div :class="['checkout-left', { 'checkout-left-bundle': isBundle }]">
                 <template v-if="isBundle">
                     <PurchaseCard
@@ -40,7 +40,7 @@
                     />
                 </template>
             </div>
-            <div class="checkout-right">
+            <div class="checkout-right commerce-panel">
                 <div class="checkout-panel-header">
                     <p class="checkout-eyebrow">{{ t('checkout.paymentDetails') }}</p>
                     <h3>{{ t('checkout.completeOrder') }}</h3>
@@ -552,16 +552,17 @@ const handlePayment = async (isRetry = false) => {
 }
 
 .checkout-right {
+    --commerce-panel-border: 1px solid rgba(15, 23, 42, 0.08);
+    --commerce-panel-radius: 24px;
+    --commerce-panel-mobile-radius: 20px;
+    --commerce-panel-background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
+    --commerce-panel-shadow:
+        0 24px 70px rgba(15, 23, 42, 0.10),
+        0 1px 0 rgba(255, 255, 255, 0.9) inset;
     width: 100%;
     min-width: 0;
     padding: 28px;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 24px;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
-    box-shadow:
-        0 24px 70px rgba(15, 23, 42, 0.10),
-        0 1px 0 rgba(255, 255, 255, 0.9) inset;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
 }
@@ -1117,7 +1118,6 @@ const handlePayment = async (isRetry = false) => {
         max-width: none;
         margin: 0;
         padding: 20px;
-        border-radius: 20px;
     }
 
     .checkout-panel-header {

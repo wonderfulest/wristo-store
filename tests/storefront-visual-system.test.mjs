@@ -360,8 +360,12 @@ test('commerce journey shares an accessible transaction shell without changing c
 
   for (const source of [cartPage, purchaseOptions, checkout, activation, success]) {
     assert.match(source, /commerce-page/)
+  }
+  for (const source of [cartPage, checkout, activation, success]) {
     assert.match(source, /commerce-panel/)
   }
+  assert.doesNotMatch(purchaseOptions, /commerce-panel/)
+  assert.match(checkout, /class="checkout-right[^"\n]*\bcommerce-panel\b/)
   for (const source of [cart, checkout, activation, success, purchaseCard]) {
     assert.match(source, /commerce-primary-action/)
   }

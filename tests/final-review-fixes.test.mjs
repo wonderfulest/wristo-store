@@ -236,9 +236,7 @@ test('commerce consumers inherit core page, panel and primary-action declaration
   const panelCore = new Set(['background', 'background-color', 'border', 'border-radius', 'box-shadow'])
   for (const [consumer, selector] of [
     ['activation', '.content-container'],
-    ['checkout', '.checkout-main'],
-    ['purchaseOptions', '.cards-container'],
-    ['success', '.success-hero'],
+    ['checkout', '.checkout-right'],
     ['success', '.confirmation-panel'],
     ['success', '.order-panel'],
     ['success', '.account-panel'],
@@ -267,6 +265,21 @@ test('commerce consumers inherit core page, panel and primary-action declaration
       .filter((property) => actionCore.has(property))
     assert.deepEqual(duplicates, [], `${consumer} ${selector} must inherit commerce-primary-action styling`)
   }
+})
+
+test('commerce panel chrome belongs to visual panels rather than layout wrappers', async () => {
+  const checkout = await read('../src/views/shop/Checkout.vue')
+  const purchaseOptions = await read('../src/views/shop/PurchaseOptions.vue')
+  const success = await read('../src/views/shop/Success.vue')
+
+  assert.doesNotMatch(checkout, /class="checkout-main[^"\n]*\bcommerce-panel\b/)
+  assert.doesNotMatch(purchaseOptions, /class="cards-container[^"\n]*\bcommerce-panel\b/)
+  assert.doesNotMatch(success, /class="success-hero[^"\n]*\bcommerce-panel\b/)
+
+  assert.match(checkout, /class="checkout-right[^"\n]*\bcommerce-panel\b/)
+  assert.match(success, /class="confirmation-panel[^"\n]*\bcommerce-panel\b/)
+  assert.match(success, /class="order-panel[^"\n]*\bcommerce-panel\b/)
+  assert.match(success, /class="account-panel[^"\n]*\bcommerce-panel\b/)
 })
 
 test('shared commerce selectors define the real responsive and accessible visual contract', async () => {

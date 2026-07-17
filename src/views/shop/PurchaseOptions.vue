@@ -13,7 +13,7 @@
       <span class="banner-text">{{ t('purchase.couponApplied') }}</span>
     </div>
     
-    <section id="bundle-subscription-card" class="cards-container commerce-panel">
+    <section id="bundle-subscription-card" class="cards-container">
       <!-- 套餐卡片 -->
       <PurchaseCard
         v-for="(bundleItem, index) in bundles"

@@ -1,6 +1,6 @@
 <template>
   <main class="success-page commerce-page" aria-labelledby="payment-success-title">
-    <section class="success-hero commerce-panel" aria-live="polite">
+    <section class="success-hero" aria-live="polite">
       <div class="confirmation-panel commerce-panel">
         <div class="success-mark" aria-hidden="true">
           <el-icon><CircleCheckFilled /></el-icon>
