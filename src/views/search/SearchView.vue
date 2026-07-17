@@ -36,27 +36,27 @@
     </section>
 
     <div class="search-content">
-      <div class="results-toolbar">
-        <div>
-          <p class="section-kicker">{{ resultKicker }}</p>
-          <h2 class="results-title">{{ resultTitle }}</h2>
-        </div>
-        <button v-if="hasSearchQuery" class="outline-link" type="button" @click="clearSearch">
-          <Icon icon="mdi:close" width="18" aria-hidden="true" />
-          {{ t('search.clear') }}
-        </button>
+      <SectionHeading :kicker="resultKicker" :title="resultTitle">
+        <template v-if="hasSearchQuery" #action>
+          <button class="outline-link" type="button" @click="clearSearch">
+            <Icon icon="solar:close-circle-linear" width="18" aria-hidden="true" />
+            {{ t('search.clear') }}
+          </button>
+        </template>
+      </SectionHeading>
+
+      <div v-if="loading" class="search-loading" role="status" :aria-label="t('search.loading')">
+        <ProductGridSkeleton :count="pageSize" class="storefront-product-grid" />
       </div>
 
-      <div v-if="loading" class="skeleton-grid" :aria-label="t('search.loading')">
-        <div v-for="item in pageSize" :key="item" class="skeleton-card">
-          <span class="skeleton-image" />
-          <span class="skeleton-line strong" />
-          <span class="skeleton-line" />
-        </div>
+      <div v-else-if="loadError" class="state-card" role="alert">
+        <Icon icon="solar:danger-triangle-linear" width="34" aria-hidden="true" />
+        <div class="state-title">{{ t('search.error') }}</div>
+        <button class="state-studio-btn" type="button" @click="retrySearch">{{ t('search.retry') }}</button>
       </div>
 
-      <div v-else-if="shouldShowEmpty" class="state-card">
-        <Icon icon="mdi:magnify-close" width="34" aria-hidden="true" />
+      <div v-else-if="shouldShowEmpty" class="state-card" role="status">
+        <Icon icon="solar:magnifer-linear" width="34" aria-hidden="true" />
         <div class="state-title">{{ t('search.emptyTitle') }}</div>
         <div class="state-subtitle">{{ t('search.emptySubtitle') }}</div>
         <div class="empty-suggestions">
@@ -71,7 +71,7 @@
           </button>
         </div>
         <button class="state-studio-btn" type="button" @click="openStudio">
-          <Icon icon="mdi:creation-outline" width="18" aria-hidden="true" />
+          <Icon icon="solar:magic-stick-3-linear" width="18" aria-hidden="true" />
           {{ t('search.createInStudio') }}
         </button>
       </div>
@@ -93,13 +93,20 @@
       <div
         v-if="isFetchingMore"
         class="infinite-footer loading-more"
+        role="status"
       >
         {{ t('search.loadingMore') }}
+      </div>
+
+      <div v-if="loadMoreError" class="infinite-footer load-more-error" role="alert">
+        <span>{{ t('search.loadMoreError') }}</span>
+        <button type="button" class="inline-retry" @click="loadNextPage">{{ t('search.retry') }}</button>
       </div>
 
       <div
         v-if="showMobileEndState"
         class="infinite-footer"
+        role="status"
       >
         <span v-if="reachedHardLimit">
           {{ t('search.limitReached') }}
@@ -117,14 +124,14 @@
           <h2 class="section-title">{{ t('search.discoveryTitle') }}</h2>
         </div>
         <button class="outline-link" type="button" @click="goToTopApps">
-          <Icon icon="mdi:chart-line" width="18" aria-hidden="true" />
+          <Icon icon="solar:chart-2-linear" width="18" aria-hidden="true" />
           {{ t('search.topApps') }}
         </button>
       </div>
 
       <div class="suggestion-panel">
         <div class="suggestion-copy">
-          <Icon icon="mdi:magnify-scan" width="22" aria-hidden="true" />
+          <Icon icon="solar:magnifer-zoom-in-linear" width="22" aria-hidden="true" />
           <div>
             <h3>{{ t('search.popularTitle') }}</h3>
             <p>{{ t('search.popularDesc') }}</p>
@@ -158,14 +165,14 @@
           <span class="scenario-desc">{{ scenario.desc }}</span>
           <span class="scenario-action">
             {{ t('search.scenarioAction') }} {{ scenario.query }}
-            <Icon icon="mdi:arrow-right" width="18" aria-hidden="true" />
+            <Icon icon="solar:arrow-right-linear" width="18" aria-hidden="true" />
           </span>
         </button>
       </div>
 
       <div class="help-strip">
         <div class="help-item">
-          <Icon icon="mdi:ticket-confirmation-outline" width="22" aria-hidden="true" />
+          <Icon icon="solar:ticket-linear" width="22" aria-hidden="true" />
           <div>
             <h3>{{ t('search.unlockTitle') }}</h3>
             <p>{{ t('search.unlockDesc') }}</p>
@@ -189,6 +196,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SearchSection from '@/views/home/components/SearchSection.vue'
 import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue'
+import SectionHeading from '@/components/storefront/SectionHeading.vue'
+import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue'
 import { useProductStore } from '@/store/product'
 import type { ProductBaseVO } from '@/types'
 import { openStudio } from '@/utils/studio'
@@ -201,6 +210,8 @@ const productStore = useProductStore()
 const { locale, t } = useI18n()
 
 const loading = ref(false)
+const loadError = ref(false)
+const loadMoreError = ref(false)
 const isMobile = ref(false)
 const searchTerm = ref('')
 const searchResults = ref<ProductBaseVO[]>([])
@@ -221,19 +232,19 @@ const localizedPath = (path: string) => addLocaleToPath(path, locale.value)
 
 const scenarios = computed(() => [
   {
-    icon: 'mdi:run-fast',
+    icon: 'solar:running-2-linear',
     title: t('search.trainingTitle'),
     desc: t('search.trainingDesc'),
     query: 'running'
   },
   {
-    icon: 'mdi:briefcase-outline',
+    icon: 'solar:case-minimalistic-linear',
     title: t('search.workTitle'),
     desc: t('search.workDesc'),
     query: 'minimal'
   },
   {
-    icon: 'mdi:weather-partly-cloudy',
+    icon: 'solar:cloud-sun-linear',
     title: t('search.weatherTitle'),
     desc: t('search.weatherDesc'),
     query: 'weather'
@@ -272,6 +283,8 @@ const shouldShowEmpty = computed(() => {
 
 const runSearch = async (term: string) => {
   const q = term.trim()
+  loadError.value = false
+  loadMoreError.value = false
   if (q.length < 2) {
     loading.value = true
     try {
@@ -280,6 +293,10 @@ const runSearch = async (term: string) => {
       total.value = searchResults.value.length
       pages.value = searchResults.value.length > 0 ? 1 : 0
       pageNum.value = 1
+    } catch (error) {
+      console.error('Failed to load featured search results:', error)
+      loadError.value = true
+      searchResults.value = []
     } finally {
       loading.value = false
     }
@@ -294,9 +311,17 @@ const runSearch = async (term: string) => {
     total.value = res.total || 0
     pages.value = res.pages || 0
     pageNum.value = Math.min(res.pageNum || nextPageNum, 10)
+  } catch (error) {
+    console.error('Failed to search products:', error)
+    loadError.value = true
+    searchResults.value = []
   } finally {
     loading.value = false
   }
+}
+
+const retrySearch = async () => {
+  await runSearch(searchTerm.value)
 }
 
 const syncFromRoute = async () => {
@@ -401,6 +426,7 @@ const loadNextPage = async () => {
 
   const nextPage = Math.min(pageNum.value + 1, 10)
   isFetchingMore.value = true
+  loadMoreError.value = false
   try {
     const res = await productStore.searchProductsV2(q, nextPage, pageSize.value)
     const list = res.list || []
@@ -410,6 +436,9 @@ const loadNextPage = async () => {
     total.value = res.total || total.value
     pages.value = res.pages || pages.value
     pageNum.value = Math.min(res.pageNum || nextPage, 10)
+  } catch (error) {
+    console.error('Failed to load more search results:', error)
+    loadMoreError.value = true
   } finally {
     isFetchingMore.value = false
   }
@@ -989,6 +1018,30 @@ onUnmounted(() => {
 .loading-more {
   color: var(--color-brand-strong);
   font-weight: 800;
+}
+
+.load-more-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.inline-retry {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid rgba(15, 107, 104, 0.22);
+  border-radius: 999px;
+  background: var(--color-brand-soft);
+  color: var(--color-brand-strong);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.inline-retry:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 @media (max-width: 735px) {

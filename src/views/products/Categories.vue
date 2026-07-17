@@ -1,6 +1,11 @@
 <template>
   <div class="category-detail-page">
-    <section v-if="series" class="category-hero" :class="{ 'has-banner': categoryBannerUrl }">
+    <section
+      v-if="series"
+      class="category-hero"
+      :class="{ 'has-banner': categoryBannerUrl }"
+      :style="{ '--category-accent': categoryAccent }"
+    >
       <img
         v-if="categoryBannerUrl"
         :src="categoryBannerUrl"
@@ -13,13 +18,14 @@
         <div class="category-heading">
           <img v-if="series.image" :src="series.image" :alt="series.name" class="category-image" />
           <div class="category-title-group">
-            <p class="category-kicker">Collection</p>
+            <p class="category-kicker">{{ t('category.collection') }}</p>
             <h1 class="category-title">{{ series.name }}</h1>
+            <p class="category-results">{{ t('category.results', { count: filteredProducts.length }) }}</p>
           </div>
         </div>
 
-        <div class="category-discovery-panel" aria-label="Category discovery controls">
-          <div class="category-filter-row" aria-label="Refine loaded products">
+        <div class="category-discovery-panel" :aria-label="t('category.filtersAria')">
+          <div class="category-filter-row" :aria-label="t('category.filtersAria')">
             <button
               v-for="option in filterOptions"
               :key="option.value"
@@ -33,9 +39,9 @@
             </button>
           </div>
 
-          <div class="category-toolbar" aria-label="Category product sorting">
-            <span class="category-sort-label">Sort</span>
-            <div class="category-sort-options" role="group" aria-label="Sort products">
+          <div class="category-toolbar" :aria-label="t('category.sortAria')">
+            <span class="category-sort-label">{{ t('category.sort') }}</span>
+            <div class="category-sort-options" role="group" :aria-label="t('category.sortAria')">
               <button
                 v-for="option in sortOptions"
                 :key="option.value"
@@ -147,7 +153,9 @@
       </div>
     </section>
 
-    <div v-if="filteredProducts.length > 0" class="product-list">
+    <ProductGridSkeleton v-if="loading && products.length === 0" :count="10" class="category-skeleton" />
+
+    <div v-else-if="filteredProducts.length > 0" class="storefront-product-grid">
       <product-card
         v-for="product in filteredProducts"
         :key="product.appId"
@@ -161,21 +169,32 @@
       />
     </div>
     
-    <!-- Loading state -->
-    <div v-if="loading" class="loading-container">
+    <div v-if="loading && products.length > 0" class="loading-container" role="status">
       <div class="loading-spinner"></div>
-      <p class="loading-text">Loading more apps...</p>
+      <p class="loading-text">{{ t('category.loading') }}</p>
     </div>
     
     <!-- No more data tip -->
-    <div v-if="!hasMore && filteredProducts.length > 0" class="no-more-tip">
-      <p>You've reached the end.</p>
+    <div v-if="!loading && !hasMore && filteredProducts.length > 0" class="no-more-tip" role="status">
+      <p>{{ t('category.end') }}</p>
     </div>
-    
-    <div v-else-if="products.length === 0 && !loading" class="empty-tip">No products found in this series.</div>
-    <div v-else-if="products.length > 0 && filteredProducts.length === 0 && !loading" class="empty-tip">
-      <p>No matches in the loaded apps.</p>
-      <button type="button" class="empty-reset-btn" @click="selectFilter('all')">Clear filter</button>
+
+    <div v-if="loadError && products.length === 0 && !loading" class="state-card" role="alert">
+      <Icon icon="solar:danger-triangle-linear" width="30" aria-hidden="true" />
+      <p>{{ t('category.error') }}</p>
+      <button type="button" class="state-action-btn" @click="fetchSeriesAndProducts(true)">
+        {{ t('category.retry') }}
+      </button>
+    </div>
+    <div v-else-if="products.length === 0 && !loading" class="state-card" role="status">
+      <Icon icon="solar:box-minimalistic-linear" width="30" aria-hidden="true" />
+      <p>{{ t('category.empty') }}</p>
+      <button type="button" class="state-action-btn" @click="goHome">{{ t('nav.home') }}</button>
+    </div>
+    <div v-else-if="products.length > 0 && filteredProducts.length === 0 && !loading" class="state-card" role="status">
+      <Icon icon="solar:filter-linear" width="30" aria-hidden="true" />
+      <p>{{ t('category.noMatches') }}</p>
+      <button type="button" class="state-action-btn" @click="selectFilter('all')">{{ t('category.clearFilter') }}</button>
     </div>
   </div>
 </template>
@@ -198,16 +217,21 @@ import { useUserStore } from '@/store/user'
 import { ElMessage } from 'element-plus'
 import type { PageResult, ProductBaseVO, ProductStoreMetricsVO, Series } from '@/types'
 import ProductCard from '@/components/ProductCard.vue'
+import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue'
+import { Icon } from '@iconify/vue'
 import { absoluteUrl, applySeo } from '@/seo'
+import { useI18n } from '@/i18n'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const userStore = useUserStore()
+const { t } = useI18n()
 const series = ref<Series | null>(null)
 const products = ref<ProductBaseVO[]>([])
 const adminMetricsMap = ref<Map<number, ProductStoreMetricsVO | null>>(new Map())
 const loading = ref(false)
+const loadError = ref(false)
 const currentPage = ref(1)
 const hasMore = ref(true)
 const pageSize = 24
@@ -252,6 +276,13 @@ const selectedOrderBy = computed(() => normalizeOrderBy(route.query.sort))
 
 const categoryBannerUrl = computed(() => {
   return series.value?.banner?.url || null
+})
+
+const categoryAccent = computed(() => {
+  const palette = ['#0b746d', '#805b38', '#315f78', '#775b70']
+  const slug = String(series.value?.slug || '')
+  const index = [...slug].reduce((sum, char) => sum + char.charCodeAt(0), 0) % palette.length
+  return palette[index]
 })
 
 const normalizeFilter = (value: unknown): CategoryFilterValue => {
@@ -435,8 +466,7 @@ const createCategory = async () => {
 }
 
 const fetchSeriesAndProducts = async (reset = true) => {
-  const slug = route.params.slug as string
-  
+  loadError.value = false
   if (reset) {
     // 重置状态
     products.value = []
@@ -446,8 +476,9 @@ const fetchSeriesAndProducts = async (reset = true) => {
   }
   
   loading.value = true
-  
+
   try {
+    const slug = route.params.slug as string
     // 获取所有系列，找到当前系列
     const allSeries = await productStore.getSeries()
     series.value = allSeries.find((s: Series) => s.slug === slug) || null
@@ -477,6 +508,7 @@ const fetchSeriesAndProducts = async (reset = true) => {
       hasMore.value = false
     }
   } catch (error) {
+    loadError.value = true
     console.error('Failed to fetch products:', error)
     if (reset) {
       products.value = []
@@ -485,6 +517,10 @@ const fetchSeriesAndProducts = async (reset = true) => {
   } finally {
     loading.value = false
   }
+}
+
+const goHome = () => {
+  router.push({ name: 'home' })
 }
 
 const handleAdminChanged = async () => {
@@ -691,7 +727,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .category-detail-page {
-  max-width: var(--container);
+  max-width: var(--container-wide);
   margin: 0 auto;
   padding: 32px 20px 80px;
 }
@@ -705,7 +741,7 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-lg);
   border: 1px solid rgba(15, 23, 42, 0.08);
   background:
-    radial-gradient(circle at 18% 18%, rgba(15, 107, 104, 0.16), transparent 28%),
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--category-accent) 18%, transparent), transparent 28%),
     linear-gradient(135deg, #ffffff 0%, #eef7f5 100%);
   box-shadow: 0 18px 44px rgba(17, 24, 39, 0.1);
 }
@@ -775,7 +811,18 @@ onBeforeUnmount(() => {
 }
 
 .category-hero:not(.has-banner) .category-kicker {
-  color: var(--color-brand-strong);
+  color: var(--category-accent);
+}
+
+.category-results {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.category-hero:not(.has-banner) .category-results {
+  color: var(--color-muted);
 }
 
 .category-title {
@@ -1154,10 +1201,10 @@ onBeforeUnmount(() => {
   cursor: not-allowed;
 }
 
-.product-list {
+.storefront-product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-5);
   padding: 20px 0;
 }
 
@@ -1169,32 +1216,45 @@ onBeforeUnmount(() => {
   transform: translateY(-3px);
 }
 
-.empty-tip {
-  text-align: center;
-  font-size: 1.2rem;
+.state-card {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding: var(--space-8) var(--space-5);
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
   color: var(--color-muted);
-  padding: 60px 20px;
+  text-align: center;
 }
 
-.empty-tip p {
-  margin: 0 0 16px;
+.state-card p {
+  margin: 0;
+  line-height: 1.6;
 }
 
-.empty-reset-btn {
-  min-height: 40px;
-  padding: 0 16px;
+.state-card > .iconify {
+  color: var(--color-brand);
+}
+
+.state-action-btn {
+  min-height: 44px;
+  padding: 0 18px;
   border: 1px solid rgba(15, 107, 104, 0.22);
   border-radius: 999px;
   background: var(--color-brand-soft);
   color: var(--color-brand-strong);
+  font: inherit;
   font-weight: 900;
   cursor: pointer;
 }
 
-.empty-reset-btn:hover,
-.empty-reset-btn:focus-visible {
+.state-action-btn:hover,
+.state-action-btn:focus-visible {
   border-color: var(--color-brand);
   outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 /* Loading styles */
@@ -1241,11 +1301,15 @@ onBeforeUnmount(() => {
   font-weight: 500;
 }
 
+@media (max-width: 1200px) {
+  .storefront-product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .storefront-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 @media (max-width: 768px) {
-  .product-list {
-    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-    gap: 16px;
-  }
 
   .category-detail-page {
     padding-top: 24px;
@@ -1301,9 +1365,9 @@ onBeforeUnmount(() => {
     border-radius: 20px;
   }
 
-  .product-list {
+  .storefront-product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 15px;
+    gap: var(--space-3);
   }
   
   .category-title {
@@ -1337,6 +1401,17 @@ onBeforeUnmount(() => {
 
   .admin-category-create {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .storefront-product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-item,
+  .category-filter-chip {
+    transition: none;
   }
 }
 </style>

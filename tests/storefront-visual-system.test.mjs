@@ -198,3 +198,88 @@ test('navigation search copy is English by default and localized in Chinese', as
   assert.match(i18n, /const en = \{[\s\S]*'nav\.search':\s*'Search'/)
   assert.match(i18n, /zh:\s*\{[\s\S]*'nav\.search':\s*'搜索'/)
 })
+
+test('browse surfaces share the storefront grid and loading primitives', async () => {
+  const [categories, search, topApps, searchResults] = await Promise.all([
+    '../src/views/products/Categories.vue',
+    '../src/views/search/SearchView.vue',
+    '../src/views/shop/TopApps.vue',
+    '../src/views/home/components/SearchResultsSection.vue',
+  ].map(read))
+
+  for (const source of [categories, search, topApps, searchResults]) {
+    assert.match(source, /storefront-product-grid/)
+  }
+  assert.match(categories, /<ProductGridSkeleton\s+v-if="loading\s*&&\s*products\.length\s*===\s*0"\s+:count="10"/)
+  assert.match(categories, /v-if="loading\s*&&\s*products\.length\s*>\s*0"/)
+  assert.match(search, /v-if="loading"[^>]*role="status"[\s\S]*<ProductGridSkeleton\s+:count="pageSize"/)
+  assert.match(search, /<SectionHeading/)
+  assert.match(topApps, /<ProductCard/)
+})
+
+test('category browse states are actionable, localized and preserve filtering semantics', async () => {
+  const [categories, i18n] = await Promise.all([
+    read('../src/views/products/Categories.vue'),
+    read('../src/i18n.ts'),
+  ])
+
+  assert.match(categories, /const loadError = ref\(false\)/)
+  assert.match(categories, /role="alert"/)
+  assert.match(categories, /@click="fetchSeriesAndProducts\(true\)"/)
+  assert.match(categories, /@click="selectFilter\('all'\)"/)
+  assert.match(categories, /@click="goHome"/)
+  assert.match(categories, /:aria-pressed="selectedFilter === option\.value"/)
+  assert.match(categories, /const categoryAccent = computed/)
+  for (const key of [
+    'collection', 'filtersAria', 'sort', 'sortAria', 'loading', 'end', 'empty',
+    'noMatches', 'clearFilter', 'results', 'error', 'retry',
+  ]) {
+    assert.match(i18n, new RegExp(`'category\\.${key}':`))
+  }
+  assert.match(i18n, /zh:\s*\{[\s\S]*'category\.collection':/)
+})
+
+test('browse grids keep five, four, three and two columns without collapsing narrow phones', async () => {
+  const sources = await Promise.all([
+    '../src/views/products/Categories.vue',
+    '../src/views/shop/TopApps.vue',
+    '../src/views/home/components/SearchResultsSection.vue',
+  ].map(read))
+  const combined = sources.join('\n')
+
+  for (const columns of [5, 4, 3, 2]) {
+    assert.match(combined, new RegExp(`grid-template-columns:\\s*repeat\\(${columns},\\s*minmax\\(0,\\s*1fr\\)\\)`))
+  }
+  assert.match(combined, /@media\s*\(max-width:\s*430px\)[\s\S]*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
+})
+
+test('search keeps desktop pagination, mobile infinite loading and code activation', async () => {
+  const search = await read('../src/views/search/SearchView.vue')
+
+  assert.match(search, /showDesktopPagination/)
+  assert.match(search, /<el-pagination/)
+  assert.match(search, /canLoadMore/)
+  assert.match(search, /loadNextPage/)
+  assert.match(search, /isFetchingMore/)
+  assert.match(search, /\/\^\\d\{6\}\$\//)
+  assert.match(search, /localizedPath\('\/code'\)/)
+})
+
+test('search and top apps expose semantic recoverable list failures', async () => {
+  const [search, topApps] = await Promise.all([
+    read('../src/views/search/SearchView.vue'),
+    read('../src/views/shop/TopApps.vue'),
+  ])
+
+  assert.match(search, /const loadError = ref\(false\)/)
+  assert.match(search, /const loadMoreError = ref\(false\)/)
+  assert.match(search, /role="alert"/)
+  assert.match(search, /@click="retrySearch"/)
+  assert.match(search, /@click="loadNextPage"/)
+  assert.match(topApps, /role="alert"/)
+  assert.match(topApps, /@click="loadData"/)
+  for (const source of [search, topApps]) {
+    assert.match(source, /role="status"/)
+    assert.doesNotMatch(source, /icon="mdi:/)
+  }
+})

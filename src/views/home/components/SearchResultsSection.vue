@@ -1,8 +1,8 @@
 <template>
   <section v-if="searchResults.length > 0" class="search-results-section">
     <div class="search-results-container">
-      <div class="products-grid">
-        <div 
+      <div class="storefront-product-grid">
+        <div
           v-for="product in searchResults" 
           :key="product.appId" 
           class="product-item"
@@ -28,7 +28,6 @@ defineProps<{
 .search-results-section {
   width: 100%;
   padding: 22px 0 18px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
 }
 
 .search-results-container {
@@ -58,10 +57,10 @@ defineProps<{
   font-weight: 400;
 }
 
-.products-grid {
+.storefront-product-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-5);
   padding: 10px 10px 10px;
   overflow: visible;
 }
@@ -97,13 +96,19 @@ defineProps<{
     padding: 0 30px;
   }
   
-  .products-grid {
+  .storefront-product-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
   }
 }
 
-@media (max-width: 735px) {
+@media (max-width: 900px) {
+  .storefront-product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
   .search-results-section {
     padding: 26px 0 12px;
   }
@@ -119,20 +124,20 @@ defineProps<{
     font-size: 28px;
   }
   
-  .products-grid {
+  .storefront-product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 14px;
     padding: 0;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 430px) {
   .search-results-container {
     padding: 0 16px;
   }
 
-  .products-grid {
-    grid-template-columns: 1fr;
+  .storefront-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   
   .section-title {
