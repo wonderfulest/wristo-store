@@ -17,14 +17,11 @@
       <ProductGridSkeleton v-if="loading" :count="6" class="hot-loading" />
       <p v-else-if="error" class="section-status" role="status">{{ t('home.sectionUnavailable') }}</p>
       <div v-else class="hot-grid">
-        <div
+        <ProductCard
           v-for="product in visibleProducts"
           :key="product.appId"
-          class="hot-item"
-          @click.capture="handleProductClick($event, product)"
-        >
-          <ProductCard :product="product" />
-        </div>
+          :product="product"
+        />
       </div>
     </div>
   </section>
@@ -47,19 +44,11 @@ const props = defineProps<{
   error?: boolean
 }>()
 
-const emit = defineEmits<{
-  (event: 'product-click', product: ProductBaseVO): void
+defineEmits<{
   (event: 'more-click'): void
 }>()
 
 const visibleProducts = computed(() => (props.hotProducts || []).slice(0, 12))
-
-const handleProductClick = (event: MouseEvent, product: ProductBaseVO) => {
-  const target = event.target as HTMLElement | null
-  if (target?.closest('button, a, input, select, textarea')) return
-  event.stopPropagation()
-  emit('product-click', product)
-}
 </script>
 
 <style scoped>
@@ -96,10 +85,6 @@ const handleProductClick = (event: MouseEvent, product: ProductBaseVO) => {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: var(--space-5);
-}
-
-.hot-item {
-  min-width: 0;
 }
 
 .section-status {

@@ -97,6 +97,7 @@ const scrollContainer = ref<HTMLElement | null>(null)
 const isMobile = ref(false)
 let autoScrollInterval: number | null = null
 let resumeTimer: number | null = null
+let reducedMotionQuery: MediaQueryList | null = null
 
 const detectMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
@@ -153,6 +154,7 @@ const startAutoScroll = () => {
   if (!scrollContainer.value) return
   if (props.newProducts.length <= 1) return
   if (isMobile.value) return
+  if (reducedMotionQuery && reducedMotionQuery.matches) return
 
   stopAutoScroll()
   autoScrollInterval = window.setInterval(() => {
@@ -195,8 +197,18 @@ const handleInteractionEnd = () => {
   scheduleResume()
 }
 
+const handleReducedMotionChange = (event: MediaQueryListEvent) => {
+  if (event.matches) {
+    pauseAndCancelResume()
+    return
+  }
+  startAutoScroll()
+}
+
 onMounted(() => {
   isMobile.value = detectMobile()
+  reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  reducedMotionQuery.addEventListener('change', handleReducedMotionChange)
 
   if (scrollContainer.value) {
     scrollContainer.value.addEventListener('scroll', normalizeLoopScroll, { passive: true })
@@ -214,11 +226,9 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  stopAutoScroll()
-  if (resumeTimer) {
-    window.clearTimeout(resumeTimer)
-    resumeTimer = null
-  }
+  pauseAndCancelResume()
+  reducedMotionQuery?.removeEventListener('change', handleReducedMotionChange)
+  reducedMotionQuery = null
 
   if (scrollContainer.value) {
     scrollContainer.value.removeEventListener('scroll', normalizeLoopScroll)

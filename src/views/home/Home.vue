@@ -38,7 +38,6 @@
       :hot-products="hotProducts"
       :loading="loading"
       :error="sectionErrors.hot"
-      @product-click="goToProduct"
       @more-click="goToTopApps"
     />
   </div>

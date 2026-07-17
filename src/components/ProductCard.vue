@@ -81,7 +81,7 @@ import { ElMessage } from 'element-plus'
 import { Icon } from '@iconify/vue'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
-import { useLocaleStore } from '@/store/locale'
+import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
@@ -129,7 +129,7 @@ const currentCategoryId = computed(() => props.currentCategoryId ?? null)
 
 const handleClick = () => {
   if (props.product?.appId) {
-    router.push({ name: 'product-detail', params: { id: props.product.appId } })
+    router.push(addLocaleToPath(`/product/${props.product.appId}`, localeStore.currentLocale))
   }
 }
 

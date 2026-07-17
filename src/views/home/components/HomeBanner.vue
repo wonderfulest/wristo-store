@@ -465,21 +465,34 @@ onBeforeUnmount(pauseCarousel)
 }
 
 .carousel-dot {
-  width: 36px;
-  height: 10px;
+  position: relative;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: rgba(15, 107, 104, 0.18);
+  background: transparent;
   cursor: pointer;
-  transition:
-    width 180ms ease,
-    background-color 180ms ease,
-    transform 180ms ease;
+  transition: transform 180ms ease;
 }
 
-.carousel-dot.active {
-  width: 52px;
+.carousel-dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 107, 104, 0.18);
+  transform: translate(-50%, -50%);
+  transition: width 180ms ease, background-color 180ms ease;
+}
+
+.carousel-dot.active::before {
+  width: 36px;
   background: var(--color-brand-strong);
 }
 
@@ -557,17 +570,11 @@ onBeforeUnmount(pauseCarousel)
     bottom: 20px;
   }
 
-  .carousel-dot {
-    width: 30px;
-  }
-
-  .carousel-dot.active {
-    width: 44px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .carousel-dot,
+  .carousel-dot::before,
   .banner-stage img {
     transition: none;
   }

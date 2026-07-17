@@ -119,3 +119,35 @@ test('home composes an editorial gallery with a motion-aware stage and shared he
   )
   assert.ok(sharedHeadingUses >= 5, 'home content sections should share SectionHeading')
 })
+
+test('home carousel dots keep a 44px interactive target while rendering a compact pill', async () => {
+  const banner = await read('../src/views/home/components/HomeBanner.vue')
+  const dotBlock = banner.match(/\.carousel-dot\s*\{([^}]*)\}/s)?.[1] ?? ''
+
+  assert.match(dotBlock, /min-width:\s*44px/)
+  assert.match(dotBlock, /min-height:\s*44px/)
+  assert.match(banner, /\.carousel-dot::before\s*\{/)
+  assert.doesNotMatch(banner, /@media[^}]+\.carousel-dot\s*\{[^}]*(?:width|height):\s*(?:3\d|4[0-3])px/s)
+})
+
+test('new arrivals auto-scroll follows reduced-motion changes and releases its listener', async () => {
+  const carousel = await read('../src/views/home/components/NewArrivalsCarousel.vue')
+
+  assert.match(carousel, /matchMedia\('\(prefers-reduced-motion: reduce\)'\)/)
+  assert.match(carousel, /reducedMotionQuery\.matches/)
+  assert.match(carousel, /addEventListener\('change',\s*handleReducedMotionChange\)/)
+  assert.match(carousel, /removeEventListener\('change',\s*handleReducedMotionChange\)/)
+  assert.match(carousel, /handleReducedMotionChange[\s\S]*pauseAndCancelResume/)
+})
+
+test('product cards own one locale-aware product route without home grid mouse capture', async () => {
+  const card = await read('../src/components/ProductCard.vue')
+  const hot = await read('../src/views/home/components/HotProductsSection.vue')
+  const home = await read('../src/views/home/Home.vue')
+
+  assert.match(card, /addLocaleToPath\(`\/product\/\$\{props\.product\.appId\}`[^)]*localeStore\.currentLocale\)/)
+  assert.doesNotMatch(card, /name:\s*'product-detail'/)
+  assert.doesNotMatch(hot, /@click\.capture|handleProductClick|product-click/)
+  const hotBinding = home.match(/<HotProductsSection[\s\S]*?\/>/)?.[0] ?? ''
+  assert.doesNotMatch(hotBinding, /@product-click/)
+})
