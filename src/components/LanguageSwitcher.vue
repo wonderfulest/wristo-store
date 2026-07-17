@@ -1,7 +1,7 @@
 <template>
   <div class="lang-switcher" role="navigation" :aria-label="t('language.selector')">
-    <button class="current" type="button" :aria-expanded="isOpen" @click="isOpen = !isOpen">
-      <Icon icon="solar:global-line-duotone" width="18" height="18" aria-hidden="true" />
+    <button class="current" type="button" :aria-label="t('language.selector')" :aria-expanded="isOpen" @click="isOpen = !isOpen">
+      <Icon icon="solar:global-line-duotone" width="20" height="20" aria-hidden="true" />
       <span>{{ getLanguageLabel(currentLocale) }}</span>
       <el-icon :class="{ rotated: isOpen }"><arrow-down /></el-icon>
     </button>
@@ -124,8 +124,9 @@ function getLanguageLabel(locale: string) {
   transition: all .2s ease;
 }
 .current {
-  min-height: 40px;
+  min-height: 44px;
   padding: 0 10px;
+  border-color: var(--color-line);
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -138,6 +139,10 @@ function getLanguageLabel(locale: string) {
   background: var(--color-brand-soft);
   outline: none;
 }
+.current:focus-visible,
+.option:focus-visible {
+  box-shadow: var(--focus-ring);
+}
 .current .el-icon {
   transition: transform .2s ease;
 }
@@ -146,16 +151,18 @@ function getLanguageLabel(locale: string) {
 }
 .option {
   width: 100%;
-  min-height: 34px;
+  min-height: 44px;
   padding: 0 10px;
   border-radius: 8px;
   text-align: left;
   white-space: nowrap;
 }
 .option:hover,
-.option.active {
+.option.active,
+.option:focus-visible {
   color: var(--color-brand-strong);
   background: rgba(15, 107, 104, 0.08);
+  outline: none;
 }
 @media (max-width: 640px) {
   .lang-switcher {

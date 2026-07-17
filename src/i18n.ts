@@ -3,6 +3,7 @@ import { useLocaleStore, type SupportedLocale } from '@/store/locale'
 
 const en = {
   'nav.home': 'Home',
+  'nav.search': 'Search',
   'nav.categories': 'Categories',
   'nav.code': 'Code',
   'nav.studio': 'Studio',
@@ -679,6 +680,7 @@ const messages: Record<SupportedLocale, Messages> = {
   zh: {
     ...en,
     'nav.home': '首页',
+    'nav.search': '搜索',
     'nav.categories': '分类',
     'nav.code': '兑换码',
     'nav.studio': 'Studio',

@@ -7,18 +7,36 @@
         </router-link>
       </div>
       
-      <!-- Mobile menu button -->
-      <button
-        class="mobile-menu-btn"
-        type="button"
-        aria-label="Toggle navigation"
-        @click="toggleMobileMenu"
-        :class="{ active: isMobileMenuOpen }"
-      >
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+      <div class="mobile-controls">
+        <router-link
+          :to="localizedPath('/search')"
+          class="mobile-search-link"
+          :aria-label="t('nav.search')"
+        >
+          <Icon icon="solar:magnifer-linear" width="20" height="20" aria-hidden="true" />
+        </router-link>
+        <router-link
+          v-if="isCartEnabled"
+          :to="localizedPath('/user/cart')"
+          class="mobile-cart-link"
+          :aria-label="t('cart.headerAria')"
+        >
+          <el-icon><ShoppingCart /></el-icon>
+          <span v-if="cartStore.count" class="mobile-control-count">{{ cartStore.count }}</span>
+        </router-link>
+        <button
+          class="mobile-menu-btn"
+          type="button"
+          :aria-label="t('nav.menu')"
+          :aria-expanded="isMobileMenuOpen"
+          @click="toggleMobileMenu"
+          :class="{ active: isMobileMenuOpen }"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
       
       <!-- Desktop navigation -->
       <nav class="nav-area desktop-nav">
@@ -58,8 +76,12 @@
         <button type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
         <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
-        <LanguageSwitcher />
       </nav>
+
+      <router-link :to="localizedPath('/search')" class="header-search-link" :aria-label="t('nav.search')">
+        <Icon icon="solar:magnifer-linear" width="20" height="20" aria-hidden="true" />
+        <span>{{ t('nav.search') }}</span>
+      </router-link>
       
       <!-- Current Device Display -->
       <DeviceDisplay 
@@ -68,18 +90,20 @@
         @select-device="handleDeviceSelect"
         @device-selected="onDeviceSelected"
       />
+
+      <LanguageSwitcher class="desktop-language" />
       
       <!-- Desktop user area -->
       <div class="user-area desktop-user">
         <router-link
-          v-if="isCartEnabled && cartStore.count"
+          v-if="isCartEnabled"
           :to="localizedPath('/user/cart')"
           class="header-cart-link"
           :aria-label="t('cart.headerAria')"
           :title="t('cart.viewCart')"
         >
           <el-icon><ShoppingCart /></el-icon>
-          <span class="header-cart-count">{{ cartStore.count }}</span>
+          <span v-if="cartStore.count" class="header-cart-count">{{ cartStore.count }}</span>
         </router-link>
         <template v-if="isLoggedIn">
           <el-dropdown @command="handleUserMenuCommand" trigger="click" popper-class="user-menu-popper">
@@ -271,14 +295,14 @@
             <span>{{ t('nav.faq') }}</span>
           </router-link>
           <router-link
-            v-if="isCartEnabled && cartStore.count"
+            v-if="isCartEnabled"
             :to="localizedPath('/user/cart')"
             class="mobile-nav-link mobile-cart-link"
             @click="closeMobileMenu"
           >
             <el-icon><ShoppingCart /></el-icon>
             <span>{{ t('nav.cart') }}</span>
-            <span class="mobile-cart-count">{{ cartStore.count }}</span>
+            <span v-if="cartStore.count" class="mobile-cart-count">{{ cartStore.count }}</span>
           </router-link>
           <div class="mobile-language-row">
             <LanguageSwitcher />
@@ -590,7 +614,8 @@ defineExpose({
 <style scoped>
 .header-bar {
   width: 100%;
-  background: rgba(255, 255, 255, 0.88);
+  min-height: var(--header-height);
+  background: rgba(255, 253, 249, 0.88);
   border-bottom: 1px solid var(--color-line);
   box-shadow: 0 10px 35px rgba(17, 24, 39, 0.05);
   backdrop-filter: blur(18px);
@@ -604,9 +629,12 @@ defineExpose({
   margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  height: 72px;
+  min-height: var(--header-height);
   padding: 0 24px;
+  gap: 18px;
+}
+.logo-area {
+  flex: 0 0 auto;
 }
 .logo-link {
   display: inline-flex;
@@ -624,14 +652,18 @@ defineExpose({
 .nav-area {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 18px;
+  margin-left: auto;
 }
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--color-muted);
   font-size: 0.95rem;
   font-weight: 650;
   text-decoration: none;
-  padding: 10px 12px;
+  padding: 0;
   border-radius: 999px;
   transition: color 0.18s ease, background 0.18s ease;
 }
@@ -642,9 +674,11 @@ defineExpose({
   font-family: inherit;
 }
 .nav-link:hover,
-.nav-link.router-link-active {
+.nav-link.router-link-active,
+.nav-link:focus-visible {
   color: var(--color-brand-strong);
   background: var(--color-brand-soft);
+  outline: none;
 }
 .dropdown-trigger {
   cursor: pointer;
@@ -756,14 +790,34 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: 16px;
+  flex: 0 0 auto;
+}
+
+.header-search-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 0 4px;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.header-search-link:hover,
+.header-search-link:focus-visible {
+  color: var(--color-brand-strong);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .header-cart-link {
   position: relative;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -780,6 +834,11 @@ defineExpose({
   border-color: rgba(15, 107, 104, 0.32);
   background: var(--color-brand-soft);
   transform: translateY(-1px);
+}
+
+.header-cart-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .header-cart-count {
@@ -803,7 +862,11 @@ defineExpose({
 
 /* Current Device Display */
 .current-device-display {
-  margin-left: 16px;
+  flex: 0 1 auto;
+}
+
+.desktop-language {
+  flex: 0 0 auto;
 }
 
 .subscription-badge {
@@ -1253,13 +1316,62 @@ defineExpose({
 }
 
 /* Mobile menu button */
-.mobile-menu-btn {
+.mobile-controls {
   display: none;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.mobile-search-link,
+.mobile-controls .mobile-cart-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-height: 44px;
+  flex: 0 0 44px;
+  border-radius: 12px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.mobile-search-link:hover,
+.mobile-controls .mobile-cart-link:hover,
+.mobile-search-link:focus-visible,
+.mobile-controls .mobile-cart-link:focus-visible {
+  color: var(--color-brand-strong);
+  background: var(--color-brand-soft);
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.mobile-control-count {
+  position: absolute;
+  top: 2px;
+  right: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 2px solid rgba(255, 253, 249, 0.96);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #111827;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.mobile-menu-btn {
+  display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  min-height: 44px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.9));
   border: 1px solid rgba(15, 107, 104, 0.12);
@@ -1270,6 +1382,11 @@ defineExpose({
   box-shadow:
     0 12px 28px rgba(17, 24, 39, 0.08),
     0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.mobile-menu-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .mobile-menu-btn span {
@@ -1307,10 +1424,10 @@ defineExpose({
 /* Mobile navigation */
 .mobile-nav {
   position: fixed;
-  top: 84px;
+  top: var(--header-height);
   left: 12px;
   right: 12px;
-  max-height: calc(100dvh - 100px);
+  max-height: calc(100dvh - var(--header-height));
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92));
   backdrop-filter: blur(22px);
@@ -1709,7 +1826,7 @@ defineExpose({
 }
 
 /* Responsive styles */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .header-inner {
     padding: 0 16px;
   }
@@ -1721,11 +1838,13 @@ defineExpose({
   
   .desktop-nav,
   .desktop-user,
-  .current-device-display {
+  .current-device-display,
+  .desktop-language,
+  .header-search-link {
     display: none;
   }
   
-  .mobile-menu-btn {
+  .mobile-controls {
     display: flex;
   }
 }
@@ -1766,8 +1885,8 @@ defineExpose({
   }
 }
 
-@media (min-width: 769px) {
-  .mobile-menu-btn,
+@media (min-width: 901px) {
+  .mobile-controls,
   .mobile-nav,
   .mobile-overlay {
     display: none !important;

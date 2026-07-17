@@ -151,3 +151,50 @@ test('product cards own one locale-aware product route without home grid mouse c
   const hotBinding = home.match(/<HotProductsSection[\s\S]*?\/>/)?.[0] ?? ''
   assert.doesNotMatch(hotBinding, /@product-click/)
 })
+
+test('header keeps desktop and mobile search and cart entry points available', async () => {
+  const header = await read('../src/components/Header.vue')
+
+  assert.match(header, /class="header-search-link"/)
+  assert.match(header, /class="header-cart-link"/)
+  assert.doesNotMatch(header, /v-if="isCartEnabled\s*&&\s*cartStore\.count"[\s\S]{0,180}class="header-cart-link"/)
+  assert.match(header, /class="mobile-search-link"/)
+  assert.match(header, /class="mobile-cart-link"/)
+  assert.match(header, /class="header-search-link"[^>]*:aria-label=/)
+  assert.match(header, /class="header-cart-link"[^>]*:aria-label=/)
+  assert.match(header, /class="mobile-search-link"[^>]*:aria-label=/)
+  assert.match(header, /class="mobile-cart-link"[^>]*:aria-label=/)
+  assert.match(header, /class="mobile-menu-btn"[\s\S]{0,180}aria-label=/)
+})
+
+test('header uses a sticky accessible shell and switches controls at 900px', async () => {
+  const header = await read('../src/components/Header.vue')
+
+  assert.match(header, /\.header-bar\s*\{[^}]*position:\s*sticky;/s)
+  assert.match(header, /\.header-bar\s*\{[^}]*min-height:\s*var\(--header-height\);/s)
+  assert.match(header, /\.header-bar\s*\{[^}]*backdrop-filter:\s*blur\(18px\);/s)
+  assert.match(header, /min-height:\s*44px/)
+  assert.match(header, /@media\s*\(max-width:\s*900px\)[\s\S]*?\.desktop-nav,[\s\S]*?display:\s*none;/)
+  assert.match(header, /@media\s*\(max-width:\s*900px\)[\s\S]*?\.mobile-controls[\s\S]*?display:\s*flex;/)
+  assert.match(header, /max-height:\s*calc\(100dvh\s*-\s*var\(--header-height\)\)/)
+})
+
+test('header utility triggers use accessible 44px controls with visible focus', async () => {
+  const language = await read('../src/components/LanguageSwitcher.vue')
+  const device = await read('../src/components/DeviceDisplay.vue')
+
+  assert.match(language, /class="current"[^>]*:aria-label=/)
+  assert.match(language, /global-line-duotone" width="20" height="20"/)
+  assert.match(language, /\.current\s*\{[^}]*min-height:\s*44px;[^}]*border-color:\s*var\(--color-line\);/s)
+  assert.match(language, /\.current:focus-visible[\s\S]*box-shadow:\s*var\(--focus-ring\);/)
+  assert.match(device, /<button[\s\S]*class="device-info selected-state"/)
+  assert.match(device, /\.device-info\s*\{[^}]*min-height:\s*44px;/s)
+  assert.match(device, /\.device-info:focus-visible[\s\S]*box-shadow:\s*var\(--focus-ring\);/)
+})
+
+test('navigation search copy is English by default and localized in Chinese', async () => {
+  const i18n = await read('../src/i18n.ts')
+
+  assert.match(i18n, /const en = \{[\s\S]*'nav\.search':\s*'Search'/)
+  assert.match(i18n, /zh:\s*\{[\s\S]*'nav\.search':\s*'搜索'/)
+})

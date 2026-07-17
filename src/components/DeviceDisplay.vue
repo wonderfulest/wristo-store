@@ -2,21 +2,27 @@
   <div class="device-display-root">
     <div class="device-display-container" :class="{ mobile: isMobile }">
       <!-- Has Device -->
-      <div v-if="currentDevice" class="device-info selected-state" @click="handleSelectDevice">
+      <button
+        v-if="currentDevice"
+        type="button"
+        class="device-info selected-state"
+        :aria-label="`${t('device.select')}: ${currentDevice.displayName}`"
+        @click="handleSelectDevice"
+      >
         <div class="device-avatar">
           <img v-if="currentDevice.imageUrl" :src="currentDevice.imageUrl" :alt="currentDevice.displayName" />
           <div v-else class="device-fallback">W</div>
         </div>
         <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ currentDevice.displayName }}</div>
-      </div>
+      </button>
       
       <!-- No Device -->
-      <div v-else class="device-info no-device" @click="handleSelectDevice">
+      <button v-else type="button" class="device-info no-device" :aria-label="t('device.select')" @click="handleSelectDevice">
         <div class="device-avatar">
           <div class="device-fallback">+</div>
         </div>
         <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ t('device.select') }}</div>
-      </div>
+      </button>
     </div>
     
     <!-- Device Selector Modal -->
@@ -133,9 +139,11 @@ defineExpose({
 }
 
 .device-info {
+  appearance: none;
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 44px;
   padding: 6px 12px;
   background: #fff;
   border: 1px solid var(--color-line);
@@ -143,6 +151,9 @@ defineExpose({
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   max-width: 100%;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
 .device-info.selected-state {
@@ -154,9 +165,15 @@ defineExpose({
   box-shadow: 0 8px 18px rgba(17, 24, 39, 0.08);
 }
 
+.device-info:focus-visible {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: var(--focus-ring);
+}
+
 .device-avatar {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   aspect-ratio: 1 / 1;
   border-radius: 6px;
   overflow: hidden;
@@ -165,7 +182,7 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 24px;
+  flex: 0 0 26px;
 }
 
 .device-avatar img {
