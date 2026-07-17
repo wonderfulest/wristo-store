@@ -5,8 +5,8 @@
     tabindex="0"
     :aria-label="productAriaLabel"
     @click="handleClick"
-    @keydown.enter.prevent="handleClick"
-    @keydown.space.prevent="handleClick"
+    @keydown.enter.self.prevent="handleClick"
+    @keydown.space.self.prevent="handleClick"
   >
     <div
       v-if="hasBundleEntitlement"
@@ -378,7 +378,7 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   font-weight: 750;
 }
 
-.product-activated-badge .el-icon {
+.product-activated-badge svg {
   color: rgba(151, 94, 10, 0.72);
   font-size: 0.86rem;
 }

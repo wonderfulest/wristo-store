@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import { compileTemplate, parse } from '@vue/compiler-sfc'
 
 const read = (path) => readFile(new URL(path, import.meta.url), 'utf8')
 
@@ -62,4 +63,20 @@ test('product cards expose badges, keyboard access and mobile-friendly controls'
   assert.match(card, /@keydown\.space/)
   assert.match(card, /(?:min-)?width:\s*44px/)
   assert.match(card, /@media \(max-width:\s*600px\)/)
+})
+
+test('compiled product card keyboard handlers ignore events from nested controls', async () => {
+  const source = await read('../src/components/ProductCard.vue')
+  const { descriptor } = parse(source, { filename: 'ProductCard.vue' })
+  assert.ok(descriptor.template)
+
+  const result = compileTemplate({
+    source: descriptor.template.content,
+    filename: 'ProductCard.vue',
+    id: 'product-card-keyboard',
+  })
+  assert.deepEqual(result.errors, [])
+
+  const selfBeforePrevent = /_withKeys\(_withModifiers\([\s\S]*?\["self",\s*"prevent"\]\),\s*\["(?:enter|space)"\]\)/g
+  assert.equal(result.code.match(selfBeforePrevent)?.length, 2)
 })
