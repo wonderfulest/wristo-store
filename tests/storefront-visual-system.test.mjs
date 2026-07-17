@@ -470,8 +470,20 @@ test('purchase card stacking rules do not override the absolute selection contro
 
   assert.match(
     purchaseCard,
-    /\.purchase-card\s*>\s*:not\(\.purchase-card-select\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
+    /\.purchase-card\s*>\s*:where\(:not\(\.purchase-card-select\)\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
   )
   assert.doesNotMatch(purchaseCard, /\.purchase-card\s*>\s*\*\s*\{[^}]*position:\s*relative;/s)
   assert.match(purchaseCard, /\.purchase-card-select\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*3;/s)
+})
+
+test('purchase card generic stacking has zero specificity so both badges stay absolute', async () => {
+  const purchaseCard = await read('../src/components/PurchaseCard.vue')
+
+  assert.match(
+    purchaseCard,
+    /\.purchase-card\s*>\s*:where\(:not\(\.purchase-card-select\)\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
+  )
+  assert.doesNotMatch(purchaseCard, /\.purchase-card\s*>\s*:not\(\.purchase-card-select\)\s*\{/)
+  assert.match(purchaseCard, /\.discount-badge\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*2;/s)
+  assert.match(purchaseCard, /\.lifetime-badge\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*2;/s)
 })
