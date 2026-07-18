@@ -4,6 +4,10 @@ export const hasActiveBundle = (userInfo?: UserInfo | null) => {
   return Number(userInfo?.userProfile?.hasBundle || 0) > 0
 }
 
+export const hasBundleStoreEntryAccess = (userInfo?: UserInfo | null) => {
+  return hasActiveBundle(userInfo)
+}
+
 export const hasActiveSubscription = (
   userInfo?: UserInfo | null,
   now: Date = new Date(),

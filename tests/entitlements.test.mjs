@@ -4,6 +4,7 @@ import test from 'node:test'
 
 import {
   hasActiveSubscription,
+  hasBundleStoreEntryAccess,
   hasPremiumEntitlement,
 } from '../src/utils/entitlements.ts'
 
@@ -45,6 +46,19 @@ test('an active bundle remains a Store premium entitlement without a membership'
   }
 
   assert.equal(hasPremiumEntitlement(userInfo, now), true)
+})
+
+test('Store Studio and FAQ entries require an active bundle specifically', () => {
+  assert.equal(hasBundleStoreEntryAccess({ userProfile: { hasBundle: 1 } }), true)
+  assert.equal(
+    hasBundleStoreEntryAccess({
+      subscription: { endTime: '2026-08-18T00:00:00.000Z' },
+      userProfile: { hasBundle: 0 },
+    }),
+    false,
+  )
+  assert.equal(hasBundleStoreEntryAccess({ userProfile: { hasBundle: 0 } }), false)
+  assert.equal(hasBundleStoreEntryAccess(null), false)
 })
 
 test('all Store bundle purchase surfaces use the shared premium entitlement', async () => {
