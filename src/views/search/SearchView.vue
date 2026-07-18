@@ -205,12 +205,14 @@ import { openStudio } from '@/utils/studio'
 import { hasBundleStoreEntryAccess } from '@/utils/entitlements'
 import { addLocaleToPath } from '@/store/locale'
 import { useI18n } from '@/i18n'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
 const userStore = useUserStore()
 const { locale, t } = useI18n()
+const { formatDisplayAppCount } = useCountDisplay()
 
 const loading = ref(false)
 const loadError = ref(false)
@@ -264,7 +266,7 @@ const maxPages = computed(() => Math.min(pages.value || 0, 10))
 const limitedTotal = computed(() => Math.min(total.value, pageSize.value * 10))
 const hasSearchQuery = computed(() => searchTerm.value.trim().length >= 2)
 const normalizedSearchTerm = computed(() => searchTerm.value.trim().toLowerCase())
-const formattedTotal = computed(() => new Intl.NumberFormat('en-US').format(total.value || searchResults.value.length || 0))
+const formattedTotal = computed(() => formatDisplayAppCount(total.value || searchResults.value.length || 0))
 const resultKicker = computed(() => hasSearchQuery.value ? t('search.resultsKicker') : t('search.featuredKicker'))
 const resultTitle = computed(() => {
   if (!hasSearchQuery.value) return t('search.featuredTitle')

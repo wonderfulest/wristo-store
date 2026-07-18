@@ -31,7 +31,7 @@ test('all existing metrics surfaces consume the shared count policy', async () =
   ]
   for (const path of paths) {
     const source = await read(path)
-    assert.match(source, /useCountDisplay/)
+    assert.match(source, /useCountDisplay\s*\(/)
     assert.doesNotMatch(source, /import\s*\{[^}]*format(?:Exact|ApproxApp|ApproxDownload)Count/)
   }
 })
@@ -44,7 +44,7 @@ test('series bundle and subscription app counts use the shared count policy', as
   ]
   for (const path of paths) {
     const source = await read(path)
-    assert.match(source, /useCountDisplay/)
+    assert.match(source, /useCountDisplay\s*\(/)
     assert.match(source, /formatDisplayAppCount/)
   }
 
@@ -52,4 +52,26 @@ test('series bundle and subscription app counts use the shared count policy', as
   const subscriptionCard = await read('../src/components/subscription/SubscriptionCard.vue')
   assert.doesNotMatch(purchaseCard, /const formatCountPlus/)
   assert.doesNotMatch(subscriptionCard, /\{\{\s*productCount\s*\}\}\s*watch faces/)
+})
+
+test('category results format the visible filtered count through the shared policy', async () => {
+  const source = await read('../src/views/products/Categories.vue')
+
+  assert.match(source, /useCountDisplay\s*\(/)
+  assert.match(
+    source,
+    /category\.results',\s*\{\s*count:\s*formatDisplayAppCount\(filteredProducts\.length\)\s*\}/,
+  )
+  assert.doesNotMatch(source, /category\.results',\s*\{\s*count:\s*filteredProducts\.length\s*\}/)
+})
+
+test('search results format only the visible total through the shared policy', async () => {
+  const source = await read('../src/views/search/SearchView.vue')
+
+  assert.match(source, /useCountDisplay\s*\(/)
+  assert.match(
+    source,
+    /formattedTotal\s*=\s*computed\(\(\)\s*=>\s*formatDisplayAppCount\(total\.value\s*\|\|\s*searchResults\.value\.length\s*\|\|\s*0\)\)/,
+  )
+  assert.doesNotMatch(source, /formattedTotal\s*=\s*computed\(\(\)\s*=>\s*new Intl\.NumberFormat/)
 })

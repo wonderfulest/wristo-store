@@ -20,7 +20,7 @@
           <div class="category-title-group">
             <p class="category-kicker">{{ t('category.collection') }}</p>
             <h1 class="category-title">{{ series.name }}</h1>
-            <p class="category-results">{{ t('category.results', { count: filteredProducts.length }) }}</p>
+            <p class="category-results">{{ t('category.results', { count: formatDisplayAppCount(filteredProducts.length) }) }}</p>
           </div>
         </div>
 
@@ -226,6 +226,7 @@ import { Icon } from '@iconify/vue'
 import { absoluteUrl, applySeo } from '@/seo'
 import { useI18n } from '@/i18n'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 import {
   beginCategoryPageRequest,
   commitCategoryPageFailure,
@@ -239,6 +240,7 @@ const productStore = useProductStore()
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const { formatDisplayAppCount } = useCountDisplay()
 const series = ref<Series | null>(null)
 const products = ref<ProductBaseVO[]>([])
 const adminMetricsMap = ref<Map<number, ProductStoreMetricsVO | null>>(new Map())
