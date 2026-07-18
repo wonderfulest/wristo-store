@@ -52,10 +52,18 @@ const hiddenFaqGuideRouteSlugs = new Set([
 const productPreviewByRoute = new Map()
 
 async function main() {
-  const discoveredRoutes = await discoverRoutes()
-  const routes = uniqueRoutes([...staticRoutes, ...discoveredRoutes])
+  const [discoveredRoutes, localizedStaticRoutes] = await Promise.all([
+    discoverRoutes(),
+    loadLocalizedStaticRoutes(),
+  ])
+  const localizedPurchaseOptionRoutes = localizedStaticRoutes.filter((route) =>
+    route.endsWith('/purchase-options'),
+  )
+  const routes = uniqueRoutes([...staticRoutes, ...localizedStaticRoutes, ...discoveredRoutes])
   const prerenderRouteList = orderedUniqueRoutes([
     ...staticRoutes,
+    ...localizedPurchaseOptionRoutes,
+    ...localizedStaticRoutes,
     ...discoveredRoutes.filter((route) => !route.startsWith('/product/')),
     ...discoveredRoutes.filter((route) => route.startsWith('/product/')).slice(0, maxPrerenderRoutes),
   ]).slice(0, maxPrerenderRoutes)
@@ -96,14 +104,12 @@ async function discoverRoutes() {
     newProducts,
     searchedProducts,
     faqGuideRoutes,
-    localizedStaticRoutes,
   ] = await Promise.all([
     safeApiGet('/public/categories/all'),
     safeApiGet('/public/products/hot?limit=60'),
     safeApiGet('/public/products/new?limit=60'),
     safeApiGet('/public/products/search/v2?keyword=&pageNum=1&pageSize=100'),
     loadFaqGuideRoutes(),
-    loadLocalizedStaticRoutes(),
   ])
 
   for (const category of asList(categories)) {
@@ -120,7 +126,6 @@ async function discoverRoutes() {
   }
 
   routes.push(...faqGuideRoutes)
-  routes.push(...localizedStaticRoutes)
 
   return routes.filter(Boolean)
 }
