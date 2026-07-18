@@ -41,7 +41,7 @@
     </div>  
     <div class="value-strip">
       <span>{{ type === 'bundle' ? t('purchaseCard.lifetimeBundleAccess') : t('purchaseCard.lifetimeSingleAccess') }}</span>
-      <span>{{ type === 'bundle' && appCount ? `${formatCountPlus(appCount)} ${t('purchaseCard.appsIncluded')}` : t('purchaseCard.oneTimePayment') }}</span>
+      <span>{{ type === 'bundle' && appCount ? `${formatDisplayAppCount(appCount)} ${t('purchaseCard.appsIncluded')}` : t('purchaseCard.oneTimePayment') }}</span>
     </div>
     <!-- 图片 -->
     <div class="card-image">
@@ -80,7 +80,7 @@
       </div>
       <div v-if="type === 'bundle' && appCount" class="product-count">
         <span class="product-count-main">
-          {{ t('purchaseCard.unlock') }} {{ formatCountPlus(appCount) }} {{ t('purchaseCard.apps') }}
+          {{ t('purchaseCard.unlock') }} {{ formatDisplayAppCount(appCount) }} {{ t('purchaseCard.apps') }}
         </span>
         <span class="product-count-sub">
           ({{ t('purchaseCard.value') }} <span class="product-count-original">{{ currencySymbol }}{{ appTotalPrice?.toFixed(2) }}</span>)
@@ -103,8 +103,10 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from '@/i18n'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 
 const { t } = useI18n()
+const { formatDisplayAppCount } = useCountDisplay()
 
 const getCurrencySymbol = (code?: string) => {
   const normalized = String(code || 'USD').toUpperCase()
@@ -195,19 +197,6 @@ const visibleBundleItems = computed(() => {
   if (props.type !== 'bundle') return []
   return props.bundleItems.slice(0, BUNDLE_ITEMS_MAX_VISIBLE)
 })
-
-const formatCountPlus = (value?: number) => {
-  if (value === undefined || value === null) return ''
-
-  const n = Number(value)
-  if (!Number.isFinite(n)) return ''
-
-  if (n < 1000) return n.toLocaleString()
-
-  const rounded = Math.floor(n / 1000) * 1000
-  if (rounded >= n) return n.toLocaleString()
-  return `${rounded.toLocaleString()}+`
-}
 
 const handleSelect = () => {
   emit('select')

@@ -17,6 +17,7 @@
 <script setup lang="ts">
 import type { Series } from '@/types'
 import { useI18n } from '@/i18n'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 
 defineProps<{
   series: Series & { publicTagline?: string }
@@ -28,10 +29,14 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const formatSeriesAppCount = (count: number) => t(
-  count === 1 ? 'series.appCount.one' : 'series.appCount.other',
-  { count },
-)
+const { formatDisplayAppCount } = useCountDisplay()
+const formatSeriesAppCount = (count: number) => {
+  const label = formatDisplayAppCount(count)
+  return t(
+    label === '1' ? 'series.appCount.one' : 'series.appCount.other',
+    { count: label },
+  )
+}
 </script>
 
 <style scoped>

@@ -20,7 +20,7 @@
       </div>
       <div class="price-note">One-time payment · Lifetime access</div>
       <div v-if="productCount > 0" class="value-proposition">
-        {{ productCount }} watch faces · Total value ${{ totalValue }}
+        {{ formatDisplayAppCount(productCount) }} watch faces · Total value ${{ totalValue }}
       </div>
     </div>
     
@@ -50,6 +50,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/user';
+import { useCountDisplay } from '@/composables/useCountDisplay';
 import { ElButton, ElTooltip, ElIcon } from 'element-plus';
 import { Check } from '@element-plus/icons-vue';
 
@@ -80,6 +81,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const userStore = useUserStore();
+const { formatDisplayAppCount } = useCountDisplay();
 const router = useRouter();
 const isSubscribing = ref(false);
 

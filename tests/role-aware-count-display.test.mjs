@@ -35,3 +35,21 @@ test('all existing metrics surfaces consume the shared count policy', async () =
     assert.doesNotMatch(source, /import\s*\{[^}]*format(?:Exact|ApproxApp|ApproxDownload)Count/)
   }
 })
+
+test('series bundle and subscription app counts use the shared count policy', async () => {
+  const paths = [
+    '../src/components/SeriesCard.vue',
+    '../src/components/PurchaseCard.vue',
+    '../src/components/subscription/SubscriptionCard.vue',
+  ]
+  for (const path of paths) {
+    const source = await read(path)
+    assert.match(source, /useCountDisplay/)
+    assert.match(source, /formatDisplayAppCount/)
+  }
+
+  const purchaseCard = await read('../src/components/PurchaseCard.vue')
+  const subscriptionCard = await read('../src/components/subscription/SubscriptionCard.vue')
+  assert.doesNotMatch(purchaseCard, /const formatCountPlus/)
+  assert.doesNotMatch(subscriptionCard, /\{\{\s*productCount\s*\}\}\s*watch faces/)
+})
