@@ -196,6 +196,38 @@ const allSlides: HeroSlide[] = [
     dotLabelKey: 'home.heroStoreSlide'
   },
   {
+    id: 'premium',
+    themeClass: 'theme-store theme-premium',
+    eyebrowIcon: 'solar:crown-star-bold-duotone',
+    eyebrowKey: 'home.premiumEyebrow',
+    titleKey: 'home.premiumTitle',
+    descKey: 'home.premiumDesc',
+    primaryLabelKey: 'home.premiumCta',
+    primaryIcon: 'solar:arrow-right-up-linear',
+    primaryAction: goToBundles,
+    secondaryLabelKey: 'home.heroCode',
+    secondaryIcon: 'solar:ticket-sale-linear',
+    secondaryAction: goToCode,
+    tertiaryLabelKey: 'home.heroBundles',
+    tertiaryAction: goToBundles,
+    metricOneValueKey: 'home.heroMetricFacesValue',
+    metricOneLabelKey: 'home.heroMetricFacesLabel',
+    metricTwoValueKey: 'home.heroMetricCheckoutValue',
+    metricTwoLabelKey: 'home.heroMetricCheckoutLabel',
+    metricThreeValueKey: 'home.heroMetricGarminValue',
+    metricThreeLabelKey: 'home.heroMetricGarminLabel',
+    compactActions: true,
+    hideMetrics: true,
+    imageSrc: '/home-hero-premium-lifetime-access-en.png',
+    isPosterImage: true,
+    hideArtCaption: true,
+    artTopIcon: 'solar:crown-star-bold-duotone',
+    artTopKey: 'home.heroArtSeries',
+    artBottomIcon: 'solar:infinity-bold-duotone',
+    artBottomKey: 'home.heroArtBattery',
+    dotLabelKey: 'home.heroPremiumSlide'
+  },
+  {
     id: 'studio',
     requiresBundle: true,
     themeClass: 'theme-studio',
@@ -466,14 +498,17 @@ onBeforeUnmount(pauseCarousel)
 }
 
 .banner-stage img.banner-stage__image--poster {
-  width: min(94%, 510px);
+  width: 100%;
+  height: 100%;
   aspect-ratio: 3 / 4;
+  object-fit: contain;
   filter: none;
 }
 
 .banner-stage.banner-stage--poster {
-  width: min(100%, 600px);
-  min-height: 680px;
+  width: min(100%, 510px);
+  min-height: 0;
+  aspect-ratio: 3 / 4;
   background: #090d11;
 }
 
@@ -594,12 +629,7 @@ onBeforeUnmount(pauseCarousel)
   }
 
   .banner-stage.banner-stage--poster {
-    width: min(100%, 510px);
-    min-height: 640px;
-  }
-
-  .banner-stage img.banner-stage__image--poster {
-    width: min(94%, 480px);
+    width: min(100%, 480px);
   }
 }
 
@@ -655,11 +685,6 @@ onBeforeUnmount(pauseCarousel)
   }
 
   .banner-stage.banner-stage--poster {
-    width: min(100%, 360px);
-    min-height: min(480px, 128vw);
-  }
-
-  .banner-stage img.banner-stage__image--poster {
     width: min(100%, 360px);
   }
 
