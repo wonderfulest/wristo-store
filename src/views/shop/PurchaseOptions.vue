@@ -81,6 +81,7 @@ import { onMounted, ref, computed, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useCartStore } from '@/store/cart'
+import { useUserStore } from '@/store/user'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import PurchaseCard from '@/components/PurchaseCard.vue'
 import type { PurchaseData, ProductVO, Bundle } from '@/types'
@@ -89,11 +90,13 @@ import { checkDiscount, getBundleProductsForPurchase, getBundlesForPurchase } fr
 import { getProductDetail } from '@/api/product'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 
 const router = useRouter()
 const route = useRoute()
 const store = useShopOptionsStore()
 const cartStore = useCartStore()
+const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 
@@ -110,6 +113,7 @@ const isCodePurchaseEntry = computed(() => {
 const bundlesFromApi = ref<Bundle[]>([])
 const loadingBundleProductIds = ref<Set<number>>(new Set())
 const productFromQuery = ref<ProductVO | null>(null)
+const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 
 const normalizedBundleType = (bundleItem?: Bundle | null) => {
   return String(bundleItem?.bundleType || '').trim().toLowerCase()
@@ -135,6 +139,8 @@ const product = computed<ProductVO | null>(() => {
   return baseProduct as ProductVO
 })
 const bundles = computed(() => {
+  if (hasPremiumAccess.value) return []
+
   const bundlesList = (isCodePurchaseEntry.value && purchaseData.value?.bundles && purchaseData.value.bundles.length > 0)
     ? purchaseData.value.bundles
     : bundlesFromApi.value
@@ -534,6 +540,11 @@ const scrollToBundleSubscriptionCard = async () => {
 }
 
 const loadBundlesForCurrentEntry = () => {
+  if (hasPremiumAccess.value) {
+    bundlesFromApi.value = []
+    return
+  }
+
   if (isCodePurchaseEntry.value && purchaseData.value) return
 
   getBundlesForPurchase()
@@ -597,6 +608,14 @@ watch(
     syncEntryContext()
   }
 )
+
+watch(hasPremiumAccess, (hasAccess) => {
+  if (hasAccess) {
+    bundlesFromApi.value = []
+    return
+  }
+  loadBundlesForCurrentEntry()
+})
 </script>
 
 <style scoped>

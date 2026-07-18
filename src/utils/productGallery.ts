@@ -2,6 +2,8 @@ export interface ProductShareImageSource {
   id: string | number
   sortOrder?: number | null
   imageUrl?: string | null
+  previewUrl?: string | null
+  downloadUrl?: string | null
   altText?: string | null
   image?: {
     url?: string | null
@@ -11,13 +13,14 @@ export interface ProductShareImageSource {
 export interface ProductGalleryItem {
   key: string
   url: string
+  downloadUrl?: string
   alt: string
   kind: 'fixed' | 'share'
   sourceId: string | number | null
 }
 
 export const resolveProductShareImageUrl = (image: ProductShareImageSource): string => {
-  return image.imageUrl?.trim() || image.image?.url?.trim() || ''
+  return image.previewUrl?.trim() || image.imageUrl?.trim() || image.image?.url?.trim() || ''
 }
 
 export const createProductGalleryItems = (
@@ -52,6 +55,7 @@ export const createProductGalleryItems = (
       alt: image.altText?.trim() || defaultAlt,
       kind: 'share',
       sourceId: image.id,
+      downloadUrl: image.downloadUrl?.trim() || image.imageUrl?.trim() || url,
     })
   }
 

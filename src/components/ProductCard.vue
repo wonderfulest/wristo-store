@@ -9,7 +9,7 @@
     @keydown.space.self.prevent="handleClick"
   >
     <div
-      v-if="hasBundleEntitlement"
+      v-if="hasPremiumAccess"
       class="product-activated-badge"
       :title="t('product.activated')"
       :aria-label="t('product.activated')"
@@ -56,7 +56,7 @@
         @changed="refreshAfterAdminChange"
         @removed-from-current-category="handleRemovedFromCurrentCategory"
       />
-      <div v-if="!hasBundleEntitlement" class="product-footer">
+      <div v-if="!hasPremiumAccess" class="product-footer">
         <div class="product-price">{{ formattedPrice }}</div>
         <button
           v-if="isCartEnabled"
@@ -88,7 +88,7 @@ import { resolveProductDisplayRating } from '@/utils/productRating'
 import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
-import { hasActiveBundle } from '@/utils/entitlements'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 import { resolveProductBadges } from '@/utils/productBadges'
 import { fetchAdminStoreMetricBatched, invalidateAdminStoreMetric } from '@/utils/adminStoreMetricsBatch'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
@@ -119,7 +119,7 @@ const formattedPrice = computed(() => Number(props.product?.price || 0) <= 0
   ? t('product.badge.free')
   : `$${Number(props.product?.price || 0).toFixed(2)}`)
 const productAriaLabel = computed(() => `${props.product?.name || ''}, ${formattedPrice.value}`)
-const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
+const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')

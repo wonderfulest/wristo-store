@@ -10,7 +10,7 @@
           :fallback-image-url="productPreviewFallback"
           :product-name="product?.name || t('product.previewAlt')"
           :editable="canManageShareImages"
-          :can-add-images="canManageShareImages && shareImages.length < MAX_SHARE_IMAGES"
+          :can-add-images="canManageShareImages && shareImages.length < 8"
           :uploading="shareImagesUploading"
           :deleting-id="shareImageDeletingId"
           :reordering="shareImagesReordering"
@@ -32,7 +32,7 @@
       <div class="product-info-wrap">
         <aside class="product-purchase-panel">
           <h1 class="product-title">{{ product?.name }}</h1>
-        <div v-if="hasBundleEntitlement" class="product-activated-panel">
+        <div v-if="hasPremiumAccess" class="product-activated-panel">
           <div class="product-activated-icon" aria-hidden="true">
             <el-icon><StarFilled /></el-icon>
           </div>
@@ -64,7 +64,7 @@
           @changed="() => loadAdminMetrics()"
         />
         <button
-          v-if="product?.appId && !hasBundleEntitlement"
+          v-if="product?.appId && !hasPremiumAccess"
           type="button"
           class="product-btn product-btn-buy"
           @click="handleBuyNow"
@@ -73,7 +73,7 @@
           <el-icon class="btn-icon"><CreditCard /></el-icon>
         </button>
         <button
-          v-if="isCartEnabled && product?.appId && !hasBundleEntitlement"
+          v-if="isCartEnabled && product?.appId && !hasPremiumAccess"
           type="button"
           class="product-btn product-btn-cart"
           :class="{ active: isInCart }"
@@ -316,7 +316,6 @@ import {
   getMyProductRating,
   getProductRating,
   getProductReviews,
-  getProductShareImages,
   updateProductRating,
 } from '@/api/product'
 import { openStudioDesignCopy } from '@/utils/studio'
@@ -324,13 +323,12 @@ import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
-import { hasActiveBundle } from '@/utils/entitlements'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 import { resolveMobileProductActionState } from '@/utils/productMobileAction'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
 import MobileProductActionBar from '@/components/storefront/MobileProductActionBar.vue'
-import { MAX_SHARE_IMAGES } from '@/utils/productShareImagePolicy'
 import {
   deleteProductShareImage,
   fetchProductShareImages,
@@ -373,17 +371,17 @@ const displayRating = computed(() => {
 })
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
-const hasBundleEntitlement = computed(() => hasActiveBundle(userStore.userInfo))
+const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const mobileActionState = computed(() => resolveMobileProductActionState({
   appId: product.value?.appId,
-  hasEntitlement: hasBundleEntitlement.value,
+  hasEntitlement: hasPremiumAccess.value,
   garminStoreUrl: product.value?.garminStoreUrl,
   cartEnabled: isCartEnabled,
   isInCart: isInCart.value,
 }))
 const mobileActionVisible = computed(() => mobileActionState.value.visible)
 const mobilePriceLabel = computed(() =>
-  hasBundleEntitlement.value
+  hasPremiumAccess.value
     ? t('product.activated')
     : `$${product.value?.price?.toFixed(2) ?? '0.00'}`,
 )
@@ -416,7 +414,7 @@ const {
 } = useProductShareImageManagement(
   { appId: shareImageAppId, isAdmin },
   {
-    fetchPublicImages: getProductShareImages,
+    fetchPublicImages: async () => (product.value?.productImages || []) as any,
     fetchAdminImages: fetchProductShareImages,
     uploadImages: uploadProductShareImages,
     deleteImage: deleteProductShareImage,

@@ -4,7 +4,7 @@ import type { ProductShareImageVO } from '@/types'
 export type { ProductShareImageVO }
 
 export const fetchProductShareImages = (appId: number): Promise<ProductShareImageVO[]> => {
-  return instance.get(`/admin/products/${appId}/share-images`)
+  return instance.get(`/admin/products/${appId}/images`)
 }
 
 export const uploadProductShareImages = (
@@ -13,7 +13,7 @@ export const uploadProductShareImages = (
 ): Promise<ProductShareImageVO[]> => {
   const formData = new FormData()
   files.forEach((file) => formData.append('files', file))
-  return instance.post(`/admin/products/${appId}/share-images`, formData, {
+  return instance.post(`/admin/products/${appId}/images`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
 }
@@ -22,12 +22,12 @@ export const deleteProductShareImage = (
   appId: number,
   productImageId: number,
 ): Promise<void> => {
-  return instance.delete(`/admin/products/${appId}/share-images/${productImageId}`)
+  return instance.delete(`/admin/products/${appId}/images/${productImageId}`)
 }
 
 export const reorderProductShareImages = (
   appId: number,
   productImageIds: number[],
 ): Promise<ProductShareImageVO[]> => {
-  return instance.put(`/admin/products/${appId}/share-images/order`, { productImageIds })
+  return instance.put(`/admin/products/${appId}/images/order`, { productImageIds })
 }

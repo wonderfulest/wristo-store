@@ -39,6 +39,14 @@
       >
         <span aria-hidden="true">W</span>
       </div>
+      <a
+        v-if="selectedItem?.downloadUrl"
+        class="product-gallery__download"
+        :href="selectedItem.downloadUrl"
+        target="_blank"
+        rel="noopener"
+        download
+      >Download HD</a>
 
       <template v-if="availableItems.length > 1">
         <button

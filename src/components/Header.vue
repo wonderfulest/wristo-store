@@ -409,7 +409,7 @@ import { openStudio } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 import { isCartEnabled } from '@/config/features';
 import { formatApproxAppCount, formatExactCount } from '@/utils/downloadCount';
-import { hasActiveBundle } from '@/utils/entitlements';
+import { hasPremiumEntitlement } from '@/utils/entitlements';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -477,20 +477,8 @@ const userEmail = computed(() => {
   return userStore.userInfo?.email || t('nav.accountEmailFallback')
 })
 
-// Check if user has an active subscription
-const isSubscribed = computed(() => {
-  if (!userStore.userInfo?.subscription) return false
-  
-  const subscription = userStore.userInfo.subscription
-  const now = new Date()
-  const endTime = new Date(subscription.endTime)
-  
-  // Check if subscription is still active
-  return endTime > now
-})
-
 const hasPremiumAccess = computed(() => {
-  return isSubscribed.value || hasActiveBundle(userStore.userInfo)
+  return hasPremiumEntitlement(userStore.userInfo)
 })
 
 const handleUserMenuCommand = (command: string) => {

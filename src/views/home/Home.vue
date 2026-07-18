@@ -41,9 +41,7 @@
       @more-click="goToTopApps"
     />
   </div>
-  <section class="premium-suite-section">
-    <PremiumSuiteCard />
-  </section>
+  <PremiumSuiteCard class="premium-suite-section" />
 </template>
 
 <script setup lang="ts">

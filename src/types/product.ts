@@ -21,14 +21,18 @@ export interface PaymentVO {
   paddlePriceId: string
 }
 
-export interface ProductShareImageVO {
+export interface ProductImageVO {
   id: number
   productId: number
   imageId: number
-  type: 'share'
+  type: string
   sortOrder: number
   altText?: string | null
   imageUrl?: string | null
+  previewUrl?: string | null
+  downloadUrl?: string | null
+  width?: number | null
+  height?: number | null
   fileName?: string | null
   isActive: number
   image?: {
@@ -43,7 +47,13 @@ export interface ProductShareImagePublicVO {
   sortOrder: number | null
   altText: string | null
   imageUrl: string
+  previewUrl?: string | null
+  downloadUrl?: string | null
+  type?: string
+  width?: number | null
+  height?: number | null
 }
+export type ProductShareImageVO = ProductImageVO
 
 export interface GarminDeviceBaseVO {
   id: number
@@ -58,6 +68,8 @@ export interface ProductBaseVO {
   price: number
   designId: string
   rawImageUrl?: string | null
+  previewImageUrl?: string | null
+  productImages?: ProductImageVO[] | null
   garminImageUrl: string
   garminStoreUrl: string
   heroFile: HeroFile | null
@@ -79,6 +91,8 @@ export interface ProductVO {
   description: string
   price: number
   rawImageUrl?: string | null
+  previewImageUrl?: string | null
+  productImages?: ProductImageVO[] | null
   garminImageUrl: string
   garminStoreUrl: string
   garminAppUuid: string

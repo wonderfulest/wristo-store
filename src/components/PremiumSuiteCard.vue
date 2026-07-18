@@ -1,5 +1,5 @@
 <template>
-  <article class="premium-suite-card" :aria-label="t('cart.premiumAria')">
+  <article v-if="!hasPremiumAccess" class="premium-suite-card" :aria-label="t('cart.premiumAria')">
     <div class="premium-price-badge">
       <span>{{ t('cart.premiumPriceLabel') }}</span>
       <strong>{{ premiumPriceText }}</strong>
@@ -46,13 +46,17 @@ import { ArrowRight, Check } from '@element-plus/icons-vue'
 import { Icon } from '@iconify/vue'
 import { getBundlesForPurchase } from '@/api/purchase'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useUserStore } from '@/store/user'
 import { useI18n } from '@/i18n'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 import type { Bundle } from '@/types'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
+const userStore = useUserStore()
 const { t } = useI18n()
 const premiumBundle = ref<Bundle | null>(null)
+const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 
 const premiumBenefits = computed(() => [
   t('cart.premiumBenefitFaces'),
@@ -81,6 +85,8 @@ const goPremium = () => {
 }
 
 onMounted(async () => {
+  if (hasPremiumAccess.value) return
+
   try {
     const bundles = await getBundlesForPurchase()
     premiumBundle.value = bundles.find(isGlobalPremiumBundle) || null
