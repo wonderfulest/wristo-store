@@ -424,10 +424,9 @@ test('activation and payment success public copy is localized in English and Chi
 })
 
 test('transaction controls expose 44px touch targets in their actual selector blocks', async () => {
-  const [cart, activation, purchaseCard] = await Promise.all([
+  const [cart, activation] = await Promise.all([
     read('../src/views/user-center/CartList.vue'),
     read('../src/views/shop/AlreadyPurchased.vue'),
-    read('../src/components/PurchaseCard.vue'),
   ])
   const selectorBlock = (source, selector) => {
     const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -441,8 +440,6 @@ test('transaction controls expose 44px touch targets in their actual selector bl
   assert.match(selectorBlock(cart, '.email-lock input'), /min-height:\s*44px/)
   assert.match(selectorBlock(cart, '.cart-email-login'), /min-height:\s*44px/)
   assert.match(selectorBlock(activation, '.help-link-inline'), /min-height:\s*44px/)
-  assert.match(selectorBlock(purchaseCard, '.purchase-card-select'), /min-height:\s*44px/)
-  assert.match(selectorBlock(purchaseCard, '.purchase-card-select'), /min-width:\s*44px/)
 })
 
 test('checkout email field has an explicit label and invalid state wiring', async () => {
@@ -455,7 +452,7 @@ test('checkout email field has an explicit label and invalid state wiring', asyn
   assert.match(checkout, /id="checkout-email-error"[^>]*role="alert"/)
 })
 
-test('purchase cards use sibling selection and buy controls without interactive nesting', async () => {
+test('purchase cards select from the card surface without a top-right selection circle', async () => {
   const source = await read('../src/components/PurchaseCard.vue')
   const { descriptor } = parse(source, { filename: 'PurchaseCard.vue' })
   assert.ok(descriptor.template)
@@ -468,22 +465,20 @@ test('purchase cards use sibling selection and buy controls without interactive 
   assert.deepEqual(result.errors, [])
   assert.match(source, /<article[\s\S]{0,180}:class="\['purchase-card'/)
   assert.doesNotMatch(source, /<article[^>]*(?:role="button"|tabindex="0")/)
-  assert.match(source, /<button[\s\S]{0,240}class="purchase-card-select"[\s\S]{0,240}@click\.stop="handleSelect"/)
-  assert.match(source, /class="purchase-card-select"[\s\S]*<\/button>[\s\S]*<button[\s\S]*commerce-primary-action/)
+  assert.match(source, /<article[\s\S]{0,180}@click="handleSelect"/)
+  assert.doesNotMatch(source, /purchase-card-select|selection-indicator/)
   assert.match(source, /emit\('select'\)/)
   assert.match(source, /emit\('buy'\)/)
   assert.match(source, /emit\('loadMoreBundleItems'\)/)
 })
 
-test('purchase card stacking rules do not override the absolute selection control', async () => {
+test('purchase card content stays above its decorative background', async () => {
   const purchaseCard = await read('../src/components/PurchaseCard.vue')
 
   assert.match(
     purchaseCard,
-    /\.purchase-card\s*>\s*:where\(:not\(\.purchase-card-select\)\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
+    /\.purchase-card\s*>\s*\*\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
   )
-  assert.doesNotMatch(purchaseCard, /\.purchase-card\s*>\s*\*\s*\{[^}]*position:\s*relative;/s)
-  assert.match(purchaseCard, /\.purchase-card-select\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*3;/s)
 })
 
 test('purchase card generic stacking has zero specificity so both badges stay absolute', async () => {
@@ -491,9 +486,8 @@ test('purchase card generic stacking has zero specificity so both badges stay ab
 
   assert.match(
     purchaseCard,
-    /\.purchase-card\s*>\s*:where\(:not\(\.purchase-card-select\)\)\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
+    /\.purchase-card\s*>\s*\*\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s,
   )
-  assert.doesNotMatch(purchaseCard, /\.purchase-card\s*>\s*:not\(\.purchase-card-select\)\s*\{/)
   assert.match(purchaseCard, /\.discount-badge\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*2;/s)
   assert.match(purchaseCard, /\.lifetime-badge\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*2;/s)
 })
