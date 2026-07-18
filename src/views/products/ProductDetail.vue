@@ -310,7 +310,7 @@ import { toGarminStoreBridge } from '@/utils/garminStore'
 import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
-import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 import {
   fetchAdminStoreMetrics,
   getMyProductRating,
@@ -349,6 +349,7 @@ const cartStore = useCartStore()
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
 const product = ref<ProductVO | null>(null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
@@ -398,10 +399,6 @@ const mobileSecondaryLabel = computed(() =>
       ? t('product.addToCart')
       : '',
 )
-const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles || []
-  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
-})
 const shareImageAppId = computed(() => product.value?.appId ?? null)
 const {
   shareImages,
@@ -511,10 +508,6 @@ const handleCustomizeInStudio = () => {
 const formatNumber = (value?: number | null) => {
   if (value == null) return '0'
   return new Intl.NumberFormat('en-US').format(value)
-}
-
-const formatDisplayDownloadCount = (value?: number | null) => {
-  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
 }
 
 const formatDisplayRating = (value?: number | null) => {

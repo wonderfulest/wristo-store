@@ -126,16 +126,15 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import { getMerchantAppsPage, getMerchantDetail } from "@/api/merchant";
-import { useUserStore } from "@/store/user";
+import { useCountDisplay } from "@/composables/useCountDisplay";
 import type { PublicMerchantVO } from "@/types/merchant";
 import type { ProductBaseVO, PageResult } from "@/types";
-import { formatApproxAppCount, formatApproxDownloadCount, formatExactCount } from "@/utils/downloadCount";
 
 import ProductCard from "@/components/ProductCard.vue";
 
 const router = useRouter();
 const route = useRoute();
-const userStore = useUserStore();
+const { formatDisplayAppCount, formatDisplayDownloadCount } = useCountDisplay();
 
 const merchant = ref<PublicMerchantVO | null>(null);
 const loading = ref(true);
@@ -158,11 +157,6 @@ const userId = computed(() => {
   const raw = route.params.userId;
   const v = Array.isArray(raw) ? raw[0] : raw;
   return v ? String(v) : "";
-});
-
-const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles || [];
-  return roles.some((role) => role.roleCode === "ROLE_ADMIN");
 });
 
 onMounted(async () => {
@@ -339,14 +333,6 @@ const hasAnySocial = computed(() => {
       (m?.xUrl || "").trim()
   );
 });
-
-const formatDisplayAppCount = (value?: number | null) => {
-  return isAdmin.value ? formatExactCount(value) : (formatApproxAppCount(value) || "0");
-};
-
-const formatDisplayDownloadCount = (value?: number | null) => {
-  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value);
-};
 
 const goBack = () => {
   if (window.history.length > 1) {

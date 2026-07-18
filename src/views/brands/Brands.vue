@@ -114,24 +114,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { getAllMerchants } from '@/api/merchant'
-import { useUserStore } from '@/store/user'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 import type { PublicMerchantVO } from '@/types/merchant'
-import { formatApproxAppCount, formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
 
 const router = useRouter()
-const userStore = useUserStore()
+const { formatDisplayAppCount, formatDisplayDownloadCount } = useCountDisplay()
 
 const merchants = ref<PublicMerchantVO[]>([])
 const loading = ref(true)
-
-const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles || []
-  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
-})
 
 onMounted(async () => {
   try {
@@ -166,14 +160,6 @@ const getBannerUrl = (m: PublicMerchantVO) => {
     if (u) return u
   }
   return img.url || ''
-}
-
-const formatDisplayAppCount = (value?: number | null) => {
-  return isAdmin.value ? formatExactCount(value) : (formatApproxAppCount(value) || '0')
-}
-
-const formatDisplayDownloadCount = (value?: number | null) => {
-  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
 }
 
 const handlePrimaryClick = (m: PublicMerchantVO) => {

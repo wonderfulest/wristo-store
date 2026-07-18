@@ -408,7 +408,7 @@ import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
 import { openStudio } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 import { isCartEnabled } from '@/config/features';
-import { formatApproxAppCount, formatExactCount } from '@/utils/downloadCount';
+import { useCountDisplay } from '@/composables/useCountDisplay';
 import { hasBundleStoreEntryAccess, hasPremiumEntitlement } from '@/utils/entitlements';
 
 const productStore = useProductStore();
@@ -418,6 +418,7 @@ const userStore = useUserStore();
 const cartStore = useCartStore();
 const localeStore = useLocaleStore();
 const { t } = useI18n();
+const { isAdmin, formatDisplayAppCount } = useCountDisplay();
 const isLoggedIn = ref(false);
 const userAvatar = ref('https://cdn.wristo.io/test/avatar/561aae25-41bd-47ab-974e-7231f5a850e8.png');
 
@@ -448,14 +449,9 @@ const visibleSeriesList = computed(() => {
     })
 });
 
-const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles || []
-  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
-})
-
 const formatCategoryAppCount = (count?: number | null) => {
   if (count == null) return 'View apps'
-  const label = isAdmin.value ? formatExactCount(count) : formatApproxAppCount(count)
+  const label = formatDisplayAppCount(count)
   if (label == null) return 'View apps'
   return `${label} ${label === '1' ? 'app' : 'apps'}`
 }

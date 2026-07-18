@@ -85,7 +85,7 @@ import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
-import { formatApproxDownloadCount, formatExactCount } from '@/utils/downloadCount'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
@@ -110,6 +110,7 @@ const cartStore = useCartStore()
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
 const localMetrics = ref<ProductStoreMetricsVO | null>(null)
 
 const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
@@ -120,10 +121,6 @@ const formattedPrice = computed(() => Number(props.product?.price || 0) <= 0
   : `$${Number(props.product?.price || 0).toFixed(2)}`)
 const productAriaLabel = computed(() => `${props.product?.name || ''}, ${formattedPrice.value}`)
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
-const isAdmin = computed(() => {
-  const roles = userStore.userInfo?.roles || []
-  return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
-})
 const resolvedMetrics = computed(() => props.adminMetrics || localMetrics.value)
 const currentCategoryId = computed(() => props.currentCategoryId ?? null)
 
@@ -146,10 +143,6 @@ const toggleCart = () => {
     added: t('cart.added'),
     viewCart: t('cart.viewCart'),
   })
-}
-
-const formatDisplayDownloadCount = (value?: number | null) => {
-  return isAdmin.value ? formatExactCount(value) : formatApproxDownloadCount(value)
 }
 
 const formatDisplayRating = (value?: number | null) => {

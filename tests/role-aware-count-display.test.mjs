@@ -20,3 +20,18 @@ test('role-aware count formatters expose exact values only to admins', async () 
   assert.equal(formatters.formatRoleAwareDownloadCount(1234, false), '1K+')
   assert.equal(formatters.formatRoleAwareAppCount(null, false), '0')
 })
+
+test('all existing metrics surfaces consume the shared count policy', async () => {
+  const paths = [
+    '../src/components/Header.vue',
+    '../src/components/ProductCard.vue',
+    '../src/views/brands/Brands.vue',
+    '../src/views/brands/MerchantDetail.vue',
+    '../src/views/products/ProductDetail.vue',
+  ]
+  for (const path of paths) {
+    const source = await read(path)
+    assert.match(source, /useCountDisplay/)
+    assert.doesNotMatch(source, /import\s*\{[^}]*format(?:Exact|ApproxApp|ApproxDownload)Count/)
+  }
+})
