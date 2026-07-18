@@ -19,7 +19,7 @@
           @reorder-images="handleReorderShareImages"
         />
         <button
-          v-if="product?.designId"
+          v-if="product?.designId && canShowBundleEntries"
           type="button"
           class="product-btn product-btn-studio"
           @click="handleCustomizeInStudio"
@@ -323,7 +323,7 @@ import { redirectToSsoLogin } from '@/utils/ssoRedirect'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
-import { hasPremiumEntitlement } from '@/utils/entitlements'
+import { hasBundleStoreEntryAccess, hasPremiumEntitlement } from '@/utils/entitlements'
 import { resolveMobileProductActionState } from '@/utils/productMobileAction'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
@@ -372,6 +372,7 @@ const displayRating = computed(() => {
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
+const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
 const mobileActionState = computed(() => resolveMobileProductActionState({
   appId: product.value?.appId,
   hasEntitlement: hasPremiumAccess.value,

@@ -70,7 +70,7 @@
             {{ item }}
           </button>
         </div>
-        <button class="state-studio-btn" type="button" @click="openStudio">
+        <button v-if="canShowBundleEntries" class="state-studio-btn" type="button" @click="openStudio">
           <Icon icon="solar:magic-stick-3-linear" width="18" aria-hidden="true" />
           {{ t('search.createInStudio') }}
         </button>
@@ -199,14 +199,17 @@ import SearchResultsSection from '@/views/home/components/SearchResultsSection.v
 import SectionHeading from '@/components/storefront/SectionHeading.vue'
 import ProductGridSkeleton from '@/components/storefront/ProductGridSkeleton.vue'
 import { useProductStore } from '@/store/product'
+import { useUserStore } from '@/store/user'
 import type { ProductBaseVO } from '@/types'
 import { openStudio } from '@/utils/studio'
+import { hasBundleStoreEntryAccess } from '@/utils/entitlements'
 import { addLocaleToPath } from '@/store/locale'
 import { useI18n } from '@/i18n'
 
 const route = useRoute()
 const router = useRouter()
 const productStore = useProductStore()
+const userStore = useUserStore()
 const { locale, t } = useI18n()
 
 const loading = ref(false)
@@ -215,6 +218,7 @@ const loadMoreError = ref(false)
 const isMobile = ref(false)
 const searchTerm = ref('')
 const searchResults = ref<ProductBaseVO[]>([])
+const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
 
 const popularSearches = [
   'minimal',

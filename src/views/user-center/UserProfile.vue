@@ -151,7 +151,7 @@
       </div>
 
       <!-- Section: Studio -->
-      <div class="section">
+      <div v-if="canShowBundleEntries" class="section">
         <div class="section-header">
           <span class="section-title">Studio</span>
         </div>
@@ -180,6 +180,7 @@ import { bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DeviceDisplay from '@/components/DeviceDisplay.vue'
 import { openStudio } from '@/utils/studio'
+import { hasBundleStoreEntryAccess } from '@/utils/entitlements'
 
 const ssoBaseUrl = import.meta.env.VITE_WRISTO_SSO_LOGIN_URL?.replace(/\/login\/?$/, '').replace(/\/auth\/?$/, '') || ''
 
@@ -188,6 +189,7 @@ const defaultAvatar = 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-socia
 
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
+const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userInfo.value))
 const editMode = ref(false)
 const form = ref({
   username: userInfo.value?.username || '',

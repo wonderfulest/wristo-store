@@ -51,7 +51,10 @@ test('Header hides the complete creator section and each mobile creator action w
 test('HomeBanner filters bundle-only slides and cycles through the visible slides', async () => {
   const source = await readSource('../src/views/home/components/HomeBanner.vue')
 
-  assert.match(source, /hasBundleStoreEntryAccess/)
+  assert.match(
+    source,
+    /import \{[^}]*hasBundleStoreEntryAccess[^}]*\} from '@\/utils\/entitlements'/,
+  )
   assert.match(source, /requiresBundle\?: boolean/)
   assert.match(source, /const allSlides: HeroSlide\[\] = \[/)
   const storeSlideSource = source.slice(source.indexOf("id: 'store'"), source.indexOf("id: 'studio'"))
@@ -73,4 +76,66 @@ test('HomeBanner filters bundle-only slides and cycles through the visible slide
     /watch\(visibleSlides, \(slides\) => \{\s*if \(activeSlideIndex\.value >= slides\.length\) \{\s*activeSlideIndex\.value = 0/,
   )
   assert.match(source, /% visibleSlides\.value\.length/)
+})
+
+test('SearchView hides only the empty-state Studio action without bundle access', async () => {
+  const source = await readSource('../src/views/search/SearchView.vue')
+
+  assert.match(
+    source,
+    /import \{[^}]*hasBundleStoreEntryAccess[^}]*\} from '@\/utils\/entitlements'/,
+  )
+  assert.match(
+    source,
+    /const canShowBundleEntries = computed\(\(\) => hasBundleStoreEntryAccess\(userStore\.userInfo\)\)/,
+  )
+  assert.match(
+    source,
+    /<button\s+v-if="canShowBundleEntries"\s+class="state-studio-btn"[^>]*@click="openStudio">[\s\S]*?search\.createInStudio[\s\S]*?<\/button>/,
+  )
+  assert.match(
+    source,
+    /<button class="state-studio-btn" type="button" @click="retrySearch">\{\{ t\('search\.retry'\) \}\}<\/button>/,
+  )
+})
+
+test('ProductDetail hides Customize in Studio without bundle access', async () => {
+  const source = await readSource('../src/views/products/ProductDetail.vue')
+
+  assert.match(
+    source,
+    /import \{[^}]*hasBundleStoreEntryAccess[^}]*\} from '@\/utils\/entitlements'/,
+  )
+  assert.match(
+    source,
+    /const canShowBundleEntries = computed\(\(\) => hasBundleStoreEntryAccess\(userStore\.userInfo\)\)/,
+  )
+  assert.match(
+    source,
+    /<button\s+v-if="product\?\.designId && canShowBundleEntries"[\s\S]*?@click="handleCustomizeInStudio"[\s\S]*?product\.customizeInStudio[\s\S]*?<\/button>/,
+  )
+})
+
+test('UserProfile hides the Studio section without bundle access', async () => {
+  const source = await readSource('../src/views/user-center/UserProfile.vue')
+
+  assert.match(
+    source,
+    /import \{[^}]*hasBundleStoreEntryAccess[^}]*\} from '@\/utils\/entitlements'/,
+  )
+  assert.match(
+    source,
+    /const canShowBundleEntries = computed\(\(\) => hasBundleStoreEntryAccess\(userInfo\.value\)\)/,
+  )
+  assert.match(
+    source,
+    /<!-- Section: Studio -->\s*<div v-if="canShowBundleEntries" class="section">/,
+  )
+})
+
+test('ProductAdminPanel keeps the Studio tool available to administrators', async () => {
+  const source = await readSource('../src/components/ProductAdminPanel.vue')
+
+  assert.match(source, /@click="openProductInStudio"/)
+  assert.doesNotMatch(source, /hasBundleStoreEntryAccess/)
 })
