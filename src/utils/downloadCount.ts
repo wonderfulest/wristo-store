@@ -30,3 +30,13 @@ export const formatApproxAppCount = (value?: number | null) => {
 
   return `${Math.floor(count / 1_000)}K+`
 }
+
+export const formatRoleAwareAppCount = (
+  value: number | null | undefined,
+  isAdmin: boolean,
+) => isAdmin ? formatExactCount(value) : (formatApproxAppCount(value) ?? '0')
+
+export const formatRoleAwareDownloadCount = (
+  value: number | null | undefined,
+  isAdmin: boolean,
+) => isAdmin ? formatExactCount(value) : formatApproxDownloadCount(value)
