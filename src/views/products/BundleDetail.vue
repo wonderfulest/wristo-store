@@ -14,7 +14,7 @@
           <div class="bundle-meta">
             <div class="bundle-count">
               <span class="count-label">Products:</span>
-              <span class="count-value">{{ bundle.products?.length || 0 }} items</span>
+              <span class="count-value">{{ formatDisplayAppCount(bundle.products?.length || 0) }} items</span>
             </div>
           </div>
         </div>
@@ -58,10 +58,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { getBundleById } from '@/api/bundle'
 import type { Bundle, ProductBaseVO } from '@/types/product'
 import { getProductImageUrl } from '@/utils/productImage'
+import { useCountDisplay } from '@/composables/useCountDisplay'
 
 
 const route = useRoute()
 const router = useRouter()
+const { formatDisplayAppCount } = useCountDisplay()
 
 const bundle = ref<Bundle | null>(null)
 const loading = ref(true)

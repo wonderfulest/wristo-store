@@ -1,3 +1,9 @@
+type RoleLike = { roleCode?: string | null }
+
+export const hasAdminRole = (roles?: readonly RoleLike[] | null) => (
+  roles?.some((role) => role.roleCode === 'ROLE_ADMIN') === true
+)
+
 export const formatExactCount = (value?: number | null) => {
   if (value == null) return '0'
   const count = Math.floor(Number(value))
