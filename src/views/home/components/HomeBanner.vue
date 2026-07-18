@@ -25,16 +25,18 @@
               {{ t(activeSlide.primaryLabelKey) }}
               <Icon :icon="activeSlide.primaryIcon" width="20" height="20" aria-hidden="true" />
             </button>
-            <button class="banner-code" type="button" @click="activeSlide.secondaryAction">
-              <Icon :icon="activeSlide.secondaryIcon" width="20" height="20" aria-hidden="true" />
-              {{ t(activeSlide.secondaryLabelKey) }}
-            </button>
-            <button class="banner-secondary" type="button" @click="activeSlide.tertiaryAction">
-              {{ t(activeSlide.tertiaryLabelKey) }}
-            </button>
+            <template v-if="!activeSlide.compactActions">
+              <button class="banner-code" type="button" @click="activeSlide.secondaryAction">
+                <Icon :icon="activeSlide.secondaryIcon" width="20" height="20" aria-hidden="true" />
+                {{ t(activeSlide.secondaryLabelKey) }}
+              </button>
+              <button class="banner-secondary" type="button" @click="activeSlide.tertiaryAction">
+                {{ t(activeSlide.tertiaryLabelKey) }}
+              </button>
+            </template>
           </div>
 
-          <div class="banner-metrics" :aria-label="t('home.heroHighlights')">
+          <div v-if="!activeSlide.hideMetrics" class="banner-metrics" :aria-label="t('home.heroHighlights')">
             <span>
               <strong>{{ t(activeSlide.metricOneValueKey) }}</strong>
               {{ t(activeSlide.metricOneLabelKey) }}
@@ -50,11 +52,20 @@
           </div>
         </div>
 
-        <div class="banner-stage" aria-hidden="true">
-          <span class="banner-stage__index">0{{ activeSlideIndex + 1 }}</span>
-          <div class="banner-stage__halo"></div>
-          <img :src="activeSlide.imageSrc" alt="" loading="eager" />
-          <div class="banner-stage__caption">
+        <div
+          class="banner-stage"
+          :class="{ 'banner-stage--poster': activeSlide.isPosterImage }"
+          aria-hidden="true"
+        >
+          <span v-if="!activeSlide.isPosterImage" class="banner-stage__index">0{{ activeSlideIndex + 1 }}</span>
+          <div v-if="!activeSlide.isPosterImage" class="banner-stage__halo"></div>
+          <img
+            :class="{ 'banner-stage__image--poster': activeSlide.isPosterImage }"
+            :src="activeSlide.imageSrc"
+            alt=""
+            loading="eager"
+          />
+          <div v-if="!activeSlide.hideArtCaption" class="banner-stage__caption">
             <span>{{ t(activeSlide.artTopKey) }}</span>
             <strong>{{ t(activeSlide.artBottomKey) }}</strong>
           </div>
@@ -140,6 +151,10 @@ type HeroSlide = {
   metricThreeValueKey: MessageKey
   metricThreeLabelKey: MessageKey
   imageSrc: string
+  compactActions?: boolean
+  hideMetrics?: boolean
+  isPosterImage?: boolean
+  hideArtCaption?: boolean
   artTopIcon: string
   artTopKey: MessageKey
   artBottomIcon: string
@@ -169,7 +184,11 @@ const allSlides: HeroSlide[] = [
     metricTwoLabelKey: 'home.heroMetricCheckoutLabel',
     metricThreeValueKey: 'home.heroMetricGarminValue',
     metricThreeLabelKey: 'home.heroMetricGarminLabel',
-    imageSrc: '/home-hero-garmin-watch.svg',
+    compactActions: true,
+    hideMetrics: true,
+    imageSrc: '/home-hero-watchfaces-access-en.png',
+    isPosterImage: true,
+    hideArtCaption: true,
     artTopIcon: 'solar:palette-round-linear',
     artTopKey: 'home.heroArtSeries',
     artBottomIcon: 'solar:bolt-circle-linear',
@@ -277,6 +296,24 @@ onBeforeUnmount(pauseCarousel)
   align-items: center;
   gap: 26px;
   padding: 56px 56px 48px;
+}
+
+.banner-content.theme-store {
+  grid-template-columns: minmax(320px, 0.72fr) minmax(520px, 1.28fr);
+  gap: 32px;
+}
+
+.banner-content.theme-store .banner-copy {
+  max-width: 430px;
+}
+
+.banner-content.theme-store .banner-title {
+  font-size: clamp(3.2rem, 5vw, 5.4rem);
+  line-height: 0.96;
+}
+
+.banner-content.theme-store .banner-actions {
+  margin-top: 26px;
 }
 
 .banner-content.theme-studio .banner-title {
@@ -428,6 +465,18 @@ onBeforeUnmount(pauseCarousel)
   filter: drop-shadow(0 28px 32px rgba(0, 0, 0, 0.36));
 }
 
+.banner-stage img.banner-stage__image--poster {
+  width: min(94%, 510px);
+  aspect-ratio: 3 / 4;
+  filter: none;
+}
+
+.banner-stage.banner-stage--poster {
+  width: min(100%, 600px);
+  min-height: 680px;
+  background: #090d11;
+}
+
 .banner-stage__index {
   position: absolute;
   top: var(--space-5);
@@ -518,16 +567,39 @@ onBeforeUnmount(pauseCarousel)
   transform: scale(0.96);
 }
 
+@media (max-width: 1040px) {
+  .banner-content.theme-store {
+    grid-template-columns: 1fr;
+  }
+
+  .banner-content.theme-store .banner-stage--poster {
+    justify-self: center;
+  }
+}
+
 @media (max-width: 900px) {
   .banner-content {
     grid-template-columns: 1fr;
     padding: 44px 44px 64px;
   }
 
+  .banner-content.theme-store {
+    grid-template-columns: 1fr;
+  }
+
   .banner-stage {
     justify-self: center;
     width: min(100%, 480px);
     min-height: min(420px, 62vw);
+  }
+
+  .banner-stage.banner-stage--poster {
+    width: min(100%, 510px);
+    min-height: 640px;
+  }
+
+  .banner-stage img.banner-stage__image--poster {
+    width: min(94%, 480px);
   }
 }
 
@@ -549,6 +621,10 @@ onBeforeUnmount(pauseCarousel)
   }
 
   .banner-title {
+    font-size: clamp(2.6rem, 14vw, 3.55rem);
+  }
+
+  .banner-content.theme-store .banner-title {
     font-size: clamp(2.6rem, 14vw, 3.55rem);
   }
 
@@ -576,6 +652,15 @@ onBeforeUnmount(pauseCarousel)
     width: min(100%, 310px);
     min-height: min(360px, 92vw);
     justify-self: center;
+  }
+
+  .banner-stage.banner-stage--poster {
+    width: min(100%, 360px);
+    min-height: min(480px, 128vw);
+  }
+
+  .banner-stage img.banner-stage__image--poster {
+    width: min(100%, 360px);
   }
 
   .banner-carousel {
