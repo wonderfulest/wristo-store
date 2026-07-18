@@ -567,6 +567,16 @@ onBeforeUnmount(pauseCarousel)
   transform: scale(0.96);
 }
 
+@media (max-width: 1040px) {
+  .banner-content.theme-store {
+    grid-template-columns: 1fr;
+  }
+
+  .banner-content.theme-store .banner-stage--poster {
+    justify-self: center;
+  }
+}
+
 @media (max-width: 900px) {
   .banner-content {
     grid-template-columns: 1fr;
@@ -611,6 +621,10 @@ onBeforeUnmount(pauseCarousel)
   }
 
   .banner-title {
+    font-size: clamp(2.6rem, 14vw, 3.55rem);
+  }
+
+  .banner-content.theme-store .banner-title {
     font-size: clamp(2.6rem, 14vw, 3.55rem);
   }
 
