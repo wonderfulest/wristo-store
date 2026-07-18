@@ -310,4 +310,3 @@ git diff -- src tests/role-aware-count-display.test.mjs
 ```
 
 Expected: no whitespace errors; unrelated SEO files remain present and unmodified by this implementation.
-
