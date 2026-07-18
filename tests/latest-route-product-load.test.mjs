@@ -56,6 +56,7 @@ const createHarness = () => {
   const fetchRequests = []
   const downstreamRequests = []
   let resetCount = 0
+  let missingCount = 0
   const scope = effectScope()
   let loader
 
@@ -83,7 +84,10 @@ const createHarness = () => {
           downstreamValue.value = value
         })
       },
-      handleMissing: () => Promise.resolve(),
+      handleMissing: () => {
+        missingCount += 1
+        return Promise.resolve()
+      },
       logWarning: () => {},
     })
     watch(
@@ -106,9 +110,25 @@ const createHarness = () => {
     get resetCount() {
       return resetCount
     },
+    get missingCount() {
+      return missingCount
+    },
     stop: () => scope.stop(),
   }
 }
+
+test('clearing the route id while leaving the product page does not redirect to not found', async (t) => {
+  const harness = createHarness()
+  t.after(harness.stop)
+
+  harness.routeId.value = undefined
+  await flush()
+
+  assert.equal(harness.fetchRequests.length, 1)
+  assert.equal(harness.missingCount, 0)
+  assert.equal(harness.product.value, null)
+  assert.equal(harness.loader.productDetailLoading.value, false)
+})
 
 test('a newer route detail response wins and a late older response cannot start downstream work', async (t) => {
   const harness = createHarness()

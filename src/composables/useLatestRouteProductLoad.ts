@@ -80,9 +80,6 @@ export const useLatestRouteProductLoad = <T extends LatestRouteProductBase>(
 
     try {
       if (!routeId) {
-        if (isActiveRouteLoad(generation, routeId)) {
-          await dependencies.handleMissing(routeId)
-        }
         return
       }
 
