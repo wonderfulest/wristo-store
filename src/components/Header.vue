@@ -73,9 +73,9 @@
         </el-dropdown>
         <!-- <router-link to="/faq" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
-        <button type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
+        <button v-if="canShowBundleEntries" type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
-        <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
+        <router-link v-if="canShowBundleEntries" :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
       </nav>
 
       <router-link :to="localizedPath('/search')" class="header-search-link" :aria-label="t('nav.search')">
@@ -183,7 +183,7 @@
                     <Icon icon="solar:arrow-right-up-line-duotone" width="18" height="18" aria-hidden="true" />
                   </el-dropdown-item>
                 </div>
-                <div class="user-dropdown-section">
+                <div v-if="canShowBundleEntries" class="user-dropdown-section">
                   <span class="user-dropdown-section-title">{{ t('nav.creatorSection') }}</span>
                   <el-dropdown-item command="membership" class="user-dropdown-item">
                     <span class="user-dropdown-icon accent">
@@ -286,11 +286,11 @@
             <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.code') }}</span>
           </router-link>
-          <button type="button" class="mobile-nav-link mobile-nav-button" @click="openStudio(); closeMobileMenu()">
+          <button v-if="canShowBundleEntries" type="button" class="mobile-nav-link mobile-nav-button" @click="openStudio(); closeMobileMenu()">
             <Icon icon="material-symbols:workspace-premium-outline" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.studio') }}</span>
           </button>
-          <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
+          <router-link v-if="canShowBundleEntries" :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.faq') }}</span>
           </router-link>
@@ -362,11 +362,11 @@
                 <el-icon><ShoppingCart /></el-icon>
                 <span>{{ t('nav.cart') }}</span>
               </button>
-              <button class="mobile-action-btn" @click="handleUserMenuCommand('studio'); closeMobileMenu()">
+              <button v-if="canShowBundleEntries" class="mobile-action-btn" @click="handleUserMenuCommand('studio'); closeMobileMenu()">
                 <Icon icon="solar:magic-stick-3-bold-duotone" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.studio') }}</span>
               </button>
-              <button class="mobile-action-btn" @click="handleUserMenuCommand('membership'); closeMobileMenu()">
+              <button v-if="canShowBundleEntries" class="mobile-action-btn" @click="handleUserMenuCommand('membership'); closeMobileMenu()">
                 <Icon icon="material-symbols:workspace-premium-outline" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.membership') }}</span>
               </button>
@@ -409,7 +409,7 @@ import { openStudio } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 import { isCartEnabled } from '@/config/features';
 import { formatApproxAppCount, formatExactCount } from '@/utils/downloadCount';
-import { hasPremiumEntitlement } from '@/utils/entitlements';
+import { hasBundleStoreEntryAccess, hasPremiumEntitlement } from '@/utils/entitlements';
 
 const productStore = useProductStore();
 const seriesList = ref<Series[]>([]);
@@ -480,6 +480,8 @@ const userEmail = computed(() => {
 const hasPremiumAccess = computed(() => {
   return hasPremiumEntitlement(userStore.userInfo)
 })
+
+const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
 
 const handleUserMenuCommand = (command: string) => {
   switch (command) {

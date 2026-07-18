@@ -63,7 +63,7 @@
 
       <div class="banner-carousel" :aria-label="t('home.heroCarouselAria')">
         <button
-          v-for="(slide, index) in slides"
+          v-for="(slide, index) in visibleSlides"
           :key="slide.id"
           class="carousel-dot"
           :class="{ active: index === activeSlideIndex }"
@@ -82,11 +82,14 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
+import { useUserStore } from '@/store/user'
 import { useI18n, type MessageKey } from '@/i18n'
+import { hasBundleStoreEntryAccess } from '@/utils/entitlements'
 import { openStudio } from '@/utils/studio'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
+const userStore = useUserStore()
 const { t } = useI18n()
 const activeSlideIndex = ref(0)
 let carouselTimer: number | undefined
@@ -116,6 +119,7 @@ const goToStudio = () => {
 
 type HeroSlide = {
   id: string
+  requiresBundle?: boolean
   themeClass: string
   eyebrowIcon: string
   eyebrowKey: MessageKey
@@ -143,7 +147,7 @@ type HeroSlide = {
   dotLabelKey: MessageKey
 }
 
-const slides: HeroSlide[] = [
+const allSlides: HeroSlide[] = [
   {
     id: 'store',
     themeClass: 'theme-store',
@@ -174,6 +178,7 @@ const slides: HeroSlide[] = [
   },
   {
     id: 'studio',
+    requiresBundle: true,
     themeClass: 'theme-studio',
     eyebrowIcon: 'solar:magic-stick-3-bold-duotone',
     eyebrowKey: 'home.studioEyebrow',
@@ -202,7 +207,9 @@ const slides: HeroSlide[] = [
   }
 ]
 
-const activeSlide = computed(() => slides[activeSlideIndex.value])
+const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
+const visibleSlides = computed(() => allSlides.filter((slide) => !slide.requiresBundle || canShowBundleEntries.value))
+const activeSlide = computed(() => visibleSlides.value[activeSlideIndex.value] || visibleSlides.value[0])
 
 const selectSlide = (index: number) => {
   activeSlideIndex.value = index
@@ -210,7 +217,7 @@ const selectSlide = (index: number) => {
 }
 
 const nextSlide = () => {
-  activeSlideIndex.value = (activeSlideIndex.value + 1) % slides.length
+  activeSlideIndex.value = (activeSlideIndex.value + 1) % visibleSlides.value.length
 }
 
 const pauseCarousel = () => {
