@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
@@ -210,6 +210,12 @@ const allSlides: HeroSlide[] = [
 const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
 const visibleSlides = computed(() => allSlides.filter((slide) => !slide.requiresBundle || canShowBundleEntries.value))
 const activeSlide = computed(() => visibleSlides.value[activeSlideIndex.value] || visibleSlides.value[0])
+
+watch(visibleSlides, (slides) => {
+  if (activeSlideIndex.value >= slides.length) {
+    activeSlideIndex.value = 0
+  }
+})
 
 const selectSlide = (index: number) => {
   activeSlideIndex.value = index

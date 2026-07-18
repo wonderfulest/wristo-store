@@ -54,6 +54,9 @@ test('HomeBanner filters bundle-only slides and cycles through the visible slide
   assert.match(source, /hasBundleStoreEntryAccess/)
   assert.match(source, /requiresBundle\?: boolean/)
   assert.match(source, /const allSlides: HeroSlide\[\] = \[/)
+  const storeSlideSource = source.slice(source.indexOf("id: 'store'"), source.indexOf("id: 'studio'"))
+  assert.ok(storeSlideSource.startsWith("id: 'store'"))
+  assert.doesNotMatch(storeSlideSource, /requiresBundle/)
   assert.match(source, /id: 'studio',[\s\S]*?requiresBundle: true/)
   assert.match(
     source,
@@ -65,5 +68,9 @@ test('HomeBanner filters bundle-only slides and cycles through the visible slide
   )
   assert.match(source, /v-for="\(slide, index\) in visibleSlides"/)
   assert.match(source, /visibleSlides\.value\[activeSlideIndex\.value\][\s\S]*?visibleSlides\.value\[0\]/)
+  assert.match(
+    source,
+    /watch\(visibleSlides, \(slides\) => \{\s*if \(activeSlideIndex\.value >= slides\.length\) \{\s*activeSlideIndex\.value = 0/,
+  )
   assert.match(source, /% visibleSlides\.value\.length/)
 })
