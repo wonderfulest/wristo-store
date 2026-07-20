@@ -62,15 +62,10 @@
       <div v-if="type === 'bundle' && descriptionLines.length" class="description">
         <p
           v-for="(line, index) in descriptionLines"
-          :key="`${line.text}-${index}`"
-          :class="{ 'description-heading': line.kind === 'heading' }"
+          :key="`${line}-${index}`"
+          :class="{ 'description-heading': index === 0 }"
         >
-          <template v-if="line.kind === 'reason'">
-            <span class="description-reason-label">{{ line.label }}</span>
-            <span class="description-reason-separator" aria-hidden="true">—</span>
-            <span class="description-reason-detail">{{ line.detail }}</span>
-          </template>
-          <template v-else>{{ line.text }}</template>
+          {{ line }}
         </p>
       </div>
       <div v-if="type === 'bundle' && appCount" class="product-count">
@@ -186,19 +181,6 @@ const descriptionLines = computed(() => {
     .split(/\n+/)
     .map(line => stripLeadingDisplayMarks(line))
     .filter(Boolean)
-    .map((text, index) => {
-      if (index === 0) return { kind: 'heading' as const, text }
-
-      const separatorIndex = text.indexOf(' - ')
-      if (separatorIndex < 0) return { kind: 'plain' as const, text }
-
-      return {
-        kind: 'reason' as const,
-        text,
-        label: text.slice(0, separatorIndex).trim(),
-        detail: text.slice(separatorIndex + 3).trim(),
-      }
-    })
 })
 
 const visibleBundleItems = computed(() => {
@@ -777,21 +759,6 @@ onUnmounted(() => {
 
 .description-heading::before {
   display: none;
-}
-
-.description-reason-label {
-  color: #171717;
-  font-weight: 750;
-}
-
-.description-reason-separator {
-  margin: 0 0.45em;
-  color: rgba(87, 83, 78, 0.48);
-}
-
-.description-reason-detail {
-  color: #57534e;
-  font-weight: 400;
 }
 
 .product-count {
