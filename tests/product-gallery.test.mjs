@@ -773,6 +773,15 @@ test('ProductDetail loads admin images only for admins and preserves the public 
   assert.doesNotMatch(productDetailSource, /\.product-image-fallback\s*\{/)
 })
 
+test('ProductDetail falls back across raw, preview, and Garmin product images', async () => {
+  const productDetailSource = await readFile(productDetailUrl, 'utf8')
+
+  assert.match(
+    productDetailSource,
+    /const productHeroImageUrl = computed\(\(\) => \{[\s\S]*?product\.value\?\.rawImageUrl[\s\S]*?product\.value\?\.previewImageUrl[\s\S]*?product\.value\?\.garminImageUrl[\s\S]*?\}\)/,
+  )
+})
+
 test('ProductDetail watches route product IDs immediately instead of loading details only on mount', async () => {
   const productDetailSource = await readFile(productDetailUrl, 'utf8')
 

@@ -348,7 +348,12 @@ const ratingStars = [1, 2, 3, 4, 5]
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
 const productHeroImageUrl = computed(() => {
-  return product.value?.heroFile?.previewUrl || product.value?.heroFile?.url || ''
+  return (
+    product.value?.rawImageUrl
+    || product.value?.previewImageUrl
+    || product.value?.garminImageUrl
+    || ''
+  )
 })
 
 const displayRating = computed(() => {
