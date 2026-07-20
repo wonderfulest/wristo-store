@@ -6,17 +6,9 @@
     <div class="product-detail-main">
       <div class="product-visual-wrap">
         <ProductImageGallery
-          :images="shareImages"
-          :fallback-image-url="productPreviewFallback"
+          :images="[]"
+          :fallback-image-url="productHeroImageUrl"
           :product-name="product?.name || t('product.previewAlt')"
-          :editable="canManageShareImages"
-          :can-add-images="canManageShareImages && shareImages.length < 8"
-          :uploading="shareImagesUploading"
-          :deleting-id="shareImageDeletingId"
-          :reordering="shareImagesReordering"
-          @add-images="handleAddShareImages"
-          @delete-image="handleDeleteShareImage"
-          @reorder-images="handleReorderShareImages"
         />
         <button
           v-if="product?.designId && canShowBundleEntries"
@@ -284,7 +276,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import {
   Check,
   CreditCard,
@@ -308,7 +300,6 @@ import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { toGarminStoreBridge } from '@/utils/garminStore'
 import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
-import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
 import { useCountDisplay } from '@/composables/useCountDisplay'
 import {
@@ -329,13 +320,6 @@ import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
 import MobileProductActionBar from '@/components/storefront/MobileProductActionBar.vue'
-import {
-  deleteProductShareImage,
-  fetchProductShareImages,
-  reorderProductShareImages,
-  uploadProductShareImages,
-} from '@/api/product-share-images'
-import { useProductShareImageManagement } from '@/composables/useProductShareImageManagement'
 import {
   useLatestRouteProductLoad,
   type LatestProductLoadGuard,
@@ -363,8 +347,8 @@ const isProductDescriptionExpanded = ref(false)
 const ratingStars = [1, 2, 3, 4, 5]
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
-const productPreviewFallback = computed(() => {
-  return getProductImageUrl(product.value)
+const productHeroImageUrl = computed(() => {
+  return product.value?.heroFile?.previewUrl || product.value?.heroFile?.url || ''
 })
 
 const displayRating = computed(() => {
@@ -399,39 +383,6 @@ const mobileSecondaryLabel = computed(() =>
       ? t('product.addToCart')
       : '',
 )
-const shareImageAppId = computed(() => product.value?.appId ?? null)
-const {
-  shareImages,
-  shareImagesUploading,
-  shareImageDeletingId,
-  shareImagesReordering,
-  canManageShareImages,
-  addShareImages: handleAddShareImages,
-  deleteShareImage: handleDeleteShareImage,
-  reorderShareImages: handleReorderShareImages,
-} = useProductShareImageManagement(
-  { appId: shareImageAppId, isAdmin },
-  {
-    fetchPublicImages: async () => (product.value?.productImages || []) as any,
-    fetchAdminImages: fetchProductShareImages,
-    uploadImages: uploadProductShareImages,
-    deleteImage: deleteProductShareImage,
-    reorderImages: reorderProductShareImages,
-    confirmDelete: () =>
-      ElMessageBox.confirm(
-        'Delete this image? This action cannot be undone.',
-        'Delete image',
-        {
-          confirmButtonText: 'Delete',
-          cancelButtonText: 'Cancel',
-          type: 'warning',
-        },
-      ),
-    message: ElMessage,
-    logWarning: (message, error) => console.warn(message, error),
-  },
-)
-
 const toggleCart = () => {
   if (!isCartEnabled) return
   if (!product.value?.appId) return
@@ -470,7 +421,7 @@ const handleDownload = () => {
     router.push(toGarminStoreBridge({
       url: product.value.garminStoreUrl,
       name: product.value.name,
-      imageUrl: productPreviewFallback.value,
+      imageUrl: productHeroImageUrl.value,
       sourcePath: route.fullPath,
     }))
   } else {
