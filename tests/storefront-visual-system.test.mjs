@@ -213,6 +213,7 @@ test('browse surfaces share the storefront grid and loading primitives', async (
   assert.match(categories, /<ProductGridSkeleton\s+v-if="loading\s*&&\s*products\.length\s*===\s*0"\s+:count="10"/)
   assert.match(categories, /v-if="loading\s*&&\s*products\.length\s*>\s*0"/)
   assert.match(search, /v-if="loading"[^>]*role="status"[\s\S]*<ProductGridSkeleton\s+:count="pageSize"/)
+  assert.match(search, /const pageSize = ref\(15\)/)
   assert.match(search, /<SectionHeading/)
   assert.match(topApps, /<ProductCard/)
 })

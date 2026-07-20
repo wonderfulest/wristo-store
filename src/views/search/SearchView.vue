@@ -258,7 +258,7 @@ const scenarios = computed(() => [
 ])
 
 const pageNum = ref(1)
-const pageSize = ref(12)
+const pageSize = ref(15)
 const total = ref(0)
 const pages = ref(0)
 
