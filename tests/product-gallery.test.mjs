@@ -18,13 +18,13 @@ const productShareImagePolicyUrl = new URL('../src/utils/productShareImagePolicy
 const shareImageManagerUrl = new URL('../src/views/admin/ShareImageManager.vue', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
 
-test('product gallery clips only the main image into a circular watchface viewport', async () => {
+test('product gallery fills the visual stage with one circular watchface viewport', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
   assert.match(source, /class="product-gallery__watchface"/)
   assert.match(
     source,
-    /\.product-gallery__watchface\s*\{[\s\S]*?aspect-ratio:\s*1;[\s\S]*?border-radius:\s*50%;[\s\S]*?overflow:\s*hidden;/,
+    /\.product-gallery__watchface\s*\{[\s\S]*?width:\s*100%;[\s\S]*?aspect-ratio:\s*1;[\s\S]*?border-radius:\s*50%;[\s\S]*?overflow:\s*hidden;/,
   )
   assert.match(
     source,
@@ -451,32 +451,29 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.doesNotMatch(source, /\bfallbackItem\b/)
 })
 
-test('ProductImageGallery uses an image-derived ambient backdrop without cropping the foreground', async () => {
+test('ProductImageGallery removes the square stage around the circular foreground', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
-  assert.match(source, /:style="galleryStageStyle"/)
-  assert.match(source, /--gallery-backdrop-image/)
-  assert.match(source, /JSON\.stringify\(selectedItem\.value\.url\)/)
-  assert.match(source, /\.product-gallery__stage::before/)
-  assert.match(source, /background-image:\s*var\(--gallery-backdrop-image\)/)
-  assert.match(source, /background-size:\s*cover/)
-  assert.match(source, /filter:\s*blur\(/)
-  assert.match(source, /\.product-gallery__stage::after/)
+  assert.match(
+    source,
+    /\.product-gallery__stage\s*\{[\s\S]*?border:\s*0;[\s\S]*?background:\s*transparent;[\s\S]*?box-shadow:\s*none;/,
+  )
+  assert.doesNotMatch(source, /:style="galleryStageStyle"/)
+  assert.doesNotMatch(source, /--gallery-backdrop-image/)
+  assert.doesNotMatch(source, /\.product-gallery__stage::before/)
+  assert.doesNotMatch(source, /\.product-gallery__stage::after/)
   assert.match(source, /fit="contain"/)
   assert.match(source, /\.product-gallery__main-image\s*:deep\(\.el-image__inner\)/)
   assert.match(source, /filter:\s*drop-shadow\(/)
   assert.match(source, /\.product-gallery__thumbnails\s*\{[\s\S]*?border:/)
   assert.match(source, /\.product-gallery__thumbnails\s*\{[\s\S]*?background:/)
-  assert.match(source, /prefers-reduced-motion:\s*reduce[\s\S]*?\.product-gallery__stage::before/)
 })
 
 test('ProductImageGallery preserves its interaction markers on the storefront stage surface', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
-  assert.match(source, /\.product-gallery__stage\s*\{[\s\S]*?background:\s*var\(--color-stage\)/)
+  assert.match(source, /\.product-gallery__stage\s*\{[\s\S]*?background:\s*transparent/)
   assert.match(source, /fit="contain"/)
-  assert.match(source, /:style="galleryStageStyle"/)
-  assert.match(source, /--gallery-backdrop-image/)
   assert.match(source, /@keydown\.left\.prevent="showPreviousImage"/)
   assert.match(source, /@keydown\.right\.prevent="showNextImage"/)
   assert.match(source, /:aria-current="item\.url === selectedUrl \? 'true' : undefined"/)
