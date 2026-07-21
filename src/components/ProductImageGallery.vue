@@ -15,21 +15,22 @@
       @touchend="handleTouchEnd"
       @touchcancel="handleTouchCancel"
     >
-      <el-image
-        v-if="selectedItem"
-        :key="selectedItem.key"
-        ref="mainImageRef"
-        class="product-gallery__main-image"
-        :src="selectedItem.url"
-        :alt="selectedItem.alt"
-        :aria-label="`Preview ${selectedItem.alt} fullscreen`"
-        fit="contain"
-        :preview-src-list="previewSrcList"
-        :initial-index="selectedIndex"
-        preview-teleported
-        @error="handleImageError(selectedItem)"
-        @click="showPreview"
-      />
+      <div v-if="selectedItem" class="product-gallery__watchface">
+        <el-image
+          :key="selectedItem.key"
+          ref="mainImageRef"
+          class="product-gallery__main-image"
+          :src="selectedItem.url"
+          :alt="selectedItem.alt"
+          :aria-label="`Preview ${selectedItem.alt} fullscreen`"
+          fit="contain"
+          :preview-src-list="previewSrcList"
+          :initial-index="selectedIndex"
+          preview-teleported
+          @error="handleImageError(selectedItem)"
+          @click="showPreview"
+        />
+      </div>
 
       <div
         v-else
@@ -442,6 +443,7 @@ watch(
 .product-gallery__stage {
   position: relative;
   isolation: isolate;
+  display: grid;
   aspect-ratio: 1;
   min-width: 0;
   overflow: hidden;
@@ -451,6 +453,7 @@ watch(
   box-shadow:
     0 18px 48px rgb(31 70 68 / 8%),
     0 2px 8px rgb(31 70 68 / 5%);
+  place-items: center;
   touch-action: pan-y pinch-zoom;
 }
 
@@ -468,7 +471,7 @@ watch(
   background-position: center;
   background-size: cover;
   filter: blur(22px) saturate(0.82);
-  opacity: 0.5;
+  opacity: 0.32;
   transform: scale(1.08);
   transition: opacity 180ms ease;
 }
@@ -491,15 +494,42 @@ watch(
   outline-offset: -4px;
 }
 
-.product-gallery__main-image {
+.product-gallery__watchface {
   position: relative;
   z-index: 2;
+  width: min(78%, 430px);
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 78%);
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgb(255 255 255 / 42%);
+  box-shadow:
+    0 28px 56px rgb(20 56 54 / 20%),
+    0 8px 18px rgb(20 56 54 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 90%);
+}
+
+.product-gallery__watchface::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px rgb(15 159 154 / 9%),
+    inset 0 12px 24px rgb(255 255 255 / 10%);
+  content: '';
+  pointer-events: none;
+}
+
+.product-gallery__main-image {
   width: 100%;
   height: 100%;
   cursor: zoom-in;
 }
 
 .product-gallery__main-image :deep(.el-image__inner) {
+  width: 100%;
+  height: 100%;
   filter: drop-shadow(0 12px 24px rgb(19 48 46 / 14%));
 }
 
@@ -746,6 +776,10 @@ watch(
   .product-gallery__stage::before {
     inset: -20px;
     filter: blur(18px) saturate(0.82);
+  }
+
+  .product-gallery__watchface {
+    width: 76%;
   }
 
   .product-gallery__carousel-button {

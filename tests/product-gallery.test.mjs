@@ -18,6 +18,24 @@ const productShareImagePolicyUrl = new URL('../src/utils/productShareImagePolicy
 const shareImageManagerUrl = new URL('../src/views/admin/ShareImageManager.vue', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
 
+test('product gallery clips only the main image into a circular watchface viewport', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /class="product-gallery__watchface"/)
+  assert.match(
+    source,
+    /\.product-gallery__watchface\s*\{[\s\S]*?aspect-ratio:\s*1;[\s\S]*?border-radius:\s*50%;[\s\S]*?overflow:\s*hidden;/,
+  )
+  assert.match(
+    source,
+    /\.product-gallery__thumbnail img\s*\{[\s\S]*?object-fit:\s*contain;/,
+  )
+  assert.doesNotMatch(
+    source,
+    /\.product-gallery__thumbnail img\s*\{[\s\S]*?border-radius:\s*50%;/,
+  )
+})
+
 const extractInterfaceBody = (source, interfaceName) => {
   const match = source.match(
     new RegExp(`export interface ${interfaceName}\\s*\\{([\\s\\S]*?)^\\}`, 'm'),
