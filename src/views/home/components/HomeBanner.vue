@@ -113,6 +113,10 @@ const goToCode = () => {
   router.push(addLocaleToPath('/code', localeStore.currentLocale))
 }
 
+const goToActivation = () => {
+  router.push(addLocaleToPath('/already-purchased', localeStore.currentLocale))
+}
+
 const goToBundles = () => {
   router.push({
     path: addLocaleToPath('/purchase-options', localeStore.currentLocale),
@@ -226,6 +230,38 @@ const allSlides: HeroSlide[] = [
     artBottomIcon: 'solar:infinity-bold-duotone',
     artBottomKey: 'home.heroArtBattery',
     dotLabelKey: 'home.heroPremiumSlide'
+  },
+  {
+    id: 'activation',
+    themeClass: 'theme-store theme-activation',
+    eyebrowIcon: 'solar:shield-check-bold-duotone',
+    eyebrowKey: 'home.activationEyebrow',
+    titleKey: 'home.activationTitle',
+    descKey: 'home.activationDesc',
+    primaryLabelKey: 'home.activationCta',
+    primaryIcon: 'solar:arrow-right-up-linear',
+    primaryAction: goToActivation,
+    secondaryLabelKey: 'home.heroCode',
+    secondaryIcon: 'solar:hashtag-circle-line-duotone',
+    secondaryAction: goToCode,
+    tertiaryLabelKey: 'nav.faq',
+    tertiaryAction: goToActivation,
+    metricOneValueKey: 'home.heroMetricFacesValue',
+    metricOneLabelKey: 'home.heroMetricFacesLabel',
+    metricTwoValueKey: 'home.heroMetricCheckoutValue',
+    metricTwoLabelKey: 'home.heroMetricCheckoutLabel',
+    metricThreeValueKey: 'home.heroMetricGarminValue',
+    metricThreeLabelKey: 'home.heroMetricGarminLabel',
+    compactActions: true,
+    hideMetrics: true,
+    imageSrc: '/home-hero-activation.svg',
+    isPosterImage: true,
+    hideArtCaption: true,
+    artTopIcon: 'solar:shield-check-bold-duotone',
+    artTopKey: 'home.activationEyebrow',
+    artBottomIcon: 'solar:stars-bold-duotone',
+    artBottomKey: 'home.activationCta',
+    dotLabelKey: 'home.heroActivationSlide'
   },
   {
     id: 'studio',

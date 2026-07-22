@@ -75,7 +75,7 @@
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
         <button v-if="canShowBundleEntries" type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
-        <router-link v-if="canShowBundleEntries" :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
+        <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
       </nav>
 
       <router-link :to="localizedPath('/search')" class="header-search-link" :aria-label="t('nav.search')">
@@ -290,7 +290,7 @@
             <Icon icon="material-symbols:workspace-premium-outline" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.studio') }}</span>
           </button>
-          <router-link v-if="canShowBundleEntries" :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
+          <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.faq') }}</span>
           </router-link>

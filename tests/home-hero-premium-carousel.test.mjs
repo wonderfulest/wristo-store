@@ -24,6 +24,16 @@ test('Premium hero copy is defined for every supported locale', async () => {
   assert.match(i18n, /'home\.premiumDesc': 'One purchase unlocks thousands of premium apps — including future releases\.'/)
 })
 
+test('activation hero copy is defined for every supported locale', async () => {
+  const i18n = await read('../src/i18n.ts')
+
+  for (const key of ['home.activationEyebrow', 'home.activationTitle', 'home.activationDesc', 'home.activationCta', 'home.heroActivationSlide']) {
+    assert.equal(i18n.match(new RegExp(`'${key.replace('.', '\\.')}':`, 'g'))?.length, 14)
+  }
+  assert.match(i18n, /'home\.activationTitle': 'How to activate and enjoy your benefits'/)
+  assert.match(i18n, /'home\.activationDesc': 'Enter your purchase email and the 6-digit code shown on your watch to restore access\.'/)
+})
+
 test('poster stage and image share a crop-free 3:4 box', async () => {
   const source = await read('../src/views/home/components/HomeBanner.vue')
 
@@ -33,4 +43,8 @@ test('poster stage and image share a crop-free 3:4 box', async () => {
 
 test('Premium poster asset exists', async () => {
   await assert.doesNotReject(() => access(new URL('../public/home-hero-premium-lifetime-access-en.png', import.meta.url)))
+})
+
+test('activation hero asset exists', async () => {
+  await assert.doesNotReject(() => access(new URL('../public/home-hero-activation.svg', import.meta.url)))
 })
