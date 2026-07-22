@@ -40,6 +40,20 @@
           </div>
 
           <div class="category-toolbar" :aria-label="t('category.sortAria')">
+            <label v-if="isAdmin" class="category-author-filter">
+              <span>{{ t('category.author') }}</span>
+              <select
+                :value="selectedAuthorId || ''"
+                :aria-label="t('category.author')"
+                :disabled="authorOptionsLoading"
+                @change="selectAuthor"
+              >
+                <option value="">{{ t('category.allAuthors') }}</option>
+                <option v-for="author in authorOptions" :key="author.id" :value="author.id">
+                  {{ authorLabel(author) }}
+                </option>
+              </select>
+            </label>
             <span class="category-sort-label">{{ t('category.sort') }}</span>
             <div class="category-sort-options" role="group" :aria-label="t('category.sortAria')">
               <button
@@ -210,10 +224,12 @@ import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
 import {
   createAdminCategory,
+  fetchCategoryAuthors,
   fetchAdminCategories,
   fetchAdminStoreMetrics,
   getProductsByCategory,
   type CategoryProductOrderBy,
+  type CategoryAuthorOption,
   updateAdminCategory,
   updateAdminCategoryStatus,
   uploadAdminCategoryImage,
@@ -258,6 +274,8 @@ const adminCategoryLoading = ref(false)
 const adminCategorySaving = ref(false)
 const adminCategoryPanelOpen = ref(false)
 const uploadingCategoryImageId = ref<number | null>(null)
+const authorOptions = ref<CategoryAuthorOption[]>([])
+const authorOptionsLoading = ref(false)
 const newCategory = ref({
   name: '',
   slug: '',
@@ -267,6 +285,7 @@ const newCategory = ref({
 const sortOptions = computed<{ label: string; value: CategoryProductOrderBy }[]>(() => [
   { label: t('category.sortMostDownloaded'), value: 'download:desc' },
   { label: t('category.sortTopRated'), value: 'rating:desc,download:desc' },
+  { label: t('category.sortNewest'), value: 'createdAt:desc' },
 ])
 type CategoryFilterValue = 'all' | 'free' | 'popular'
 const filterOptions = computed<{ label: string; value: CategoryFilterValue }[]>(() => [
@@ -276,12 +295,14 @@ const filterOptions = computed<{ label: string; value: CategoryFilterValue }[]>(
 ])
 
 const normalizeOrderBy = (value: unknown): CategoryProductOrderBy => {
+  if (value === 'newest' || value === 'createdAt:desc') return 'createdAt:desc'
   return value === 'rating' || value === 'rating:desc,download:desc'
     ? 'rating:desc,download:desc'
     : 'download:desc'
 }
 
 const orderByToQuery = (orderBy: CategoryProductOrderBy) => {
+  if (orderBy === 'createdAt:desc') return 'newest'
   return orderBy === 'rating:desc,download:desc' ? 'rating' : undefined
 }
 
@@ -334,6 +355,36 @@ const isAdmin = computed(() => {
   const roles = userStore.userInfo?.roles || []
   return roles.some((role) => role.roleCode === 'ROLE_ADMIN')
 })
+
+const selectedAuthorId = computed(() => {
+  if (!isAdmin.value) return undefined
+  const raw = Array.isArray(route.query.author) ? route.query.author[0] : route.query.author
+  const id = Number(raw)
+  return Number.isSafeInteger(id) && id > 0 ? id : undefined
+})
+
+const authorLabel = (author: CategoryAuthorOption) => {
+  return author.nickname?.trim() || author.username?.trim() || `User #${author.id}`
+}
+
+const loadCategoryAuthors = async (slug: string) => {
+  if (!isAdmin.value) {
+    authorOptions.value = []
+    return
+  }
+  authorOptionsLoading.value = true
+  try {
+    authorOptions.value = await fetchCategoryAuthors(slug) || []
+    if (selectedAuthorId.value && !authorOptions.value.some((author) => author.id === selectedAuthorId.value)) {
+      await router.replace({ path: route.path, query: { ...route.query, author: undefined } })
+    }
+  } catch {
+    authorOptions.value = []
+    ElMessage.warning(t('category.authorLoadError'))
+  } finally {
+    authorOptionsLoading.value = false
+  }
+}
 
 const fetchAdminMetrics = async () => {
   if (!isAdmin.value || products.value.length === 0) {
@@ -502,11 +553,13 @@ const fetchSeriesAndProducts = async (reset = true) => {
     
     // 获取该系列下的商品
     if (series.value) {
+      if (reset) await loadCategoryAuthors(slug)
       const response: PageResult<ProductBaseVO> = await getProductsByCategory(
         slug, 
         request.page,
         pageSize,
-        selectedOrderBy.value
+        selectedOrderBy.value,
+        selectedAuthorId.value
       )
       
       if (reset) {
@@ -592,6 +645,14 @@ const selectFilter = async (filter: CategoryFilterValue) => {
   })
 }
 
+const selectAuthor = async (event: Event) => {
+  const value = Number((event.target as HTMLSelectElement).value)
+  await router.replace({
+    path: route.path,
+    query: { ...route.query, author: value > 0 ? String(value) : undefined },
+  })
+}
+
 // 滚动到底部自动加载更多
 const handleScroll = () => {
   // 清除之前的定时器
@@ -670,6 +731,9 @@ const applyCategorySeo = () => {
 }
 
 onMounted(() => {
+  if (!isAdmin.value && route.query.author) {
+    router.replace({ path: route.path, query: { ...route.query, author: undefined } })
+  }
   fetchSeriesAndProducts()
   loadAdminCategories()
   // 添加多种滚动监听，确保兼容性
@@ -709,13 +773,16 @@ onMounted(() => {
   ;(window as any).scrollCheckInterval = checkInterval
 })
 
-watch(() => [route.params.slug, route.query.sort], () => {
+watch(() => [route.params.slug, route.query.sort, route.query.author], () => {
   fetchSeriesAndProducts(true)
 })
 
 watch(isAdmin, (value) => {
   if (value) {
     loadAdminCategories()
+    loadCategoryAuthors(String(route.params.slug || 'whole'))
+  } else if (route.query.author) {
+    router.replace({ path: route.path, query: { ...route.query, author: undefined } })
   }
 })
 
@@ -875,6 +942,31 @@ onBeforeUnmount(() => {
   gap: 10px;
   flex: 0 0 auto;
   min-width: 0;
+}
+
+.category-author-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.category-author-filter select {
+  min-width: 150px;
+  min-height: 44px;
+  padding: 0 32px 0 12px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 10px;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+}
+
+.category-author-filter select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .category-sort-label {
@@ -1375,6 +1467,11 @@ onBeforeUnmount(() => {
 
   .category-toolbar {
     justify-content: space-between;
+  }
+
+  .category-author-filter,
+  .category-author-filter select {
+    width: 100%;
   }
 
   .admin-panel-head,
