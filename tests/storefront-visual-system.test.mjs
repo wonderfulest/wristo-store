@@ -240,6 +240,23 @@ test('category browse states are actionable, localized and preserve filtering se
   assert.match(i18n, /zh:\s*\{[\s\S]*'category\.collection':/)
 })
 
+test('category browsing supports newest sorting and admin-only author filtering', async () => {
+  const categories = await read('../src/views/products/Categories.vue')
+  const api = await read('../src/api/product.ts')
+  const i18n = await read('../src/i18n.ts')
+
+  assert.match(api, /'createdAt:desc'/)
+  assert.match(api, /fetchCategoryAuthors/)
+  assert.match(api, /\.\.\.\(userId \? \{ userId \} : \{\}\)/)
+  assert.match(categories, /t\('category\.sortNewest'\)/)
+  assert.match(categories, /v-if="isAdmin" class="category-author-filter"/)
+  assert.match(categories, /selectedAuthorId\.value/)
+  assert.match(categories, /route\.query\.author/)
+  for (const key of ['category.sortNewest', 'category.author', 'category.allAuthors', 'category.authorLoadError']) {
+    assert.equal(i18n.split(`'${key}'`).length - 1, 2)
+  }
+})
+
 test('category filters use explicit numeric product fields and never infer style from names', async () => {
   const categories = await read('../src/views/products/Categories.vue')
 

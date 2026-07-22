@@ -26,7 +26,7 @@
 
 ### Task 1: API category query contract
 
-- [ ] Add failing assertions to `ProductCategoryBrowseContractTest` proving `createdAt:desc` is allowlisted, author ID reaches both device and non-device mapper queries, and the final order is `store_weight DESC, created_at DESC, id DESC`.
+- [ ] Add failing assertions to `ProductCategoryBrowseContractTest` proving `createdAt:desc` is allowlisted, author ID reaches both device and non-device mapper queries, and the final order is `created_at DESC, id DESC`.
 - [ ] Run `mvn -Dtest=ProductCategoryBrowseContractTest test`; expect failure because newest and author filtering do not exist.
 - [ ] Extend public controller, orchestrator, service, and mapper signatures with nullable `userId`; reject non-admin use by checking the authenticated principal/roles before delegation.
 - [ ] Replace the rating boolean normalizer with an allowlisted category-order resolver covering download, rating, and newest; never pass raw request SQL to MyBatis.

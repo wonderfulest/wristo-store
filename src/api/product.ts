@@ -150,18 +150,29 @@ export const getRelatedProducts = (appId: string): Promise<ProductBaseVO[]> => {
   return instance.get(`/public/products/related/${appId}`)
 }
 
-export type CategoryProductOrderBy = 'download:desc' | 'rating:desc,download:desc'
+export type CategoryProductOrderBy = 'download:desc' | 'rating:desc,download:desc' | 'createdAt:desc'
+
+export interface CategoryAuthorOption {
+  id: number
+  username?: string | null
+  nickname?: string | null
+}
 
 // 通过 slug 获取系列下商品（分页）
 export const getProductsByCategory = (
   slug: string,
   pageNum = 1,
   pageSize = 30,
-  orderBy: CategoryProductOrderBy = 'download:desc'
+  orderBy: CategoryProductOrderBy = 'download:desc',
+  userId?: number
 ): Promise<PageResult<ProductBaseVO>> => {
   return instance.get('/public/products/page/category', {
-    params: { slug, pageNum, pageSize, orderBy }
+    params: { slug, pageNum, pageSize, orderBy, ...(userId ? { userId } : {}) }
   })
+}
+
+export const fetchCategoryAuthors = (slug: string): Promise<CategoryAuthorOption[]> => {
+  return instance.get('/admin/products/category-authors', { params: { slug } })
 }
 
 export const fetchAdminStoreMetrics = (appIds: number[]): Promise<ProductStoreMetricsVO[]> => {
