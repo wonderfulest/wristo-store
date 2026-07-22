@@ -54,6 +54,17 @@ test('HomeBanner filters bundle-only slides and cycles through the visible slide
 
   assert.match(
     source,
+    /const goToActivation = \(\) => \{\s*router\.push\(addLocaleToPath\('\/already-purchased', localeStore\.currentLocale\)\)\s*\}/,
+  )
+  assert.match(source, /id: 'activation',[\s\S]*?primaryAction: goToActivation/)
+  const activationSlideSource = source.slice(source.indexOf("id: 'activation'"), source.indexOf("id: 'studio'"))
+  assert.ok(activationSlideSource.startsWith("id: 'activation'"))
+  assert.doesNotMatch(activationSlideSource, /requiresBundle/)
+  assert.match(activationSlideSource, /compactActions: true/)
+  assert.match(activationSlideSource, /hideMetrics: true/)
+  assert.match(activationSlideSource, /imageSrc: '\/home-hero-activation\.svg'/)
+  assert.match(
+    source,
     /import \{[^}]*hasBundleStoreEntryAccess[^}]*\} from '@\/utils\/entitlements'/,
   )
   assert.match(source, /requiresBundle\?: boolean/)
