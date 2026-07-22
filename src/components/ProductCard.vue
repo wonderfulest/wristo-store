@@ -1,6 +1,7 @@
 <template>
   <article
     class="product-card"
+    :class="{ 'has-admin-edit': canEditInStudio }"
     role="button"
     tabindex="0"
     :aria-label="productAriaLabel"
@@ -8,6 +9,16 @@
     @keydown.enter.self.prevent="handleClick"
     @keydown.space.self.prevent="handleClick"
   >
+    <button
+      v-if="canEditInStudio"
+      type="button"
+      class="studio-edit-button"
+      title="Edit in Studio"
+      aria-label="Edit in Studio"
+      @click.stop="editInStudio"
+    >
+      <Icon icon="solar:pen-2-line-duotone" width="16" height="16" aria-hidden="true" />
+    </button>
     <div
       v-if="hasPremiumAccess"
       class="product-activated-badge"
@@ -91,6 +102,7 @@ import { isCartEnabled } from '@/config/features'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 import { resolveProductBadges } from '@/utils/productBadges'
 import { fetchAdminStoreMetricBatched, invalidateAdminStoreMetric } from '@/utils/adminStoreMetricsBatch'
+import { openStudioDesign } from '@/utils/studio'
 import ProductAdminPanel from '@/components/ProductAdminPanel.vue'
 import type { ProductStoreMetricsVO } from '@/types'
 
@@ -98,6 +110,7 @@ const props = defineProps<{
   product: any
   adminMetrics?: ProductStoreMetricsVO | null
   currentCategoryId?: number | null
+  showAdminEdit?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -123,11 +136,21 @@ const productAriaLabel = computed(() => `${props.product?.name || ''}, ${formatt
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const resolvedMetrics = computed(() => props.adminMetrics || localMetrics.value)
 const currentCategoryId = computed(() => props.currentCategoryId ?? null)
+const canEditInStudio = computed(() => {
+  const designId = String(props.product?.designId || '').trim()
+  return Boolean(props.showAdminEdit && isAdmin.value && designId)
+})
 
 const handleClick = () => {
   if (props.product?.appId) {
     router.push(addLocaleToPath(`/product/${props.product.appId}`, localeStore.currentLocale))
   }
+}
+
+const editInStudio = () => {
+  const designId = String(props.product?.designId || '').trim()
+  if (!designId) return
+  openStudioDesign(designId)
 }
 
 const toggleCart = () => {
@@ -344,6 +367,43 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   font-weight: 850;
   font-variant-numeric: tabular-nums;
   transition: color 180ms ease, background 180ms ease;
+}
+
+.studio-edit-button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(15, 107, 104, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-brand-strong);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.studio-edit-button:hover,
+.studio-edit-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(15, 107, 104, 0.42);
+  background: var(--color-brand-soft);
+}
+
+.studio-edit-button:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.24);
+  outline-offset: 2px;
+}
+
+.product-card.has-admin-edit .product-activated-badge {
+  right: 54px;
 }
 
 .product-card:hover .product-price {

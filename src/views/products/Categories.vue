@@ -162,6 +162,7 @@
         :product="product"
         :admin-metrics="adminMetricsMap.get(product.appId) || null"
         :current-category-id="series?.id || null"
+        show-admin-edit
         class="product-item"
         @admin-changed="handleAdminChanged"
         @removed-from-current-category="handleRemovedFromCurrentCategory"
