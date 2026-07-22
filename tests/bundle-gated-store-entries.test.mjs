@@ -4,7 +4,7 @@ import test from 'node:test'
 
 const readSource = (path) => readFile(new URL(path, import.meta.url), 'utf8')
 
-test('Header hides desktop and mobile Studio and FAQ entries without bundle access', async () => {
+test('Header keeps Studio bundle-gated while FAQ is public on desktop and mobile', async () => {
   const source = await readSource('../src/components/Header.vue')
 
   assert.match(
@@ -18,7 +18,7 @@ test('Header hides desktop and mobile Studio and FAQ entries without bundle acce
   )
   assert.match(
     source,
-    /<router-link\s+v-if="canShowBundleEntries"[^>]*:to="faqPath"[^>]*class="nav-link"[^>]*>\{\{ t\('nav\.faq'\) \}\}<\/router-link>/,
+    /<router-link\s+:to="faqPath"\s+class="nav-link">\{\{ t\('nav\.faq'\) \}\}<\/router-link>/,
   )
   assert.match(
     source,
@@ -26,8 +26,9 @@ test('Header hides desktop and mobile Studio and FAQ entries without bundle acce
   )
   assert.match(
     source,
-    /<router-link\s+v-if="canShowBundleEntries"[^>]*:to="faqPath"[^>]*class="mobile-nav-link"[^>]*>[\s\S]*?\{\{ t\('nav\.faq'\) \}\}[\s\S]*?<\/router-link>/,
+    /<router-link\s+:to="faqPath"\s+class="mobile-nav-link"[^>]*>[\s\S]*?\{\{ t\('nav\.faq'\) \}\}[\s\S]*?<\/router-link>/,
   )
+  assert.doesNotMatch(source, /<router-link\s+v-if="canShowBundleEntries"[^>]*:to="faqPath"/)
 })
 
 test('Header hides the complete creator section and each mobile creator action without bundle access', async () => {
