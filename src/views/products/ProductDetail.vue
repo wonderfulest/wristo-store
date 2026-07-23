@@ -6,7 +6,7 @@
     <div class="product-detail-main">
       <div class="product-visual-wrap">
         <ProductImageGallery
-          :images="[]"
+          :images="product?.productImages || []"
           :fallback-image-url="productHeroImageUrl"
           :product-name="product?.name || t('product.previewAlt')"
         />

@@ -788,6 +788,16 @@ test('ProductDetail loads admin images only for admins and preserves the public 
   assert.doesNotMatch(productDetailSource, /\.product-image-fallback\s*\{/)
 })
 
+test('ProductDetail renders the unified productImages gallery returned by product detail', async () => {
+  const productDetailSource = await readFile(productDetailUrl, 'utf8')
+
+  assert.match(
+    productDetailSource,
+    /<ProductImageGallery[\s\S]*?:images="product\?\.productImages \|\| \[\]"/,
+  )
+  assert.doesNotMatch(productDetailSource, /<ProductImageGallery[\s\S]*?:images="\[\]"/)
+})
+
 test('ProductDetail falls back across raw, preview, and Garmin product images', async () => {
   const productDetailSource = await readFile(productDetailUrl, 'utf8')
 

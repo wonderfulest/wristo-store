@@ -2,7 +2,7 @@
   <div class="lang-switcher" role="navigation" :aria-label="t('language.selector')">
     <button class="current" type="button" :aria-label="t('language.selector')" :aria-expanded="isOpen" @click="isOpen = !isOpen">
       <Icon icon="solar:global-line-duotone" width="20" height="20" aria-hidden="true" />
-      <span>{{ getLanguageLabel(currentLocale) }}</span>
+      <span>{{ getLanguageAbbreviation(currentLocale) }}</span>
       <el-icon :class="{ rotated: isOpen }"><arrow-down /></el-icon>
     </button>
     <div class="buttons" :class="{ open: isOpen }">
@@ -81,6 +81,10 @@ function switchLanguage(targetLang: string) {
 function getLanguageLabel(locale: string) {
   const normalized = normalizeLocale(locale)
   return languageLabels[normalized] || languageLabels.en
+}
+
+function getLanguageAbbreviation(locale: string) {
+  return normalizeLocale(locale).slice(0, 2).toUpperCase()
 }
 </script>
 
