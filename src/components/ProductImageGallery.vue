@@ -14,7 +14,14 @@
       @touchend="handleTouchEnd"
       @touchcancel="handleTouchCancel"
     >
-      <div v-if="selectedItem" class="product-gallery__watchface">
+      <div
+        v-if="selectedItem"
+        class="product-gallery__watchface"
+        :class="{
+          'product-gallery__watchface--circle': selectedItem.shape === 'circle',
+          'product-gallery__watchface--rounded-square': selectedItem.shape === 'rounded-square',
+        }"
+      >
         <el-image
           :key="selectedItem.key"
           ref="mainImageRef"
@@ -466,13 +473,20 @@ watch(
   width: 100%;
   aspect-ratio: 1;
   border: 1px solid rgb(255 255 255 / 78%);
-  border-radius: 50%;
   overflow: hidden;
   background: rgb(255 255 255 / 42%);
   box-shadow:
     0 28px 56px rgb(20 56 54 / 20%),
     0 8px 18px rgb(20 56 54 / 12%),
     inset 0 1px 0 rgb(255 255 255 / 90%);
+}
+
+.product-gallery__watchface--circle {
+  border-radius: 50%;
+}
+
+.product-gallery__watchface--rounded-square {
+  border-radius: 24px;
 }
 
 .product-gallery__watchface::after {

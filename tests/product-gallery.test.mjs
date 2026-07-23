@@ -18,13 +18,21 @@ const productShareImagePolicyUrl = new URL('../src/utils/productShareImagePolicy
 const shareImageManagerUrl = new URL('../src/views/admin/ShareImageManager.vue', import.meta.url)
 const productGallerySource = await readFile(productGalleryUrl, 'utf8')
 
-test('product gallery fills the visual stage with one circular watchface viewport', async () => {
+test('product gallery switches the main viewport between circular and rounded-square shapes', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
   assert.match(source, /class="product-gallery__watchface"/)
   assert.match(
     source,
-    /\.product-gallery__watchface\s*\{[\s\S]*?width:\s*100%;[\s\S]*?aspect-ratio:\s*1;[\s\S]*?border-radius:\s*50%;[\s\S]*?overflow:\s*hidden;/,
+    /'product-gallery__watchface--circle': selectedItem\.shape === 'circle'/,
+  )
+  assert.match(
+    source,
+    /\.product-gallery__watchface--circle\s*\{[\s\S]*?border-radius:\s*50%;/,
+  )
+  assert.match(
+    source,
+    /\.product-gallery__watchface--rounded-square\s*\{[\s\S]*?border-radius:\s*24px;/,
   )
   assert.match(
     source,
@@ -72,9 +80,24 @@ const {
   resolveCircularGalleryUrl,
   resolveGallerySwipeDirection,
   resolveGallerySelectedIndex,
+  resolveProductGalleryShape,
   resolveProductShareImageUrl,
   resolveSelectionAfterItemsChange,
 } = await import(productGalleryModuleUrl)
+
+test('resolveProductGalleryShape makes hero and raw image names circular', () => {
+  assert.equal(resolveProductGalleryShape('Hero.PNG'), 'circle')
+  assert.equal(resolveProductGalleryShape('watchface-raw.webp'), 'circle')
+  assert.equal(
+    resolveProductGalleryShape('https://cdn.example.com/images/preview_hero.png?size=large'),
+    'circle',
+  )
+})
+
+test('resolveProductGalleryShape keeps other image names rounded-square', () => {
+  assert.equal(resolveProductGalleryShape('lifestyle.png'), 'rounded-square')
+  assert.equal(resolveProductGalleryShape('https://cdn.example.com/social/card-01.jpg'), 'rounded-square')
+})
 
 const sourceGalleryItems = [
   {
@@ -147,6 +170,7 @@ test('createProductGalleryItems keeps the fixed app image first and preserves va
       alt: 'Product name',
       kind: 'fixed',
       sourceId: null,
+      shape: 'rounded-square',
     },
     {
       key: 'share-3',
@@ -154,6 +178,8 @@ test('createProductGalleryItems keeps the fixed app image first and preserves va
       alt: 'Third',
       kind: 'share',
       sourceId: 3,
+      downloadUrl: 'https://cdn.example.com/third.png',
+      shape: 'rounded-square',
     },
     {
       key: 'share-2',
@@ -161,6 +187,8 @@ test('createProductGalleryItems keeps the fixed app image first and preserves va
       alt: 'Product name',
       kind: 'share',
       sourceId: 2,
+      downloadUrl: 'https://cdn.example.com/second.png',
+      shape: 'rounded-square',
     },
   ])
 })
@@ -179,6 +207,7 @@ test('createProductGalleryItems uses trimmed alt text before the product name', 
         alt: 'Product name',
         kind: 'fixed',
         sourceId: null,
+        shape: 'rounded-square',
       },
       {
         key: 'share-hero',
@@ -186,9 +215,35 @@ test('createProductGalleryItems uses trimmed alt text before the product name', 
         alt: 'Hero view',
         kind: 'share',
         sourceId: 'hero',
+        downloadUrl: 'https://cdn.example.com/hero.png',
+        shape: 'circle',
       },
     ],
   )
+})
+
+test('createProductGalleryItems carries the filename-derived display shape', () => {
+  const items = createProductGalleryItems(
+    [
+      {
+        id: 1,
+        fileName: 'raw.png',
+        previewUrl: 'https://cdn.example.com/previews/uuid.webp',
+        imageUrl: 'https://cdn.example.com/originals/uuid.png',
+      },
+      {
+        id: 2,
+        fileName: 'lifestyle-square.png',
+        imageUrl: 'https://cdn.example.com/originals/hero-in-url-but-not-name.png',
+      },
+    ],
+    'https://cdn.example.com/fallback-hero.png',
+    'Product name',
+  )
+
+  assert.equal(items[0].shape, 'circle')
+  assert.equal(items[1].shape, 'circle')
+  assert.equal(items[2].shape, 'rounded-square')
 })
 
 test('createProductGalleryItems returns valid share images when the fixed image is empty', () => {
@@ -205,6 +260,8 @@ test('createProductGalleryItems returns valid share images when the fixed image 
         alt: 'Product name',
         kind: 'share',
         sourceId: 1,
+        downloadUrl: 'https://cdn.example.com/share.png',
+        shape: 'rounded-square',
       },
     ],
   )

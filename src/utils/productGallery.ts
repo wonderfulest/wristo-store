@@ -1,6 +1,7 @@
 export interface ProductShareImageSource {
   id: string | number
   sortOrder?: number | null
+  fileName?: string | null
   imageUrl?: string | null
   previewUrl?: string | null
   downloadUrl?: string | null
@@ -17,6 +18,28 @@ export interface ProductGalleryItem {
   alt: string
   kind: 'fixed' | 'share'
   sourceId: string | number | null
+  shape: 'circle' | 'rounded-square'
+}
+
+export const resolveProductGalleryShape = (
+  fileNameOrUrl: string | null | undefined,
+): ProductGalleryItem['shape'] => {
+  const source = fileNameOrUrl?.trim()
+  if (!source) return 'rounded-square'
+
+  const path = source.split(/[?#]/, 1)[0]
+  const encodedName = path.slice(path.lastIndexOf('/') + 1)
+  let fileName = encodedName
+  try {
+    fileName = decodeURIComponent(encodedName)
+  } catch {
+    // Keep the encoded filename when a URL contains malformed escape sequences.
+  }
+
+  const normalizedName = fileName.toLowerCase()
+  return normalizedName.includes('hero') || normalizedName.includes('raw')
+    ? 'circle'
+    : 'rounded-square'
 }
 
 export const resolveProductShareImageUrl = (image: ProductShareImageSource): string => {
@@ -41,6 +64,7 @@ export const createProductGalleryItems = (
       alt: defaultAlt,
       kind: 'fixed',
       sourceId: null,
+      shape: resolveProductGalleryShape(fixedUrl),
     })
   }
 
@@ -56,6 +80,13 @@ export const createProductGalleryItems = (
       kind: 'share',
       sourceId: image.id,
       downloadUrl: image.downloadUrl?.trim() || image.imageUrl?.trim() || url,
+      shape: resolveProductGalleryShape(
+        image.fileName?.trim() ||
+          image.downloadUrl?.trim() ||
+          image.imageUrl?.trim() ||
+          image.image?.url?.trim() ||
+          image.previewUrl?.trim(),
+      ),
     })
   }
 
