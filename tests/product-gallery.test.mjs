@@ -511,6 +511,8 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
 test('ProductImageGallery uses original or HD URLs for the selected large image and fullscreen preview', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
+  assert.doesNotMatch(source, /Download HD/)
+  assert.doesNotMatch(source, /product-gallery__download/)
   assert.match(source, /:src="selectedDisplayUrl"/)
   assert.match(
     source,
