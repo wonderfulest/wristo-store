@@ -160,6 +160,50 @@ const curatedFaqGuidePosts = [
 </ul>`,
     ),
   ])),
+  post(1006, 'find-watch-faces-after-bundle-purchase', withSupportedFaqLocales([
+    tr(
+      'en',
+      'find-watch-faces-after-bundle-purchase',
+      'Where Can I Find the Watch Faces Included in My Bundle?',
+      'How to browse, install, and activate watch faces after purchasing a Wristo bundle.',
+      `<h2>Where are the other watch faces?</h2>
+<p>A Wristo bundle provides activation access. The included watch faces are not sent individually by email.</p>
+<p>You can <a href="https://www.wristo.io/categories/whole">browse all available watch faces</a> or <a href="https://www.wristo.io/search">search for a specific watch face</a> on Wristo.io.</p>
+<h2>Which apps can I activate?</h2>
+<ul>
+  <li>All apps listed on <a href="https://www.wristo.io/">Wristo.io</a>.</li>
+  <li>Apps in the Garmin Connect IQ Store whose descriptions mention <strong>Wristo.io</strong>.</li>
+</ul>
+<h2>How do I use a watch face from the bundle?</h2>
+<ol>
+  <li>Choose a watch face on Wristo.io or in the Garmin Connect IQ Store.</li>
+  <li>Download and install it from the Garmin Connect IQ Store.</li>
+  <li>When the watch face displays a six-digit activation code, activate it using the email address from your bundle purchase.</li>
+</ol>
+<p>If a particular watch face cannot be activated, contact <a href="mailto:support@wristo.io">support@wristo.io</a> and include its name or Garmin Connect IQ link.</p>`,
+    ),
+    tr(
+      'zh',
+      'find-watch-faces-after-bundle-purchase',
+      '购买套装后，在哪里找到包含的表盘？',
+      '购买 Wristo 套装后，如何查找、安装和激活其中的表盘。',
+      `<h2>其他表盘在哪里？</h2>
+<p>Wristo 套装提供的是表盘激活权益，套装内的表盘不会逐个通过邮件发送。</p>
+<p>你可以在 Wristo.io <a href="https://www.wristo.io/categories/whole">查看所有可用表盘</a>，也可以<a href="https://www.wristo.io/search">搜索指定表盘</a>。</p>
+<h2>哪些应用可以激活？</h2>
+<ul>
+  <li><a href="https://www.wristo.io/">Wristo.io</a> 网站上的所有应用。</li>
+  <li>Garmin Connect IQ 商店中，应用说明里包含 <strong>Wristo.io</strong> 的应用。</li>
+</ul>
+<h2>如何使用套装中的表盘？</h2>
+<ol>
+  <li>在 Wristo.io 或 Garmin Connect IQ 商店中选择表盘。</li>
+  <li>从 Garmin Connect IQ 商店下载并安装表盘。</li>
+  <li>当表盘显示 6 位激活码时，使用购买套装时填写的邮箱完成激活。</li>
+</ol>
+<p>如果某个表盘无法激活，请联系 <a href="mailto:support@wristo.io">support@wristo.io</a>，并提供表盘名称或 Garmin Connect IQ 链接。</p>`,
+    ),
+  ])),
   post(1002, 'purchase-refund-history', withSupportedFaqLocales([
     tr(
       'en',
@@ -378,6 +422,7 @@ const faqFunctionalGroups = [
     slugs: [
       'activation-code',
       'how-to-activate-your-wristo-watch-face',
+      'find-watch-faces-after-bundle-purchase',
       'faq-activate-whole-plan',
       'purchase-refund-history',
     ],

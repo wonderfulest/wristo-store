@@ -19,7 +19,7 @@
           :key="selectedItem.key"
           ref="mainImageRef"
           class="product-gallery__main-image"
-          :src="selectedItem.url"
+          :src="selectedDisplayUrl"
           :alt="selectedItem.alt"
           :aria-label="`Preview ${selectedItem.alt} fullscreen`"
           fit="contain"
@@ -243,7 +243,11 @@ const selectedItem = computed(
   () => availableItems.value.find((item) => item.url === selectedUrl.value) ?? null,
 )
 
-const previewSrcList = computed(() => availableItems.value.map((item) => item.url))
+const selectedDisplayUrl = computed(() => selectedItem.value?.downloadUrl || selectedItem.value?.url || '')
+
+const previewSrcList = computed(() =>
+  availableItems.value.map((item) => item.downloadUrl || item.url),
+)
 
 const selectedIndex = computed(() =>
   resolveGallerySelectedIndex(availableItems.value, selectedUrl.value),

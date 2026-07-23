@@ -451,6 +451,21 @@ test('ProductImageGallery exposes accessible preview, selection, failure, and re
   assert.doesNotMatch(source, /\bfallbackItem\b/)
 })
 
+test('ProductImageGallery uses original or HD URLs for the selected large image and fullscreen preview', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(source, /:src="selectedDisplayUrl"/)
+  assert.match(
+    source,
+    /const selectedDisplayUrl = computed\(\(\) => selectedItem\.value\?\.downloadUrl \|\| selectedItem\.value\?\.url \|\| ''\)/,
+  )
+  assert.match(
+    source,
+    /const previewSrcList = computed\(\(\) =>\s*availableItems\.value\.map\(\(item\) => item\.downloadUrl \|\| item\.url\),?\s*\)/,
+  )
+  assert.match(source, /<img :src="item\.url"/)
+})
+
 test('ProductImageGallery removes the square stage around the circular foreground', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 
