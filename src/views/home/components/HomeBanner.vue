@@ -114,7 +114,7 @@ const goToCode = () => {
 }
 
 const goToActivation = () => {
-  router.push(addLocaleToPath('/already-purchased', localeStore.currentLocale))
+  router.push(addLocaleToPath('/activate', localeStore.currentLocale))
 }
 
 const goToBundles = () => {

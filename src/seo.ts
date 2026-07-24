@@ -108,6 +108,7 @@ const noindexPrefixes = [
   '/auto-unlock',
   '/subscription-management',
   '/subscription-cancel',
+  '/activate',
   '/already-purchased',
   '/purchases-history',
   '/user',

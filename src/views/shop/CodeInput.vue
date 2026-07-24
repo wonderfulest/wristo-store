@@ -214,7 +214,7 @@ const handleInput = () => {
 }
 
 const handleAlreadyPurchased = () => {
-  router.push({ path: localizedPath('/already-purchased'), query: { code: code.value || '' } })
+  router.push({ path: localizedPath('/activate'), query: { code: code.value || '' } })
 }
 
 const handleLearnMore = () => {

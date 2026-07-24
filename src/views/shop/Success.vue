@@ -172,7 +172,7 @@ function goHome() {
 }
 
 function goToActivation() {
-  router.push('/code')
+  router.push('/activate')
 }
 
 function goToPurchases() {

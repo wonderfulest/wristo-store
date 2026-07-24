@@ -75,7 +75,7 @@ const curatedFaqGuidePosts = [
 <ul>
   <li><strong>You want to try a watch face:</strong> install it from Garmin Connect IQ, sync the watch, then open the watch face on the device.</li>
   <li><strong>Your watch shows a six-digit code:</strong> open <a href="https://wristo.io/code">wristo.io/code</a>, enter the purchase email and the code, then sync Garmin Connect.</li>
-  <li><strong>You already paid but see a payment prompt:</strong> sign in on <a href="https://www.wristo.io/">wristo.io</a> with the purchase email, then open <a href="https://www.wristo.io/en/code">wristo.io/en/code</a>. You can also use <a href="https://www.wristo.io/already-purchased">already purchased</a> without signing in by entering the purchase email and the six-digit code shown on the watch.</li>
+  <li><strong>You already paid but see a payment prompt:</strong> sign in on <a href="https://www.wristo.io/">wristo.io</a> with the purchase email, then open <a href="https://www.wristo.io/en/code">wristo.io/en/code</a>. You can also use <a href="https://www.wristo.io/activate">Activate your purchase</a> without signing in by entering the purchase email and the six-digit code shown on the watch.</li>
   <li><strong>You want a refund or purchase record:</strong> check your history first, then contact support if the order is still unclear.</li>
   <li><strong>The watch face crashes or shows IQ:</strong> update firmware, reinstall the face, and send the Connect IQ log if it continues.</li>
 </ul>
@@ -98,7 +98,7 @@ const curatedFaqGuidePosts = [
 <ul>
   <li><strong>想安装或试用表盘：</strong>先在 Wristo 找到表盘，跳转 Garmin Connect IQ 安装，然后保持手机和手表同步。</li>
   <li><strong>手表上出现 6 位激活码：</strong>打开 <a href="https://wristo.io/code">wristo.io/code</a>，输入购买邮箱和手表上的 6 位码，完成后同步 Garmin Connect。</li>
-  <li><strong>已经付费但又提示付款：</strong>先用购买邮箱登录 <a href="https://www.wristo.io/">wristo.io</a>，再打开 <a href="https://www.wristo.io/en/code">wristo.io/en/code</a> 激活；也可以在未登录状态打开 <a href="https://www.wristo.io/already-purchased">already purchased</a>，输入购买邮箱和手表上的 6 位数字恢复授权。</li>
+  <li><strong>已经付费但又提示付款：</strong>先用购买邮箱登录 <a href="https://www.wristo.io/">wristo.io</a>，再打开 <a href="https://www.wristo.io/en/code">wristo.io/en/code</a> 激活；也可以在未登录状态打开 <a href="https://www.wristo.io/activate">Activate your purchase</a>，输入购买邮箱和手表上的 6 位数字恢复授权。</li>
   <li><strong>要找购买记录或申请退款：</strong>先去购买记录页面确认订单，再按退款规则联系支持。</li>
   <li><strong>表盘显示 IQ 或无法运行：</strong>优先更新固件、重装表盘、保持同步；仍无效时发送日志给支持团队。</li>
 </ul>
@@ -221,7 +221,7 @@ const curatedFaqGuidePosts = [
 </ol>
 <h2>Activate without signing in</h2>
 <ol>
-  <li>Open <a href="https://www.wristo.io/already-purchased">wristo.io/already-purchased</a>.</li>
+  <li>Open <a href="https://www.wristo.io/activate">wristo.io/activate</a>.</li>
   <li>Enter the original purchase email.</li>
   <li>Enter the six-digit code currently shown on the watch face.</li>
   <li>Submit, then sync Garmin Connect.</li>
@@ -249,7 +249,7 @@ const curatedFaqGuidePosts = [
 </ol>
 <h2>未登录状态如何激活？</h2>
 <ol>
-  <li>打开 <a href="https://www.wristo.io/already-purchased">wristo.io/already-purchased</a>。</li>
+  <li>打开 <a href="https://www.wristo.io/activate">wristo.io/activate</a>。</li>
   <li>输入原购买邮箱。</li>
   <li>输入当前手表表盘上显示的 6 位数字。</li>
   <li>提交后同步 Garmin Connect。</li>

@@ -128,13 +128,18 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/Contact.vue')
   },
   {
+    path: '/activate',
+    name: 'ActivatePurchase',
+    component: () => import('@/views/shop/AlreadyPurchased.vue')
+  },
+  {
     path: '/already-purchased',
     name: 'AlreadyPurchased',
     component: () => import('@/views/shop/AlreadyPurchased.vue')
   },
-   {
+  {
     path: '/unlock',
-    redirect: '/already-purchased',
+    redirect: '/activate',
   },
   {
     path: '/purchases-history',

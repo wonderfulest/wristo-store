@@ -448,7 +448,7 @@ const handleUnlock = () => {
 }
 
 const handleAlreadyPurchased = () => {
-  router.push('/already-purchased')
+  router.push('/activate')
 }
 
 const handleCustomizeInStudio = () => {
