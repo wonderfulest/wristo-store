@@ -160,3 +160,33 @@ test('Vercel middleware exposes only a private region result', async () => {
   assert.match(source, /matcher:\s*['"]\/_wristo\/visitor-region['"]/)
   assert.doesNotMatch(source, /ipAddress|x-forwarded-for|longitude|latitude|city/)
 })
+
+test('the global prompt stays manual and outside payment behavior', async () => {
+  const component = await readFile(
+    new URL('../src/components/ChinaSitePrompt.vue', import.meta.url),
+    'utf8',
+  )
+  const app = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8')
+
+  assert.match(component, /shouldShowChinaSitePrompt/)
+  assert.match(component, /dismissChinaSitePrompt/)
+  assert.match(component, /getChinaSiteDestination\(window\.location\.pathname\)/)
+  assert.match(component, /window\.location\.assign\(destination\.value\)/)
+  assert.match(component, /china-site-prompt__visit/)
+  assert.match(component, /china-site-prompt__continue/)
+  assert.match(component, /aria-live="polite"/)
+  assert.doesNotMatch(component, /Paddle|checkout\.|setInterval|navigator\.connection/)
+  assert.match(app, /import ChinaSitePrompt from '.\/components\/ChinaSitePrompt\.vue'/)
+  assert.match(app, /<ChinaSitePrompt\s*\/>/)
+})
+
+test('prompt copy exists in English and Simplified Chinese', async () => {
+  const source = await readFile(new URL('../src/i18n.ts', import.meta.url), 'utf8')
+
+  assert.match(source, /'chinaSitePrompt\.message': 'It looks like you may be visiting from mainland China\./)
+  assert.match(source, /'chinaSitePrompt\.visit': 'Visit Wristo China'/)
+  assert.match(source, /'chinaSitePrompt\.continue': 'Continue on Wristo\.io'/)
+  assert.match(source, /'chinaSitePrompt\.message': '检测到你可能正在中国大陆访问。/)
+  assert.match(source, /'chinaSitePrompt\.visit': '前往中国站'/)
+  assert.match(source, /'chinaSitePrompt\.continue': '继续访问 Wristo\.io'/)
+})

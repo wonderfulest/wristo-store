@@ -16,6 +16,7 @@ import pl from 'element-plus/dist/locale/pl.mjs'
 import ptBr from 'element-plus/dist/locale/pt-br.mjs'
 import sv from 'element-plus/dist/locale/sv.mjs'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import ChinaSitePrompt from './components/ChinaSitePrompt.vue'
 import Layout from './components/Layout.vue'
 import { useLocaleStore, type SupportedLocale } from './store/locale'
 import { isAllowedGarminStoreUrl, toGarminStoreBridge } from './utils/garminStore'
@@ -69,6 +70,7 @@ onBeforeUnmount(() => {
 
 <template>
   <el-config-provider :locale="elementLocale">
+    <ChinaSitePrompt />
     <Layout>
       <router-view />
     </Layout>
