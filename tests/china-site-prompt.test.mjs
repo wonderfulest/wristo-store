@@ -149,3 +149,14 @@ test('only exact product routes carry an app ID to wristo.cn', async () => {
     'https://www.wristo.cn/apps',
   )
 })
+
+test('Vercel middleware exposes only a private region result', async () => {
+  const source = await readFile(new URL('../middleware.ts', import.meta.url), 'utf8')
+
+  assert.match(source, /geolocation\(request\)/)
+  assert.match(source, /countryCode/)
+  assert.match(source, /mainlandChina:\s*countryCode\s*===\s*'CN'/)
+  assert.match(source, /'Cache-Control':\s*'private, no-store'/)
+  assert.match(source, /matcher:\s*['"]\/_wristo\/visitor-region['"]/)
+  assert.doesNotMatch(source, /ipAddress|x-forwarded-for|longitude|latitude|city/)
+})
