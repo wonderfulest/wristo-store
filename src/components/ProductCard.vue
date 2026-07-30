@@ -48,7 +48,7 @@
     </div>
     <div class="product-info">
       <div class="product-name">{{ product?.name }}</div>
-      <div class="product-public-metrics" :aria-label="t('product.popularityAria')">
+      <div v-if="isAdmin" class="product-public-metrics" :aria-label="t('product.popularityAria')">
         <span>
           <Icon icon="solar:download-minimalistic-line-duotone" width="16" height="16" aria-hidden="true" />
           {{ formatDisplayDownloadCount(product?.download) }}

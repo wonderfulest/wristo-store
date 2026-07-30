@@ -180,7 +180,7 @@
             {{ t('product.alreadyPurchased') }}
           </button>
         </div>
-        <section v-if="product" class="product-rating-panel" aria-label="Product rating">
+        <section v-if="product && isAdmin" class="product-rating-panel" aria-label="Product rating">
           <div class="product-rating-stats">
             <div>
               <strong>{{ formatDisplayDownloadCount(product.download) }}</strong>
@@ -228,7 +228,7 @@
             {{ ratingSubmitting ? t('product.savingReview') : t('product.submitReview') }}
           </button>
         </section>
-        <section v-if="product" class="product-reviews-section" aria-labelledby="product-reviews-title">
+        <section v-if="product && isAdmin" class="product-reviews-section" aria-labelledby="product-reviews-title">
           <div class="product-reviews-header">
             <h2 id="product-reviews-title" class="product-section-title">{{ t('product.reviewsTitle') }}</h2>
             <span>{{ t('product.reviewsCount', { count: productReviews.length }) }}</span>
@@ -506,6 +506,13 @@ const loadAdminMetrics = async () => {
 
 const loadRatingState = async (guard: LatestProductLoadGuard) => {
   if (!guard.isCurrent()) return
+  if (!isAdmin.value) {
+    guard.commit(() => {
+      reviewRating.value = 0
+      reviewComment.value = ''
+    })
+    return
+  }
   try {
     const stats = userStore.token
       ? await getMyProductRating(guard.appId)
@@ -531,6 +538,13 @@ const loadRatingState = async (guard: LatestProductLoadGuard) => {
 }
 
 const loadProductReviews = async (guard: LatestProductLoadGuard) => {
+  if (!isAdmin.value) {
+    guard.commit(() => {
+      productReviews.value = []
+      reviewsLoading.value = false
+    })
+    return
+  }
   if (!guard.commit(() => {
     reviewsLoading.value = true
   })) return
@@ -552,7 +566,7 @@ const loadProductReviews = async (guard: LatestProductLoadGuard) => {
 
 const submitRating = async () => {
   const appId = product.value?.appId
-  if (!appId || ratingSubmitting.value) return
+  if (!isAdmin.value || !appId || ratingSubmitting.value) return
   if (!userStore.userInfo?.id) {
     ElMessage.info(t('product.loginToRate'))
     redirectToSsoLogin('store', 500)
