@@ -589,6 +589,16 @@ test('ProductImageGallery offers manual circular, keyboard, and touch navigation
   assert.match(source, /@touchcancel="handleTouchCancel"/)
   assert.match(source, /resolveGallerySwipeDirection/)
   assert.match(source, /touch-action:\s*pan-y pinch-zoom/)
+  assert.match(source, /grid-template-areas:\s*['"]previous image next['"]/)
+  assert.match(source, /\.product-gallery__watchface\s*\{[\s\S]*grid-area:\s*image/)
+  assert.match(
+    source,
+    /\.product-gallery__carousel-button--previous\s*\{[\s\S]*grid-area:\s*previous/,
+  )
+  assert.match(
+    source,
+    /\.product-gallery__carousel-button--next\s*\{[\s\S]*grid-area:\s*next/,
+  )
   assert.doesNotMatch(source, /setInterval|setTimeout|autoplay/i)
 })
 
