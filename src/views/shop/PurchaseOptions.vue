@@ -19,6 +19,7 @@
         v-for="(bundleItem, index) in bundles"
         :key="bundleItem.bundleId"
         v-if="bundles.length > 0"
+        class="purchase-option-bundle"
         :class="{ 'bundle-subscription-target': index === 0 }"
         type="bundle"
         :title="localizedBundleTitle(bundleItem)"
@@ -44,6 +45,7 @@
       <!-- 单品卡片 -->
       <PurchaseCard
         v-if="product"
+        class="purchase-option-product"
         type="product"
         :title="product.name"
         :description="product.description"
@@ -1265,8 +1267,21 @@ watch(hasPremiumAccess, (hasAccess) => {
   }
   
   .purchase-options {
-    --commerce-page-mobile-padding-block: 24px 60px;
+    --commerce-page-mobile-padding-block: 24px max(24px, env(safe-area-inset-bottom));
     --commerce-page-mobile-gutter: 12px;
+    margin-bottom: 0;
+  }
+
+  .purchase-option-product {
+    order: 1;
+  }
+
+  .purchase-option-bundle {
+    order: 2;
+  }
+
+  .cards-container > *:last-child {
+    margin-bottom: 0;
   }
   
   .title {
