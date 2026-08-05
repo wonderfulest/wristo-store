@@ -69,6 +69,7 @@ import { Loading, Check, Warning, Search } from '@element-plus/icons-vue'
 import { getDeviceList, getDeviceDetail } from '@/api/device'
 import { bindDevice } from '@/api/user'
 import { useUserStore } from '@/store/user'
+import { matchesDeviceSearch } from '@/utils/deviceSearch'
 import type { GarminDeviceBaseVO, GarminDeviceVO } from '@/api/device'
 
 interface Props {
@@ -105,22 +106,9 @@ const displayDevices = computed(() => {
 
 // Filtered list by fuzzy query
 const filteredDevices = computed(() => {
-  const q = query.value.trim().toLowerCase()
-  if (!q) return displayDevices.value
-  return displayDevices.value.filter(d => {
-    const name = (d.displayName || '').toLowerCase()
-    const family = (d.deviceFamily || '').toLowerCase()
-    // simple fuzzy: all query chars appear in order in name, or substring match on name/family
-    const inOrder = (() => {
-      let i = 0
-      for (const ch of name) {
-        if (ch === q[i]) i++
-        if (i === q.length) return true
-      }
-      return false
-    })()
-    return name.includes(q) || family.includes(q) || inOrder
-  })
+  return displayDevices.value.filter(d =>
+    matchesDeviceSearch(d.displayName, d.deviceFamily || '', query.value),
+  )
 })
 
 // Watch for prop changes
