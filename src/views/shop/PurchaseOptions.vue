@@ -1272,14 +1272,6 @@ watch(hasPremiumAccess, (hasAccess) => {
     margin-bottom: 0;
   }
 
-  .purchase-option-product {
-    order: 1;
-  }
-
-  .purchase-option-bundle {
-    order: 2;
-  }
-
   .cards-container > *:last-child {
     margin-bottom: 0;
   }

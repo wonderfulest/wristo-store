@@ -27,8 +27,10 @@
       gtag('config', 'G-J92MYN3NVY')
     </script>
     <!-- Start of Tawk.to Script -->
-    <script>
-      if (window.location.hostname === 'wristo.io' || window.location.hostname === 'www.wristo.io') {
+    <script type="module">
+      const tawkEnabled = import.meta.env.VITE_ENABLE_TAWK_TO === 'true'
+      const isProductionHost = window.location.hostname === 'wristo.io' || window.location.hostname === 'www.wristo.io'
+      if (tawkEnabled && isProductionHost) {
         window.Tawk_API = window.Tawk_API || {}
         window.Tawk_LoadStart = new Date()
         ;(function () {
