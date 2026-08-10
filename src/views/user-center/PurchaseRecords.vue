@@ -102,20 +102,15 @@
               </div>
               <strong v-else class="record-amount">{{ formatAmount(item) }}</strong>
               <div class="record-actions" aria-label="Record actions">
-                <router-link
+                <a
                   v-if="item.product?.garminStoreUrl"
-                  :to="toGarminStoreBridge({
-                    url: item.product.garminStoreUrl,
-                    name: item.product?.name,
-                    imageUrl: getRecordImageUrl(item),
-                    sourcePath: route.fullPath,
-                  })"
+                  :href="item.product.garminStoreUrl"
                   class="icon-action"
                   :aria-label="`Open ${getRecordTitle(item)} in Garmin store`"
                   title="Garmin store"
                 >
                   <Icon icon="solar:shop-line-duotone" width="18" aria-hidden="true" />
-                </router-link>
+                </a>
                 <button
                   v-if="item.isBundle && item.bundle?.bundleId"
                   class="icon-action primary"
@@ -182,17 +177,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { getPurchaseRecords } from '@/api/pay'
 import type { PurchaseRecord } from '@/types'
 import { ElMessage } from 'element-plus'
-import { toGarminStoreBridge } from '@/utils/garminStore'
 import { getProductImageUrl } from '@/utils/productImage'
 import { useUserStore } from '@/store/user'
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal'
 
 const router = useRouter()
-const route = useRoute()
 const userStore = useUserStore()
 const records = ref<PurchaseRecord[]>([])
 const isLoading = ref(true)

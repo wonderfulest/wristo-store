@@ -298,7 +298,11 @@ import type {
 } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
-import { toGarminStoreBridge } from '@/utils/garminStore'
+import {
+  getCurrentGarminStoreOpenMode,
+  requestGarminInstall,
+  toGarminStoreBridge,
+} from '@/utils/garminStore'
 import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { resolveProductDisplayRating } from '@/utils/productRating'
 import { useCountDisplay } from '@/composables/useCountDisplay'
@@ -423,12 +427,19 @@ const handleDownload = () => {
       console.warn('Failed to save page state:', error)
     }
     
-    router.push(toGarminStoreBridge({
+    const request = {
       url: product.value.garminStoreUrl,
       name: product.value.name,
       imageUrl: productHeroImageUrl.value,
       sourcePath: route.fullPath,
-    }))
+    }
+
+    if (getCurrentGarminStoreOpenMode() === 'confirm') {
+      requestGarminInstall(request)
+      return
+    }
+
+    router.push(toGarminStoreBridge(request))
   } else {
     ElMessage.error('Download link is not available')
   }
@@ -1939,18 +1950,17 @@ onMounted(() => {
   .install-methods {
     flex-direction: column;
     gap: 18px;
+    min-height: 0;
   }
   
-  .qrcode-section, .button-section {
-    width: 100%;
-    min-width: 0;
-  }
-  
+  .qrcode-section,
   .install-or {
+    display: none;
+  }
+
+  .button-section {
     width: 100%;
     min-width: 0;
-    height: auto;
-    margin: 8px 0;
   }
   
   .product-title {

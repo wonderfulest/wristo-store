@@ -17,9 +17,15 @@ import ptBr from 'element-plus/dist/locale/pt-br.mjs'
 import sv from 'element-plus/dist/locale/sv.mjs'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import ChinaSitePrompt from './components/ChinaSitePrompt.vue'
+import GarminInstallPrompt from './components/GarminInstallPrompt.vue'
 import Layout from './components/Layout.vue'
 import { useLocaleStore, type SupportedLocale } from './store/locale'
-import { isAllowedGarminStoreUrl, toGarminStoreBridge } from './utils/garminStore'
+import {
+  getCurrentGarminStoreOpenMode,
+  isAllowedGarminStoreUrl,
+  requestGarminInstall,
+  toGarminStoreBridge,
+} from './utils/garminStore'
 
 const router = useRouter()
 const localeStore = useLocaleStore()
@@ -52,11 +58,18 @@ const handleGarminLinkClick = (event: MouseEvent) => {
 
   event.preventDefault()
   event.stopPropagation()
-  router.push(toGarminStoreBridge({
+  const request = {
     url: anchor.href,
     name: anchor.textContent?.trim() || 'Garmin website',
     sourcePath: window.location.pathname + window.location.search + window.location.hash,
-  }))
+  }
+
+  if (getCurrentGarminStoreOpenMode() === 'confirm') {
+    requestGarminInstall(request)
+    return
+  }
+
+  router.push(toGarminStoreBridge(request))
 }
 
 onMounted(() => {
@@ -71,6 +84,7 @@ onBeforeUnmount(() => {
 <template>
   <el-config-provider :locale="elementLocale">
     <ChinaSitePrompt />
+    <GarminInstallPrompt />
     <Layout>
       <router-view />
     </Layout>
