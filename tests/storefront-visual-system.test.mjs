@@ -414,7 +414,7 @@ test('commerce journey shares an accessible transaction shell without changing c
   assert.match(activation, /class="activation-btn[^\"]*commerce-primary-action[^\"]*"[^>]*:disabled=[^>]*:aria-busy=/)
 
   assert.match(success, /store\.reset\(\)/)
-  assert.match(success, /router\.push\('\/code'\)/)
+  assert.match(success, /router\.push\('\/activate'\)/)
   assert.match(success, /buildSsoSignupUrl\('store', \{ mode: 'signup' \}\)/)
 })
 
@@ -439,6 +439,44 @@ test('activation and payment success public copy is localized in English and Chi
   assert.match(i18n, /zh:\s*\{[\s\S]*'paymentSuccess\.title':/)
   assert.match(activation, /t\('activation\.title'\)/)
   assert.match(success, /t\('paymentSuccess\.title'\)/)
+})
+
+test('post-purchase surfaces share the complete Garmin installation journey', async () => {
+  const [card, prompt, activation, success, purchases, routes, seo, prerender, i18n] = await Promise.all([
+    read('../src/components/GarminInstallationSteps.vue'),
+    read('../src/components/GarminInstallPrompt.vue'),
+    read('../src/views/shop/AlreadyPurchased.vue'),
+    read('../src/views/shop/Success.vue'),
+    read('../src/views/user-center/PurchaseRecords.vue'),
+    read('../src/router/routes.ts'),
+    read('../src/seo.ts'),
+    read('../scripts/prerender-seo.mjs'),
+    read('../src/i18n.ts'),
+  ])
+
+  for (const key of [
+    'installationSteps.purchased',
+    'installationSteps.openConnectIq',
+    'installationSteps.tapInstall',
+    'installationSteps.waitForSync',
+    'installationSteps.selectWatchFace',
+    'installationSteps.installed',
+    'installationSteps.trouble',
+  ]) {
+    assert.ok(card.includes(`'${key}'`))
+    assert.ok(i18n.includes(`'${key}'`))
+  }
+
+  for (const surface of [prompt, activation, success, purchases]) {
+    assert.match(surface, /GarminInstallationSteps/)
+  }
+
+  assert.match(routes, /path:\s*'\/already-purchased'[\s\S]{0,160}redirect:\s*'\/activate'/)
+  assert.doesNotMatch(seo, /'\/already-purchased'/)
+  assert.doesNotMatch(prerender, /'\/already-purchased'/)
+  assert.match(i18n, /'activation\.successAlreadyActivated'/)
+  assert.match(i18n, /'activation\.errorInvalidCode'/)
+  assert.match(i18n, /activate once[\s\S]{0,120}5 minutes/i)
 })
 
 test('transaction controls expose 44px touch targets in their actual selector blocks', async () => {

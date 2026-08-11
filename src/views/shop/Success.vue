@@ -9,15 +9,7 @@
         <h1 id="payment-success-title">{{ t('paymentSuccess.title') }}</h1>
         <p class="success-message">{{ t('paymentSuccess.summary') }}</p>
 
-        <div class="next-step" role="note" :aria-label="t('paymentSuccess.nextStepAria')">
-          <div class="next-step-icon" aria-hidden="true">
-            <el-icon><QuartzWatch /></el-icon>
-          </div>
-          <div>
-            <h2>{{ t('paymentSuccess.nextStepTitle') }}</h2>
-            <p>{{ t('paymentSuccess.nextStepDescription') }}</p>
-          </div>
-        </div>
+        <GarminInstallationSteps @installed="goToActivation" @trouble="goToInstallHelp" />
 
         <div class="action-buttons" :aria-label="t('paymentSuccess.actionsAria')">
           <button type="button" class="primary-action commerce-primary-action" @click="goToActivation">
@@ -113,7 +105,6 @@ import {
   CreditCard,
   House,
   Lock,
-  QuartzWatch,
   Tickets,
   UserFilled,
 } from '@element-plus/icons-vue'
@@ -121,6 +112,7 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
 import { buildSsoLoginUrl, buildSsoSignupUrl } from '@/utils/ssoRedirect'
 import { useI18n } from '@/i18n'
+import GarminInstallationSteps from '@/components/GarminInstallationSteps.vue'
 
 const router = useRouter()
 const store = useShopOptionsStore()
@@ -173,6 +165,10 @@ function goHome() {
 
 function goToActivation() {
   router.push('/activate')
+}
+
+function goToInstallHelp() {
+  router.push('/faq/install-sync')
 }
 
 function goToPurchases() {

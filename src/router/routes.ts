@@ -135,7 +135,7 @@ const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/already-purchased',
     name: 'AlreadyPurchased',
-    component: () => import('@/views/shop/AlreadyPurchased.vue')
+    redirect: '/activate'
   },
   {
     path: '/unlock',

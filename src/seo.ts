@@ -109,7 +109,6 @@ const noindexPrefixes = [
   '/subscription-management',
   '/subscription-cancel',
   '/activate',
-  '/already-purchased',
   '/purchases-history',
   '/user',
   '/email',

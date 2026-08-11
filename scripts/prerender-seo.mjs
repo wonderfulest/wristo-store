@@ -391,7 +391,7 @@ function isNoindexRoute(route) {
     '/auto-unlock',
     '/subscription-management',
     '/subscription-cancel',
-    '/already-purchased',
+    '/activate',
     '/purchases-history',
     '/user',
     '/email',

@@ -543,6 +543,27 @@ test('ProductImageGallery removes the square stage around the circular foregroun
   assert.match(source, /\.product-gallery__thumbnails\s*\{[\s\S]*?background:/)
 })
 
+test('ProductImageGallery gives the mobile main image the full stage width with overlay controls', async () => {
+  const source = await readFile(productImageGalleryUrl, 'utf8')
+
+  assert.match(
+    source,
+    /@media \(max-width: 640px\)[\s\S]*?\.product-gallery__stage\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);/,
+  )
+  assert.match(
+    source,
+    /@media \(max-width: 640px\)[\s\S]*?\.product-gallery__carousel-button\s*\{[\s\S]*?position:\s*absolute;/,
+  )
+  assert.match(
+    source,
+    /@media \(max-width: 640px\)[\s\S]*?\.product-gallery__carousel-button--previous\s*\{[\s\S]*?left:\s*6px;/,
+  )
+  assert.match(
+    source,
+    /@media \(max-width: 640px\)[\s\S]*?\.product-gallery__carousel-button--next\s*\{[\s\S]*?right:\s*6px;/,
+  )
+})
+
 test('ProductImageGallery preserves its interaction markers on the storefront stage surface', async () => {
   const source = await readFile(productImageGalleryUrl, 'utf8')
 

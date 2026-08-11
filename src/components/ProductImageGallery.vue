@@ -742,13 +742,26 @@ watch(
   }
 
   .product-gallery__stage {
-    grid-template-columns: 34px minmax(0, 1fr) 34px;
-    gap: 6px;
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'image';
+    gap: 0;
   }
 
   .product-gallery__carousel-button {
+    position: absolute;
+    top: 50%;
     width: 34px;
     height: 34px;
+    transform: translateY(-50%);
+  }
+
+  .product-gallery__carousel-button--previous {
+    left: 6px;
+  }
+
+  .product-gallery__carousel-button--next {
+    right: 6px;
   }
 
   .product-gallery__thumbnails {

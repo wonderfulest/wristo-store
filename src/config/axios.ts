@@ -50,6 +50,8 @@ instance.interceptors.request.use(config => {
 const ErrorCodesWithoutMessage: number[] = [
   BizErrorCode.INVALID_PAYMENT_CODE,
   BizErrorCode.ALREADY_PAID,
+  BizErrorCode.TRIAL_PAYMENT_CODE_USED,
+  BizErrorCode.TRIAL_PAYMENT_CODE_INVALID,
 ]
 
 const localizeApiMessage = (message: string | undefined, fallback: string) => {

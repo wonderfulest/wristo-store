@@ -7,6 +7,8 @@
         <h1 class="title">{{ t('activation.title') }}</h1>
         <p class="desc">{{ t('activation.description') }}</p>
       </div>
+
+      <GarminInstallationSteps compact @installed="focusActivationCode" @trouble="goToInstallHelp" />
       
       <div class="tip-card">
         <div class="tip-icon" aria-hidden="true">
@@ -39,6 +41,7 @@
           <label class="input-label" for="activation-code">{{ t('activation.codeLabel') }}</label>
           <input 
             id="activation-code"
+            ref="activationCodeInput"
             v-model="activationCode" 
             type="text" 
             inputmode="numeric"
@@ -86,7 +89,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { activatePurchase } from '@/api/pay'
 import { ElMessage } from 'element-plus'
 import SmartwatchCodeHelpModal from '@/components/SmartwatchCodeHelpModal.vue'
@@ -94,9 +97,12 @@ import type { CheckPurchaseResponse } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 import { ArrowRight, CircleCheckFilled, QuartzWatch, WarningFilled } from '@element-plus/icons-vue'
 import { useI18n } from '@/i18n'
+import GarminInstallationSteps from '@/components/GarminInstallationSteps.vue'
+import { BizErrorCode } from '@/constant/errorCode'
 
 const userStore = useUserStore()
 const route = useRoute()
+const router = useRouter()
 const email = ref('')
 const activationCode = ref('')
 const loading = ref(false)
@@ -104,6 +110,7 @@ const error = ref('')
 const success = ref(false)
 const successMessage = ref('')
 const showCodeHelpModal = ref(false)
+const activationCodeInput = ref<HTMLInputElement | null>(null)
 const { t } = useI18n()
 
 const isFormValid = computed(() => {
@@ -113,6 +120,15 @@ const isFormValid = computed(() => {
 function clearMessages() {
   error.value = ''
   success.value = false
+}
+
+function focusActivationCode() {
+  activationCodeInput.value?.focus()
+  activationCodeInput.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+function goToInstallHelp() {
+  router.push('/faq/install-sync')
 }
 
 function handleCodeInput() {
@@ -171,7 +187,12 @@ async function handleActivation() {
       error.value = t('activation.errorNotFound')
     }
   } catch (e: any) {
-    if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
+    if (e?.code === BizErrorCode.TRIAL_PAYMENT_CODE_USED) {
+      success.value = true
+      successMessage.value = t('activation.successAlreadyActivated')
+    } else if (e?.code === BizErrorCode.TRIAL_PAYMENT_CODE_INVALID) {
+      error.value = t('activation.errorInvalidCode')
+    } else if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
       error.value = e.msg
     } else {
       error.value = t('activation.errorNetwork')
@@ -219,7 +240,7 @@ function handleResendCode() {
   -webkit-backdrop-filter: blur(16px);
   padding: 36px;
   width: 100%;
-  max-width: 540px;
+  max-width: 680px;
   max-height: none;
   display: flex;
   flex-direction: column;

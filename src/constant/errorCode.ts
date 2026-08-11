@@ -8,6 +8,8 @@ export const BizErrorCode = {
   INVALID_PAYMENT_CODE: 1001,
   ALREADY_PAID: 1002,
   PRODUCT_NOT_FOUND: 1003,
+  TRIAL_PAYMENT_CODE_USED: 1014,
+  TRIAL_PAYMENT_CODE_INVALID: 1015,
 } as const
 
 export const BizErrorMessage: Record<number, string> = {
@@ -19,4 +21,6 @@ export const BizErrorMessage: Record<number, string> = {
   [BizErrorCode.INVALID_PAYMENT_CODE]: 'Invalid payment code',
   [BizErrorCode.ALREADY_PAID]: 'Already paid, no need to repeat',
   [BizErrorCode.PRODUCT_NOT_FOUND]: 'Product not found',
+  [BizErrorCode.TRIAL_PAYMENT_CODE_USED]: 'Activation code already used',
+  [BizErrorCode.TRIAL_PAYMENT_CODE_INVALID]: 'Invalid activation code',
 }

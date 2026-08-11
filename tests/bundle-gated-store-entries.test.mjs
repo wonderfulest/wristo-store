@@ -54,7 +54,7 @@ test('HomeBanner filters bundle-only slides and cycles through the visible slide
 
   assert.match(
     source,
-    /const goToActivation = \(\) => \{\s*router\.push\(addLocaleToPath\('\/already-purchased', localeStore\.currentLocale\)\)\s*\}/,
+    /const goToActivation = \(\) => \{\s*router\.push\(addLocaleToPath\('\/activate', localeStore\.currentLocale\)\)\s*\}/,
   )
   assert.match(source, /id: 'activation',[\s\S]*?primaryAction: goToActivation/)
   const activationSlideSource = source.slice(source.indexOf("id: 'activation'"), source.indexOf("id: 'studio'"))

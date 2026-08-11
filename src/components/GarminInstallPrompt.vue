@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from '@/i18n'
+import GarminInstallationSteps from '@/components/GarminInstallationSteps.vue'
 import {
   GARMIN_INSTALL_REQUEST_EVENT,
   isAllowedGarminStoreUrl,
@@ -8,6 +10,7 @@ import {
 } from '@/utils/garminStore'
 
 const { t } = useI18n()
+const router = useRouter()
 const request = ref<GarminStoreBridgeParams | null>(null)
 
 const handleRequest = (event: Event) => {
@@ -24,7 +27,16 @@ const continueInstall = () => {
   const url = request.value?.url
   if (!url || !isAllowedGarminStoreUrl(url)) return
   window.open(url, '_blank', 'noopener,noreferrer')
+}
+
+const finishInstall = () => {
   close()
+  router.push('/activate')
+}
+
+const openHelp = () => {
+  close()
+  router.push('/faq/install-sync')
 }
 
 onMounted(() => window.addEventListener(GARMIN_INSTALL_REQUEST_EVENT, handleRequest))
@@ -41,17 +53,14 @@ onBeforeUnmount(() => window.removeEventListener(GARMIN_INSTALL_REQUEST_EVENT, h
         :aria-label="t('garminInstall.title')"
       >
         <div class="prompt-handle" aria-hidden="true"></div>
-        <p class="prompt-eyebrow">Garmin Connect IQ</p>
-        <h2>{{ t('garminInstall.title') }}</h2>
-        <p>{{ t('garminInstall.message') }}</p>
-        <div class="prompt-actions">
-          <button type="button" class="prompt-cancel" @click="close">
-            {{ t('garminInstall.cancel') }}
-          </button>
-          <button type="button" class="prompt-continue" @click="continueInstall">
-            {{ t('garminInstall.continue') }}
-          </button>
-        </div>
+        <button type="button" class="prompt-close" :aria-label="t('garminInstall.cancel')" @click="close">×</button>
+        <GarminInstallationSteps
+          compact
+          show-open-action
+          @open="continueInstall"
+          @installed="finishInstall"
+          @trouble="openHelp"
+        />
       </section>
     </div>
   </Transition>
@@ -74,6 +83,7 @@ onBeforeUnmount(() => window.removeEventListener(GARMIN_INSTALL_REQUEST_EVENT, h
   background: #fff;
   box-shadow: 0 -16px 48px rgba(8, 24, 23, 0.16);
   color: #123331;
+  position: relative;
 }
 
 .prompt-handle {
@@ -84,50 +94,18 @@ onBeforeUnmount(() => window.removeEventListener(GARMIN_INSTALL_REQUEST_EVENT, h
   background: #d5dfdc;
 }
 
-.prompt-eyebrow {
-  margin: 0 0 6px;
-  color: #0f6b68;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-h2 {
-  margin: 0 0 8px;
-  font-size: 21px;
-}
-
-.prompt-sheet > p:last-of-type {
-  margin: 0;
+.prompt-close {
+  position: absolute;
+  z-index: 1;
+  top: 20px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
   color: #526966;
-  line-height: 1.55;
-}
-
-.prompt-actions {
-  display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 10px;
-  margin-top: 22px;
-}
-
-.prompt-actions button {
-  min-height: 48px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.prompt-cancel {
-  border: 1px solid #d7e1df;
-  background: #fff;
-  color: #36514e;
-}
-
-.prompt-continue {
-  border: 1px solid #0f6b68;
-  background: #0f6b68;
-  color: #fff;
+  font-size: 28px;
+  cursor: pointer;
 }
 
 .garmin-install-prompt-enter-active,

@@ -20,6 +20,12 @@
         </div>
       </div>
 
+      <GarminInstallationSteps
+        v-if="!isLoading && records.length > 0"
+        @installed="navigateToActivation"
+        @trouble="navigateToInstallHelp"
+      />
+
       <div v-if="isLoading" class="loading-panel" aria-live="polite" aria-label="Loading purchase records">
         <div class="loading-line wide" />
         <div class="loading-grid">
@@ -184,6 +190,7 @@ import { ElMessage } from 'element-plus'
 import { getProductImageUrl } from '@/utils/productImage'
 import { useUserStore } from '@/store/user'
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal'
+import GarminInstallationSteps from '@/components/GarminInstallationSteps.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -205,6 +212,14 @@ const navigateToProfile = () => {
 
 const navigateToExplore = () => {
   router.push('/search')
+}
+
+const navigateToActivation = () => {
+  router.push('/activate')
+}
+
+const navigateToInstallHelp = () => {
+  router.push('/faq/install-sync')
 }
 
 const bundleRecords = computed(() => {
