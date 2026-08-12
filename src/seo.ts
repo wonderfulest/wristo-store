@@ -47,12 +47,12 @@ const staticSeoByPath: Record<string, SeoConfig> = {
     title: 'Purchase Options | Wristo',
     description: 'Compare Wristo purchase options for Garmin watch faces and bundles.',
   },
-  '/faq': {
+  '/support': {
     title: 'Garmin Watch Face FAQ and Guides | Wristo',
     description: 'Read Wristo FAQ guides about Garmin devices, watch faces, health metrics, activation, and Connect IQ setup.',
     type: 'article',
   },
-  '/faq/checkout': {
+  '/support/checkout': {
     title: 'Activation and Checkout Help | Wristo',
     description: 'Learn how to activate trials and complete checkout for Wristo Garmin watch faces.',
   },
@@ -184,7 +184,7 @@ export function getRouteSeo(route: RouteLocationNormalizedLoaded): SeoConfig {
     }
   }
 
-  if (canonicalMatchPath.includes('/faq')) {
+  if (canonicalMatchPath.includes('/support')) {
     return {
       title: 'Garmin Watch Face FAQ Guide | Wristo',
       description: 'Read Wristo guides about Garmin devices, watch faces, and Connect IQ setup.',

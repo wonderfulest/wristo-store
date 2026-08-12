@@ -168,7 +168,7 @@ function goToActivation() {
 }
 
 function goToInstallHelp() {
-  router.push('/faq/install-sync')
+  router.push('/support/install-sync')
 }
 
 function goToPurchases() {

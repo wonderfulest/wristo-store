@@ -33,8 +33,8 @@ const staticRoutes = [
   '/brands',
   '/premium',
   '/purchase-options',
-  '/faq',
-  '/faq/checkout',
+  '/support',
+  '/support/checkout',
   '/contact',
   '/terms-and-conditions',
   '/privacy-policy',
@@ -157,23 +157,23 @@ async function loadFaqGuideRoutes() {
   try {
     const source = await readFile(path.join(rootDir, 'src/content/faq-pages.ts'), 'utf8')
     const legacySource = await readFile(path.join(rootDir, 'src/content/faq-pages-legacy.ts'), 'utf8')
-    const routes = ['/faq']
+    const routes = ['/support']
     for (const match of source.matchAll(/tr\(\s*'([^']+)'\s*,\s*'([^']+)'/g)) {
       if (hiddenFaqGuideRouteSlugs.has(match[2])) continue
-      routes.push(`/${encodeURIComponent(match[1])}/faq/${encodeURIComponent(match[2])}`)
+      routes.push(`/${encodeURIComponent(match[1])}/support/${encodeURIComponent(match[2])}`)
     }
     for (const post of parseLegacyFaqPosts(legacySource)) {
       if (isHiddenFaqGuideRoutePost(post)) continue
       for (const translation of asList(post?.translations)) {
         if (translation?.lang && translation?.slug && translation?.contentHtml) {
-          routes.push(`/${encodeURIComponent(translation.lang)}/faq/${encodeURIComponent(translation.slug)}`)
+          routes.push(`/${encodeURIComponent(translation.lang)}/support/${encodeURIComponent(translation.slug)}`)
         }
       }
     }
     return uniqueRoutes(routes)
   } catch (error) {
     console.warn(`[seo] Static FAQ guide route discovery failed: ${error.message}`)
-    return ['/faq']
+    return ['/support']
   }
 }
 
@@ -300,8 +300,8 @@ async function writeLlms(routes) {
     `- Home: ${siteUrl}/`,
     `- Top watch faces: ${siteUrl}/top`,
     `- Bundles: ${siteUrl}/bundle-products`,
-    `- FAQ: ${siteUrl}/faq`,
-    `- FAQ guides: ${siteUrl}/faq`,
+    `- FAQ: ${siteUrl}/support`,
+    `- FAQ guides: ${siteUrl}/support`,
     '',
     '## Indexed routes',
     ...routes.slice(0, 200).map((route) => `- ${siteUrl}${route}`),

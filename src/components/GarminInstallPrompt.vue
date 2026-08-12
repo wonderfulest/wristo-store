@@ -36,7 +36,7 @@ const finishInstall = () => {
 
 const openHelp = () => {
   close()
-  router.push('/faq/install-sync')
+  router.push('/support/install-sync')
 }
 
 onMounted(() => window.addEventListener(GARMIN_INSTALL_REQUEST_EVENT, handleRequest))

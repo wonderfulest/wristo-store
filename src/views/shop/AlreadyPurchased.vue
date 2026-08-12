@@ -128,7 +128,7 @@ function focusActivationCode() {
 }
 
 function goToInstallHelp() {
-  router.push('/faq/install-sync')
+  router.push('/support/install-sync')
 }
 
 function handleCodeInput() {

@@ -1,4 +1,26 @@
 {
+  "redirects": [
+    {
+      "source": "/faq",
+      "destination": "/support",
+      "permanent": true
+    },
+    {
+      "source": "/faq/:path*",
+      "destination": "/support/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:lang/faq",
+      "destination": "/:lang/support",
+      "permanent": true
+    },
+    {
+      "source": "/:lang/faq/:path*",
+      "destination": "/:lang/support/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

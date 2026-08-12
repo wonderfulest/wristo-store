@@ -97,27 +97,27 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/SubscriptionCancel.vue')
   },
   {
-    path: '/faq',
+    path: '/support',
     name: 'FAQGuides',
     component: () => import('@/views/blogs/BlogPost.vue'),
   },
   {
-    path: `/:lang(${langPattern})/faq`,
+    path: `/:lang(${langPattern})/support`,
     name: 'FAQGuidesLang',
     component: () => import('@/views/blogs/BlogPost.vue'),
   },
   {
-    path: '/faq/checkout',
+    path: '/support/checkout',
     name: 'CheckoutHelp',
     component: () => import('@/views/faq/CheckoutHelp.vue')
   },
   {
-    path: `/:lang(${langPattern})/faq/:slug`,
+    path: `/:lang(${langPattern})/support/:slug`,
     name: 'FAQGuideLang',
     component: () => import('@/views/blogs/BlogPost.vue'),
   },
   {
-    path: '/faq/:slug',
+    path: '/support/:slug',
     name: 'FAQGuide',
     component: () => import('@/views/blogs/BlogPost.vue'),
   },
@@ -302,7 +302,7 @@ const baseRoutes: RouteRecordRaw[] = [
     redirect: (to) => {
       const lang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
       const slug = Array.isArray(to.params.slug) ? to.params.slug[0] : to.params.slug
-      return `/${encodeURIComponent(String(lang))}/faq/${encodeURIComponent(String(slug))}`
+      return `/${encodeURIComponent(String(lang))}/support/${encodeURIComponent(String(slug))}`
     }
   },
   {
@@ -310,7 +310,7 @@ const baseRoutes: RouteRecordRaw[] = [
     name: 'BlogTreeLang',
     redirect: (to) => {
       const lang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
-      return `/${encodeURIComponent(String(lang))}/faq`
+      return `/${encodeURIComponent(String(lang))}/support`
     }
   },
   {
@@ -318,13 +318,13 @@ const baseRoutes: RouteRecordRaw[] = [
     name: 'BlogPost',
     redirect: (to) => {
       const slug = Array.isArray(to.params.slug) ? to.params.slug[0] : to.params.slug
-      return `/faq/${encodeURIComponent(String(slug))}`
+      return `/support/${encodeURIComponent(String(slug))}`
     }
   },
   {
     path: '/blog',
     name: 'BlogTree',
-    redirect: '/faq'
+    redirect: '/support'
   },
   {
     path: '/:pathMatch(.*)*',
@@ -336,7 +336,7 @@ const baseRoutes: RouteRecordRaw[] = [
 function withLanguagePrefix(route: RouteRecordRaw): RouteRecordRaw | null {
   if (route.path === '/:pathMatch(.*)*') return null
   if (route.path.startsWith('/:lang')) return null
-  if (route.path === '/faq' || route.path === '/faq/:slug') return null
+  if (route.path === '/support' || route.path === '/support/:slug') return null
   if (route.path === '/unlock') return null
   if (route.path.startsWith('/blog')) return null
 

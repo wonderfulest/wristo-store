@@ -81,8 +81,8 @@ const localizedFaqGuideSectionTitles: Record<string, Partial<Record<SupportedLoc
 }
 const hiddenFaqGuidePostIds = collectHiddenFaqGuidePostIds(faqGuideTocTree)
 const localePattern = SUPPORTED_LOCALES.join('|')
-const faqPathPattern = new RegExp(`^/(?:(${localePattern})/)?faq(?:/([^/?#]+))?/?$`)
-const localizedFaqPathPattern = new RegExp(`^/(${localePattern})/faq(?:/|$)`)
+const faqPathPattern = new RegExp(`^/(?:(${localePattern})/)?support(?:/([^/?#]+))?/?$`)
+const localizedFaqPathPattern = new RegExp(`^/(${localePattern})/support(?:/|$)`)
 
 export const supportedFaqGuideLangs = Array.from(
   new Set(
@@ -119,7 +119,7 @@ export function getFaqGuideTocTree(lang?: string): BlogPostTocItemVO[] {
 }
 
 export function getFaqGuideRoutes(): string[] {
-  const routes = new Set<string>(['/faq'])
+  const routes = new Set<string>(['/support'])
   for (const post of getDisplayablePosts()) {
     for (const translation of post.translations || []) {
       if (translation.lang && translation.slug) routes.add(buildFaqGuidePath(translation.lang, translation.slug))
@@ -133,9 +133,9 @@ export function getFaqGuidePosts(): BlogPostVO[] {
 }
 
 export function buildFaqGuidePath(lang: string | undefined, slug: string | undefined): string {
-  if (lang && slug) return `/${encodeURIComponent(lang)}/faq/${encodeURIComponent(slug)}`
-  if (slug) return `/faq/${encodeURIComponent(slug)}`
-  return lang ? `/${encodeURIComponent(lang)}/faq` : '/faq'
+  if (lang && slug) return `/${encodeURIComponent(lang)}/support/${encodeURIComponent(slug)}`
+  if (slug) return `/support/${encodeURIComponent(slug)}`
+  return lang ? `/${encodeURIComponent(lang)}/support` : '/support'
 }
 
 export function getFaqGuidePathForLocale(path: string, targetLang: string): string {
@@ -175,7 +175,7 @@ export function blogUrlToFaqUrl(url: string | undefined): string | undefined {
   if (match) return buildFaqGuidePath(match[1], match[2])
   const defaultMatch = url.match(/^\/blog\/([^/?#]+)/)
   if (defaultMatch) return buildFaqGuidePath(undefined, defaultMatch[1])
-  return url.replace('/blog', '/faq')
+  return url.replace('/blog', '/support')
 }
 
 function findPostBySlug(slug: string, lang?: string): BlogPostVO | null {

@@ -219,7 +219,7 @@ const navigateToActivation = () => {
 }
 
 const navigateToInstallHelp = () => {
-  router.push('/faq/install-sync')
+  router.push('/support/install-sync')
 }
 
 const bundleRecords = computed(() => {

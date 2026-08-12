@@ -48,7 +48,7 @@ function tr(lang: string, slug: string, title: string, summary: string, contentH
     title,
     summary,
     contentHtml,
-    url: `/${lang}/faq/${slug}`,
+    url: `/${lang}/support/${slug}`,
   }
 }
 
@@ -485,7 +485,7 @@ export const faqGuideTocTree: BlogPostTocItemVO[] = [
     anchor: 'faq',
     orderIndex: 1,
     depth: 0,
-    linkUrl: '/zh/faq/faq',
+    linkUrl: '/zh/support/faq',
     isActive: 1,
     createdAt: now,
     updatedAt: now,
@@ -514,7 +514,7 @@ function createPostNode({
     anchor: post.slug,
     orderIndex,
     depth: 1,
-    linkUrl: `/zh/faq/${post.slug}`,
+    linkUrl: `/zh/support/${post.slug}`,
     isActive: 1,
     createdAt: post.createdAt || now,
     updatedAt: post.updatedAt || now,

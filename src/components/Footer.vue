@@ -20,7 +20,7 @@
           <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a>
           <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a>
           <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a>
-          <!-- <a href="/faq">FAQ</a> -->
+          <!-- <a href="/support">FAQ</a> -->
         </nav>
       </div>
 
@@ -60,7 +60,7 @@
             <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a> |
             <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a> |
             <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a> |
-            <!-- <a href="/faq">FAQ</a> -->
+            <!-- <a href="/support">FAQ</a> -->
           </div>
         </div>
       </transition>
