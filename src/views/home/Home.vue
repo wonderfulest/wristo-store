@@ -82,7 +82,7 @@ onMounted(async () => {
   const [series, hot, newest] = await Promise.allSettled([
     productStore.getHotSeries(10),
     productStore.getHotProducts(),
-    productStore.getNewProducts(30),
+    productStore.getNewProducts(60),
   ])
 
   if (series.status === 'fulfilled') seriesList.value = series.value

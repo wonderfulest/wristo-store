@@ -75,6 +75,11 @@ test('new arrivals nested cart keyboard events stay local and the cart target is
   assert.doesNotMatch(source, /@media[\s\S]*?\.cart-toggle\s*\{[^}]*(?:min-)?(?:width|height):\s*(?:[1-3]\d|4[0-3])px/s)
 })
 
+test('home requests enough new arrivals for a substantial carousel', async () => {
+  const source = await read('../src/views/home/Home.vue')
+  assert.match(source, /productStore\.getNewProducts\(60\)/)
+})
+
 test('categories delegates product navigation and returns home through the active locale', async () => {
   const source = await read('../src/views/products/Categories.vue')
   const productCard = source.match(/<product-card\b[\s\S]*?\/>/)?.[0] ?? ''
