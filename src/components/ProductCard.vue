@@ -47,7 +47,19 @@
       <span v-else class="product-img-fallback">W</span>
     </div>
     <div class="product-info">
-      <div class="product-name">{{ product?.name }}</div>
+      <div class="product-main-row">
+        <div class="product-name">{{ product?.name }}</div>
+        <button
+          v-if="canBuyNow"
+          class="buy-now"
+          type="button"
+          :title="t('product.buyNow')"
+          :aria-label="t('product.buyNow')"
+          @click.stop="buyNow"
+        >
+          <Icon icon="solar:bag-4-bold-duotone" width="22" height="22" aria-hidden="true" />
+        </button>
+      </div>
       <div v-if="isAdmin" class="product-public-metrics" :aria-label="t('product.popularityAria')">
         <span>
           <Icon icon="solar:download-minimalistic-line-duotone" width="16" height="16" aria-hidden="true" />
@@ -67,20 +79,6 @@
         @changed="refreshAfterAdminChange"
         @removed-from-current-category="handleRemovedFromCurrentCategory"
       />
-      <div v-if="!hasPremiumAccess" class="product-footer">
-        <div class="product-price">{{ formattedPrice }}</div>
-        <button
-          v-if="isCartEnabled"
-          class="cart-toggle"
-          type="button"
-          :class="{ active: isInCart }"
-          :title="isInCart ? t('cart.removeFromCart') : t('cart.addToCart')"
-          :aria-label="isInCart ? t('cart.removeFromCart') : t('cart.addToCart')"
-          @click.stop="toggleCart"
-        >
-          <Icon icon="solar:cart-3-line-duotone" width="20" height="20" aria-hidden="true" />
-        </button>
-      </div>
     </div>
   </article>
 </template>
@@ -88,17 +86,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { Icon } from '@iconify/vue'
-import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useI18n } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 import { resolveProductDisplayRating } from '@/utils/productRating'
 import { useCountDisplay } from '@/composables/useCountDisplay'
-import { showAddedToCartMessage } from '@/utils/cartFeedback'
-import { isCartEnabled } from '@/config/features'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 import { resolveProductBadges } from '@/utils/productBadges'
 import { fetchAdminStoreMetricBatched, invalidateAdminStoreMetric } from '@/utils/adminStoreMetricsBatch'
@@ -119,21 +113,17 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
-const cartStore = useCartStore()
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
 const localMetrics = ref<ProductStoreMetricsVO | null>(null)
 
-const isInCart = computed(() => cartStore.hasItem(props.product?.appId))
 const productImageUrl = computed(() => getProductImageUrl(props.product))
 const productBadges = computed(() => resolveProductBadges(props.product))
-const formattedPrice = computed(() => Number(props.product?.price || 0) <= 0
-  ? t('product.badge.free')
-  : `$${Number(props.product?.price || 0).toFixed(2)}`)
-const productAriaLabel = computed(() => `${props.product?.name || ''}, ${formattedPrice.value}`)
+const productAriaLabel = computed(() => String(props.product?.name || ''))
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
+const canBuyNow = computed(() => !hasPremiumAccess.value && Number(props.product?.price || 0) > 0)
 const resolvedMetrics = computed(() => props.adminMetrics || localMetrics.value)
 const currentCategoryId = computed(() => props.currentCategoryId ?? null)
 const canEditInStudio = computed(() => {
@@ -153,18 +143,11 @@ const editInStudio = () => {
   openStudioDesign(designId)
 }
 
-const toggleCart = () => {
-  if (!isCartEnabled) return
+const buyNow = () => {
   if (!props.product?.appId) return
-  const removing = cartStore.hasItem(props.product.appId)
-  cartStore.toggle(props.product)
-  if (removing) {
-    ElMessage.success(t('cart.removed'))
-    return
-  }
-  showAddedToCartMessage(router, localeStore.currentLocale, {
-    added: t('cart.added'),
-    viewCart: t('cart.viewCart'),
+  router.push({
+    path: addLocaleToPath('/purchase-options', localeStore.currentLocale),
+    query: { appId: String(props.product.appId) },
   })
 }
 
@@ -214,6 +197,8 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 <style scoped>
 .product-card {
   position: relative;
+  box-sizing: border-box;
+  min-width: 0;
   background: var(--surface-raised);
   border-radius: 18px;
   overflow: visible;
@@ -222,6 +207,7 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
   cursor: pointer;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto 1fr;
   height: 100%;
   width: 100%;
@@ -230,29 +216,34 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   color: var(--color-ink);
 }
 
-.cart-toggle {
-  width: 44px;
-  min-width: 44px;
-  height: 44px;
-  flex: 0 0 44px;
+.buy-now {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
   padding: 0;
+  border: 1px solid var(--color-brand);
   border-radius: 999px;
-  border: 1px solid rgba(17, 24, 39, 0.12);
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--color-muted);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(10px);
-  transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+  color: #fff;
+  background: var(--color-brand);
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
-.cart-toggle:hover,
-.cart-toggle.active {
-  color: var(--color-brand);
-  border-color: rgba(15, 107, 104, 0.28);
-  background: var(--color-brand-soft);
+.buy-now:hover,
+.buy-now:focus-visible {
+  border-color: var(--color-brand-strong);
+  background: var(--color-brand-strong);
+  transform: translateY(-1px);
+}
+
+.buy-now:focus-visible {
+  outline: 3px solid rgba(15, 107, 104, 0.24);
+  outline-offset: 2px;
 }
 
 .product-card:hover,
@@ -269,6 +260,9 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 
 .product-img-wrap {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  align-self: start;
   aspect-ratio: 1;
   border-radius: 50%;
   overflow: hidden;
@@ -293,7 +287,9 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 
 .product-img {
   width: 100%;
+  max-width: 100%;
   height: 100%;
+  max-height: 100%;
   object-fit: cover;
   border-radius: 50%;
   display: block;
@@ -312,15 +308,22 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   gap: 6px;
 }
 
+.product-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
 .product-name {
   font-size: 1.05rem;
   font-weight: 750;
   color: var(--color-ink);
   margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  min-width: 0;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
   line-height: 1.3;
   letter-spacing: 0;
@@ -353,20 +356,6 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 
 .product-card:hover .product-name {
   color: var(--color-brand);
-}
-
-.product-price {
-  display: inline-flex;
-  align-items: center;
-  min-height: 34px;
-  padding: 0 12px;
-  border-radius: 999px;
-  color: var(--color-brand-strong);
-  background: rgba(15, 107, 104, 0.08);
-  font-size: 1rem;
-  font-weight: 850;
-  font-variant-numeric: tabular-nums;
-  transition: color 180ms ease, background 180ms ease;
 }
 
 .studio-edit-button {
@@ -404,11 +393,6 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
 
 .product-card.has-admin-edit .product-activated-badge {
   right: 54px;
-}
-
-.product-card:hover .product-price {
-  color: #fff;
-  background: var(--color-brand);
 }
 
 .product-activated-badge {
@@ -475,13 +459,6 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   background: rgba(255, 244, 214, 0.94);
 }
 
-.product-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 @media (max-width: 600px) {
   .product-card {
     padding: 9px;
@@ -515,10 +492,5 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
     font-size: 0.75rem;
   }
 
-  .product-price {
-    min-height: 30px;
-    padding-inline: 9px;
-    font-size: 0.9rem;
-  }
 }
 </style> 

@@ -14,6 +14,15 @@ const baseRoutes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/home-legacy',
+    name: 'HomeLegacy',
+    component: () => import('@/views/home/HomeLegacy.vue'),
+    meta: {
+      showFloatingActions: true,
+      noindex: true,
+    }
+  },
+  {
     path: '/search',
     name: 'Search',
     component: () => import('@/views/search/SearchView.vue'),

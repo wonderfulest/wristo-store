@@ -61,8 +61,25 @@ test('product cards expose badges, keyboard access and mobile-friendly controls'
   assert.match(card, /:aria-label="productAriaLabel"/)
   assert.match(card, /@keydown\.enter/)
   assert.match(card, /@keydown\.space/)
+  assert.match(card, /\.product-card\s*\{[^}]*box-sizing:\s*border-box;[^}]*min-width:\s*0;[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s)
+  assert.match(card, /\.product-img-wrap\s*\{[^}]*max-width:\s*100%;[^}]*align-self:\s*start;/s)
+  assert.match(card, /\.product-img\s*\{[^}]*max-width:\s*100%;[^}]*max-height:\s*100%;/s)
   assert.match(card, /(?:min-)?width:\s*44px/)
   assert.match(card, /@media \(max-width:\s*600px\)/)
+})
+
+test('paid product cards offer a direct locale-aware purchase-options action', async () => {
+  const card = await read('../src/components/ProductCard.vue')
+
+  assert.doesNotMatch(card, /class="product-price"/)
+  assert.doesNotMatch(card, /class="cart-toggle"|toggleCart|useCartStore/)
+  assert.match(card, /class="product-main-row"/)
+  assert.match(card, /v-if="canBuyNow"/)
+  assert.match(card, /t\('product\.buyNow'\)/)
+  assert.match(card, /@click\.stop="buyNow"/)
+  assert.match(card, /solar:bag-4-bold-duotone/)
+  assert.match(card, /addLocaleToPath\('\/purchase-options', localeStore\.currentLocale\)/)
+  assert.match(card, /query:\s*\{\s*appId:\s*String\(props\.product\.appId\)\s*\}/)
 })
 
 test('compiled product card keyboard handlers ignore events from nested controls', async () => {
@@ -81,8 +98,8 @@ test('compiled product card keyboard handlers ignore events from nested controls
   assert.equal(result.code.match(selfBeforePrevent)?.length, 2)
 })
 
-test('home composes an editorial gallery with a motion-aware stage and shared headings', async () => {
-  const home = await read('../src/views/home/Home.vue')
+test('legacy home preserves the editorial gallery with a motion-aware stage and shared headings', async () => {
+  const home = await read('../src/views/home/HomeLegacy.vue')
   const orderedSections = [
     '<HomeBanner',
     '<SearchSection',

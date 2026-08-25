@@ -15,6 +15,7 @@ test('support is canonical and legacy FAQ paths redirect permanently', async () 
   assert.match(routes, /path: `\/:lang\(\$\{langPattern\}\)\/support`/)
   assert.match(guides, /new Set<string>\(\['\/support'\]\)/)
   assert.match(guides, /\?support\(\?:\/\(\[\^\/\?#\]\+\)\)\?/)
+  assert.match(guides, /hiddenFaqGuideSectionTitles[\s\S]*?'Settings and display'/)
 
   const config = JSON.parse(vercel)
   assert.deepEqual(config.redirects, [

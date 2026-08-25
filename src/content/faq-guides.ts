@@ -5,6 +5,7 @@ import { DEFAULT_LOCALE, SUPPORTED_LOCALES, normalizeLocale, type SupportedLocal
 export const DEFAULT_FAQ_GUIDE_LANG = 'en'
 const hiddenFaqGuideSectionTitles = new Set([
   'Design & Tutorials',
+  'Settings and display',
   'Watchface Picks',
   'Updates',
 ])
