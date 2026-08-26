@@ -150,6 +150,17 @@ export const getRelatedProducts = (appId: string): Promise<ProductBaseVO[]> => {
   return instance.get(`/public/products/related/${appId}`)
 }
 
+export const getProductRecommendations = (
+  appId: string | number,
+  pageNum = 1,
+  pageSize = 12,
+  excludeIds: number[] = [],
+): Promise<PageResult<ProductBaseVO>> => {
+  return instance.get(`/public/products/recommendations/${appId}`, {
+    params: { pageNum, pageSize, ...(excludeIds.length ? { excludeIds: excludeIds.join(',') } : {}) },
+  })
+}
+
 export type CategoryProductOrderBy = 'download:desc' | 'rating:desc,download:desc' | 'createdAt:desc'
 
 export interface CategoryAuthorOption {
