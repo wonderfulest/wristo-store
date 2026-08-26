@@ -4,17 +4,18 @@ import test from 'node:test'
 
 const read = (path) => readFile(new URL(path, import.meta.url), 'utf8')
 
-test('the store home keeps search, applications, and guides while preserving the legacy home', async () => {
+test('the store home promotes Premium above search and below applications while preserving the legacy home', async () => {
   const home = await read('../src/views/home/Home.vue')
   const legacy = await read('../src/views/home/HomeLegacy.vue')
 
-  const sections = ['<HomeIntro', '<HomeProductGrid', '<HomeGuides']
+  const sections = ['<HomeBanner premium-only', '<HomeIntro', '<HomeProductGrid', '<PremiumSuiteCard']
   let previousIndex = -1
   for (const section of sections) {
     const index = home.indexOf(section)
     assert.ok(index > previousIndex, `${section} should follow the previous new-home section`)
     previousIndex = index
   }
+  assert.doesNotMatch(home, /<HomeGuides/)
 
   for (const legacySection of [
     '<HomeBanner',
@@ -28,6 +29,15 @@ test('the store home keeps search, applications, and guides while preserving the
   ]) {
     assert.match(legacy, new RegExp(legacySection))
   }
+})
+
+test('the Premium-only homepage banner renders one offer without carousel controls or rotation', async () => {
+  const banner = await read('../src/views/home/components/HomeBanner.vue')
+
+  assert.match(banner, /premiumOnly\?: boolean/)
+  assert.match(banner, /props\.premiumOnly\s*\?\s*allSlides\.filter\(\(slide\) => slide\.id === 'premium'\)/)
+  assert.match(banner, /v-if="visibleSlides\.length > 1" class="banner-carousel"/)
+  assert.match(banner, /if \(visibleSlides\.value\.length <= 1\) return/)
 })
 
 test('the legacy home remains directly reachable and is excluded from indexing', async () => {

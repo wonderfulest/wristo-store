@@ -72,7 +72,7 @@
         </div>
       </div>
 
-      <div class="banner-carousel" :aria-label="t('home.heroCarouselAria')">
+      <div v-if="visibleSlides.length > 1" class="banner-carousel" :aria-label="t('home.heroCarouselAria')">
         <button
           v-for="(slide, index) in visibleSlides"
           :key="slide.id"
@@ -99,6 +99,11 @@ import { hasBundleStoreEntryAccess } from '@/utils/entitlements'
 import { openStudio } from '@/utils/studio'
 
 const router = useRouter()
+const props = withDefaults(defineProps<{
+  premiumOnly?: boolean
+}>(), {
+  premiumOnly: false
+})
 const localeStore = useLocaleStore()
 const userStore = useUserStore()
 const { t } = useI18n()
@@ -295,7 +300,9 @@ const allSlides: HeroSlide[] = [
 ]
 
 const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
-const visibleSlides = computed(() => allSlides.filter((slide) => !slide.requiresBundle || canShowBundleEntries.value))
+const visibleSlides = computed(() => props.premiumOnly
+  ? allSlides.filter((slide) => slide.id === 'premium')
+  : allSlides.filter((slide) => !slide.requiresBundle || canShowBundleEntries.value))
 const activeSlide = computed(() => visibleSlides.value[activeSlideIndex.value] || visibleSlides.value[0])
 
 watch(visibleSlides, (slides) => {
@@ -321,6 +328,7 @@ const pauseCarousel = () => {
 }
 
 const resumeCarousel = () => {
+  if (visibleSlides.value.length <= 1) return
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   if (!carouselTimer) {
     carouselTimer = window.setInterval(nextSlide, 6500)

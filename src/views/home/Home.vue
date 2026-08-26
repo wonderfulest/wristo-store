@@ -1,5 +1,6 @@
 <template>
   <main class="catalog-home">
+    <HomeBanner premium-only />
     <HomeIntro />
     <HomeProductGrid
       :products="newProducts"
@@ -13,7 +14,7 @@
       @retry="loadMore"
       @reach-end="loadMore"
     />
-    <HomeGuides />
+    <PremiumSuiteCard class="premium-suite-section" />
   </main>
 </template>
 
@@ -21,9 +22,10 @@
 import { onMounted, ref } from 'vue'
 import { getNewProducts } from '@/api/product'
 import type { ProductBaseVO } from '@/types'
+import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
+import HomeBanner from '@/views/home/components/HomeBanner.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
-import HomeGuides from '@/views/home/components/HomeGuides.vue'
 
 const pageSize = 24
 const newProducts = ref<ProductBaseVO[]>([])
@@ -72,4 +74,14 @@ onMounted(loadInitialProducts)
 
 <style scoped>
 .catalog-home { min-height: 100%; overflow: hidden; background: #f7f8f5; }
+.premium-suite-section {
+  width: min(960px, calc(100% - 32px));
+  margin: 32px auto 64px;
+}
+@media (max-width: 768px) {
+  .premium-suite-section {
+    width: calc(100% - 24px);
+    margin: 24px auto 40px;
+  }
+}
 </style>
