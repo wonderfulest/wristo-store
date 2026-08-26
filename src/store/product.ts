@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { searchProducts, getNewProducts, getSeries, 
-  getHotProducts, getProductDetail, getRelatedProducts, getHotSeries, 
+  getHotProducts, getProductDetail, getRelatedProducts, getProductRecommendations, getHotSeries,
   searchProductsV2,
 } from '@/api/product'
 import type { ProductBaseVO, ProductVO, Series, PageResult } from '@/types'
@@ -170,6 +170,10 @@ export const useProductStore = defineStore('product', {
       } finally {
         this.loading = false
       }
+    },
+
+    async getProductRecommendations(id: string, pageNum: number, excludeIds: number[]): Promise<PageResult<ProductBaseVO>> {
+      return getProductRecommendations(id, pageNum, 12, excludeIds)
     },
   }
 })
