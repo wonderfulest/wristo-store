@@ -6,21 +6,16 @@ withDefaults(
     primaryLabel: string
     primaryDisabled?: boolean
     secondaryLabel?: string
-    favoriteLabel?: string
-    favoriteActive?: boolean
   }>(),
   {
     primaryDisabled: false,
     secondaryLabel: '',
-    favoriteLabel: '',
-    favoriteActive: false,
   },
 )
 
 defineEmits<{
   (event: 'primary'): void
   (event: 'secondary'): void
-  (event: 'favorite'): void
 }>()
 </script>
 
@@ -33,17 +28,6 @@ defineEmits<{
   >
     <div class="mobile-product-action-bar__price">{{ priceLabel }}</div>
     <button
-      v-if="favoriteLabel"
-      type="button"
-      class="mobile-product-action-bar__favorite"
-      :class="{ active: favoriteActive }"
-      :aria-label="favoriteLabel"
-      :aria-pressed="favoriteActive"
-      @click="$emit('favorite')"
-    >
-      {{ favoriteActive ? '♥' : '♡' }}
-    </button>
-    <button
       v-if="secondaryLabel"
       type="button"
       class="mobile-product-action-bar__secondary"
@@ -55,10 +39,7 @@ defineEmits<{
       v-if="primaryLabel"
       type="button"
       class="mobile-product-action-bar__primary"
-      :class="{
-        'mobile-product-action-bar__primary--wide': !secondaryLabel,
-        'mobile-product-action-bar__primary--with-favorite': Boolean(favoriteLabel),
-      }"
+      :class="{ 'mobile-product-action-bar__primary--wide': !secondaryLabel }"
       :disabled="primaryDisabled"
       @click="$emit('primary')"
     >
@@ -81,7 +62,7 @@ defineEmits<{
     left: 0;
     z-index: var(--layer-mobile-transaction);
     display: grid;
-    grid-template-columns: minmax(60px, auto) 48px minmax(0, 1fr) minmax(0, 1.25fr);
+    grid-template-columns: minmax(60px, auto) minmax(0, 1fr) minmax(0, 1.25fr);
     align-items: center;
     gap: 8px;
     padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
@@ -103,7 +84,6 @@ defineEmits<{
   }
 
   .mobile-product-action-bar__secondary,
-  .mobile-product-action-bar__favorite,
   .mobile-product-action-bar__primary {
     min-width: 0;
     min-height: 48px;
@@ -121,17 +101,6 @@ defineEmits<{
     background: #fff;
   }
 
-  .mobile-product-action-bar__favorite {
-    width: 48px;
-    min-height: 48px;
-    padding: 0;
-    border: 1px solid rgba(223, 66, 101, 0.2);
-    border-radius: 50%;
-    color: #df4265;
-    background: #fff;
-    font-size: 1.35rem;
-  }
-
   .mobile-product-action-bar__primary {
     border: 1px solid var(--color-brand);
     color: #fff;
@@ -143,12 +112,7 @@ defineEmits<{
     grid-column: 2 / -1;
   }
 
-  .mobile-product-action-bar__primary--wide.mobile-product-action-bar__primary--with-favorite {
-    grid-column: 3 / -1;
-  }
-
   .mobile-product-action-bar__secondary:focus-visible,
-  .mobile-product-action-bar__favorite:focus-visible,
   .mobile-product-action-bar__primary:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
@@ -162,7 +126,7 @@ defineEmits<{
 
 @media (max-width: 430px) {
   .mobile-product-action-bar {
-    grid-template-columns: 44px 44px minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-columns: minmax(52px, auto) minmax(0, 0.95fr) minmax(0, 1.2fr);
     padding-right: 12px;
     padding-left: 12px;
   }

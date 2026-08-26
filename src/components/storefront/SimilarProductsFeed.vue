@@ -3,8 +3,6 @@ import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import type { ProductBaseVO } from '@/types'
 import { useProductStore } from '@/store/product'
-import { useProductFavoriteStore } from '@/store/productFavorites'
-import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
 import { addLocaleToPath } from '@/store/locale'
 import { getProductImageUrl } from '@/utils/productImage'
@@ -14,8 +12,6 @@ import { useI18n } from '@/i18n'
 const props = defineProps<{ appId: number }>()
 const router = useRouter()
 const productStore = useProductStore()
-const favoriteStore = useProductFavoriteStore()
-const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const items = ref<ProductBaseVO[]>([])
@@ -69,14 +65,6 @@ const openProduct = async (item: ProductBaseVO) => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-const toggleFavorite = async (item: ProductBaseVO) => {
-  try {
-    await favoriteStore.toggle(item, Boolean(userStore.token))
-  } catch {
-    // The store already rolls back the optimistic favorite state.
-  }
-}
-
 watch(() => props.appId, async () => {
   recentlyViewed.value = appendRecentlyViewed(recentlyViewed.value, props.appId)
   items.value = []
@@ -92,8 +80,8 @@ onBeforeUnmount(() => observer?.disconnect())
 <template>
   <section class="similar-products" aria-labelledby="similar-products-title">
     <header>
-      <p>{{ t('favorites.keepExploring') }}</p>
-      <h2 id="similar-products-title">{{ t('favorites.similarTitle') }}</h2>
+      <p>{{ t('recommendations.keepExploring') }}</p>
+      <h2 id="similar-products-title">{{ t('recommendations.similarTitle') }}</h2>
     </header>
     <div class="similar-products-grid">
       <article v-for="item in items" :key="item.appId" class="similar-product-card">
@@ -101,18 +89,9 @@ onBeforeUnmount(() => observer?.disconnect())
           <img :src="getProductImageUrl(item)" :alt="item.name" loading="lazy" />
           <span class="similar-product-copy"><strong>{{ item.name }}</strong><span>${{ item.price.toFixed(2) }}</span></span>
         </button>
-        <button
-          type="button"
-          class="similar-product-favorite"
-          :aria-label="`${favoriteStore.hasFavorite(item.appId) ? 'Remove' : 'Save'} ${item.name}`"
-          :aria-pressed="favoriteStore.hasFavorite(item.appId)"
-          @click="toggleFavorite(item)"
-        >
-          {{ favoriteStore.hasFavorite(item.appId) ? '♥' : '♡' }}
-        </button>
       </article>
     </div>
-    <button v-if="failed" type="button" class="similar-products-retry" @click="load">{{ t('favorites.retry') }}</button>
+    <button v-if="failed" type="button" class="similar-products-retry" @click="load">{{ t('recommendations.retry') }}</button>
     <div ref="sentinel" class="similar-products-sentinel" aria-hidden="true"></div>
   </section>
 </template>
@@ -128,7 +107,6 @@ onBeforeUnmount(() => observer?.disconnect())
 .similar-product-copy { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px 12px; }
 .similar-product-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .similar-product-copy span { color: var(--color-stage-muted); font-weight: 750; }
-.similar-product-favorite { position: absolute; top: 8px; right: 8px; width: 44px; height: 44px; border: 1px solid rgba(0,0,0,.08); border-radius: 50%; color: #df4265; background: rgba(255,255,255,.94); font-size: 1.45rem; }
 .similar-products-retry { min-height: 44px; margin-top: 16px; }
 .similar-products-sentinel { height: 1px; }
 @media (min-width: 760px) { .similar-products-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } }

@@ -74,19 +74,9 @@
           {{ isInCart ? t('cart.goToCart') : t('product.addToCart') }}
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
-        <button
-          v-if="product?.appId"
-          type="button"
-          class="product-btn product-btn-favorite"
-          :class="{ active: isFavorite }"
-          :aria-pressed="isFavorite"
-          @click="toggleFavorite"
-        >
-          {{ isFavorite ? `♥ ${t('favorites.saved')}` : `♡ ${t('favorites.save')}` }}
-        </button>
         </aside>
         <details class="product-more-information" :open="hasPremiumAccess">
-        <summary>{{ t('favorites.moreInformation') }}</summary>
+        <summary>{{ t('product.moreInformation') }}</summary>
         <div class="product-detail-sections">
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
@@ -275,24 +265,14 @@
       </div>
     </div>
     <SimilarProductsFeed v-if="product?.appId" :app-id="product.appId" />
-    <FavoriteCheckoutPrompt
-      :visible="Boolean(favoriteStore.pendingThreshold)"
-      :items="favoriteStore.items"
-      :cart-app-ids="cartStore.items.map((item) => item.appId)"
-      @dismiss="dismissFavoritePrompt"
-      @checkout="checkoutFavorites"
-    />
     <MobileProductActionBar
       :visible="Boolean(product?.appId)"
       :price-label="mobilePriceLabel"
       :primary-label="mobilePrimaryLabel"
       :primary-disabled="false"
       :secondary-label="mobileSecondaryLabel"
-      :favorite-label="isFavorite ? t('favorites.removeAria') : t('favorites.saveAria')"
-      :favorite-active="isFavorite"
       @primary="mobilePrimaryAction"
       @secondary="toggleCart"
-      @favorite="toggleFavorite"
     />
   </div>
 </template>
@@ -314,7 +294,6 @@ import {
 import { useProductStore } from '@/store/product'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
-import { useProductFavoriteStore } from '@/store/productFavorites'
 import type {
   GarminDeviceBaseVO,
   ProductReviewVO,
@@ -350,7 +329,6 @@ import DeviceSelector from '@/components/DeviceSelector.vue'
 import ProductImageGallery from '@/components/ProductImageGallery.vue'
 import MobileProductActionBar from '@/components/storefront/MobileProductActionBar.vue'
 import SimilarProductsFeed from '@/components/storefront/SimilarProductsFeed.vue'
-import FavoriteCheckoutPrompt from '@/components/storefront/FavoriteCheckoutPrompt.vue'
 import {
   useLatestRouteProductLoad,
   type LatestProductLoadGuard,
@@ -362,7 +340,6 @@ const router = useRouter()
 const productStore = useProductStore()
 const cartStore = useCartStore()
 const userStore = useUserStore()
-const favoriteStore = useProductFavoriteStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
 const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
@@ -393,7 +370,6 @@ const displayRating = computed(() => {
 })
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
-const isFavorite = computed(() => favoriteStore.hasFavorite(product.value?.appId))
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userStore.userInfo))
 const mobileActionState = computed(() => resolveMobileProductActionState({
@@ -434,35 +410,6 @@ const toggleCart = () => {
     added: t('cart.added'),
     viewCart: t('cart.viewCart'),
   })
-}
-
-const toggleFavorite = async () => {
-  if (!product.value) return
-  try {
-    await favoriteStore.toggle(product.value, Boolean(userStore.token))
-  } catch {
-    ElMessage.error(t('favorites.updateFailed'))
-  }
-}
-
-const dismissFavoritePrompt = () => {
-  if (favoriteStore.pendingThreshold) favoriteStore.consumeThreshold(favoriteStore.pendingThreshold)
-}
-
-const checkoutFavorites = async (appIds: number[]) => {
-  let failed = false
-  for (const appId of appIds) {
-    if (cartStore.hasItem(appId)) continue
-    const detail = await productStore.getProductDetail(String(appId))
-    if (detail) cartStore.add(detail)
-    else failed = true
-  }
-  if (failed) {
-    ElMessage.error(t('favorites.checkoutFailed'))
-    return
-  }
-  dismissFavoritePrompt()
-  router.push(addLocaleToPath('/user/cart', localeStore.currentLocale))
 }
 
 const handleBuyNow = () => {
@@ -1064,15 +1011,6 @@ watch(
     void loadRouteProduct(nextProductId)
   },
   { immediate: true, flush: 'sync' },
-)
-
-watch(
-  () => userStore.token,
-  (token) => {
-    if (token) void favoriteStore.syncAuthenticated()
-    else favoriteStore.loadGuest()
-  },
-  { immediate: true },
 )
 
 onMounted(() => {
@@ -2033,7 +1971,7 @@ onMounted(() => {
     max-width: 100%;
   }
   .product-visual-wrap {
-    width: 280px;
+    width: calc(100vw - 32px);
     min-width: 0;
   }
   
@@ -2091,7 +2029,7 @@ onMounted(() => {
   }
   
   .product-visual-wrap {
-    width: 240px;
+    width: calc(100vw - 24px);
   }
   
   .product-title {
@@ -2167,7 +2105,7 @@ onMounted(() => {
   }
   
   .product-visual-wrap {
-    width: 200px;
+    width: calc(100vw - 16px);
   }
   
   .product-title {
