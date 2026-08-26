@@ -18,14 +18,6 @@ export type PublicSeries = Series & {
 
 export const PUBLIC_SERIES_DEFINITIONS: PublicSeriesDefinition[] = [
   {
-    slug: 'whole',
-    name: 'All Watch Faces',
-    sort: 1000,
-    aliases: ['whole', 'all-watch-faces'],
-    tagline: 'Start here when you want the full Wristo collection in one place.',
-    chipLabel: 'All faces',
-  },
-  {
     slug: 'digital',
     name: 'Digital Utility',
     sort: 990,

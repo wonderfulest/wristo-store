@@ -4,11 +4,11 @@ import test from 'node:test'
 
 const read = (path) => readFile(new URL(path, import.meta.url), 'utf8')
 
-test('the store home keeps search, applications, series, and guides while preserving the legacy home', async () => {
+test('the store home keeps search, applications, and guides while preserving the legacy home', async () => {
   const home = await read('../src/views/home/Home.vue')
   const legacy = await read('../src/views/home/HomeLegacy.vue')
 
-  const sections = ['<HomeIntro', '<HomeProductGrid', '<SeriesSection', '<HomeGuides']
+  const sections = ['<HomeIntro', '<HomeProductGrid', '<HomeGuides']
   let previousIndex = -1
   for (const section of sections) {
     const index = home.indexOf(section)
@@ -88,4 +88,34 @@ test('the compact home search stays within the mobile viewport', async () => {
   assert.match(search, /@media \(max-width:\s*768px\)[\s\S]*\.search-section-compact \.search-bar-inner\s*\{[^}]*width:\s*100%;/)
   assert.match(search, /\.search-bar-outer\s*\{[^}]*box-sizing:\s*border-box;/)
   assert.match(search, /\.search-bar-inner\s*\{[^}]*box-sizing:\s*border-box;/)
+})
+
+test('the new home removes categories and unlocks infinite newest-product browsing after More', async () => {
+  const home = await read('../src/views/home/Home.vue')
+  const grid = await read('../src/views/home/components/HomeProductGrid.vue')
+
+  assert.doesNotMatch(home, /<SeriesSection|seriesList|getHotSeries|goToSeries/)
+  assert.match(home, /const pageSize = 24/)
+  assert.match(home, /const infiniteScrollEnabled = ref\(false\)/)
+  assert.match(home, /const enableInfiniteScroll/)
+  assert.match(home, /getNewProducts\(requestedLimit\)/)
+  assert.match(home, /:infinite-scroll-enabled="infiniteScrollEnabled"/)
+
+  assert.match(grid, /v-if="hasMore && !infiniteScrollEnabled"/)
+  assert.match(grid, /@click="\$emit\('load-more'\)"/)
+  assert.match(grid, /v-else-if="loadMoreError"[^>]*@click="\$emit\('retry'\)"/)
+  assert.match(grid, /ref="loadMoreSentinel"/)
+  assert.match(grid, /new IntersectionObserver/)
+})
+
+test('the retired whole category redirects home and is excluded from public category navigation', async () => {
+  const routes = await read('../src/router/routes.ts')
+  const publicSeries = await read('../src/utils/publicSeries.ts')
+
+  const redirectIndex = routes.indexOf("path: '/categories/whole'")
+  const dynamicIndex = routes.indexOf("path: '/categories/:slug'")
+  assert.ok(redirectIndex >= 0 && redirectIndex < dynamicIndex)
+  assert.match(routes, /path:\s*'\/categories\/whole'[\s\S]*?redirect:\s*redirectRetiredWholeCategory/)
+  assert.match(routes, /const redirectRetiredWholeCategory[\s\S]*?params\.lang[\s\S]*?`\/\$\{lang\}`\s*:\s*'\/'/)
+  assert.doesNotMatch(publicSeries, /slug:\s*'whole'/)
 })

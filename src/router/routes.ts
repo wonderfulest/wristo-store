@@ -1,8 +1,14 @@
-import type { RouteRecordRaw } from 'vue-router'
+import type { RouteLocationGeneric, RouteRecordRaw } from 'vue-router'
 import { SUPPORTED_LOCALES } from '@/store/locale'
 import { isCartEnabled } from '@/config/features'
 
 const langPattern = SUPPORTED_LOCALES.join('|')
+
+const redirectRetiredWholeCategory = (to: RouteLocationGeneric) => {
+  const routeLang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+  const lang = typeof routeLang === 'string' ? routeLang : ''
+  return lang ? `/${lang}` : '/'
+}
 
 const baseRoutes: RouteRecordRaw[] = [
   {
@@ -164,6 +170,11 @@ const baseRoutes: RouteRecordRaw[] = [
     path: '/privacy-policy',
     name: 'PrivacyPolicy',
     component: () => import('@/views/PrivacyPolicy.vue')
+  },
+  {
+    path: '/categories/whole',
+    name: 'WholeCategoryRedirect',
+    redirect: redirectRetiredWholeCategory,
   },
   {
     path: '/categories/:slug',
