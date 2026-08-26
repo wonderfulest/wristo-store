@@ -89,7 +89,7 @@ onBeforeUnmount(() => observer?.disconnect())
 <style scoped>
 .catalog-products { padding: clamp(28px, 5vw, 64px) 0; background: #f7f8f5; }
 .catalog-products :deep(.section-heading__title) { font-size: clamp(1.5rem, 2.2vw, 2rem); line-height: 1.15; }
-.catalog-products__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); margin-top: 18px; }
+.catalog-products__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); margin-top: 18px; }
 .catalog-products__state { display: grid; gap: 6px; margin-top: 30px; padding: 34px; border: 1px solid var(--color-line); color: var(--color-muted); background: var(--color-surface); }
 .catalog-products__state strong { color: var(--color-ink); font-size: 1.1rem; }
 .catalog-products__more { display: flex; min-height: 72px; align-items: center; justify-content: center; padding-top: 28px; }

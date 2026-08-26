@@ -150,7 +150,7 @@ watch(activeTab, loadData)
 
 .storefront-product-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-5);
 }
 
@@ -203,7 +203,7 @@ watch(activeTab, loadData)
 }
 
 @media (max-width: 1200px) {
-  .storefront-product-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .storefront-product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {

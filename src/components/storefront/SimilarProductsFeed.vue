@@ -109,5 +109,5 @@ onBeforeUnmount(() => observer?.disconnect())
 .similar-product-copy span { color: var(--color-stage-muted); font-weight: 750; }
 .similar-products-retry { min-height: 44px; margin-top: 16px; }
 .similar-products-sentinel { height: 1px; }
-@media (min-width: 760px) { .similar-products-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; } }
+@media (min-width: 760px) { .similar-products-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
 </style>

@@ -19,7 +19,7 @@ withDefaults(defineProps<{ count?: number }>(), { count: 8 })
 <style scoped>
 .product-grid-skeleton {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-5);
 }
 
@@ -52,7 +52,7 @@ withDefaults(defineProps<{ count?: number }>(), { count: 8 })
 }
 
 @media (max-width: 1200px) {
-  .product-grid-skeleton { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .product-grid-skeleton { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {

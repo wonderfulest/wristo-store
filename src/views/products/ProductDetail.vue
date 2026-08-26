@@ -1027,7 +1027,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: flex-start;
+  align-items: center;
   padding: 64px 20px 96px;
 }
 .product-detail-main {

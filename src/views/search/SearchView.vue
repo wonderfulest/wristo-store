@@ -616,7 +616,7 @@ onUnmounted(() => {
 
 .skeleton-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
   padding: 38px 10px 10px;
 }

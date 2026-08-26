@@ -83,7 +83,7 @@ const visibleProducts = computed(() => (props.hotProducts || []).slice(0, 12))
 
 .hot-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-5);
 }
 
@@ -96,7 +96,7 @@ const visibleProducts = computed(() => (props.hotProducts || []).slice(0, 12))
 }
 
 @media (max-width: 1200px) {
-  .hot-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 900px) {

@@ -59,7 +59,7 @@ defineProps<{
 
 .storefront-product-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-5);
   padding: 10px 10px 10px;
   overflow: visible;
@@ -97,7 +97,7 @@ defineProps<{
   }
   
   .storefront-product-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 18px;
   }
 }
