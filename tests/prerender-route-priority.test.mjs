@@ -12,7 +12,7 @@ test('localized purchase options pages are prioritized before capped dynamic pre
   assert.match(prerenderList, /\.\.\.localizedPurchaseOptionRoutes/)
   assert.ok(
     prerenderList.indexOf('...localizedPurchaseOptionRoutes') <
-      prerenderList.indexOf("...discoveredRoutes.filter((route) => !route.startsWith('/product/'))"),
+      prerenderList.indexOf("...discoveredRoutes.filter((route) => !route.startsWith('/app/'))"),
     'localized purchase option routes must be emitted before dynamic routes consume the prerender limit',
   )
 })

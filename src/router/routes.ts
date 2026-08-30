@@ -10,6 +10,17 @@ const redirectRetiredWholeCategory = (to: RouteLocationGeneric) => {
   return lang ? `/${lang}` : '/'
 }
 
+const redirectLegacyProductDetail = (to: RouteLocationGeneric) => {
+  const routeLang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+  const routeId = Array.isArray(to.params.id) ? to.params.id[0] : to.params.id
+  const lang = typeof routeLang === 'string' ? `/${encodeURIComponent(routeLang)}` : ''
+  return {
+    path: `${lang}/app/${encodeURIComponent(String(routeId))}`,
+    query: to.query,
+    hash: to.hash,
+  }
+}
+
 const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/',
@@ -52,9 +63,13 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/AuthCallback.vue')
   },
   {
-    path: '/product/:id',
+    path: '/app/:id',
     name: 'product-detail',
     component: () => import('@/views/products/ProductDetail.vue')
+  },
+  {
+    path: '/product/:id',
+    redirect: redirectLegacyProductDetail,
   },
   {
     path: '/garmin-store',

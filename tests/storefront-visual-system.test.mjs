@@ -162,7 +162,7 @@ test('product cards own one locale-aware product route without home grid mouse c
   const hot = await read('../src/views/home/components/HotProductsSection.vue')
   const home = await read('../src/views/home/Home.vue')
 
-  assert.match(card, /addLocaleToPath\(`\/product\/\$\{props\.product\.appId\}`[^)]*localeStore\.currentLocale\)/)
+  assert.match(card, /addLocaleToPath\(`\/app\/\$\{props\.product\.appId\}`[^)]*localeStore\.currentLocale\)/)
   assert.doesNotMatch(card, /name:\s*'product-detail'/)
   assert.doesNotMatch(hot, /@click\.capture|handleProductClick|product-click/)
   const hotBinding = home.match(/<HotProductsSection[\s\S]*?\/>/)?.[0] ?? ''

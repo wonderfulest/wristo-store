@@ -203,7 +203,7 @@ const navigateToBundle = (bundleId: number | string) => {
 }
 
 const navigateToProduct = (productId: number | string) => {
-  router.push(`/product/${String(productId)}`)
+  router.push(`/app/${String(productId)}`)
 }
 
 const navigateToProfile = () => {

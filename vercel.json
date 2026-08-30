@@ -1,6 +1,16 @@
 {
   "redirects": [
     {
+      "source": "/product/:id",
+      "destination": "/app/:id",
+      "permanent": true
+    },
+    {
+      "source": "/:lang/product/:id",
+      "destination": "/:lang/app/:id",
+      "permanent": true
+    },
+    {
       "source": "/faq",
       "destination": "/support",
       "permanent": true

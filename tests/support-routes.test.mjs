@@ -18,7 +18,7 @@ test('support is canonical and legacy FAQ paths redirect permanently', async () 
   assert.match(guides, /hiddenFaqGuideSectionTitles[\s\S]*?'Settings and display'/)
 
   const config = JSON.parse(vercel)
-  assert.deepEqual(config.redirects, [
+  assert.deepEqual(config.redirects.slice(-4), [
     { source: '/faq', destination: '/support', permanent: true },
     { source: '/faq/:path*', destination: '/support/:path*', permanent: true },
     { source: '/:lang/faq', destination: '/:lang/support', permanent: true },

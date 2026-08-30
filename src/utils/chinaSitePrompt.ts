@@ -83,8 +83,8 @@ export function dismissChinaSitePrompt(
 }
 
 export function getChinaSiteDestination(pathname: string) {
-  const productMatch = pathname.match(/^\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?product\/(\d+)\/?$/i)
-  const appId = productMatch?.[1]
+  const appMatch = pathname.match(/^\/(?:[a-z]{2}(?:-[a-z]{2})?\/)?(?:app|product)\/(\d+)\/?$/i)
+  const appId = appMatch?.[1]
   return appId
     ? `${CHINA_SITE_APPS_URL}/${encodeURIComponent(appId)}`
     : CHINA_SITE_APPS_URL

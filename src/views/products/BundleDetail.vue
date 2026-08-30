@@ -74,7 +74,7 @@ const formatDescription = (description: string) => {
 }
 
 const handleProductClick = (product: ProductBaseVO) => {
-  router.push(`/product/${product.appId}`)
+  router.push(`/app/${product.appId}`)
 }
 
 onMounted(async () => {

@@ -64,8 +64,8 @@ async function main() {
     ...staticRoutes,
     ...localizedPurchaseOptionRoutes,
     ...localizedStaticRoutes,
-    ...discoveredRoutes.filter((route) => !route.startsWith('/product/')),
-    ...discoveredRoutes.filter((route) => route.startsWith('/product/')).slice(0, maxPrerenderRoutes),
+    ...discoveredRoutes.filter((route) => !route.startsWith('/app/')),
+    ...discoveredRoutes.filter((route) => route.startsWith('/app/')).slice(0, maxPrerenderRoutes),
   ]).slice(0, maxPrerenderRoutes)
 
   await writeSitemap(routes)
@@ -119,7 +119,7 @@ async function discoverRoutes() {
   for (const product of [...asList(hotProducts), ...asList(newProducts), ...asList(searchedProducts)]) {
     const appId = product?.appId
     if (appId !== undefined && appId !== null) {
-      const route = `/product/${encodeURIComponent(String(appId))}`
+      const route = `/app/${encodeURIComponent(String(appId))}`
       routes.push(route)
       productPreviewByRoute.set(route, product)
     }
@@ -271,8 +271,8 @@ async function writeSitemap(routes) {
   const now = new Date().toISOString()
   const body = routes
     .map((route) => {
-      const priority = route === '/' ? '1.0' : route.startsWith('/product/') ? '0.8' : '0.7'
-      const changefreq = route === '/' || route.startsWith('/product/') ? 'weekly' : 'monthly'
+      const priority = route === '/' ? '1.0' : route.startsWith('/app/') ? '0.8' : '0.7'
+      const changefreq = route === '/' || route.startsWith('/app/') ? 'weekly' : 'monthly'
       return [
         '  <url>',
         `    <loc>${escapeXml(`${siteUrl}${route}`)}</loc>`,
@@ -420,7 +420,7 @@ function ensureDoctype(html) {
 }
 
 function applyBuildTimeFallbackSeo(route, html) {
-  if (!route.startsWith('/product/')) return html
+  if (!route.startsWith('/app/')) return html
   const product = productPreviewByRoute.get(route)
   if (!product?.name) return html
 

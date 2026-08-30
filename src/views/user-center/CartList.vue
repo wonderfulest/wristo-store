@@ -242,7 +242,7 @@ const goHome = () => {
 }
 
 const goProduct = (appId: number) => {
-  router.push(localizedPath(`/product/${appId}`))
+  router.push(localizedPath(`/app/${appId}`))
 }
 
 const goRecommendedSearch = () => {

@@ -58,7 +58,7 @@ onMounted(async () => {
   loading.value = false
 })
 
-const goToProduct = (product: ProductBaseVO) => router.push(addLocaleToPath(`/product/${product.appId}`, localeStore.currentLocale))
+const goToProduct = (product: ProductBaseVO) => router.push(addLocaleToPath(`/app/${product.appId}`, localeStore.currentLocale))
 const goToTopApps = () => router.push(addLocaleToPath('/top', localeStore.currentLocale))
 const goToSeries = (series: Series) => router.push(addLocaleToPath(`/categories/${series.slug}`, localeStore.currentLocale))
 </script>

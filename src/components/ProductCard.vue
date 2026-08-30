@@ -133,7 +133,7 @@ const canEditInStudio = computed(() => {
 
 const handleClick = () => {
   if (props.product?.appId) {
-    router.push(addLocaleToPath(`/product/${props.product.appId}`, localeStore.currentLocale))
+    router.push(addLocaleToPath(`/app/${props.product.appId}`, localeStore.currentLocale))
   }
 }
 

@@ -721,7 +721,7 @@ const applyCategorySeo = () => {
           itemListElement: products.value.slice(0, 24).map((product, index) => ({
             '@type': 'ListItem',
             position: index + 1,
-            url: absoluteUrl(`/product/${product.appId}`),
+            url: absoluteUrl(`/app/${product.appId}`),
             name: product.name,
           })),
         },

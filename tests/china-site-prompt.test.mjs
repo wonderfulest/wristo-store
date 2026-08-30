@@ -129,9 +129,17 @@ test('invalid dismissal data fails open and storage failures do not break detect
   assert.doesNotThrow(() => policy.dismissChinaSitePrompt(brokenStorage, Date.now()))
 })
 
-test('only exact product routes carry an app ID to wristo.cn', async () => {
+test('canonical app routes and legacy product routes carry an app ID to wristo.cn', async () => {
   const policy = await loadPolicy()
 
+  assert.equal(
+    policy.getChinaSiteDestination('/app/163808'),
+    'https://www.wristo.cn/apps/163808',
+  )
+  assert.equal(
+    policy.getChinaSiteDestination('/en/app/163808'),
+    'https://www.wristo.cn/apps/163808',
+  )
   assert.equal(
     policy.getChinaSiteDestination('/product/163808'),
     'https://www.wristo.cn/apps/163808',

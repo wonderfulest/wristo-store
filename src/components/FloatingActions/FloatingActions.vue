@@ -221,16 +221,11 @@ const handleClick = () => {
 @media (max-width: 767px) {
   .floating-actions {
     right: 14px;
-    bottom: calc(172px + env(safe-area-inset-bottom, 0px));
-    flex-direction: row;
-    gap: 8px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 
-}
-
-@media (max-width: 520px) {
-  .floating-actions {
-    bottom: calc(168px + env(safe-area-inset-bottom, 0px));
+  .fab-cart {
+    display: none;
   }
 }
 </style>

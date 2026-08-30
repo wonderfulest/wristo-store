@@ -61,7 +61,7 @@ const observe = async () => {
 
 const openProduct = async (item: ProductBaseVO) => {
   recentlyViewed.value = appendRecentlyViewed(recentlyViewed.value, props.appId)
-  await router.push(addLocaleToPath(`/product/${item.appId}`, localeStore.currentLocale))
+  await router.push(addLocaleToPath(`/app/${item.appId}`, localeStore.currentLocale))
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 

@@ -4,6 +4,13 @@ import test from 'node:test'
 
 const read = (path) => readFile(new URL(path, import.meta.url), 'utf8')
 
+test('Home hides the Premium onboarding banner for users who already have premium entitlement', async () => {
+  const source = await read('../src/views/home/Home.vue')
+
+  assert.match(source, /<HomeBanner\s+v-if="!hasPremiumAccess"\s+premium-only\s*\/>/)
+  assert.match(source, /hasPremiumEntitlement\(userStore\.userInfo\)/)
+})
+
 test('HomeBanner exposes a Premium slide that links directly to the bundle card', async () => {
   const source = await read('../src/views/home/components/HomeBanner.vue')
 
@@ -20,8 +27,8 @@ test('Premium hero copy is defined for every supported locale', async () => {
   for (const key of ['home.premiumEyebrow', 'home.premiumTitle', 'home.premiumDesc', 'home.premiumCta', 'home.heroPremiumSlide']) {
     assert.equal(i18n.match(new RegExp(`'${key.replace('.', '\\.')}':`, 'g'))?.length, 14)
   }
-  assert.match(i18n, /'home\.premiumTitle': 'Unlock Everything\. Keep It Forever\.'/)
-  assert.match(i18n, /'home\.premiumDesc': 'One purchase unlocks thousands of premium apps — including future releases\.'/)
+  assert.match(i18n, /'home\.premiumTitle': 'One Purchase\. \$9\.90\. 5,000\+ Watch Faces\. Lifetime Access\.'/)
+  assert.match(i18n, /'home\.premiumDesc': 'Unlock everything—including future releases\.'/)
 })
 
 test('activation hero copy is defined for every supported locale', async () => {

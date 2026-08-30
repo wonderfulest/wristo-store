@@ -157,7 +157,7 @@ export function getRouteSeo(route: RouteLocationNormalizedLoaded): SeoConfig {
     }
   }
 
-  if (canonicalMatchPath.startsWith('/product/')) {
+  if (canonicalMatchPath.startsWith('/app/')) {
     return {
       title: 'Garmin Watch Face | Wristo',
       description: 'View Garmin watch face details, supported devices, and installation options on Wristo.',
