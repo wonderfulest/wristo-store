@@ -19,7 +19,7 @@
           :key="merchant.userId"
           class="brand-card"
           type="button"
-          @click="goToMerchant(Number(merchant.userId))"
+          @click="goToMerchant(merchant)"
         >
           <img v-if="merchant.avatar" :src="merchant.avatar" :alt="merchant.username || 'Brand avatar'" class="brand-avatar" loading="lazy" />
           <span v-else class="brand-fallback">{{ getInitial(merchant.username) }}</span>
@@ -58,8 +58,9 @@ const goToBrands = () => {
   router.push(addLocaleToPath('/brands', localeStore.currentLocale))
 }
 
-const goToMerchant = (userId: number) => {
-  router.push(addLocaleToPath(`/brands/${userId}`, localeStore.currentLocale))
+const goToMerchant = (merchant: PublicMerchantVO) => {
+  const identifier = encodeURIComponent(merchant.slug || String(merchant.userId))
+  router.push(addLocaleToPath(`/brands/${identifier}`, localeStore.currentLocale))
 }
 
 const getInitial = (name?: string) => {

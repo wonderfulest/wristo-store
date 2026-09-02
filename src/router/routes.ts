@@ -53,7 +53,7 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/brands/Brands.vue')
   },
   {
-    path: '/brands/:userId',
+    path: '/brands/:identifier',
     name: 'MerchantDetail',
     component: () => import('@/views/brands/MerchantDetail.vue')
   },

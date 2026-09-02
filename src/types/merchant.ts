@@ -15,6 +15,7 @@ export interface MerchantImageVO {
 
 export interface PublicMerchantVO {
   userId: number
+  slug?: string
   username?: string
   nickname?: string
   avatar?: string

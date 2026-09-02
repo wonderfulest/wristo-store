@@ -163,7 +163,7 @@ const getBannerUrl = (m: PublicMerchantVO) => {
 }
 
 const handlePrimaryClick = (m: PublicMerchantVO) => {
-  router.push(`/brands/${String(m.userId)}`)
+  router.push(`/brands/${encodeURIComponent(m.slug || String(m.userId))}`)
 }
 </script>
 

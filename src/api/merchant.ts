@@ -20,10 +20,10 @@ export const getAllMerchants = (): Promise<PublicMerchantVO[]> => {
   return instance.get('/public/merchants/all?populate=image')
 }
 
-export const getMerchantDetail = (userId: number | string): Promise<PublicMerchantVO | null> => {
+export const getMerchantDetail = (identifier: number | string): Promise<PublicMerchantVO | null> => {
   return instance.get('/public/merchants/detail', {
     params: {
-      userId,
+      identifier,
       populate: 'image',
     },
   })

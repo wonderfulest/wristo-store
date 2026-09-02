@@ -153,29 +153,31 @@ const appsHasMore = ref(true);
 let scrollTimeout: number | null = null;
 let scrollCheckInterval: number | null = null;
 
-const userId = computed(() => {
-  const raw = route.params.userId;
+const identifier = computed(() => {
+  const raw = route.params.identifier;
   const v = Array.isArray(raw) ? raw[0] : raw;
   return v ? String(v) : "";
 });
 
-onMounted(async () => {
-  try {
-    if (!userId.value) {
+const resolvedUserId = computed(() => merchant.value?.userId || 0);
+
+watch(
+  () => identifier.value,
+  async (value) => {
+    loading.value = true;
+    try {
+      merchant.value = value ? (await getMerchantDetail(value)) || null : null;
+    } catch (e) {
       merchant.value = null;
-      return;
+    } finally {
+      loading.value = false;
     }
-    const detail = await getMerchantDetail(userId.value);
-    merchant.value = detail || null;
-  } catch (e) {
-    merchant.value = null;
-  } finally {
-    loading.value = false;
-  }
-});
+  },
+  { immediate: true }
+);
 
 const fetchApps = async (reset = true) => {
-  if (!userId.value) {
+  if (!resolvedUserId.value) {
     apps.value = [];
     appsTotal.value = 0;
     appsTotalPages.value = 1;
@@ -194,7 +196,7 @@ const fetchApps = async (reset = true) => {
 
   try {
     const res: PageResult<ProductBaseVO> = await getMerchantAppsPage({
-      userId: Number(userId.value),
+      userId: resolvedUserId.value,
       name: appsQuery.value.trim() || undefined,
       pageNum: appsPageNum.value,
       pageSize: appsPageSize.value,
@@ -257,7 +259,7 @@ const handleScroll = () => {
 };
 
 watch(
-  () => userId.value,
+  () => resolvedUserId.value,
   () => {
     fetchApps(true);
   },
