@@ -139,6 +139,15 @@ export function getRouteSeo(route: RouteLocationNormalizedLoaded): SeoConfig {
   const matchedStatic = staticSeoByPath[canonicalMatchPath]
   if (matchedStatic) return localizeStaticSeo(canonicalMatchPath, matchedStatic, route)
 
+  if (canonicalMatchPath.startsWith('/explore/tag/')) {
+    const slug = readableSlug(canonicalMatchPath.split('/')[3] || 'watch-faces')
+    return {
+      title: `${slug} Garmin Watch Faces | Wristo`,
+      description: `Explore ${slug} Garmin watch faces on Wristo, sorted by popularity or newest arrivals.`,
+      path: route.query.page ? `${path}?page=${encodeURIComponent(String(route.query.page))}` : path,
+    }
+  }
+
   if (canonicalMatchPath.startsWith('/categories/')) {
     const pathParts = canonicalMatchPath.split('/').filter(Boolean)
     const slug = readableSlug(pathParts[pathParts.length - 1] || 'garmin-watch-faces')

@@ -82,7 +82,17 @@ export interface ProductBaseVO {
   ratingCount?: number | null
 }
 
+export interface ProductTagVO {
+  id: number
+  name: string
+  nameZh?: string | null
+  slug: string
+  status: number
+  sort?: number
+}
+
 export interface ProductVO {
+  tags?: ProductTagVO[] | null
   appId: number
   designId: string
   userId: number

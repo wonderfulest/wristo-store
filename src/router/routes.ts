@@ -23,6 +23,12 @@ const redirectLegacyProductDetail = (to: RouteLocationGeneric) => {
 
 const baseRoutes: RouteRecordRaw[] = [
   {
+    path: '/explore/tag/:slug/:sort(popular|latest)?',
+    name: 'TagExplore',
+    component: () => import('@/views/search/TagExploreView.vue'),
+    meta: { showFloatingActions: true }
+  },
+  {
     path: '/',
     name: 'home',
     component: () => import('@/views/home/Home.vue'),

@@ -34,20 +34,13 @@
           </div>
         </div>
         <div v-else class="product-price">${{ product?.price?.toFixed(2) }}</div>
-        <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
-          <div v-if="productUpdatedLabel" class="product-meta-item">
-            <dt>{{ t('product.lastUpdated') }}</dt>
-            <dd>{{ productUpdatedLabel }}</dd>
-          </div>
-          <div v-if="product?.devices?.length" class="product-meta-item">
-            <dt>{{ t('product.compatibility') }}</dt>
-            <dd>{{ t('product.compatibleDevices', { count: product.devices.length }) }}</dd>
-          </div>
-          <div v-if="selectedSupportedDevice" class="product-meta-item product-meta-item--supported">
-            <dt>{{ t('product.currentDevice') }}</dt>
-            <dd>{{ selectedSupportedDevice.displayName }}</dd>
-          </div>
-        </dl>
+        <ul v-if="visibleTags.length" class="product-tags" :aria-label="localeStore.currentLocale.startsWith('zh') ? '标签' : 'Tags'">
+          <li v-for="tag in visibleTags" :key="tag.id">
+            <router-link class="product-tag" :to="addLocaleToPath(`/explore/tag/${encodeURIComponent(tag.slug)}/popular`, localeStore.currentLocale)">
+              {{ localeStore.currentLocale.startsWith('zh') ? tag.nameZh?.trim() || tag.name : tag.name }}
+            </router-link>
+          </li>
+        </ul>
         <ProductAdminPanel
           v-if="isAdmin && adminMetrics"
           :product="product"
@@ -55,6 +48,14 @@
           variant="detail"
           @changed="() => loadAdminMetrics()"
         />
+        <a
+          v-if="product?.garminStoreUrl"
+          :href="product.garminStoreUrl"
+          class="product-btn product-btn-download product-btn-install"
+        >
+          {{ t('product.install') }}
+          <el-icon class="btn-icon"><Download /></el-icon>
+        </a>
         <button
           v-if="product?.appId && !hasPremiumAccess"
           type="button"
@@ -78,6 +79,21 @@
         <details class="product-more-information" :open="hasPremiumAccess">
         <summary>{{ t('product.moreInformation') }}</summary>
         <div class="product-detail-sections">
+        <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
+          <div v-if="productUpdatedLabel" class="product-meta-item">
+            <dt>{{ t('product.lastUpdated') }}</dt>
+            <dd>{{ productUpdatedLabel }}</dd>
+          </div>
+          <div v-if="product?.devices?.length" class="product-meta-item">
+            <dt>{{ t('product.compatibility') }}</dt>
+            <dd>{{ t('product.compatibleDevices', { count: product.devices.length }) }}</dd>
+          </div>
+          <div v-if="selectedSupportedDevice" class="product-meta-item product-meta-item--supported">
+            <dt>{{ t('product.currentDevice') }}</dt>
+            <dd>{{ selectedSupportedDevice.displayName }}</dd>
+          </div>
+        </dl>
+
         <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
           <div
@@ -687,6 +703,11 @@ const onDeviceSelected = (device: GarminDeviceBaseVO) => {
   showDeviceSelector.value = false
 }
 
+const visibleTags = computed(() => (product.value?.tags || [])
+  .filter((tag) => tag.status === 1 && tag.name?.trim() && tag.slug?.trim())
+  .filter((tag, index, tags) => tags.findIndex((item) => item.id === tag.id) === index)
+  .sort((a, b) => (b.sort ?? 0) - (a.sort ?? 0) || b.id - a.id))
+
 const renderedProductDescription = computed(() => {
   return renderProductDescription(product.value?.description || '')
 })
@@ -1019,6 +1040,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.product-tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 24px; }
+.product-tag { display: inline-block; max-width: 100%; overflow-wrap: anywhere; border-radius: 999px; padding: 5px 12px; background: #f1f3f5; color: #475569; font-size: 13px; line-height: 1.5; text-decoration: none; }
+.product-tag:hover { background: #e2e8f0; color: #0f172a; }
+.product-tag:focus-visible { outline: 2px solid #475569; outline-offset: 3px; }
+
 .product-detail-page {
   width: 100vw;
   min-height: 100vh;
@@ -1393,6 +1419,13 @@ onMounted(() => {
 .btn-icon {
   margin-left: 10px;
   font-size: 1.15em;
+}
+.product-btn-install {
+  text-decoration: none;
+}
+.product-btn-install:focus-visible {
+  outline: 2px solid var(--color-brand-strong);
+  outline-offset: 3px;
 }
 .product-btn-download {
   background: var(--color-brand);

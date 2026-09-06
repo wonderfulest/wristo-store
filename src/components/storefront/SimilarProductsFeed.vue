@@ -22,11 +22,13 @@ const hasMore = ref(true)
 const sentinel = ref<HTMLElement | null>(null)
 const recentlyViewed = ref<number[]>([])
 let observer: IntersectionObserver | null = null
+let revision = 0
 
 const excluded = computed(() => new Set([props.appId, ...recentlyViewed.value]))
 
 const load = async () => {
   if (loading.value || !hasMore.value) return
+  const request = revision
   loading.value = true
   failed.value = false
   try {
@@ -35,17 +37,21 @@ const load = async () => {
       pageNum.value,
       [...excluded.value],
     )
+    if (request !== revision) return
     const next = page.list || []
     const existing = new Set(items.value.map((item) => item.appId))
     for (const item of next) {
-      if (!excluded.value.has(item.appId) && !existing.has(item.appId)) items.value.push(item)
+      if (!excluded.value.has(item.appId) && !existing.has(item.appId)) {
+        items.value.push(item)
+        existing.add(item.appId)
+      }
     }
     hasMore.value = pageNum.value < page.pages
     pageNum.value += 1
   } catch {
-    failed.value = true
+    if (request === revision) failed.value = true
   } finally {
-    loading.value = false
+    if (request === revision) loading.value = false
   }
 }
 
@@ -66,6 +72,8 @@ const openProduct = async (item: ProductBaseVO) => {
 }
 
 watch(() => props.appId, async () => {
+  revision += 1
+  loading.value = false
   recentlyViewed.value = appendRecentlyViewed(recentlyViewed.value, props.appId)
   items.value = []
   pageNum.value = 1
@@ -74,11 +82,11 @@ watch(() => props.appId, async () => {
   await observe()
 }, { immediate: true })
 
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => { revision += 1; observer?.disconnect() })
 </script>
 
 <template>
-  <section class="similar-products" aria-labelledby="similar-products-title">
+  <section v-if="loading || failed || items.length" class="similar-products" aria-labelledby="similar-products-title">
     <header>
       <p>{{ t('recommendations.keepExploring') }}</p>
       <h2 id="similar-products-title">{{ t('recommendations.similarTitle') }}</h2>
@@ -87,7 +95,7 @@ onBeforeUnmount(() => observer?.disconnect())
       <article v-for="item in items" :key="item.appId" class="similar-product-card">
         <button type="button" class="similar-product-open" @click="openProduct(item)">
           <img :src="getProductImageUrl(item)" :alt="item.name" loading="lazy" />
-          <span class="similar-product-copy"><strong>{{ item.name }}</strong><span>${{ item.price.toFixed(2) }}</span></span>
+          <span class="similar-product-copy"><strong>{{ item.name }}</strong><span v-if="typeof item.price === 'number' && Number.isFinite(item.price)">${{ item.price.toFixed(2) }}</span></span>
         </button>
       </article>
     </div>

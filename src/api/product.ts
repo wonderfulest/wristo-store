@@ -1,4 +1,5 @@
 import instance from '@/config/axios'
+import type { ProductTagVO } from '@/types/product'
 import type { DesignFontVO, ImageVO, ProductBaseVO, ProductPreviewConfigVO, ProductRatingStatsVO, ProductReviewVO, ProductStoreMetricsVO, ProductVO, Series, PageResult } from '@/types'
 
 export interface CategoryPageData {
@@ -7,6 +8,15 @@ export interface CategoryPageData {
   pageSize: number
   pages: number
   list: Series[]
+}
+
+export type TagProductPage = PageResult<ProductBaseVO> & { meta: { tag: ProductTagVO } }
+export type TagSort = 'popular' | 'latest'
+
+export const getProductsByTag = (slug: string, sort: TagSort, pageNum = 1, pageSize = 24): Promise<TagProductPage> => {
+  return instance.get(`/public/products/tags/${encodeURIComponent(slug)}`, {
+    params: { sort, pageNum, pageSize }
+  })
 }
 
 export interface CategoryMutationPayload {
