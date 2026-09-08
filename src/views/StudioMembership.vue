@@ -141,6 +141,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from '@/i18n'
 import { useUserStore } from '@/store/user'
 import { membershipApi } from '@/api/membership'
+import { requireCheckoutAdmission } from '@/api/purchase'
 import { getStudioUrl, openStudioUrl } from '@/utils/studio'
 import type { StudioMembershipPlan } from '@/types/membership'
 
@@ -584,6 +585,12 @@ const handleCheckout = async (plan: (typeof plans.value)[number]) => {
     const win = window as any
     if (!win.Paddle?.Checkout?.open) {
       throw new Error('Paddle checkout is unavailable')
+    }
+    try {
+      await requireCheckoutAdmission()
+    } catch {
+      loadingPlanCode.value = null
+      return
     }
     win.Paddle.Checkout.open({
       settings: {

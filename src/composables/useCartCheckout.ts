@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { createCartCheckout, purchaseCallback } from '@/api/purchase'
+import { requireCheckoutAdmission, createCartCheckout, purchaseCallback } from '@/api/purchase'
 import type { CartCheckoutItemRequest } from '@/api/purchase'
 import { initializePaddle } from '@/utils/paddle'
 import { useLocaleStore } from '@/store/locale'
@@ -140,6 +140,13 @@ export function useCartCheckout() {
         checkoutOptions.customer = {
           email: checkoutEmail,
         }
+      }
+      try {
+        await requireCheckoutAdmission()
+      } catch {
+        activeCheckout = null
+        loading.value = false
+        return
       }
       window.Paddle.Checkout.open(checkoutOptions)
     } catch (error: any) {

@@ -146,7 +146,7 @@ import { useShopOptionsStore } from '@/store/shopOptions'
 import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import type { PaddleCheckoutCompletedEvent, PurchaseRequest } from '@/types'
-import { purchaseCallback } from '@/api/purchase'
+import { requireCheckoutAdmission, purchaseCallback } from '@/api/purchase'
 import type { SubscriptionPlan } from '@/api/subscription'
 import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest, PurchaseSuccessResponseVO } from '@/types/purchase-check'
 import { checkPurchase } from '@/api/pay'
@@ -415,6 +415,12 @@ const handlePayment = async (isRetry = false) => {
     
     if (typeof window !== "undefined" && window.Paddle) {
         console.log('subscription.value', subscription.value)
+        try {
+            await requireCheckoutAdmission()
+        } catch (error) {
+            loading.value = false
+            return
+        }
         window.Paddle.Checkout.open({
             settings: {
                 displayMode: 'overlay',

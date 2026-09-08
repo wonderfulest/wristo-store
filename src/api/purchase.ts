@@ -101,3 +101,9 @@ export const getTopWeekApps = (data?: SalesQueryDTO): Promise<AppSalesSummaryVO[
 export const getTopMonthApps = (data?: SalesQueryDTO): Promise<AppSalesSummaryVO[]> => {
   return instance.post('/public/website/purchases/app/top-month', { topN: 20, ...(data || {}) })
 }
+
+// Check shared admission immediately before opening a client-side Paddle checkout.
+export const requireCheckoutAdmission = async (): Promise<void> => {
+  const admitted = await instance.post<unknown, boolean>('/public/purchase/checkout/admission')
+  if (admitted !== true) throw new Error('Checkout is temporarily unavailable. Please try again later.')
+}

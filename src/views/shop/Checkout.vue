@@ -114,7 +114,7 @@ import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, Pu
 import { checkPurchase } from '@/api/pay'
 import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
-import { checkBundleByEmail, purchaseCallback } from '@/api/purchase'
+import { requireCheckoutAdmission, checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
 import { getProductImageUrl } from '@/utils/productImage'
@@ -491,6 +491,12 @@ const handlePayment = async (isRetry = false) => {
         }
         if (email.value) {
             checkoutOptions.customer = { email: email.value }
+        }
+        try {
+          await requireCheckoutAdmission()
+        } catch {
+          loading.value = false
+          return
         }
         window.Paddle.Checkout.open(checkoutOptions)
         loading.value = false
