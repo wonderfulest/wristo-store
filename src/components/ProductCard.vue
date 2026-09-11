@@ -61,6 +61,7 @@
         </button>
       </div>
       <div v-if="isAdmin" class="product-public-metrics" :aria-label="t('product.popularityAria')">
+        <span v-if="product?.appId != null">ID: {{ product.appId }}</span>
         <span>
           <Icon icon="solar:download-minimalistic-line-duotone" width="16" height="16" aria-hidden="true" />
           {{ formatDisplayDownloadCount(product?.download) }}
