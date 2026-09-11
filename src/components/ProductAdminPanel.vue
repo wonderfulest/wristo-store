@@ -45,6 +45,9 @@
         {{ isSampleDesign ? '取消 Sample' : '设为 Sample' }}
       </button>
       <button type="button" @click="openProductInStudio">Studio</button>
+      <button v-if="variant === 'detail'" type="button" :disabled="downloadingImages" @click="downloadImages">
+        {{ downloadingImages ? downloadProgress : '一键下载图片' }}
+      </button>
       <button
         v-if="currentCategoryId"
         type="button"
@@ -97,6 +100,32 @@ const emit = defineEmits<{
 }>()
 
 const categoryEditorVisible = ref(false)
+const downloadingImages = ref(false)
+const downloadProgress = ref('准备下载…')
+const downloadImages = async () => {
+  if (downloadingImages.value || !props.product) return
+  downloadingImages.value = true
+  downloadProgress.value = '准备下载…'
+  const product = props.product
+  try {
+    const { createProductImageArchive } = await import('@/utils/productImageArchive')
+    const blob = await createProductImageArchive(product, (completed, total) => {
+      downloadProgress.value = completed === total ? '正在打包…' : `下载中 ${completed}/${total}`
+    })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${product.appId}-${String(product.name || 'images').replace(/[\\/:*?"<>|]/g, '_')}-originals.zip`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000)
+  } catch (error) {
+    ElMessage.error(error instanceof Error ? error.message : '图片打包失败，请稍后重试')
+  } finally {
+    downloadingImages.value = false
+  }
+}
 const isSampleDesign = computed(() => Number(props.metrics?.designIsTemplate || 0) === 1)
 const designerLabel = computed(() => {
   const designer = props.metrics?.designer
@@ -333,5 +362,10 @@ const removeFromCategory = async () => {
 .product-admin-panel__actions button:hover {
   border-color: rgba(15, 107, 104, 0.34);
   color: var(--color-brand-strong);
+}
+
+.product-admin-panel__actions button:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 </style>
