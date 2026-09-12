@@ -23,6 +23,14 @@
       </ul>
     </nav>
     <div class="privacy-content">
+      <p><a href="/account-deletion.html">Request deletion of your Wristo account and associated data</a></p>
+      <section id="wristo-android">
+        <h2>Wristo for Android</h2>
+        <p>In the Android app, your email address and account identifier are used for sign-in, account management, syncing existing watch face ownership and membership, and support. Email passwords or verification codes are transmitted to authenticate you. Google and Apple sign-in use the selected provider to verify your identity and create or access your Wristo session.</p>
+        <p>The selected Garmin model, search terms, and watch face identifiers used for recommendations are sent to Wristo to find compatible products. When you activate a watch face, the code shown on your watch is sent with your authenticated request to verify access. This version does not collect Garmin health or activity records, location, contacts, microphone or camera data, and does not provide in-app purchases.</p>
+        <p>Your session token is encrypted on your Android device. Favorites and the selected Garmin model are saved locally. Sign-out clears the saved session; local favorites and device preferences remain until you remove them or clear app storage. Third-party sign-in and image delivery services process requests needed to provide these features.</p>
+        <p><a href="/account-deletion.html">Request deletion of your Wristo account and associated personal data</a>. Contact support for the deletion process and information about any required record retention.</p>
+      </section>
       <h2 id="collection">{{ t('privacy.collectionTitle') }}</h2>
       <p>{{ t('privacy.collectionBody') }}</p>
 
