@@ -23,7 +23,7 @@
         <div v-else-if="loadFailed && !showLikes" class="state"><p>We couldn’t load your recommendations.</p><button type="button" class="primary" @click="load">Try Again</button><button v-if="history.length" type="button" @click="undo">Undo Last Choice</button></div>
         <template v-else-if="current && !showLikes">
           <article class="discovery-card" :aria-busy="saving">
-            <div class="card-topline"><span><i /> Selected for you</span><span aria-live="polite">{{ index + 1 }} / {{ round.length }}</span></div>
+            <div class="card-topline"><span><i /> Selected for you</span></div>
             <RouterLink class="face-image" :to="productPath(current.appId)" @click="visible = false" :aria-label="`See ${current.name} details`"><img v-if="imageUrl && !imageFailed" :key="current.appId" :src="imageUrl" :alt="current.name" @error="imageFailed = true" /><span v-else>Preview unavailable</span></RouterLink>
             <div class="card-caption"><h3>{{ current.name }}</h3><RouterLink :to="productPath(current.appId)" @click="visible = false">Explore watch face <span aria-hidden="true">↗</span></RouterLink></div>
           </article>
@@ -64,7 +64,7 @@ const selectedDevice = ref<SelectedDevice | null>(null)
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const deviceId = computed(() => selectedDevice.value?.id ?? null)
-const { accountId, loading, saving, loadFailed, error, current, liked, likeCount, history, showLikes, round, index, likesLoading, hasMoreLikes, load, choose, undo, loadLikes } = useDiscovery(deviceId)
+const { accountId, loading, saving, loadFailed, error, current, liked, likeCount, history, showLikes, likesLoading, hasMoreLikes, load, choose, undo, loadLikes } = useDiscovery(deviceId)
 const imageFailed = ref(false)
 const imageUrl = computed(() => getProductImageUrl(current.value))
 watch(() => current.value?.appId, () => { imageFailed.value = false })
@@ -119,8 +119,10 @@ button.primary:hover:not(:disabled) { background:#3c5846; transform:translateY(-
 button:disabled { opacity:.4; cursor:default; }
 button:focus-visible,a:focus-visible { outline:3px solid #86a68b; outline-offset:3px; }
 .dialog-heading h2 { font-size:27px; font-weight:600; letter-spacing:-.04em; line-height:1.15; margin:0; color:#293e31; }
+.discovery-content { display:flex; flex-direction:column; min-height:100%; }
+.discovery-content > * { flex-shrink:0; }
 .storage-note { margin:0 0 16px; color:#7b8279; font-size:12px; line-height:1.6; }
-.device-pill { font-size:12px; min-height:36px; padding:7px 12px; margin-bottom:18px; background:#f6f7f3; border-color:#e7e9e0; max-width:100%; }
+.device-pill { align-self:flex-start; font-size:12px; min-height:36px; padding:7px 12px; margin-bottom:18px; background:#f6f7f3; border-color:#e7e9e0; max-width:100%; }
 .device-pill span { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .discovery-card { border:1px solid #e9eade; border-radius:24px; background:#f5f5ef; padding:16px 18px 23px; }
 .card-topline { display:flex; justify-content:space-between; gap:12px; color:#798371; font-size:10px; letter-spacing:.04em; }
@@ -137,6 +139,9 @@ h3 { margin:0; color:#293f31; font-size:24px; font-weight:600; letter-spacing:-.
 .secondary { display:flex; align-items:center; justify-content:space-between; gap:4px; border-top:1px solid #eff0e9; margin-top:18px; padding-top:10px; }
 .secondary button { border:0; background:transparent; padding:8px 10px; font-size:12px; color:#6b786b; }
 .count { padding:2px 7px; border-radius:999px; background:#eaf0e5; color:#304d35; font-size:10px; }
+.state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.state .loading-ring { margin:0 auto; }
+.results { flex:1; }
 .state,.results { text-align:center; padding:30px 5px; color:#788273; }
 .state h3 { margin-top:15px; }
 .state p,.results p { font-size:13px; line-height:1.6; margin:12px 0 20px; }
@@ -148,11 +153,12 @@ h3 { margin:0; color:#293f31; font-size:24px; font-weight:600; letter-spacing:-.
 .loading-ring { display:block; margin:auto; width:32px; height:32px; border:2px solid #e0e6d8; border-top-color:#3b5940; border-radius:50%; animation:discovery-spin .8s linear infinite; }
 @keyframes discovery-spin { to { transform:rotate(360deg); } }
 @media(prefers-reduced-motion:reduce) { button { transition:none; }.loading-ring { animation:none; } }
-@media(max-width:600px) { .face-image { width:min(100%,240px,31dvh); }.discovery-card { padding:14px 14px 19px; }.card-caption h3 { font-size:22px; }.storage-note { margin-bottom:12px; }.device-pill { margin-bottom:14px; } }
+@media(max-width:600px) { .face-image { width:min(100%,240px); }.discovery-card { padding:14px 14px 19px; }.card-caption h3 { font-size:22px; }.storage-note { margin-bottom:12px; }.device-pill { margin-bottom:14px; } }
 </style>
 <style>
-.el-dialog.discovery-dialog { padding:26px; border-radius:28px; max-height:calc(100dvh - 24px); overflow-y:auto; box-shadow:0 25px 90px #1c312b26; }
-.discovery-dialog .el-dialog__header { padding:0 30px 12px 0; margin:0; }
+.el-dialog.discovery-dialog { padding:26px; border-radius:28px; height:min(820px, calc(100svh - 24px)); display:flex; flex-direction:column; overflow:hidden; box-shadow:0 25px 90px #1c312b26; }
+.discovery-dialog .el-dialog__body { flex:1; min-height:0; overflow-y:auto; }
+.discovery-dialog .el-dialog__header { flex-shrink:0; padding:0 30px 12px 0; margin:0; }
 .discovery-dialog .el-dialog__headerbtn { top:17px; right:16px; }
 @media(max-width:600px) { .el-dialog.discovery-dialog { padding:22px 18px 16px; }.discovery-dialog .el-dialog__headerbtn { top:12px; right:10px; } }
 </style>
