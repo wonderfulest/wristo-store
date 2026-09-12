@@ -12,7 +12,14 @@
   </section>
   <el-dialog v-model="visible" title="Find Your Style" width="min(480px, calc(100vw - 24px))" align-center :close-on-click-modal="false" class="discovery-dialog">
     <template #header><div class="dialog-heading"><span class="eyebrow">Your personal edit</span><h2>Find Your Style</h2></div></template>
-    <div class="discovery-content">
+    <div class="discovery-content"
+      @pointerdown.capture="navigationGesture.start"
+      @pointermove.capture="navigationGesture.move"
+      @pointerup.capture="navigationGesture.move"
+      @pointercancel.capture="navigationGesture.cancel"
+      @click.capture="guardNavigation"
+      @dragstart.prevent
+    >
       <p class="storage-note">{{ accountId ? 'Your likes and dislikes are saved to your account.' : 'Sign in to discover and save your favorites.' }}</p>
       <button v-if="accountId" class="device-pill" type="button" @click="showDevices = true" :disabled="saving"><Icon icon="lucide:watch" width="18" /><span>{{ selectedDevice?.displayName || 'Choose your Garmin' }}</span><Icon icon="lucide:chevron-down" width="16" /></button>
       <div v-if="!accountId" class="state"><Icon icon="lucide:heart" width="36" /><h3>A watch face for you.</h3><p>Sign in to start your personal selection.</p><button type="button" class="primary" @click="redirectToSsoLogin('store')">Sign In</button></div>
@@ -56,6 +63,15 @@ import { useDiscovery } from './useDiscovery'
 import { getProductImageUrl } from '@/utils/productImage'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
+import { createNavigationGesture } from './navigationGesture'
+
+const navigationGesture = createNavigationGesture()
+function guardNavigation(event: MouseEvent) {
+  if (event.target instanceof Element && event.target.closest('a') && navigationGesture.shouldBlock(event)) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+}
 
 type SelectedDevice = { id: number; displayName: string }
 const visible = ref(false)

@@ -39,7 +39,7 @@
       <div class="mobile-pagination">
         <router-link v-if="routePage > 1" :to="pagePath(1)">{{ t('tags.firstPage') }}</router-link>
         <p v-if="moreError" role="alert">{{ t('search.loadMoreError') }}</p>
-        <button v-if="currentPage < pages" type="button" :disabled="loadingMore" @click="loadMore">
+        <button v-if="currentPage < pages" ref="loadMoreButton" type="button" :disabled="loadingMore" @click="loadMore">
           {{ loadingMore ? t('search.loadingMore') : moreError ? t('search.retry') : t('tags.loadMore') }}
         </button>
         <p v-else-if="products.length">{{ t('search.endReached') }}</p>
@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getProductsByTag, type TagSort } from '@/api/product'
 import { useTagProducts } from '@/composables/useTagProducts'
@@ -72,6 +72,21 @@ const localizedPath = (path: string) => addLocaleToPath(path, locale.value)
 const tagPath = (value: TagSort) => localizedPath(`/explore/tag/${encodeURIComponent(slug.value)}/${value}`)
 const pagePath = (page: number) => ({ path: tagPath(sort.value), query: page > 1 ? { page: String(page) } : {} })
 const reload = () => reset(slug.value, sort.value, routePage.value)
+const loadMoreButton = ref<HTMLButtonElement | null>(null)
+let loadMoreObserver: IntersectionObserver | null = null
+
+watch([loadMoreButton, loadingMore, moreError], () => {
+  loadMoreObserver?.disconnect()
+  loadMoreObserver = null
+  if (!loadMoreButton.value || loadingMore.value || moreError.value || typeof IntersectionObserver === 'undefined') return
+
+  loadMoreObserver = new IntersectionObserver(([entry]) => {
+    if (entry?.isIntersecting && !moreError.value) void loadMore()
+  })
+  loadMoreObserver.observe(loadMoreButton.value)
+}, { flush: 'post' })
+
+onBeforeUnmount(() => loadMoreObserver?.disconnect())
 
 watch([slug, sort, routePage, locale], reload, { immediate: true })
 </script>
