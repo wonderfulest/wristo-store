@@ -20,3 +20,11 @@ export const bindGoogle = (credential: string): Promise<boolean> => {
 export const unbindGoogle = (): Promise<boolean> => {
   return instance.post('/users/unbind-google')
 }
+
+export interface AuthMe {
+  providers: { apple?: boolean; google?: boolean }
+}
+
+export const getAuthMe = (): Promise<AuthMe> => {
+  return instance.get('/auth/me')
+}

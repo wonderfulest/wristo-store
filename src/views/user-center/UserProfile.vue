@@ -95,7 +95,10 @@
         <div class="section-card">
           <!-- Password -->
           <div class="row clickable" @click="goSetPassword">
-            <div class="row-label">Password</div>
+            <div class="row-label">
+              <Icon icon="mdi:lock-outline" width="18" class="row-label-icon" aria-hidden="true" />
+              Password
+            </div>
             <div class="row-value with-chevron">
               <span
                 class="status-pill"
@@ -126,6 +129,20 @@
                 {{ userInfo?.googleBound ? 'Connected' : 'Not Connected' }}
               </span>
               <Icon icon="mdi:chevron-right" width="20" class="chevron" />
+            </div>
+          </div>
+          <div class="row-divider" />
+
+          <!-- Apple binding status -->
+          <div class="row">
+            <div class="row-label">
+              <Icon icon="mdi:apple" width="18" class="row-label-icon" aria-hidden="true" />
+              Apple Account
+            </div>
+            <div class="row-value" aria-live="polite">
+              <span class="status-pill" :class="appleBound === true ? 'green' : 'gray'">
+                {{ appleStatusLoading ? 'Loading...' : appleBound === null ? 'Unavailable' : appleBound ? 'Connected' : 'Not Connected' }}
+              </span>
             </div>
           </div>
         </div>
@@ -176,7 +193,7 @@
 import { ref, watch, computed, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import { uploadUserAvatar } from '@/api/files'
-import { bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/api/auth'
+import { getAuthMe, bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/api/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DeviceDisplay from '@/components/DeviceDisplay.vue'
 import { openStudio } from '@/utils/studio'
@@ -190,6 +207,18 @@ const defaultAvatar = 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-socia
 const userStore = useUserStore()
 const userInfo = computed(() => userStore.userInfo)
 const canShowBundleEntries = computed(() => hasBundleStoreEntryAccess(userInfo.value))
+const appleBound = ref<boolean | null>(null)
+const appleStatusLoading = ref(true)
+async function loadAppleStatus() {
+  try {
+    const auth = await getAuthMe()
+    appleBound.value = typeof auth.providers?.apple === 'boolean' ? auth.providers.apple : null
+  } catch {
+    appleBound.value = null
+  } finally {
+    appleStatusLoading.value = false
+  }
+}
 const editMode = ref(false)
 const form = ref({
   username: userInfo.value?.username || '',
@@ -201,6 +230,7 @@ const form = ref({
 onMounted(() => {
   // 页面刷新时，通过 /users/info 接口重新获取用户信息
   userStore.getUserInfo()
+  void loadAppleStatus()
 })
 const avatarInputRef = ref<HTMLInputElement | null>(null)
 const onAvatarDblClick = () => {
