@@ -25,6 +25,8 @@
       </ul>
     </nav>
     <div class="privacy-content">
+      <h2>{{ t('legal.companyRolesTitle') }}</h2>
+      <p>{{ t('legal.companyRoles') }}</p>
       <p><a href="/account-deletion.html">{{ t('privacy.deletionLink') }}</a></p>
       <section id="mobile">
         <h2>{{ t('privacy.mobileTitle') }}</h2>

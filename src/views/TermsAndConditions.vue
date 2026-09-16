@@ -5,7 +5,7 @@
       <div class="terms-meta">
         <h1 class="terms-title">Website Terms of Use</h1>
         <!-- <span class="terms-breadcrumb">Home / Terms of Use</span> -->
-        <span class="terms-updated">Last Updated: 2025-06-05</span>
+        <span class="terms-updated">Last Updated: 2026-09-16</span>
       </div>
     </div>
     <nav class="terms-toc">
@@ -24,6 +24,7 @@
     </nav>
     <div class="terms-content">
       <h2 id="ownership">1. Ownership of Site</h2>
+      <p>Wristo services are operated by WuKong OÜ, which is responsible for personal data processing and privacy protection for these services. The Wristo iOS app is developed and published on the App Store by 北京简径科技有限公司 with authorization from WuKong OÜ.</p>
       <p>These Terms and Conditions of Use (the "Terms of Use") apply to the Wristo website located at <a href="https://www.wristo.io" target="_blank">www.wristo.io</a>, and all associated sites linked to www.wristo.io by WuKong OÜ and its affiliates (collectively, the "Site"). The Site is the property of WuKong OÜ ("Wukong") and its licensors.</p>
       <p><strong>BY USING THE SITE, YOU AGREE TO THESE TERMS OF USE; IF YOU DO NOT AGREE, DO NOT USE THE SITE.</strong></p>
       <p>Wukong reserves the right, at its sole discretion, to change, modify, add, or remove portions of these Terms of Use at any time. It is your responsibility to check these Terms of Use periodically for updates. Your continued use of the Site following the posting of changes will mean that you accept and agree to the changes. As long as you comply with these Terms of Use, Wukong grants you a personal, non-exclusive, non-transferable, limited privilege to enter and use the Site.</p>

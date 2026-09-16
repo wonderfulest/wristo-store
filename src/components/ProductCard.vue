@@ -106,6 +106,7 @@ const props = defineProps<{
   adminMetrics?: ProductStoreMetricsVO | null
   currentCategoryId?: number | null
   showAdminEdit?: boolean
+  hideFreeBadge?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -121,7 +122,9 @@ const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
 const localMetrics = ref<ProductStoreMetricsVO | null>(null)
 
 const productImageUrl = computed(() => getProductImageUrl(props.product))
-const productBadges = computed(() => resolveProductBadges(props.product))
+const productBadges = computed(() =>
+  resolveProductBadges(props.product).filter((badge) => !props.hideFreeBadge || badge.kind !== 'free'),
+)
 const productAriaLabel = computed(() => String(props.product?.name || ''))
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const canBuyNow = computed(() => !hasPremiumAccess.value && Number(props.product?.price || 0) > 0)

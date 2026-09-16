@@ -41,6 +41,10 @@
         <div v-if="isExpanded" class="footer-detail">
           <div class="footer-detail-title">© 2025 WuKong OÜ. {{ t('footer.rights') }}</div>
           <div class="footer-detail-block">
+            <strong>{{ t('legal.companyRolesTitle') }}:</strong><br>
+            {{ t('legal.companyRoles') }}
+          </div>
+          <div class="footer-detail-block">
             <strong>{{ t('footer.address') }}:</strong><br>
             Harju maakond, Tallinn, Kesklinna linnaosa, Ahtri tn 12, 15551, Estonia
           </div>
