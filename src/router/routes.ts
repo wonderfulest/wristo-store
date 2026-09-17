@@ -21,6 +21,16 @@ const redirectLegacyProductDetail = (to: RouteLocationGeneric) => {
   }
 }
 
+const redirectLegacyPremium = (to: RouteLocationGeneric) => {
+  const routeLang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
+  const lang = typeof routeLang === 'string' ? `/${encodeURIComponent(routeLang)}` : ''
+  return {
+    path: `${lang}/membership`,
+    query: to.query,
+    hash: to.hash,
+  }
+}
+
 const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/explore/tag/:slug/:sort(popular|latest)?',
@@ -93,9 +103,14 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/shop/CodeInput.vue') 
   },
   {
-    path: '/premium',
-    name: 'Premium',
+    path: '/membership',
+    name: 'Membership',
     component: () => import('@/views/shop/PurchaseOptions.vue'),
+  },
+  {
+    path: '/premium',
+    name: 'PremiumLegacy',
+    redirect: redirectLegacyPremium,
   },
   {
     path: '/purchase-options',

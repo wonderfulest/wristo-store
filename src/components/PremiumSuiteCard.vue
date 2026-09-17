@@ -81,7 +81,7 @@ const isGlobalPremiumBundle = (bundle: Bundle) => {
 }
 
 const goPremium = () => {
-  router.push(addLocaleToPath('/premium', localeStore.currentLocale))
+  router.push(addLocaleToPath('/membership', localeStore.currentLocale))
 }
 
 onMounted(async () => {

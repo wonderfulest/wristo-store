@@ -31,7 +31,7 @@ const staticRoutes = [
   '/',
   '/search',
   '/brands',
-  '/premium',
+  '/membership',
   '/purchase-options',
   '/support',
   '/support/checkout',

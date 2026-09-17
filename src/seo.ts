@@ -39,7 +39,7 @@ const staticSeoByPath: Record<string, SeoConfig> = {
     title: 'Creators and Brands | Wristo',
     description: 'Explore Garmin watch face creators and brand collections on Wristo.',
   },
-  '/premium': {
+  '/membership': {
     title: 'Premium Garmin Watch Face Access | Wristo',
     description: 'Unlock Wristo premium watch face access and bundle purchase options.',
   },

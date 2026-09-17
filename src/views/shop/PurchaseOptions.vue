@@ -581,7 +581,7 @@ const loadProductForCurrentEntry = () => {
 }
 
 const syncEntryContext = () => {
-  const shouldResetByPremiumPath = route.path === '/premium' || route.name === 'Premium'
+  const shouldResetByPremiumPath = route.path === '/membership' || route.name === 'Membership'
   const shouldResetProductContext = shouldResetByPremiumPath || !isCodePurchaseEntry.value
   if (shouldResetProductContext) {
     store.reset()
