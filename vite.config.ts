@@ -7,8 +7,9 @@ const isLocalUrl = (url: string | undefined) => /^https?:\/\/(localhost|127\.0\.
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
-  const envDir = fileURLToPath(new URL('..', import.meta.url))
-  const env = loadEnv(mode, envDir, '')
+  const sharedEnvDir = fileURLToPath(new URL('..', import.meta.url))
+  const envDir = fileURLToPath(new URL(mode === 'prod' || mode === 'production' ? '.' : '..', import.meta.url))
+  const env = { ...loadEnv(mode, sharedEnvDir, ''), ...loadEnv(mode, envDir, '') }
   const studioUrl =
     mode === 'prod' && isLocalUrl(env.VITE_WRISTO_STUDIO_URL)
       ? 'https://studio.wristo.io'

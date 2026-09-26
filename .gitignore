@@ -69,3 +69,6 @@ coverage/
 
 # Local feature worktrees
 .worktrees/
+
+# Local production environment values
+.env.prod
