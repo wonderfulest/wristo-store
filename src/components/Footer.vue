@@ -5,13 +5,12 @@
     tabindex="0"
     :aria-expanded="isExpanded"
     @click="handleFooterClick"
-    @keydown.enter.prevent="toggle"
-    @keydown.space.prevent="toggle"
-    @blur="collapse"
+    @keydown.enter.self.prevent="toggle"
+    @keydown.space.self.prevent="toggle"
   >
     <div class="storefront-container footer-container">
       <!-- 桌面端布局 -->
-      <div v-if="!isExpanded && !isMobile" class="footer-main desktop-layout">
+      <div v-if="!isMobile" class="footer-main desktop-layout">
         <div class="footer-brand">
           <img class="footer-mark" src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-mark.svg" alt="" aria-hidden="true" />
           <span>© 2025 WuKong OÜ</span>
@@ -19,7 +18,12 @@
         <nav class="footer-nav" :aria-label="t('footer.quickLinks')">
           <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a>
           <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a>
-          <a :href="localizedPath('/contact')">{{ t('footer.contact') }}</a>
+          <button
+            type="button"
+            :aria-expanded="isExpanded"
+            aria-controls="footer-contact-details"
+            @click.stop="toggle"
+          >{{ t('footer.contact') }}</button>
           <!-- <a href="/support">FAQ</a> -->
         </nav>
       </div>
@@ -38,7 +42,7 @@
         </button>
       </div>
       <transition name="footer-expand">
-        <div v-if="isExpanded" class="footer-detail">
+        <div v-if="isExpanded" id="footer-contact-details" class="footer-detail">
           <div class="footer-detail-title">© 2025 WuKong OÜ. {{ t('footer.rights') }}</div>
           <div class="footer-detail-block">
             <strong>{{ t('legal.companyRolesTitle') }}:</strong><br>
@@ -136,14 +140,11 @@ function toggle() {
 }
 
 function handleFooterClick(event: MouseEvent) {
-  if (isMobile.value && event.target instanceof Element && event.target.closest('a, button')) {
+  if (event.target instanceof Element && event.target.closest('a, button')) {
     return
   }
+  if (!isMobile.value && isExpanded.value) return
   toggle()
-}
-
-function collapse() {
-  isExpanded.value = false
 }
 
 onMounted(() => {
@@ -315,6 +316,7 @@ onUnmounted(() => {
 }
 
 .footer-nav a,
+.footer-nav button,
 .footer-detail a {
   min-height: 44px;
   display: inline-flex;
@@ -329,8 +331,17 @@ onUnmounted(() => {
   transition: background var(--motion-fast) ease, color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
 
+.footer-nav button {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
 .footer-nav a:hover,
 .footer-nav a:focus-visible,
+.footer-nav button:hover,
+.footer-nav button:focus-visible,
 .footer-detail a:hover,
 .footer-detail a:focus-visible {
   background: rgba(11, 116, 109, 0.1);
