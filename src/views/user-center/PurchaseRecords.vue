@@ -9,6 +9,10 @@
           <p class="page-subtitle">Review orders, receipts, and app unlock history in one place.</p>
         </div>
         <div class="header-actions" aria-label="Account actions">
+          <RouterLink class="profile-link" :to="{ name: 'ActivationRecords', params: { lang: $route.params.lang } }">
+            <Icon icon="solar:watch-round-linear" width="18" aria-hidden="true" />
+            Activation records
+          </RouterLink>
           <button class="profile-link" type="button" @click="navigateToProfile">
             <Icon icon="mdi:account-outline" width="18" aria-hidden="true" />
             Profile

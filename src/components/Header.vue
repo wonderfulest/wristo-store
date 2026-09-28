@@ -172,6 +172,11 @@
                     </span>
                     <Icon icon="solar:arrow-right-up-line-duotone" width="18" height="18" aria-hidden="true" />
                   </el-dropdown-item>
+                  <el-dropdown-item command="activation-records" class="user-dropdown-item">
+                    <span class="user-dropdown-icon"><Icon icon="solar:watch-round-linear" width="18" aria-hidden="true" /></span>
+                    <span class="user-dropdown-copy"><strong>{{ t('activations.title') }}</strong><small>{{ t('activations.menuDescription') }}</small></span>
+                    <Icon icon="solar:arrow-right-up-line-duotone" width="18" aria-hidden="true" />
+                  </el-dropdown-item>
                   <el-dropdown-item command="billing" class="user-dropdown-item">
                     <span class="user-dropdown-icon">
                       <Icon icon="solar:bill-list-line-duotone" width="18" height="18" aria-hidden="true" />
@@ -354,6 +359,10 @@
                 <el-icon><Document /></el-icon>
                 <span>{{ t('nav.purchases') }}</span>
               </button>
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('activation-records'); closeMobileMenu()">
+                <Icon icon="solar:watch-round-linear" width="18" aria-hidden="true" />
+                <span>{{ t('activations.title') }}</span>
+              </button>
               <button class="mobile-action-btn" @click="handleUserMenuCommand('billing'); closeMobileMenu()">
                 <Icon icon="solar:bill-list-line-duotone" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.billing') }}</span>
@@ -486,6 +495,9 @@ const handleUserMenuCommand = (command: string) => {
       break;
     case 'subscription':
       router.push(localizedPath('/subscription'));
+      break;
+    case 'activation-records':
+      router.push(localizedPath('/user/activation-records'));
       break;
     case 'purchase-records':
       router.push(localizedPath('/user/purchase-records'));

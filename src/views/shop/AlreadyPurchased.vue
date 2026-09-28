@@ -75,7 +75,9 @@
       
       <div v-if="error" class="message error-message" role="alert">
         <el-icon class="message-icon" aria-hidden="true"><WarningFilled /></el-icon>
-        <div class="message-text">{{ error }}</div>
+        <div class="message-text">{{ error }}
+          <RouterLink v-if="showManageActivations" :to="addLocaleToPath('/user/activation-records', locale)" class="manage-activations">{{ t('activations.manage') }} →</RouterLink>
+        </div>
       </div>
       
       <div v-if="success" class="message success-message" role="status">
@@ -91,6 +93,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { activatePurchase } from '@/api/pay'
+import { activationFeedback } from '@/utils/activationFeedback'
+import { addLocaleToPath } from '@/store/locale'
 import { ElMessage } from 'element-plus'
 import SmartwatchCodeHelpModal from '@/components/SmartwatchCodeHelpModal.vue'
 import type { CheckPurchaseResponse } from '@/types/purchase-check'
@@ -107,11 +111,12 @@ const email = ref('')
 const activationCode = ref('')
 const loading = ref(false)
 const error = ref('')
+const showManageActivations = ref(false)
 const success = ref(false)
 const successMessage = ref('')
 const showCodeHelpModal = ref(false)
 const activationCodeInput = ref<HTMLInputElement | null>(null)
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const isFormValid = computed(() => {
   return email.value.trim() && activationCode.value.length === 6
@@ -119,6 +124,7 @@ const isFormValid = computed(() => {
 
 function clearMessages() {
   error.value = ''
+  showManageActivations.value = false
   success.value = false
 }
 
@@ -150,6 +156,7 @@ onMounted(() => {
 
 async function handleActivation() {
   error.value = ''
+  showManageActivations.value = false
   success.value = false
   
   if (!email.value.trim()) {
@@ -184,16 +191,19 @@ async function handleActivation() {
         ElMessage.success(t('activation.toastDefault'))
       }
     } else {
-      error.value = t('activation.errorNotFound')
+      const feedback = activationFeedback(purchaseResult)
+      error.value = feedback.key ? t(feedback.key) : feedback.message || t('activation.errorNotFound')
+      showManageActivations.value = feedback.manage
     }
   } catch (e: any) {
     if (e?.code === BizErrorCode.TRIAL_PAYMENT_CODE_USED) {
-      success.value = true
-      successMessage.value = t('activation.successAlreadyActivated')
+      error.value = t('activation.errorCodeUsed')
     } else if (e?.code === BizErrorCode.TRIAL_PAYMENT_CODE_INVALID) {
       error.value = t('activation.errorInvalidCode')
     } else if (e && typeof e === 'object' && 'code' in e && 'msg' in e && typeof e.msg === 'string') {
-      error.value = e.msg
+      const feedback = activationFeedback(e)
+      error.value = feedback.key ? t(feedback.key) : feedback.message || t('activation.errorNetwork')
+      showManageActivations.value = feedback.manage
     } else {
       error.value = t('activation.errorNetwork')
     }
@@ -208,6 +218,7 @@ function handleResendCode() {
 </script>
 
 <style scoped>
+.manage-activations { display: block; margin-top: 10px; color: inherit; font-weight: 600; text-underline-offset: 3px; }
 .already-purchased-page {
   --commerce-page-width: 100%;
   --commerce-page-padding-block: 20px;

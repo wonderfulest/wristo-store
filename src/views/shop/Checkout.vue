@@ -120,6 +120,8 @@ import { useUserStore } from '@/store/user'
 import { getProductImageUrl } from '@/utils/productImage'
 import { initializePaddle } from '@/utils/paddle'
 import { useI18n } from '@/i18n'
+import { activationFeedback } from '@/utils/activationFeedback'
+import { addLocaleToPath } from '@/store/locale'
 import { ArrowRight, CircleCheckFilled, CreditCard, Lock } from '@element-plus/icons-vue'
 
 declare global {
@@ -131,7 +133,7 @@ declare global {
 const router = useRouter()
 const store = useShopOptionsStore()
 const userStore = useUserStore()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const product = computed(() => store.selectedProduct as Bundle | ProductVO)
 
 const request = computed(() => store.data?.request as PurchaseRequest | undefined)
@@ -435,6 +437,12 @@ const handlePayment = async (isRetry = false) => {
     }
     if (!isBundleTokenFlow.value && email.value) {
         const checkPurchaseResponse: CheckPurchaseResponse = await checkPurchase(checkPurchaseRequest)
+        const feedback = activationFeedback(checkPurchaseResponse)
+        if (feedback.manage) {
+            await ElMessageBox.alert(t(feedback.key!), t('activations.policyTitle'), { confirmButtonText: t('activations.manage') })
+            router.push(addLocaleToPath('/user/activation-records', locale.value))
+            return
+        }
         console.log('checkPurchaseResponse', checkPurchaseResponse)
         if (checkPurchaseResponse.isPurchase) {
             // 存储购买和订阅信息到 store 中

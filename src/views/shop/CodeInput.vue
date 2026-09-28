@@ -63,7 +63,9 @@
         
         <div v-if="error" class="message error-message">
           <el-icon class="message-icon" aria-hidden="true"><WarningFilled /></el-icon>
-          <div class="message-text">{{ error }}</div>
+          <div class="message-text">{{ error }}
+            <RouterLink v-if="showManageActivations" :to="localizedPath('/user/activation-records')" class="manage-activations">{{ t('activations.manage') }} →</RouterLink>
+          </div>
         </div>
         
         <div v-if="success" class="message success-message">
@@ -99,6 +101,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { purchaseByCode, checkPurchaseByToken, continuePurchase } from '@/api/pay'
+import { activationFeedback } from '@/utils/activationFeedback'
 import { useShopOptionsStore } from '@/store/shopOptions'
 import { useUserStore } from '@/store/user'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
@@ -111,6 +114,7 @@ import { ArrowRight, CircleCheckFilled, Lock, WarningFilled } from '@element-plu
 const code = ref('')
 const coupon = ref('')
 const error = ref('')
+const showManageActivations = ref(false)
 const success = ref('')
 const loading = ref(false)
 const showCouponInput = ref(false)
@@ -148,6 +152,7 @@ const handleContinue = async () => {
     return
   }
   error.value = ''
+  showManageActivations.value = false
   success.value = ''
   loading.value = true
   
@@ -161,7 +166,19 @@ const handleContinue = async () => {
           handleAutoUnlock(purchaseResult)
           return
         }
+        const feedback = activationFeedback(purchaseResult)
+        if (feedback.manage) {
+          error.value = t(feedback.key!)
+          showManageActivations.value = true
+          return
+        }
       } catch (purchaseCheckError) {
+        const feedback = activationFeedback(purchaseCheckError as { code?: number; msg?: string })
+        if (feedback.manage) {
+          error.value = t(feedback.key!)
+          showManageActivations.value = true
+          return
+        }
         // 购买检查失败，继续正常流程
         console.log('Purchase check failed, continuing with normal flow:', purchaseCheckError)
       }
@@ -194,6 +211,7 @@ const handleContinue = async () => {
 const clearMessages = () => {
   if (error.value) {
     error.value = ''
+  showManageActivations.value = false
   }
   if (success.value) {
     success.value = ''
@@ -259,6 +277,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.manage-activations { display: block; margin-top: 10px; color: inherit; font-weight: 600; text-underline-offset: 3px; }
 .code-input-page {
   min-height: calc(100vh - 64px - 58px - 40px);
   display: flex;

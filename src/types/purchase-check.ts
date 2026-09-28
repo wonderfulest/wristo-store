@@ -68,6 +68,10 @@ export interface SubscriptionVO {
 // 检查购买响应
 export interface CheckPurchaseResponse {
   isPurchase: boolean
+  reason?: string
+  message?: string
+  activationLimit?: number
+  activeCount?: number
   purchase: PurchaseRecordVO | null
   subscription: SubscriptionVO | null
 }

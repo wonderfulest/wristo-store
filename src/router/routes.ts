@@ -312,6 +312,12 @@ const baseRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/user-center/UserProfile.vue')
   },
   {
+    path: '/user/activation-records',
+    name: 'ActivationRecords',
+    component: () => import('@/views/user-center/ActivationRecords.vue'),
+    meta: { requiresAuth: true, title: 'Activation records' }
+  },
+  {
     path: '/user/purchase-records',
     name: 'PurchaseRecords',
     component: () => import('@/views/user-center/PurchaseRecords.vue')
