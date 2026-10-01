@@ -22,10 +22,10 @@
               <Icon icon="solar:map-arrow-right-linear" width="20" height="20" aria-hidden="true" />
               {{ t('creators.viewGrowthPath') }}
             </button>
-            <button class="btn-secondary" type="button" @click="handleOpenAcademy">
+            <a class="btn-secondary" :href="wikiUrl" target="_blank" rel="noopener noreferrer">
               <Icon icon="solar:notebook-bookmark-linear" width="20" height="20" aria-hidden="true" />
-              {{ t('creators.openAcademy') }}
-            </button>
+              {{ t('creators.openWiki') }}
+            </a>
           </div>
           <div class="hero-metrics" :aria-label="t('creators.metricsAria')">
             <div v-for="metric in heroMetrics" :key="metric.label" class="metric-item">
@@ -182,10 +182,10 @@
           <Icon icon="solar:magic-stick-3-bold-duotone" width="20" height="20" aria-hidden="true" />
           {{ t('creators.joinFree') }}
         </button>
-        <button class="btn-secondary promise-secondary" type="button" @click="handleOpenAcademy">
+        <a class="btn-secondary promise-secondary" :href="wikiUrl" target="_blank" rel="noopener noreferrer">
           <Icon icon="solar:notebook-bookmark-linear" width="20" height="20" aria-hidden="true" />
-          {{ t('creators.openAcademy') }}
-        </button>
+          {{ t('creators.openWiki') }}
+        </a>
       </section>
     </main>
   </div>
@@ -195,10 +195,10 @@
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useI18n } from '@/i18n'
-import { getStudioUrl, openStudio, openStudioUrl } from '@/utils/studio'
+import { getStudioUrl, openStudio } from '@/utils/studio'
 
 const { t } = useI18n()
-const academyUrl = new URL('/academy', getStudioUrl()).toString()
+const wikiUrl = new URL('/wiki', getStudioUrl()).toString()
 
 const heroMetrics = computed(() => [
   { value: t('creators.metricFreeValue'), label: t('creators.metricFreeLabel') },
@@ -322,10 +322,6 @@ const handleViewPath = () => {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
-}
-
-const handleOpenAcademy = () => {
-  openStudioUrl(academyUrl)
 }
 
 const handleNextStage = () => {
@@ -474,6 +470,7 @@ const goStage = (stage: number) => {
 }
 
 .btn-secondary {
+  text-decoration: none;
   padding: 13px 20px;
 }
 
