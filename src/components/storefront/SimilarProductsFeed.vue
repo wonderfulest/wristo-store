@@ -111,7 +111,7 @@ onBeforeUnmount(() => { revision += 1; observer?.disconnect() })
 .similar-products-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .similar-product-card { position: relative; min-width: 0; overflow: hidden; border: 1px solid var(--color-line); border-radius: 20px; background: #fff; }
 .similar-product-open { width: 100%; padding: 0; border: 0; color: inherit; text-align: left; background: none; cursor: pointer; }
-.similar-product-open img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: var(--color-stage); }
+.similar-product-open img { display: block; width: 100%; aspect-ratio: 1; border-radius: 50%; object-fit: cover; background: var(--color-stage); }
 .similar-product-copy { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px 12px; }
 .similar-product-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .similar-product-copy span { color: var(--color-stage-muted); font-weight: 750; }
