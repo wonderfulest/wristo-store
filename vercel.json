@@ -1,6 +1,26 @@
 {
   "redirects": [
     {
+      "source": "/template-editor",
+      "destination": "https://studio.wristo.io/tokens",
+      "permanent": true
+    },
+    {
+      "source": "/tpl",
+      "destination": "https://studio.wristo.io/tokens",
+      "permanent": true
+    },
+    {
+      "source": "/:lang/template-editor",
+      "destination": "https://studio.wristo.io/tokens",
+      "permanent": true
+    },
+    {
+      "source": "/:lang/tpl",
+      "destination": "https://studio.wristo.io/tokens",
+      "permanent": true
+    },
+    {
       "source": "/product/:id",
       "destination": "/app/:id",
       "permanent": true

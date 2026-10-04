@@ -42,7 +42,6 @@ const staticRoutes = [
   '/top',
   '/creators',
   '/bundle-products',
-  '/template-editor',
 ]
 const hiddenFaqGuideRouteSlugs = new Set([
   'garmin-watchface-iq-error-fix-zh',

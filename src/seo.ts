@@ -94,10 +94,6 @@ const staticSeoByPath: Record<string, SeoConfig> = {
     title: 'Garmin Watch Face Bundles | Wristo',
     description: 'Browse Wristo bundles for Garmin watch faces and Connect IQ apps.',
   },
-  '/template-editor': {
-    title: 'Garmin Watch Face Template Editor | Wristo',
-    description: 'Create and preview Garmin watch face templates with Wristo tools.',
-  },
 }
 
 const noindexPrefixes = [

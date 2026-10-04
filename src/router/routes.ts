@@ -291,7 +291,12 @@ const baseRoutes: RouteRecordRaw[] = [
   {
     path: '/template-editor',
     name: 'TemplateEditorPage',
-    component: () => import('@/views/products/TemplateEditorPage.vue')
+    component: { render: () => null },
+    beforeEnter: () => {
+      window.location.replace('https://studio.wristo.io/tokens')
+      return false
+    },
+    meta: { noindex: true },
   },
   {
     path: '/tpl',
