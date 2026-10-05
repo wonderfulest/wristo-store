@@ -310,6 +310,7 @@ import {
 import { useProductStore } from '@/store/product'
 import { useCartStore } from '@/store/cart'
 import { useUserStore } from '@/store/user'
+import { recordDownloadReward } from '@/api/userRewards'
 import type {
   GarminDeviceBaseVO,
   ProductReviewVO,
@@ -438,6 +439,17 @@ const handleBuyNow = () => {
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
+    if (userStore.token && userStore.userInfo?.id) {
+      const rewardUserId = userStore.userInfo.id
+      void recordDownloadReward(product.value.appId, userStore.token).then(result => {
+        if (userStore.userInfo?.id !== rewardUserId) return
+        if (result.credits > 0) {
+          ElMessage.success(t('rewards.downloadEarned', { credits: result.credits }))
+        }
+      }).catch(() => {
+        if (userStore.userInfo?.id === rewardUserId) ElMessage.info(t('rewards.downloadUnconfirmed'))
+      })
+    }
     // 保存当前页面状态到sessionStorage，防止页面刷新时丢失
     try {
       sessionStorage.setItem('productDetailState', JSON.stringify({
