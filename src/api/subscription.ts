@@ -51,3 +51,9 @@ export const pauseSubscription = (remark: string): Promise<Subscription> => {
 export const resumeSubscription = (): Promise<Subscription> => {
   return instance.post('/v1/user/subscriptions/resume?populate=paddle')
 }
+
+/** Re-check account-wide Premium immediately before starting a new purchase. */
+export const requirePremiumPurchaseEligibility = async (): Promise<void> => {
+  const allowed = await instance.post<unknown, boolean>('/v1/user/membership/purchase-check')
+  if (allowed !== true) throw new Error('Unable to verify your membership. Please try again.')
+}

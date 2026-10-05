@@ -12,7 +12,10 @@ export const hasActiveSubscription = (
   userInfo?: UserInfo | null,
   now: Date = new Date(),
 ) => {
-  const endTime = userInfo?.subscription?.endTime
+  const subscription = userInfo?.subscription
+  const endTime = subscription?.endTime
+  // The API returns the current membership; an explicit null expiry denotes lifetime.
+  if (endTime === null && subscription?.planCode) return true
   if (!endTime) return false
 
   const expiresAt = new Date(endTime)

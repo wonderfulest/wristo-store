@@ -56,12 +56,12 @@
             <!-- 按钮区域 -->
             <div class="action-buttons">
               <!-- 显示续订按钮（暂停或有计划更改时） -->
-              <el-button v-if="subscriptionStatus?.shouldShowRenew" type="primary" @click="handleRenewSubscription">
+              <el-button v-if="userStore.userInfo?.subscription?.paddleSubId && subscriptionStatus?.shouldShowRenew" type="primary" @click="handleRenewSubscription">
                 Renew Subscription
               </el-button>
               
               <!-- 显示退订按钮（活跃且无计划更改时） -->
-              <el-button v-if="subscriptionStatus?.shouldShowCancel" type="primary" @click="router.push('/subscription-cancel')">
+              <el-button v-if="userStore.userInfo?.subscription?.paddleSubId && subscriptionStatus?.shouldShowCancel" type="primary" @click="router.push('/subscription-cancel')">
                 Manage Subscription
               </el-button>
             </div>
@@ -69,7 +69,9 @@
         </div>
         
         <!-- 订阅计划选择 -->
-        <div class="subscription-plans-container">
+        <p v-if="hasPremiumEntitlement(userStore.userInfo)">Your Premium membership is active on the website and in the iOS app. You do not need to purchase again.</p>
+        <p v-if="userStore.userInfo?.subscription?.planCode === 'apple_premium'">Manage renewal in your Apple subscription settings.</p>
+        <div v-if="!hasPremiumEntitlement(userStore.userInfo)" class="subscription-plans-container">
           <SubscriptionPlans 
             :show-title="false"
             :current-plan-code="currentSubscriptionPlanCode"
@@ -135,6 +137,7 @@ import SubscriptionPlans from '@/components/SubscriptionPlans.vue';
 // API
 import type { SubscriptionPlan } from '@/api/subscription';
 import { getSubscriptionDetails } from '@/api/subscription';
+import { hasPremiumEntitlement } from '@/utils/entitlements';
 import { useUserStore } from '@/store/user';
 import { useShopOptionsStore } from '@/store/shopOptions';
 const store = useShopOptionsStore()
@@ -313,6 +316,7 @@ const handlePlanSelected = (plan: SubscriptionPlan) => {
 
 // Handle subscribe button click
 const handleSubscribe = async (plan?: SubscriptionPlan) => {
+  if (hasPremiumEntitlement(userStore.userInfo)) return;
   if (plan) {
     selectedPlan.value = plan;
     

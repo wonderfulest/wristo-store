@@ -3,18 +3,18 @@
     <div class="terms-pro-header">
       <Logo />
       <div class="terms-meta">
-        <h1 class="terms-title">Website Terms of Use</h1>
+        <h1 class="terms-title">Wristo Terms of Use</h1>
         <!-- <span class="terms-breadcrumb">Home / Terms of Use</span> -->
-        <span class="terms-updated">Last Updated: 2026-09-16</span>
+        <span class="terms-updated">Last Updated: 2026-10-05</span>
       </div>
     </div>
     <nav class="terms-toc">
       <ul>
-        <li><a href="#ownership">1. Ownership of Site</a></li>
+        <li><a href="#ownership">1. Scope and Service Operator</a></li>
         <li><a href="#products">2. Products and License of Use</a></li>
-        <li><a href="#payments">3. Payments</a></li>
-        <li><a href="#refund">4. Refund Policy</a></li>
-        <li><a href="#privacy">5. User Data and Privacy</a></li>
+        <li><a href="#payments">3. Purchases and Wristo Premium</a></li>
+        <li><a href="#refund">4. Refunds</a></li>
+        <li><a href="#privacy">5. Privacy and Account Deletion</a></li>
         <li><a href="#acceptable">6. Acceptable Use</a></li>
         <li><a href="#disclaimer">7. Disclaimer</a></li>
         <li><a href="#liability">8. Limitation of Liability</a></li>
@@ -23,14 +23,14 @@
       </ul>
     </nav>
     <div class="terms-content">
-      <h2 id="ownership">1. Ownership of Site</h2>
+      <h2 id="ownership">1. Scope and Service Operator</h2>
       <p>Wristo services are operated by WuKong OÜ, which is responsible for personal data processing and privacy protection for these services. The Wristo iOS app is developed and published on the App Store by 北京简径科技有限公司 with authorization from WuKong OÜ.</p>
-      <p>These Terms and Conditions of Use (the "Terms of Use") apply to the Wristo website located at <a href="https://www.wristo.io" target="_blank">www.wristo.io</a>, and all associated sites linked to www.wristo.io by WuKong OÜ and its affiliates (collectively, the "Site"). The Site is the property of WuKong OÜ ("Wukong") and its licensors.</p>
-      <p><strong>BY USING THE SITE, YOU AGREE TO THESE TERMS OF USE; IF YOU DO NOT AGREE, DO NOT USE THE SITE.</strong></p>
-      <p>Wukong reserves the right, at its sole discretion, to change, modify, add, or remove portions of these Terms of Use at any time. It is your responsibility to check these Terms of Use periodically for updates. Your continued use of the Site following the posting of changes will mean that you accept and agree to the changes. As long as you comply with these Terms of Use, Wukong grants you a personal, non-exclusive, non-transferable, limited privilege to enter and use the Site.</p>
+      <p>These Terms apply to the Wristo website (the "Site"), the Wristo mobile apps, and the account, watch face and membership services we provide (the "Services"). By using the Services, you agree to these Terms. If you do not agree, do not use the Services.</p>
+      <p>The iOS app license is governed by Apple's Standard End User License Agreement unless a custom license agreement is specified for the app in the App Store. These Terms describe Wristo's services and purchases and do not override applicable Apple terms or your mandatory consumer rights. See <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/">Apple's Standard EULA</a>.</p>
+      <p>We may update these Terms when our Services change. We will update the date above and provide notice where required. Changes do not remove rights already purchased or rights provided by applicable law.</p>
 
       <h2 id="products">2. Products and License of Use</h2>
-      <p>Wristo.io offers downloadable digital watch faces ("Products") for Garmin smartwatches. By purchasing or accessing any Product from the Site, you are granted a limited, non-exclusive, non-transferable, and revocable license to download, install, and use such Products solely for your personal, non-commercial use on compatible devices.</p>
+      <p>Wristo.io offers downloadable digital watch faces ("Products") for Garmin smartwatches. By purchasing or accessing any Product through the Services, you are granted a limited, non-exclusive, non-transferable, and revocable license to download, install, and use such Products solely for your personal, non-commercial use on compatible devices.</p>
       <ul>
         <li>The license granted does <strong>not</strong> constitute a sale of the Product or any intellectual property rights therein.</li>
         <li>You shall <strong>not</strong> sublicense, resell, redistribute, copy, reproduce, modify, or otherwise exploit the Products for any commercial purpose.</li>
@@ -39,42 +39,27 @@
       </ul>
       <p>Violation of any of the foregoing terms may result in immediate termination of your license and access to the Products, in addition to any other legal remedies available to WuKong OÜ.</p>
 
-      <h2 id="payments">3. Payments</h2>
-      <p>All purchases made through the Site are processed via third-party payment platforms, including but not limited to <strong>Paddle.com</strong>, acting as an authorized reseller and Merchant of Record. By placing an order, you agree to be bound by the terms and policies of the applicable reseller.</p>
-      <p>The total price of any Product, including applicable taxes, will be displayed at checkout. Prices may vary depending on your billing location and may include value-added tax (VAT), goods and services tax (GST), or other local taxes as required by law.</p>
-      <ul>
-        <li>WuKong OÜ does not directly collect or process payments, and any billing-related inquiries should be directed to the payment processor or reseller used at the time of purchase.</li>
-        <li>You are solely responsible for ensuring the accuracy of the billing information you provide.</li>
-        <li>All payments are final and non-refundable except as expressly stated in the refund policy or as required by applicable law.</li>
-      </ul>
-      <p>WuKong OÜ reserves the right to modify the pricing of Products at any time without prior notice, and such changes shall not affect any purchases already completed.</p>
+      <h2 id="payments">3. Purchases and Wristo Premium</h2>
+      <p>Purchases offered in the iOS app use Apple's in-app purchase system and are charged to your Apple Account. The localized price and purchase type are shown before confirmation. Website checkout uses the payment provider displayed at checkout, including Paddle as Merchant of Record where indicated. Website payment terms do not replace Apple's terms for in-app purchases.</p>
+      <h3>Lifetime Premium</h3>
+      <p>Lifetime Premium is a one-time, non-consumable purchase with no automatic renewal or scheduled membership expiration. It unlocks watch faces included in the Wristo Premium membership catalog, including new watch faces added to that catalog. It does not transfer copyright or automatically include separate Studio plans, AI credits, or products outside that catalog. A compatible Garmin watch is required to use a watch face; compatibility varies by model.</p>
+      <p>Lifetime describes the duration of the purchased membership entitlement. It is not a guarantee that every future device or firmware version will be compatible. Any compatibility limitations must not be used to remove your mandatory consumer rights or the rights promised at purchase.</p>
+      <h3>Existing subscriptions and channels offering subscriptions</h3>
+      <p>The current iOS purchase screen offers Lifetime Premium. The following applies to existing subscriptions and any channel where a subscription is offered. If you have a monthly or yearly auto-renewable subscription, Premium access lasts for the paid subscription period. Apple bills renewals unless you cancel at least 24 hours before the end of the current period. The price and period shown in Apple's purchase confirmation apply. Manage or cancel Apple subscriptions in your Apple Account settings or at <a href="https://apps.apple.com/account/subscriptions">Apple subscriptions</a>. Cancellation normally takes effect at the end of the current paid period.</p>
+      <p>Membership watch faces activated through a subscription can stop working after it expires. A separate valid lifetime membership or individual watch face purchase remains a separate source of access. Lifetime Premium itself is not a subscription.</p>
+      <p>Buying Lifetime Premium does not automatically cancel an existing subscription. Cancel renewal separately with the original billing provider to avoid further subscription charges.</p>
+      <h3>Account association and restoring purchases</h3>
+      <p>Sign in to Wristo before purchasing. Apple purchases are associated with the Wristo account used for the purchase. To restore, use the original Apple Account and Wristo account, then choose Restore Purchases in the app. A purchase cannot automatically be transferred to a different Wristo account. Contact support if you see an account mismatch; do not purchase again to resolve it.</p>
+      <p>Refunded or revoked purchases no longer grant the corresponding entitlement. Deleting your Wristo account removes its account benefits and does not transfer them to a new account, cancel an Apple subscription, or automatically request a refund.</p>
 
-      <h2 id="refund">4. Refund Policy</h2>
-      <p>Wristo.io offers a <strong>7-day refund period</strong> from the date of purchase for all digital Products, subject to the following conditions:</p>
-      <ul>
-        <li>To request a refund, you must contact us at <a href="mailto:support@wristo.io">support@wristo.io</a> within seven (7) calendar days of the original purchase date.</li>
-        <li>Your request must include <strong>valid proof of purchase</strong>, such as the transaction ID, order confirmation, or payment receipt.</li>
-        <li>Refunds will only be issued to the original payment method used at the time of purchase.</li>
-        <li>Refunds are granted at the sole discretion of WuKong OÜ and are intended to address cases such as accidental purchases, technical incompatibility, or non-functionality of the Product.</li>
-        <li>We reserve the right to deny refund requests that are made after the 7-day period, that lack sufficient documentation, or where there is evidence of abuse of the refund policy (e.g., repeated refunds or attempted unauthorized use).</li>
-      </ul>
-      <p>Nothing in this policy affects your statutory rights under applicable law.</p>
+      <h2 id="refund">4. Refunds</h2>
+      <p><strong>Apple in-app purchases:</strong> Request a refund through <a href="https://reportaproblem.apple.com/">Apple's Report a Problem service</a>. Apple handles these requests under its applicable terms and refund rules. Wristo's website refund window and approval process do not apply to Apple in-app purchases. Your statutory rights remain unaffected.</p>
+      <p><strong>Website purchases:</strong> Wristo offers a 7-day refund request period for digital watch face purchases. Contact <a href="mailto:support@wristo.io">support@wristo.io</a> within seven calendar days with the order or transaction reference and the reason for your request, such as accidental purchase, incompatibility or a product that does not work. Refunds are processed through the original payment provider to the original payment method, subject to the provider's applicable terms. We may decline abusive requests or requests without sufficient purchase information. This policy does not limit mandatory refund or other consumer rights.</p>
 
-      <h2 id="privacy">5. User Data and Privacy</h2>
-      <p>WuKong OÜ is committed to protecting your privacy and handling your data with transparency and care.</p>
-      <p>We only collect and process the <strong>email address</strong> you voluntarily provide at the time of purchase. This information is used solely for the following purposes:</p>
-      <ul>
-        <li>To deliver order confirmations and digital product information;</li>
-        <li>To notify you of updates or changes to the products you have purchased.</li>
-      </ul>
-      <p>We do <strong>not</strong> collect, store, or process any additional personal information, including but not limited to:</p>
-      <ul>
-        <li>Name, billing address, or payment card details (which are handled solely by third-party payment processors such as Paddle.com);</li>
-        <li>Device identifiers, location data, or usage statistics;</li>
-        <li>Any behavioral, biometric, or demographic data.</li>
-      </ul>
-      <p>By using the Site, you acknowledge and consent to this limited data collection and usage strictly for transactional communication.</p>
-      <p>For further information regarding how we handle your data, or to request data deletion, please contact us at <a href="mailto:support@wristo.io">support@wristo.io</a>.</p>
+      <h2 id="privacy">5. Privacy and Account Deletion</h2>
+      <p>Our <a href="/privacy-policy">Privacy Policy</a> explains the account, sign-in, device, technical, purchase and other information processed to provide the Services, the purposes of processing, sharing, retention and your rights. Wristo does not receive your full payment card details from Apple's in-app purchase system. Reading these Terms does not replace consent or system permission where required.</p>
+      <p>In the iOS app, open Account, sign in, and choose Delete Account below Log out. Verify your identity and confirm permanent deletion. This removes your shared Wristo account and associated account benefits across our Services. Files already installed on your watch are not remotely erased, and storage cleanup may continue after account removal. Certain transaction and security records may be retained as described in the Privacy Policy.</p>
+      <p>Account deletion is available regardless of account role after identity verification. Merchant profile information is removed and catalog listings are hidden; records and licensed resources needed to fulfill other customers' existing purchases may be retained. Contact support if you have an access problem. See <a href="/account-deletion.html">account deletion details</a>. You do not need to wait for a subscription to expire before deleting your account, but you must manage billing separately with the original payment provider.</p>
 
       <h2 id="acceptable">6. Acceptable Use</h2>
       <p>As a condition of your use of the Site and Products, you agree that you will not use the Site, Services, or any Products purchased through Wristo.io:</p>
@@ -96,8 +81,8 @@
         <li><strong>Warranties regarding uninterrupted or error-free operation</strong> of the Site or Products;</li>
         <li><strong>Warranties that the Products will remain compatible with future versions</strong> of Garmin operating systems, software updates, or devices.</li>
       </ul>
-      <p>You acknowledge that digital Products may be subject to changes in device compatibility, platform policies, or external technical factors beyond our control. WuKong OÜ is under no obligation to update or maintain Products to support future firmware or hardware changes by Garmin or any third party.</p>
-      <p>Use of the Site and Products is at your sole risk.</p>
+      <p>You acknowledge that digital Products may be subject to changes in device compatibility, platform policies, or external technical factors beyond our control. Compatibility with future firmware or hardware is not guaranteed; this does not limit support, updates or remedies required by applicable law or expressly included in your purchase.</p>
+      <p>These limitations do not exclude mandatory warranties, remedies or other consumer protections under applicable law. Wristo is independent of Garmin and is not sponsored or endorsed by Garmin.</p>
 
       <h2 id="liability">8. Limitation of Liability</h2>
       <p>To the maximum extent permitted by applicable law, WuKong OÜ and its affiliates, officers, employees, agents, licensors, and partners shall <strong>not be liable for any indirect, incidental, consequential, special, or exemplary damages</strong>, including but not limited to loss of profits, goodwill, data, or other intangible losses, arising out of or in connection with:</p>
@@ -113,7 +98,7 @@
       <h2 id="law">9. Governing Law and Jurisdiction</h2>
       <p>These Terms of Use shall be governed by and construed in accordance with the <strong>laws of the Republic of Estonia</strong>, without regard to its conflict of law provisions.</p>
       <p>Any dispute, controversy, or claim arising out of or relating to these Terms, your use of the Site, or any Products purchased via Wristo.io shall be <strong>submitted to the exclusive jurisdiction of the courts of Estonia</strong>, with <strong>Tallinn, Harju County</strong> as the agreed legal venue.</p>
-      <p>You hereby irrevocably consent to the personal and exclusive jurisdiction of such courts and waive any objections based on venue or forum non conveniens.</p>
+      <p>This choice of law and forum does not deprive consumers of mandatory protections or the right to bring proceedings in a court available under the laws of their country of residence. Applicable Apple purchase and license terms remain unaffected.</p>
 
       <h2 id="contact">10. Contact</h2>
       <p><strong>Business Name:</strong> WuKong OÜ</p>

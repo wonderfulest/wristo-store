@@ -125,7 +125,8 @@
                 <div class="pay-method-note">
                     {{ t('checkoutSubscription.poweredByPaddle') }}
                 </div>
-                <button 
+                <p v-if="hasPremiumEntitlement(userStore.userInfo)">Your Premium membership is already active on the website and in the iOS app.</p>
+                <button v-else
                     class="purchase-btn" 
                     @click="() => handlePayment()"
                     :disabled="loading"
@@ -148,6 +149,8 @@ import { useRouter } from 'vue-router'
 import type { PaddleCheckoutCompletedEvent, PurchaseRequest } from '@/types'
 import { requireCheckoutAdmission, purchaseCallback } from '@/api/purchase'
 import type { SubscriptionPlan } from '@/api/subscription'
+import { requirePremiumPurchaseEligibility } from '@/api/subscription'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 import type { CheckPurchaseRequest, CheckPurchaseResponse, PurchaseCallbackRequest, PurchaseSuccessResponseVO } from '@/types/purchase-check'
 import { checkPurchase } from '@/api/pay'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
@@ -373,6 +376,7 @@ function loadPaddle() {
 }
 
 const handlePayment = async (isRetry = false) => {
+    if (loading.value || hasPremiumEntitlement(userStore.userInfo)) return
     // 验证邮箱
     if (!validateAllEmails()) {
         return
@@ -424,6 +428,7 @@ const handlePayment = async (isRetry = false) => {
     if (typeof window !== "undefined" && window.Paddle) {
         console.log('subscription.value', subscription.value)
         try {
+            await requirePremiumPurchaseEligibility()
             await requireCheckoutAdmission()
         } catch (error) {
             loading.value = false

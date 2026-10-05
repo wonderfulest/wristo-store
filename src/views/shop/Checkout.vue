@@ -1,7 +1,8 @@
 <template>
     <main class="checkout commerce-page">
         <h2 class="title">{{ t('checkout.title') }}</h2>
-        <div class="checkout-main">
+        <p v-if="isWristoPremiumBundle && hasPremiumEntitlement(userStore.userInfo)">Your Premium membership is already active on the website and in the iOS app. You do not need to purchase again.</p>
+        <div v-else class="checkout-main">
             <div :class="['checkout-left', { 'checkout-left-bundle': isBundle }]">
                 <template v-if="isBundle">
                     <PurchaseCard
@@ -117,6 +118,8 @@ import { PurchaseOrigin } from '@/constant/purchaseOrigin'
 import { requireCheckoutAdmission, checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
+import { requirePremiumPurchaseEligibility } from '@/api/subscription'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 import { getProductImageUrl } from '@/utils/productImage'
 import { initializePaddle } from '@/utils/paddle'
 import { useI18n } from '@/i18n'
@@ -403,6 +406,10 @@ function loadPaddle() {
 
 const handlePayment = async (isRetry = false) => {
     if (checkoutOpening) return
+    if (isWristoPremiumBundle.value && hasPremiumEntitlement(userStore.userInfo)) {
+        await ElMessageBox.alert('Your Premium membership is already active on the website and in the iOS app.', 'Wristo Premium')
+        return
+    }
 
     try {
     const checkoutEmail = accountEmail.value || normalizeEmail(email.value)
@@ -501,6 +508,7 @@ const handlePayment = async (isRetry = false) => {
             checkoutOptions.customer = { email: email.value }
         }
         try {
+          if (isWristoPremiumBundle.value && userStore.token) await requirePremiumPurchaseEligibility()
           await requireCheckoutAdmission()
         } catch {
           loading.value = false

@@ -37,6 +37,8 @@
       <h2 id="collection">{{ t('privacy.collectionTitle') }}</h2>
       <p>{{ t('privacy.collectionBody') }}</p>
 
+      <p>{{ t('privacy.appleBody') }}</p>
+
       <h2 id="use">{{ t('privacy.useTitle') }}</h2>
       <ul>
         <li>{{ t('privacy.useItem1') }}</li>

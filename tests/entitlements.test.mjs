@@ -75,3 +75,18 @@ test('all Store bundle purchase surfaces use the shared premium entitlement', as
   assert.match(productCard, /hasPremiumEntitlement/)
   assert.match(productDetail, /hasPremiumEntitlement/)
 })
+
+test('Apple lifetime grants shared Premium without a production bundle record', () => {
+  assert.equal(hasPremiumEntitlement({subscription: {planCode: 'apple_premium_lifetime', status: 'active', endTime: null}}, now), true)
+})
+
+test('Web lifetime subscription grants shared Premium without a bundle record', () => {
+  const account = {subscription: {planCode: 'lifetime', status: 'active', endTime: null}}
+  assert.equal(hasActiveSubscription(account, now), true)
+  assert.equal(hasPremiumEntitlement(account, now), true)
+})
+
+test('an incomplete subscription does not imply lifetime membership', () => {
+  assert.equal(hasPremiumEntitlement({subscription: {planCode: 'yearly'}}, now), false)
+  assert.equal(hasPremiumEntitlement({subscription: {endTime: null}}, now), false)
+})

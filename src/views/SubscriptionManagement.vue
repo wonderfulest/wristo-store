@@ -10,19 +10,21 @@
       <div v-if="hasActiveSubscription" class="subscription-card">
         <div class="card-header">
           <div class="plan-info">
-            <h2 class="plan-name">{{ userStore.userInfo?.subscription?.name }}</h2>
+            <h2 class="plan-name">{{ userStore.userInfo?.subscription?.name || 'Wristo Premium' }}</h2>
             <span class="plan-status" :class="{ 'active': hasActiveSubscription, 'expired': !hasActiveSubscription }">
               {{ hasActiveSubscription ? t('subscriptionManagement.active') : t('subscriptionManagement.expired') }}
             </span>
           </div>
-          <div class="plan-actions">
+          <div v-if="userStore.userInfo?.subscription?.paddleSubId" class="plan-actions">
             <el-button type="text" size="small" @click="goToCancelPage" class="manage-btn">
               {{ t('subscriptionManagement.cancel') }}
             </el-button>
           </div>
         </div>
 
-        <div class="subscription-details">
+        <p v-if="userStore.userInfo?.subscription?.planCode === 'apple_premium'">Your membership works on the website and in the iOS app. Manage renewal in your Apple subscription settings.</p>
+        <p v-if="!userStore.userInfo?.subscription?.endTime">Lifetime Premium · No renewal</p>
+        <div v-if="userStore.userInfo?.subscription?.endTime" class="subscription-details">
           <div class="detail-item">
             <span class="label">{{ t('subscriptionManagement.planType') }}</span>
             <span class="value">{{ formatPlanType(userStore.userInfo?.subscription?.planCode) }}</span>
@@ -77,6 +79,7 @@ import { ElButton, ElIcon } from 'element-plus'
 import { Check, Warning } from '@element-plus/icons-vue'
 import { useUserStore } from '@/store/user'
 import { useI18n } from '@/i18n'
+import { hasPremiumEntitlement } from '@/utils/entitlements'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -84,10 +87,7 @@ const { t } = useI18n()
 
 // 检查用户是否有有效订阅
 const hasActiveSubscription = computed(() => {
-  if (!userStore.userInfo?.subscription) return false
-  const endTime = new Date(userStore.userInfo.subscription.endTime)
-  const now = new Date()
-  return endTime > now
+  return hasPremiumEntitlement(userStore.userInfo)
 })
 
 // 计算剩余天数
