@@ -47,8 +47,8 @@
         v-if="product"
         class="purchase-option-product"
         type="product"
-        :title="product.name"
-        :description="product.description"
+        :title="localized(product).name"
+        :description="localized(product).description"
         :image-url="getProductImageUrl(product)"
         :price-id="getPriceIdForProduct(product)"
         :original-price="productOriginalPrice"
@@ -66,7 +66,7 @@
       <!-- <div class="box-container subscription-box">
         <div class="box-header">
           <h3 class="box-title">Subscription Plans</h3>
-          <p class="lifetime-benefits">🔓 <strong>Subscribe to unlock ALL products & Permanently unlock the Single: {{ product.name }}!</strong></p>
+          <p class="lifetime-benefits">🔓 <strong>Subscribe to unlock ALL products & Permanently unlock the Single: {{ localized(product).name }}!</strong></p>
         </div>
         <SubscriptionPlans
           :show-title="false"
@@ -79,6 +79,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { onMounted, ref, computed, nextTick, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useShopOptionsStore } from '@/store/shopOptions'
@@ -349,7 +351,7 @@ const getBundleItems = (bundleItem: Bundle) => {
   if (!bundleItem?.products) return []
   return bundleItem.products.map(p => ({
     id: String(p.appId),
-    name: p.name,
+    name: localized(p).name,
     imageUrl: getProductImageUrl(p)
   }))
 }

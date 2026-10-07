@@ -41,14 +41,14 @@
       <img
         v-if="productImageUrl"
         :src="productImageUrl"
-        :alt="product?.name"
+        :alt="localized(product || {}).name"
         class="product-img"
       />
       <span v-else class="product-img-fallback">W</span>
     </div>
     <div class="product-info">
       <div class="product-main-row">
-        <div class="product-name">{{ product?.name }}</div>
+        <div class="product-name">{{ localized(product || {}).name }}</div>
         <button
           v-if="canBuyNow"
           class="buy-now"
@@ -85,6 +85,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
@@ -125,7 +127,7 @@ const productImageUrl = computed(() => getProductImageUrl(props.product))
 const productBadges = computed(() =>
   resolveProductBadges(props.product).filter((badge) => !props.hideFreeBadge || badge.kind !== 'free'),
 )
-const productAriaLabel = computed(() => String(props.product?.name || ''))
+const productAriaLabel = computed(() => String(localized(props.product || {}).name || ''))
 const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const canBuyNow = computed(() => !hasPremiumAccess.value && Number(props.product?.price || 0) > 0)
 const resolvedMetrics = computed(() => props.adminMetrics || localMetrics.value)

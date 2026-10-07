@@ -31,10 +31,10 @@
             @click="handleProductClick(product)"
           >
             <div class="product-img-wrap">
-              <img :src="getProductImageUrl(product)" :alt="product.name" class="product-img" />
+              <img :src="getProductImageUrl(product)" :alt="localized(product).name" class="product-img" />
             </div>
             <div class="product-info">
-              <div class="product-name">{{ product.name }}</div>
+              <div class="product-name">{{ localized(product).name }}</div>
             </div>
           </div>
         </div>
@@ -53,6 +53,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getBundleById } from '@/api/bundle'

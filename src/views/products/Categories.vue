@@ -220,6 +220,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { computed, ref, onMounted, watch, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/store/product'
@@ -723,7 +725,7 @@ const applyCategorySeo = () => {
             '@type': 'ListItem',
             position: index + 1,
             url: absoluteUrl(`/app/${product.appId}`),
-            name: product.name,
+            name: localized(product).name,
           })),
         },
       },

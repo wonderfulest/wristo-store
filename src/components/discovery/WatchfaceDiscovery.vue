@@ -31,8 +31,8 @@
         <template v-else-if="current && !showLikes">
           <article class="discovery-card" :aria-busy="saving">
             <div class="card-topline"><span><i /> Selected for you</span></div>
-            <RouterLink class="face-image" :to="productPath(current.appId)" @click="visible = false" :aria-label="`See ${current.name} details`"><img v-if="imageUrl && !imageFailed" :key="current.appId" :src="imageUrl" :alt="current.name" @error="imageFailed = true" /><span v-else>Preview unavailable</span></RouterLink>
-            <div class="card-caption"><h3>{{ current.name }}</h3><RouterLink :to="productPath(current.appId)" @click="visible = false">Explore watch face <span aria-hidden="true">↗</span></RouterLink></div>
+            <RouterLink class="face-image" :to="productPath(current.appId)" @click="visible = false" :aria-label="`See ${localized(current).name} details`"><img v-if="imageUrl && !imageFailed" :key="current.appId" :src="imageUrl" :alt="localized(current).name" @error="imageFailed = true" /><span v-else>Preview unavailable</span></RouterLink>
+            <div class="card-caption"><h3>{{ localized(current).name }}</h3><RouterLink :to="productPath(current.appId)" @click="visible = false">Explore watch face <span aria-hidden="true">↗</span></RouterLink></div>
           </article>
           <div class="choices"><button type="button" :disabled="saving" @click="choose('dislike')"><Icon icon="lucide:x" width="21" />Dislike</button><button type="button" class="primary" :disabled="saving" @click="choose('like')"><Icon icon="lucide:heart" width="21" />Like</button></div>
           <p v-if="saving" class="saving-note" role="status">Saving your choice…</p>
@@ -40,7 +40,7 @@
         <div v-else class="results">
           <h3>{{ showLikes ? 'Your favorites, together.' : 'A good place to pause.' }}</h3>
           <p>{{ showLikes ? 'Revisit the faces that caught your eye.' : 'Try a fresh selection or revisit your likes.' }}</p>
-          <div v-if="showLikes" class="liked-grid"><RouterLink v-for="product in liked" :key="product.appId" :to="productPath(product.appId)" @click="visible = false"><img :src="getProductImageUrl(product)" :alt="product.name" loading="lazy" /><span>{{ product.name }}</span></RouterLink></div>
+          <div v-if="showLikes" class="liked-grid"><RouterLink v-for="product in liked" :key="product.appId" :to="productPath(product.appId)" @click="visible = false"><img :src="getProductImageUrl(product)" :alt="localized(product).name" loading="lazy" /><span>{{ localized(product).name }}</span></RouterLink></div>
           <p v-if="showLikes && !likeCount">Your next favorite is waiting. Keep exploring.</p>
           <p v-if="likesLoading" role="status">Loading your likes…</p>
           <button v-if="showLikes && hasMoreLikes" :disabled="likesLoading" type="button" @click="loadLikes">Show More</button>
@@ -54,6 +54,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { computed, nextTick, ref, watch } from 'vue'
 import { ElDialog } from 'element-plus'
 import { Icon } from '@iconify/vue'

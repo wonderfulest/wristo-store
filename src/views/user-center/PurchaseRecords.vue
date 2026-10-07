@@ -186,6 +186,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getPurchaseRecords } from '@/api/pay'
@@ -313,7 +315,7 @@ const getRecordTitle = (record: PurchaseRecord) => {
   if (record.isBundle) {
     return record.bundle?.bundleName || 'Bundle'
   }
-  return record.product?.name || 'Product'
+  return localized(record.product || {}).name || 'Product'
 }
 
 const getRecordKindLabel = (record: PurchaseRecord) => {

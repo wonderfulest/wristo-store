@@ -8,7 +8,7 @@
         <ProductImageGallery
           :images="product?.productImages || []"
           :fallback-image-url="productHeroImageUrl"
-          :product-name="product?.name || t('product.previewAlt')"
+          :product-name="displayProduct?.name || t('product.previewAlt')"
         />
         <button
           v-if="product?.designId && canShowBundleEntries"
@@ -23,7 +23,7 @@
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
         <aside class="product-purchase-panel">
-          <h1 class="product-title">{{ product?.name }}</h1>
+          <h1 class="product-title">{{ displayProduct?.name }}</h1>
         <div v-if="hasPremiumAccess" class="product-activated-panel">
           <div class="product-activated-icon" aria-hidden="true">
             <el-icon><StarFilled /></el-icon>
@@ -94,7 +94,7 @@
           </div>
         </dl>
 
-        <section v-if="product?.description" class="product-summary" aria-labelledby="product-summary-title">
+        <section v-if="displayProduct?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
           <div
             class="product-desc"
@@ -294,6 +294,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { ref, onMounted, nextTick, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -361,6 +363,7 @@ const localeStore = useLocaleStore()
 const { t } = useI18n()
 const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
 const product = ref<ProductVO | null>(null)
+const displayProduct = computed(() => product.value ? localized(product.value) : null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)
@@ -721,11 +724,11 @@ const visibleTags = computed(() => (product.value?.tags || [])
   .sort((a, b) => (b.sort ?? 0) - (a.sort ?? 0) || b.id - a.id))
 
 const renderedProductDescription = computed(() => {
-  return renderProductDescription(product.value?.description || '')
+  return renderProductDescription(displayProduct.value?.description || '')
 })
 
 const productDescriptionNeedsToggle = computed(() => {
-  const description = product.value?.description || ''
+  const description = displayProduct.value?.description || ''
   const text = description.replace(/[#*_`>\-+\d.\s]+/g, ' ').replace(/\s+/g, ' ').trim()
   const lineCount = description.split(/\r\n|\r|\n/).filter((line) => line.trim()).length
   return text.length > 320 || lineCount > 6
@@ -886,7 +889,7 @@ const saveQRCode = async () => {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = url
-          a.download = `${product.value?.name || 'garmin-app'}-qrcode.png`
+          a.download = `${displayProduct.value?.name || 'garmin-app'}-qrcode.png`
           document.body.appendChild(a)
           a.click()
           document.body.removeChild(a)
@@ -898,7 +901,7 @@ const saveQRCode = async () => {
         const dataUrl = el.toDataURL('image/png')
         const a = document.createElement('a')
         a.href = dataUrl
-        a.download = `${product.value?.name || 'garmin-app'}-qrcode.png`
+        a.download = `${displayProduct.value?.name || 'garmin-app'}-qrcode.png`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -915,7 +918,7 @@ const saveQRCode = async () => {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${product.value?.name || 'garmin-app'}-qrcode.svg`
+      a.download = `${displayProduct.value?.name || 'garmin-app'}-qrcode.svg`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -930,7 +933,7 @@ const saveQRCode = async () => {
       const dataUrl = canvas.toDataURL('image/png')
       const a = document.createElement('a')
       a.href = dataUrl
-      a.download = `${product.value?.name || 'garmin-app'}-qrcode.png`
+      a.download = `${displayProduct.value?.name || 'garmin-app'}-qrcode.png`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -952,7 +955,7 @@ const shareQRCode = async () => {
     // Check if Web Share API is supported
     if (navigator.share) {
       await navigator.share({
-        title: `${product.value?.name} - Garmin App`,
+        title: `${displayProduct.value?.name} - Garmin App`,
         text: 'Check out this Garmin app!',
         url: product.value.garminStoreUrl
       })
@@ -1030,7 +1033,7 @@ const {
     ])
     context.commit(() => {
       if (!product.value) return
-      applySeo(productSeo(product.value, route.path))
+      applySeo(productSeo(localized(product.value), route.path))
       restoreProductDetailState(context)
     })
   },
@@ -1045,6 +1048,10 @@ watch(
   },
   { immediate: true, flush: 'sync' },
 )
+
+watch(() => [localeStore.currentLocale, route.path], () => {
+  if (product.value) applySeo(productSeo(localized(product.value), route.path))
+})
 
 onMounted(() => {
   loadSelectedDeviceFromStorage()

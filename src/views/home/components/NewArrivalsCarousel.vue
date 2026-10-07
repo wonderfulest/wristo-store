@@ -30,13 +30,13 @@
                 <div class="product-circle-img">
                   <img
                     :src="getProductImageUrl(product)"
-                    :alt="product.name"
+                    :alt="localized(product).name"
                     class="circle-img"
                     loading="lazy"
                   />
                 </div>
                 <div class="product-info">
-                  <div class="product-name">{{ product.name }}</div>
+                  <div class="product-name">{{ localized(product).name }}</div>
                   <div v-if="!hasBundleEntitlement" class="product-footer">
                     <div class="product-price">${{ product.price.toFixed(2) }}</div>
                     <button
@@ -62,6 +62,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { Icon } from '@iconify/vue';
 import { useRouter } from 'vue-router'
 import { computed, onMounted, onUnmounted, ref } from 'vue'

@@ -13,11 +13,11 @@
           <img
             :src="getProductImageUrl(product)"
             class="product-img"
-            :alt="product.name"
+            :alt="localized(product).name"
             @click="goToProduct(product.appId)"
           />
           <div class="product-info">
-            <div class="product-name">{{ product.name }}</div>
+            <div class="product-name">{{ localized(product).name }}</div>
             <a
               :href="product.garminStoreUrl"
               class="garmin-link"
@@ -35,6 +35,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProductLocalization } from '@/composables/useProductLocalization'
+const localized = useProductLocalization()
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import QrcodeVue from 'qrcode.vue'

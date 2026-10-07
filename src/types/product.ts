@@ -65,6 +65,7 @@ export interface GarminDeviceBaseVO {
 export interface ProductBaseVO {
   appId: number
   name: string
+  names?: Record<string, string> | null
   price: number
   designId: string
   rawImageUrl?: string | null
@@ -98,7 +99,9 @@ export interface ProductVO {
   userId: number
   user?: UserBaseVO | null
   name: string
+  names?: Record<string, string> | null
   description: string
+  descriptions?: Record<string, string> | null
   price: number
   rawImageUrl?: string | null
   previewImageUrl?: string | null
