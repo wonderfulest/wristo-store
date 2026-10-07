@@ -2,6 +2,7 @@
   <div class="tag-page">
     <header class="tag-hero">
       <router-link class="back-link" :to="localizedPath('/search')">← {{ t('nav.search') }}</router-link>
+      <router-link class="back-link browse-link" :to="{ path: localizedPath('/search'), hash: '#browse-tags' }">{{ locale.startsWith('zh') ? '浏览全部标签' : 'Browse all tags' }}</router-link>
       <p class="tag-kicker">{{ t('tags.explore') }}</p>
       <h1>#{{ tagName }}</h1>
       <p class="tag-description">{{ t('tags.description') }}</p>
@@ -94,6 +95,7 @@ watch([slug, sort, routePage, locale], reload, { immediate: true })
 <style scoped>
 .tag-page { padding-bottom: 72px; min-height: 60vh; }
 .tag-hero { max-width: 1200px; margin: 0 auto; padding: 42px 32px 0; }
+.browse-link { margin-left: 20px; }
 .back-link { color: #64748b; font-size: 14px; text-decoration: none; }
 .tag-kicker { margin: 34px 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .14em; color: #64748b; }
 h1 { margin: 0; font-size: clamp(32px, 5vw, 54px); letter-spacing: -.04em; line-height: 1.15; overflow-wrap: anywhere; color: #172033; }

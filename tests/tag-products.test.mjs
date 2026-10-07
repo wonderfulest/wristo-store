@@ -110,3 +110,18 @@ test('unmounted page cannot commit a pending response', async t => {
   await pending
   assert.equal(state.tag.value, null)
 })
+
+test('parent group browse uses the same pagination and sort contract as base tags', async t => {
+  const { state, requests } = harness(t)
+  const initial = state.reset('nature-themes', 'popular')
+  assert.equal(requests[0].slug, 'nature-themes')
+  requests[0].resolve({ ...page('nature-themes'), meta: { tag: { slug: 'nature-themes', name: 'Nature' } } })
+  await initial
+  assert.equal(state.tag.value.name, 'Nature')
+  const sorted = state.reset('nature-themes', 'latest')
+  assert.equal(requests[1].sort, 'latest')
+  assert.equal(requests[1].pageNum, 1)
+  requests[1].resolve(page('nature-themes', 1, [2]))
+  await sorted
+  assert.deepEqual(state.products.value.map(product => product.appId), [2])
+})

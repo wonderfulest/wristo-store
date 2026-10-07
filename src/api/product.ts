@@ -11,6 +11,15 @@ export interface CategoryPageData {
 }
 
 export type TagProductPage = PageResult<ProductBaseVO> & { meta: { tag: ProductTagVO } }
+export interface ProductTagTreeNode {
+  slug: string
+  name: string
+  nameZh?: string | null
+  children: ProductTagVO[]
+}
+
+export const getProductTagTree = (): Promise<ProductTagTreeNode[]> => instance.get('/public/product-tags/tree')
+
 export type TagSort = 'popular' | 'latest'
 
 export const getProductsByTag = (slug: string, sort: TagSort, pageNum = 1, pageSize = 24): Promise<TagProductPage> => {

@@ -13,6 +13,7 @@ const instance = axios.create({
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
+    'X-Wristo-Activation-Platform': 'WRISTO_IO',
   }
 })
 

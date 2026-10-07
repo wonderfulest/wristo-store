@@ -20,6 +20,8 @@
           @submit="handleSubmit"
         />
 
+        <a class="outline-link" href="#browse-tags">{{ locale.startsWith('zh') ? '按标签浏览' : 'Browse by tag' }}</a>
+
         <div class="hero-quick-row" :aria-label="t('search.popularAria')">
           <button
             v-for="item in popularSearches"
@@ -129,6 +131,8 @@
         </button>
       </div>
 
+      <TagBrowser />
+
       <div class="suggestion-panel">
         <div class="suggestion-copy">
           <Icon icon="solar:magnifer-zoom-in-linear" width="22" aria-hidden="true" />
@@ -194,6 +198,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import TagBrowser from '@/components/storefront/TagBrowser.vue'
 import SearchSection from '@/views/home/components/SearchSection.vue'
 import SearchResultsSection from '@/views/home/components/SearchResultsSection.vue'
 import SectionHeading from '@/components/storefront/SectionHeading.vue'
