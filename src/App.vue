@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
 import { ElConfigProvider } from 'element-plus'
 import cs from 'element-plus/dist/locale/cs.mjs'
 import da from 'element-plus/dist/locale/da.mjs'
@@ -17,17 +16,8 @@ import ptBr from 'element-plus/dist/locale/pt-br.mjs'
 import sv from 'element-plus/dist/locale/sv.mjs'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import ChinaSitePrompt from './components/ChinaSitePrompt.vue'
-import GarminInstallPrompt from './components/GarminInstallPrompt.vue'
 import Layout from './components/Layout.vue'
 import { useLocaleStore, type SupportedLocale } from './store/locale'
-import {
-  getCurrentGarminStoreOpenMode,
-  isAllowedGarminStoreUrl,
-  requestGarminInstall,
-  toGarminStoreBridge,
-} from './utils/garminStore'
-
-const router = useRouter()
 const localeStore = useLocaleStore()
 const elementLocales = {
   cs,
@@ -47,44 +37,11 @@ const elementLocales = {
 } satisfies Record<SupportedLocale, typeof en>
 const elementLocale = computed(() => elementLocales[localeStore.currentLocale] || en)
 
-const findAnchor = (target: EventTarget | null) => {
-  if (!(target instanceof Element)) return null
-  return target.closest('a[href]') as HTMLAnchorElement | null
-}
-
-const handleGarminLinkClick = (event: MouseEvent) => {
-  const anchor = findAnchor(event.target)
-  if (!anchor || !isAllowedGarminStoreUrl(anchor.href)) return
-
-  event.preventDefault()
-  event.stopPropagation()
-  const request = {
-    url: anchor.href,
-    name: anchor.textContent?.trim() || 'Garmin website',
-    sourcePath: window.location.pathname + window.location.search + window.location.hash,
-  }
-
-  if (getCurrentGarminStoreOpenMode() === 'confirm') {
-    requestGarminInstall(request)
-    return
-  }
-
-  router.push(toGarminStoreBridge(request))
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleGarminLinkClick, true)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('click', handleGarminLinkClick, true)
-})
 </script>
 
 <template>
   <el-config-provider :locale="elementLocale">
     <ChinaSitePrompt />
-    <GarminInstallPrompt />
     <Layout>
       <router-view />
     </Layout>

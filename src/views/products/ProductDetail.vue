@@ -321,11 +321,7 @@ import type {
 } from '@/types'
 import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
-import {
-  getCurrentGarminStoreOpenMode,
-  requestGarminInstall,
-  toGarminStoreBridge,
-} from '@/utils/garminStore'
+import { isAllowedGarminStoreUrl } from '@/utils/garminStore'
 import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
 import { resolveProductDisplayRating } from '@/utils/productRating'
 import { useCountDisplay } from '@/composables/useCountDisplay'
@@ -464,19 +460,9 @@ const handleDownload = () => {
       console.warn('Failed to save page state:', error)
     }
     
-    const request = {
-      url: product.value.garminStoreUrl,
-      name: product.value.name,
-      imageUrl: productHeroImageUrl.value,
-      sourcePath: route.fullPath,
+    if (isAllowedGarminStoreUrl(product.value.garminStoreUrl)) {
+      window.open(product.value.garminStoreUrl, '_blank', 'noopener,noreferrer')
     }
-
-    if (getCurrentGarminStoreOpenMode() === 'confirm') {
-      requestGarminInstall(request)
-      return
-    }
-
-    router.push(toGarminStoreBridge(request))
   } else {
     ElMessage.error('Download link is not available')
   }
