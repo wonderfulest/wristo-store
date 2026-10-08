@@ -19,7 +19,7 @@ const modeLabel = (m: string) => m === 'touch' ? copy('Touch', '触屏') : m ===
 function score(value: number) {
   const metric = board.value?.metric
   if (metric === 'lengthMm') return `${(value / 10).toFixed(1)} cm`
-  const units: Record<string, string> = { errorMs: 'ms', steps: copy('steps', '轮'), hits: copy('hits', '次'), nights: copy('nights', '晚'), dodges: copy('dodges', '次'), gold: copy('gold', '金币'), stars: copy('stars', '星'), floors: copy('floors', '层'), altitude: copy('steps', '步') }
+  const units: Record<string, string> = { distanceM: 'm', errorMs: 'ms', steps: copy('steps', '轮'), hits: copy('hits', '次'), nights: copy('nights', '晚'), dodges: copy('dodges', '次'), gold: copy('gold', '金币'), stars: copy('stars', '星'), floors: copy('floors', '层'), altitude: copy('steps', '步') }
   return `${value.toLocaleString()} ${units[metric || ''] || copy('pts', '分')}`
 }
 async function loadBoard(refresh = false) {
