@@ -13,6 +13,7 @@ const games = ref<Game[]>([]), game = ref<Game | null>(null), board = ref<GameBo
 const mode = ref(''), loading = ref(false), boardLoading = ref(false), error = ref(''), boardError = ref('')
 let generation = 0, boardGeneration = 0
 const title = (g: Game) => zh.value ? g.nameZh : g.name
+const summary = (g: Game) => zh.value ? (g.summaryZh ?? g.descriptionZh.slice(0, 300)) : (g.summary ?? g.description.slice(0, 300))
 const description = (g: Game) => zh.value ? g.descriptionZh : g.description
 const modeLabel = (m: string) => m === 'touch' ? copy('Touch', '触屏') : m === 'buttons' ? copy('Buttons', '按键') : m.startsWith('daily') ? `${m.slice(5,9)}-${m.slice(9,11)}-${m.slice(11,13)}` : copy('Classic', '经典')
 function score(value: number) {
@@ -52,13 +53,13 @@ function changeMode() { board.value = null; void loadBoard() }
       <section class="games-grid" :aria-label="copy('Games', '游戏')">
         <router-link v-for="(g, i) in games" :key="g.key" class="game-card" :to="path(`/games/${g.key}`)">
           <div class="card-art" :class="{ 'has-banner': g.coverUrl?.trim() }"><span class="number">{{ String(i + 1).padStart(2, '0') }}</span><img v-if="g.coverUrl?.trim()" :src="g.coverUrl" :alt="title(g)" loading="lazy"><GameDial v-else :game-key="g.key" /></div>
-          <div class="card-copy"><span class="eyebrow">GARMIN CONNECT IQ</span><h2>{{ title(g) }}</h2><p>{{ description(g) }}</p><span class="explore">{{ copy('Explore & view rankings', '查看详情与排行榜') }} <span class="card-arrow" aria-hidden="true">↗</span></span></div>
+          <div class="card-copy"><span class="eyebrow">GARMIN CONNECT IQ</span><h2>{{ title(g) }}</h2><p>{{ summary(g) }}</p><span class="explore">{{ copy('Explore & view rankings', '查看详情与排行榜') }} <span class="card-arrow" aria-hidden="true">↗</span></span></div>
         </router-link>
       </section>
     </template>
     <template v-else>
       <router-link class="back" :to="path('/games')">← {{ copy('All games', '全部游戏') }}</router-link>
-      <section class="detail-hero"><div><span class="eyebrow">WRISTO / GARMIN GAMES</span><h1>{{ title(game) }}</h1><p>{{ description(game) }}</p><a v-if="game.downloadUrl" class="primary" :href="game.downloadUrl" target="_blank" rel="noopener noreferrer">{{ copy('Get it on Connect IQ', '前往安装') }} ↗</a><span v-else class="coming">{{ copy('Store release coming soon', '商店版本即将推出') }}</span></div><div class="hero-dial" :class="{ 'has-banner': game.coverUrl?.trim() }"><img v-if="game.coverUrl?.trim()" :src="game.coverUrl" :alt="title(game)"><GameDial v-else :game-key="game.key" /></div></section>
+      <section class="detail-hero"><div><span class="eyebrow">WRISTO / GARMIN GAMES</span><h1>{{ title(game) }}</h1><p class="instructions">{{ description(game) }}</p><a v-if="game.downloadUrl" class="primary" :href="game.downloadUrl" target="_blank" rel="noopener noreferrer">{{ copy('Get it on Connect IQ', '前往安装') }} ↗</a><span v-else class="coming">{{ copy('Store release coming soon', '商店版本即将推出') }}</span></div><div class="hero-dial" :class="{ 'has-banner': game.coverUrl?.trim() }"><img v-if="game.coverUrl?.trim()" :src="game.coverUrl" :alt="title(game)"><GameDial v-else :game-key="game.key" /></div></section>
       <div class="detail-grid"><section class="how"><span class="eyebrow">01 / {{ copy('HOW TO PLAY', '玩法') }}</span><h2>{{ copy('Make your next best.', '挑战下一次最好。') }}</h2><p class="instructions">{{ zh ? game.instructionsZh : game.instructions }}</p><p class="fine">{{ copy('Venu 3 · Forerunner 965', '适配 Venu 3 · Forerunner 965') }}</p></section>
         <section class="rankings"><div class="board-head"><div><span class="eyebrow">02 / {{ copy('LEADERBOARD', '排行榜') }}</span><h2>{{ copy('The scores to beat', '等待你来超越') }}</h2></div><button :disabled="boardLoading" @click="loadBoard(true)">{{ boardLoading ? copy('Loading…', '加载中…') : copy('Refresh ↻', '刷新 ↻') }}</button></div>
           <label v-if="game.key === 'daily-lights'" class="mode">{{ copy('Puzzle date', '谜题日期') }} <input type="date" :value="`${mode.slice(5,9)}-${mode.slice(9,11)}-${mode.slice(11,13)}`" min="2026-01-01" :max="new Date(Date.now() + 86400000).toISOString().slice(0,10)" @change="mode = 'daily' + ($event.target as HTMLInputElement).value.replace(/-/g, ''); changeMode()"></label>

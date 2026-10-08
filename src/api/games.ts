@@ -1,7 +1,7 @@
 import api from '@/config/axios'
 
 export interface Game {
-  key: string; name: string; nameZh: string; description: string; descriptionZh: string
+  key: string; name: string; nameZh: string; description: string; descriptionZh: string; summary: string; summaryZh: string
   instructions: string; instructionsZh: string; coverUrl?: string; downloadUrl?: string
   enabled: boolean; sortOrder: number; modes: string[]; metric: string; rulesVersion: number
 }
