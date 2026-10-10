@@ -32,6 +32,7 @@ const redirectLegacyPremium = (to: RouteLocationGeneric) => {
 }
 
 const baseRoutes: RouteRecordRaw[] = [
+  { path: '/games/link', name: 'GameLink', component: () => import('@/views/games/GameLinkView.vue') },
   { path: '/games', name: 'Games', component: () => import('@/views/games/GamesView.vue') },
   { path: '/games/:gameKey', name: 'GameDetail', component: () => import('@/views/games/GamesView.vue') },
   {

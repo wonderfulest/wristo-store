@@ -1,4 +1,5 @@
 import api from '@/config/axios'
+import { useUserStore } from '@/store/user'
 
 export interface Game {
   key: string; name: string; nameZh: string; description: string; descriptionZh: string; summary: string; summaryZh: string
@@ -7,16 +8,13 @@ export interface Game {
 }
 export interface GameBoard {
   gameKey: string; mode: string; rulesVersion: number; metric: string; participants: number
-  entries: { rank: number; player: string; score: number }[]; cacheSeconds: number
+  entries: { rank: number; player: string; score: number; me: boolean }[]; myRank: number | null; myScore: number | null; cacheSeconds: number
 }
-const cache = new Map<string, { at: number; data: GameBoard }>()
 export const getGames = (): Promise<Game[]> => api.get('/public/games')
 export const getGame = (key: string): Promise<Game> => api.get(`/public/games/${encodeURIComponent(key)}`)
-export async function getGameBoard(key: string, mode: string, refresh = false): Promise<GameBoard> {
-  const id = `${key}:${mode}`
-  const old = cache.get(id)
-  if (!refresh && old && Date.now() - old.at < 45000) return old.data
-  const data: GameBoard = await api.get(`/public/games/${encodeURIComponent(key)}/leaderboard`, { params: { mode, limit: 50 } })
-  cache.set(id, { at: Date.now(), data })
-  return data
+export async function getGameBoard(key: string, mode: string, _refresh = false): Promise<GameBoard> {
+  const scope = useUserStore().userInfo ? 'user' : 'public'
+  return api.get(`/${scope}/games/${encodeURIComponent(key)}/leaderboard`, { params: { mode, limit: 100 } })
 }
+export const linkGame = (code: string): Promise<{ bound: boolean; nickname: string }> =>
+  api.post('/user/games/binding', { code })
