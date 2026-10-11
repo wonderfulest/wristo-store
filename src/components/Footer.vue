@@ -16,7 +16,6 @@
           <span>© 2025 WuKong OÜ</span>
         </div>
         <nav class="footer-nav" :aria-label="t('footer.quickLinks')">
-          <a :href="localizedPath('/utilities')">{{ localeStore.currentLocale.startsWith('zh') ? '日常工具' : 'Daily utilities' }}</a>
           <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a>
           <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a>
           <button
@@ -44,7 +43,6 @@
       </div>
       <transition name="footer-expand">
         <div v-if="isExpanded" id="footer-contact-details" class="footer-detail">
-          <a :href="localizedPath('/utilities')">{{ localeStore.currentLocale.startsWith('zh') ? '日常工具' : 'Daily utilities' }}</a>
           <div class="footer-detail-title">© 2025 WuKong OÜ. {{ t('footer.rights') }}</div>
           <div class="footer-detail-block">
             <strong>{{ t('legal.companyRolesTitle') }}:</strong><br>
