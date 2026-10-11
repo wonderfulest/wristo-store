@@ -5,6 +5,7 @@ const labels: Record<string, [string, string]> = {
   '2048': ['2048', 'MERGE & GROW'], 'pocket-fishing': ['FISHING', 'ONE MORE CAST'], 'box-trail': ['BOX TRAIL', 'FIND YOUR WAY'],
   'camp-days': ['CAMP', 'TEN NIGHTS'], 'daily-lights': ['LIGHTS', 'A DAILY SPARK'], 'mini-golf': ['GOLF', 'NINE SMALL GREENS'],
   'orbit-dodge': ['DODGE', 'STAY IN ORBIT'], 'pocket-dungeon': ['DUNGEON', 'GOLD & GLORY'], 'pocket-pet': ['POCKET PET', 'GROW TOGETHER'],
+  'pocket-muyu': ['MUYU', 'ONE TAP, ONE MERIT'],
   'safe-cracker': ['SAFE', 'CRACK THE CODE'], 'stack-tower': ['STACK', 'ONE FLOOR HIGHER'], 'summit-steps': ['SUMMIT', 'TAKE THE NEXT STEP'],
 }
 
@@ -30,6 +31,15 @@ const labels: Record<string, [string, string]> = {
         <path d="M93 105 L150 48 L207 105 M119 80 L136 95 L150 81 L163 95 L181 80"/>
       </g>
       <g v-else-if="gameKey === 'pocket-fishing'" fill="#70cfff"><ellipse cx="146" cy="77" rx="34" ry="17"/><path d="M174 77 L200 57 L200 97 Z"/><circle cx="128" cy="73" r="3" fill="#091421"/></g>
+      <g v-else-if="gameKey === 'pocket-muyu'">
+        <ellipse cx="148" cy="85" rx="37" ry="25" fill="#82502d" />
+        <ellipse cx="148" cy="79" rx="37" ry="24" fill="#be8245" />
+        <ellipse cx="148" cy="75" rx="29" ry="15" fill="none" stroke="#dca367" stroke-width="2" />
+        <path d="M124 80h47" stroke="#56301d" stroke-width="5" stroke-linecap="round" />
+        <circle cx="126" cy="80" r="7" fill="#56301d" />
+        <path d="M163 61l25-24" stroke="#e8bb7d" stroke-width="6" stroke-linecap="round" />
+        <circle cx="163" cy="61" r="10" fill="#d8a66b" />
+      </g>
       <g v-else-if="gameKey === 'pocket-pet'" fill="#bc97ff"><circle cx="150" cy="79" r="26"/><circle cx="128" cy="60" r="12"/><circle cx="172" cy="60" r="12"/><circle cx="141" cy="78" r="3" fill="#091421"/><circle cx="159" cy="78" r="3" fill="#091421"/></g>
       <g v-else-if="gameKey !== 'five-second-challenge'" fill="none" stroke="#ffc773" stroke-width="4"><circle cx="150" cy="78" r="25"/><path d="M150 42 V56 M150 100 V114 M114 78 H128 M172 78 H186"/></g>
       <text x="150" y="149" fill="#eff9f6" text-anchor="middle" font-family="monospace" :font-size="gameKey === 'five-second-challenge' ? 51 : 25">{{ labels[props.gameKey]?.[0] || 'PLAY' }}</text>

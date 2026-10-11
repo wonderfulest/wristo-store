@@ -32,6 +32,9 @@ const redirectLegacyPremium = (to: RouteLocationGeneric) => {
 }
 
 const baseRoutes: RouteRecordRaw[] = [
+  { path: '/utilities', name: 'Utilities', component: () => import('@/views/utilities/UtilityProductView.vue'), meta: { title: 'Daily Utilities | Wristo', description: 'Personalize Last Time, Quick Counter, Ready to Go, and QR Pocket for your Garmin watch.' } },
+  { path: '/utilities/:appKey', name: 'UtilityProduct', component: () => import('@/views/utilities/UtilityProductView.vue'), meta: {} },
+  { path: '/utilities/link', name: 'UtilityLink', component: () => import('@/views/utilities/UtilitiesView.vue'), meta: { title: 'Link Your Watch App | Wristo', noindex: true } },
   { path: '/games/link', name: 'GameLink', component: () => import('@/views/games/GameLinkView.vue') },
   { path: '/games', name: 'Games', component: () => import('@/views/games/GamesView.vue') },
   { path: '/games/:gameKey', name: 'GameDetail', component: () => import('@/views/games/GamesView.vue') },

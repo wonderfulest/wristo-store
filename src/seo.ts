@@ -132,6 +132,22 @@ export function absoluteUrl(pathOrUrl = '/'): string {
 export function getRouteSeo(route: RouteLocationNormalizedLoaded): SeoConfig {
   const path = route.path
   const canonicalMatchPath = stripLocaleFromPath(path)
+  if (canonicalMatchPath === '/utilities' || canonicalMatchPath.startsWith('/utilities/')) {
+    const products: Record<string, [string, string]> = {
+      'last-time': ['Last Time', 'Remember when you last did everyday tasks. Personalize Last Time for your Garmin watch.'],
+      'quick-counter': ['Quick Counter', 'Count everyday progress on your Garmin watch and personalize your counters.'],
+      'ready-to-go': ['Ready to Go', 'Personalize your Garmin checklists for leaving home, the gym, and travel.'],
+      'qr-pocket': ['QR Pocket', 'Keep up to three personal QR codes on your Garmin watch. Configure text, links, and contact information.'],
+    }
+    const key = canonicalMatchPath.split('/')[2]
+    const product = products[key]
+    return {
+      title: product ? `${product[0]} | Wristo` : 'Daily Utilities | Wristo',
+      description: product?.[1] || 'Explore four personal Garmin utilities: Last Time, Quick Counter, Ready to Go, and QR Pocket.',
+      path,
+      noindex: !!key && !product,
+    }
+  }
   const matchedStatic = staticSeoByPath[canonicalMatchPath]
   if (matchedStatic) return localizeStaticSeo(canonicalMatchPath, matchedStatic, route)
 

@@ -30,6 +30,11 @@ const maxPrerenderRoutes = Number(process.env.MAX_PRERENDER_ROUTES || 80)
 const staticRoutes = [
   '/',
   '/search',
+  '/utilities',
+  '/utilities/last-time',
+  '/utilities/quick-counter',
+  '/utilities/ready-to-go',
+  '/utilities/qr-pocket',
   '/brands',
   '/membership',
   '/purchase-options',

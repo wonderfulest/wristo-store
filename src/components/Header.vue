@@ -72,6 +72,7 @@
           </template>
         </el-dropdown>
         <router-link :to="localizedPath('/games')" class="nav-link">{{ t('nav.games') }}</router-link>
+        <router-link :to="localizedPath('/utilities')" class="nav-link">{{ localeStore.currentLocale.startsWith('zh') ? '工具' : 'Utilities' }}</router-link>
         <!-- <router-link to="/support" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
         <button v-if="canShowBundleEntries" type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
@@ -287,6 +288,7 @@
               </router-link>
             </div>
           </div>
+          <router-link :to="localizedPath('/utilities')" class="mobile-nav-link" @click="closeMobileMenu">{{ localeStore.currentLocale.startsWith('zh') ? '工具' : 'Utilities' }}</router-link>
           <router-link :to="localizedPath('/games')" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:gamepad-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.games') }}</span>
