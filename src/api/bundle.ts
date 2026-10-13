@@ -7,6 +7,6 @@ export const getBundleById = (
   params?: { device?: number }
 ): Promise<Bundle> => {
   return instance.get(`/public/bundles/${bundleId}`, {
-    params: { populate: '*', ...(params || {}) },
+    params: { populate: 'products', ...(params || {}) },
   })
 }

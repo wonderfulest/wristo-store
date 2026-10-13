@@ -290,7 +290,7 @@ const refreshCartItems = async () => {
   refreshingCart.value = true
   try {
     const results = await Promise.allSettled(
-      currentItems.map((item) => getProductDetail(String(item.appId)))
+      currentItems.map((item) => getProductDetail(String(item.appId), ''))
     )
     results.forEach((result) => {
       if (result.status === 'fulfilled') {

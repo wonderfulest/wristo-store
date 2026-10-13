@@ -572,7 +572,7 @@ const loadProductForCurrentEntry = () => {
     return
   }
 
-  getProductDetail(appIdFromQuery.value)
+  getProductDetail(appIdFromQuery.value, 'payment')
     .then((detail) => {
       productFromQuery.value = detail || null
       runDiscountChecks()

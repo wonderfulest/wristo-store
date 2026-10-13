@@ -162,7 +162,7 @@ export function useDiscovery(deviceId: Ref<number | null>) {
     likesLoading.value = true
     error.value = ''
     ids.forEach(id => attemptedLikes.add(id))
-    const results = await Promise.allSettled(ids.map(id => getProductDetail(String(id))))
+    const results = await Promise.allSettled(ids.map(id => getProductDetail(String(id), 'categories')))
     if (session !== generation) return
     results.forEach((result, index) => {
       if (result.status === 'fulfilled') cache.value[result.value.appId] = result.value

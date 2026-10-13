@@ -61,7 +61,8 @@ export const searchProductsV2 = (keyword: string, pageNum = 1, pageSize = 24): P
 }
 
 export const fetchAdminProductPage = (query: AdminProductPageQuery): Promise<PageResult<ProductVO>> => {
-  return instance.post('/admin/products/page?populate=*', query)
+  const { populate, ...data } = query
+  return instance.post('/admin/products/page', data, { params: { populate } })
 }
 
 // 获取新品
@@ -127,9 +128,9 @@ export const getHotProducts = (limit = 24): Promise<ProductBaseVO[]> => {
 }
 
 // 获取商品详情
-export const getProductDetail = (appId: string): Promise<ProductVO> => {
+export const getProductDetail = (appId: string, populate = 'image,devices,categories'): Promise<ProductVO> => {
   return instance.get(`/public/products/app/${appId}`, {
-    params: { populate: '*' }
+    params: { populate }
   })
 }
 

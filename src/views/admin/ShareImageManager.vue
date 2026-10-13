@@ -233,7 +233,6 @@ const loadProducts = async () => {
       pageSize,
       name: keyword.value.trim() || undefined,
       orderBy: 'created_at:desc',
-      populate: '*',
     })
     products.value = page.list || []
     total.value = Number(page.total || 0)

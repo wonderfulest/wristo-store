@@ -73,5 +73,5 @@ export const getDeviceDetail = (id: number): Promise<GarminDeviceVO> => {
  * 根据 Garmin deviceId 获取设备详情，包含模拟器显示区域与透明设备外框
  */
 export const getDeviceDetailByDeviceId = (deviceId: string): Promise<GarminDeviceVO> => {
-  return instance.get(`/public/products/garmin-devices/getByDeviceId/${encodeURIComponent(deviceId)}?populate=*`)
+  return instance.get(`/public/products/garmin-devices/getByDeviceId/${encodeURIComponent(deviceId)}?populate=simulator`)
 }
