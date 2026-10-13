@@ -102,9 +102,9 @@ function changeMode() { board.value = null; void loadBoard() }
 @media(max-width:1000px){.games-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}}
 @media(max-width:600px){.games-grid{grid-template-columns:minmax(0,1fr);gap:24px}.collection-heading{align-items:flex-start;flex-direction:column;gap:8px;margin-bottom:20px}.collection-heading h2{font-size:21px}.card-art{aspect-ratio:1.35}.card-copy{padding:23px}.intro h1{letter-spacing:-2px}.intro p{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.game-card,.card-arrow{transition:none}.game-card:hover{transform:none}}
-.card-art.has-banner{padding:0;aspect-ratio:16/9;background:#eef3ee}
+.card-art.has-banner{flex:none;padding:0;aspect-ratio:2/1;overflow:hidden;border-radius:23px 23px 0 0;background:#eef3ee}
 .card-art.has-banner::before{display:none}
-.card-art.has-banner img{position:static;display:block;width:100%;height:100%;object-fit:contain}
+.card-art.has-banner img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center}
 .card-art.has-banner .number{z-index:1;background:#ffffffed}
 .hero-dial.has-banner{padding:0;border-radius:20px;overflow:hidden;width:100%;max-width:none;background:#eef3ee}
 .hero-dial.has-banner img{display:block;width:100%;height:auto;border-radius:0}
