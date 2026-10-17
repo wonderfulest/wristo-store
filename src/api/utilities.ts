@@ -1,5 +1,5 @@
 import api from '@/config/axios'
-export type UtilityKey = 'last-time' | 'quick-counter' | 'ready-to-go' | 'qr-pocket'
+export type UtilityKey = 'last-time' | 'quick-counter' | 'ready-to-go' | 'qr-pocket' | 'next-shot'
 export interface UtilityItem {
   itemId: string
   label: string

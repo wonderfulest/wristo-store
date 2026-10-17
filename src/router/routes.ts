@@ -32,6 +32,7 @@ const redirectLegacyPremium = (to: RouteLocationGeneric) => {
 }
 
 const baseRoutes: RouteRecordRaw[] = [
+  { path: '/utilities/next-shot', name: 'NextShot', component: () => import('@/views/utilities/NextShotView.vue'), meta: { title: 'Next Shot | Wristo', description: 'Wedge distance practice, training history and repeatable retests for Garmin.' } },
   { path: '/utilities', name: 'Utilities', component: () => import('@/views/utilities/UtilityProductView.vue'), meta: { title: 'Daily Utilities | Wristo', description: 'Personalize Last Time, Quick Counter, Ready to Go, and QR Pocket for your Garmin watch.' } },
   { path: '/utilities/:appKey', name: 'UtilityProduct', component: () => import('@/views/utilities/UtilityProductView.vue'), meta: {} },
   { path: '/utilities/link', name: 'UtilityLink', component: () => import('@/views/utilities/UtilitiesView.vue'), meta: { title: 'Link Your Watch App | Wristo', noindex: true } },

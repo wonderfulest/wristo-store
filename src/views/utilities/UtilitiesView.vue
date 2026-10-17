@@ -53,7 +53,7 @@ async function load() {
   const request = generation
   loading.value = true; error.value = ''
   try {
-    const result = (await getUtilityInstallations()).filter(s => s.appKey !== 'qr-pocket' && (!props.appKey || s.appKey === props.appKey))
+    const result = (await getUtilityInstallations()).filter(s => s.appKey !== 'qr-pocket' && s.appKey !== 'next-shot' && (!props.appKey || s.appKey === props.appKey))
     if (request !== generation) return
     result.forEach(s => put(s))
     installations.value = result
@@ -62,7 +62,7 @@ async function load() {
   finally { if (request === generation) loading.value = false }
 }
 async function bind() {
-  if (busy.value || loading.value || !/^[0-9]{6}$/.test(code.value)) return
+  if (busy.value || loading.value || !/^[0-9]{4}$/.test(code.value)) return
   const request = generation
   busy.value = true; bindError.value = ''; message.value = ''
   try {
@@ -70,7 +70,8 @@ async function bind() {
     if (request !== generation) return
     code.value = ''; message.value = copy('App linked. Your other apps keep their own settings.', '绑定成功，其他应用仍保留各自设置。')
     const state = await getUtilityInstallation(result.installationId)
-    if (request === generation && state.appKey !== 'qr-pocket' && (!props.appKey || state.appKey === props.appKey)) { put(state); selected.value = state.installationId }
+    if (request === generation && state.appKey === 'next-shot') message.value = copy('Next Shot linked. Open its training page to configure practice.', 'Next Shot 已绑定，请打开训练页面配置练习。')
+    if (request === generation && state.appKey !== 'qr-pocket' && state.appKey !== 'next-shot' && (!props.appKey || state.appKey === props.appKey)) { put(state); selected.value = state.installationId }
   } catch { if (request === generation) bindError.value = copy('Could not finish linking. Check your code or request a new one on your watch. If already linked, reload your apps below.', '未能完成绑定，请检查绑定码或在手表重新获取。如已绑定，请重新加载下方应用。') }
   finally { if (request === generation) busy.value = false }
 }
@@ -112,9 +113,10 @@ onBeforeUnmount(() => { generation++ })
   <div class="utilities" :class="{ embedded }">
     <header v-if="!embedded"><p class="eyebrow">WRISTO / {{ copy('DAILY UTILITIES', '日常工具') }}</p><h1>{{ copy('Small things, remembered.', '日常小事，随手记住。') }}</h1><p>{{ copy('Four simple Garmin watch apps. Make their names your own from your phone.', '四款简单的 Garmin 手表应用，在手机上设置适合自己的条目名称。') }}</p></header>
     <section v-if="!embedded" class="apps" :aria-label="copy('Four daily apps', '四款日常应用')"><article v-for="app in apps" :key="app.key"><h2>{{ app.name }}</h2><p>{{ copy(app.en, app.zh) }}</p></article></section>
-    <section id="link" class="binding"><h2>{{ copy('Link your watch app', '绑定手表应用') }}</h2><p>{{ copy('Open Link account in the app on your watch. Enter its six-digit code here within 5 minutes.', '在手表应用中打开「绑定账号」，在 5 分钟内输入显示的六位绑定码。') }}</p>
+    <p><RouterLink :to="`${locale.currentLocale.startsWith('zh') ? '/zh' : ''}/utilities/next-shot`">Next Shot · {{ copy('Wedge practice & history', '挖起杆练习与历史') }}</RouterLink></p>
+    <section id="link" class="binding"><h2>{{ copy('Link your watch app', '绑定手表应用') }}</h2><p>{{ copy('Open Link account in the app on your watch. Enter its four-digit code here within 5 minutes.', '在手表应用中打开「绑定账号」，在 5 分钟内输入显示的四位绑定码。') }}</p>
       <button v-if="!user.userInfo" class="primary" @click="redirectToSsoLogin('store')">{{ copy('Sign in to Wristo', '登录 Wristo') }}</button>
-      <form v-else @submit.prevent="bind"><label for="utility-code">{{ copy('Six-digit binding code', '六位数字绑定码') }}</label><div class="bind-row"><input id="utility-code" v-model="code" inputmode="numeric" autocomplete="off" pattern="[0-9]{6}" maxlength="6" placeholder="000000" required :disabled="busy || loading" aria-describedby="binding-help"><button class="primary" :disabled="busy || loading || !/^[0-9]{6}$/.test(code)">{{ copy('Link app', '绑定应用') }}</button></div><p id="binding-help" class="hint">{{ copy('Each code works once. Keep it private.', '绑定码仅可使用一次，请勿分享。') }}</p><p v-if="bindError" class="error" role="alert">{{ bindError }}</p></form><p v-if="message && appKey === 'qr-pocket'" class="success" role="status">{{ message }}</p>
+      <form v-else @submit.prevent="bind"><label for="utility-code">{{ copy('Four-digit binding code', '四位数字绑定码') }}</label><div class="bind-row"><input id="utility-code" v-model="code" inputmode="numeric" autocomplete="off" pattern="[0-9]{4}" maxlength="4" placeholder="0000" required :disabled="busy || loading" aria-describedby="binding-help"><button class="primary" :disabled="busy || loading || !/^[0-9]{4}$/.test(code)">{{ copy('Link app', '绑定应用') }}</button></div><p id="binding-help" class="hint">{{ copy('Each code works once. Keep it private.', '绑定码仅可使用一次，请勿分享。') }}</p><p v-if="bindError" class="error" role="alert">{{ bindError }}</p></form><p v-if="message && appKey === 'qr-pocket'" class="success" role="status">{{ message }}</p>
     </section>
     <section v-if="user.userInfo && appKey !== 'qr-pocket'" class="settings" :aria-busy="loading || busy"><div class="section-heading"><h2>{{ copy('Your linked apps', '已绑定应用') }}</h2><button :disabled="busy || loading" @click="load">{{ copy('Reload apps', '重新加载应用') }}</button></div>
       <p>{{ copy('Every installation keeps separate names and values, even on the same watch. This first version has fixed item slots; you can rename them, but cannot add or remove items.', '每次安装独立保存名称和数据，同一手表也不合并。第一版条目数量固定，可以改名，不能增删。') }}</p>
