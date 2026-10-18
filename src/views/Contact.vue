@@ -10,6 +10,7 @@
         <p class="contact-subtitle">{{ t('contact.subtitle') }}</p>
 
         <div class="contact-actions">
+          <FacebookLink class="contact-secondary">Follow Wristo on Facebook</FacebookLink>
           <a class="contact-primary" :href="mailtoHref" :aria-label="t('contact.ctaAria')">
             <Icon icon="solar:plain-2-bold-duotone" width="21" height="21" aria-hidden="true" />
             {{ t('contact.ctaLabel') }}
@@ -92,6 +93,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import FacebookLink from '@/components/FacebookLink.vue'
 import { useI18n } from '@/i18n'
 import { getPaddleCustomerPortalUrl } from '@/utils/paddlePortal'
 

@@ -382,7 +382,7 @@ function organizationSchema(): JsonLdObject {
     url: siteUrl(),
     logo: BRAND_LOGO_URL,
     sameAs: [
-      'https://www.facebook.com/wristo',
+      'https://www.facebook.com/profile.php?id=61595658354976',
       'https://www.instagram.com/wristo',
       'https://www.pinterest.com/wristo',
       'https://www.youtube.com/@wristo',

@@ -16,6 +16,7 @@
           <span>© 2025 WuKong OÜ</span>
         </div>
         <nav class="footer-nav" :aria-label="t('footer.quickLinks')">
+          <FacebookLink />
           <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a>
           <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a>
           <button
@@ -73,12 +74,14 @@
         </div>
       </transition>
       <slot />
+      <FacebookLink v-if="isMobile" />
     </div>
   </footer>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import FacebookLink from '@/components/FacebookLink.vue'
 import { useI18n } from '@/i18n'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 
