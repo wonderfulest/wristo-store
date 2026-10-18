@@ -17,6 +17,7 @@
         </div>
         <nav class="footer-nav" :aria-label="t('footer.quickLinks')">
           <FacebookLink />
+          <a :href="FACEBOOK_GROUP_URL" target="_blank" rel="noopener noreferrer">Facebook Group</a>
           <a :href="localizedPath('/terms-and-conditions')">{{ t('footer.termsOfUse') }}</a>
           <a :href="localizedPath('/privacy-policy')">{{ t('footer.privacy') }}</a>
           <button
@@ -74,7 +75,10 @@
         </div>
       </transition>
       <slot />
-      <FacebookLink v-if="isMobile" />
+      <nav v-if="isMobile" class="footer-nav" aria-label="Community">
+        <FacebookLink />
+        <a :href="FACEBOOK_GROUP_URL" target="_blank" rel="noopener noreferrer">Facebook Group</a>
+      </nav>
     </div>
   </footer>
 </template>
@@ -82,6 +86,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import FacebookLink from '@/components/FacebookLink.vue'
+import { FACEBOOK_GROUP_URL } from '@/config/social'
 import { useI18n } from '@/i18n'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 
