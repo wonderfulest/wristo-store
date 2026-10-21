@@ -3,6 +3,7 @@ import { computed, ref, watch, onBeforeUnmount } from 'vue'
 import { useUserStore } from '@/store/user'
 import { useLocaleStore } from '@/store/locale'
 import { redirectToSsoLogin } from '@/utils/ssoRedirect'
+import { isLifeKey } from '@/api/lifeTools'
 import { bindUtility, getUtilityInstallations, getUtilityInstallation, saveUtilityLabels, type UtilityState, type UtilityItem } from '@/api/utilities'
 const props = defineProps<{ appKey?: string; embedded?: boolean }>()
 const user = useUserStore(), locale = useLocaleStore()
@@ -15,6 +16,7 @@ const apps = [
 ]
 const installations = ref<UtilityState[]>([]), selected = ref(''), drafts = ref<Record<string, Record<string, string>>>({})
 const loading = ref(false), busy = ref(false), error = ref(''), message = ref(''), code = ref(''), bindError = ref('')
+const linkedLifeApp = ref('')
 const conflicts = ref<Record<string, boolean>>({})
 let generation = 0
 const current = computed(() => installations.value.find(s => s.installationId === selected.value))
@@ -53,7 +55,7 @@ async function load() {
   const request = generation
   loading.value = true; error.value = ''
   try {
-    const result = (await getUtilityInstallations()).filter(s => s.appKey !== 'qr-pocket' && s.appKey !== 'next-shot' && (!props.appKey || s.appKey === props.appKey))
+    const result = (await getUtilityInstallations()).filter(s => s.appKey !== 'qr-pocket' && s.appKey !== 'next-shot' && !isLifeKey(s.appKey) && (!props.appKey || s.appKey === props.appKey))
     if (request !== generation) return
     result.forEach(s => put(s))
     installations.value = result
@@ -70,8 +72,9 @@ async function bind() {
     if (request !== generation) return
     code.value = ''; message.value = copy('App linked. Your other apps keep their own settings.', '绑定成功，其他应用仍保留各自设置。')
     const state = await getUtilityInstallation(result.installationId)
+    if (request === generation && isLifeKey(state.appKey)) linkedLifeApp.value = state.appKey
     if (request === generation && state.appKey === 'next-shot') message.value = copy('Next Shot linked. Open its training page to configure practice.', 'Next Shot 已绑定，请打开训练页面配置练习。')
-    if (request === generation && state.appKey !== 'qr-pocket' && state.appKey !== 'next-shot' && (!props.appKey || state.appKey === props.appKey)) { put(state); selected.value = state.installationId }
+    if (request === generation && state.appKey !== 'qr-pocket' && state.appKey !== 'next-shot' && !isLifeKey(state.appKey) && (!props.appKey || state.appKey === props.appKey)) { put(state); selected.value = state.installationId }
   } catch { if (request === generation) bindError.value = copy('Could not finish linking. Check your code or request a new one on your watch. If already linked, reload your apps below.', '未能完成绑定，请检查绑定码或在手表重新获取。如已绑定，请重新加载下方应用。') }
   finally { if (request === generation) busy.value = false }
 }
@@ -102,7 +105,7 @@ async function save() {
   } finally { if (request === generation) busy.value = false }
 }
 watch(() => user.userInfo, info => {
-  generation++; loading.value = false; busy.value = false; code.value = ''
+  generation++; linkedLifeApp.value = ''; loading.value = false; busy.value = false; code.value = ''
   installations.value = []; drafts.value = {}; selected.value = ''; conflicts.value = {}; error.value = ''; message.value = ''; bindError.value = ''
   if (info) void load()
 }, { immediate: true })
@@ -118,6 +121,7 @@ onBeforeUnmount(() => { generation++ })
       <button v-if="!user.userInfo" class="primary" @click="redirectToSsoLogin('store')">{{ copy('Sign in to Wristo', '登录 Wristo') }}</button>
       <form v-else @submit.prevent="bind"><label for="utility-code">{{ copy('Four-digit binding code', '四位数字绑定码') }}</label><div class="bind-row"><input id="utility-code" v-model="code" inputmode="numeric" autocomplete="off" pattern="[0-9]{4}" maxlength="4" placeholder="0000" required :disabled="busy || loading" aria-describedby="binding-help"><button class="primary" :disabled="busy || loading || !/^[0-9]{4}$/.test(code)">{{ copy('Link app', '绑定应用') }}</button></div><p id="binding-help" class="hint">{{ copy('Each code works once. Keep it private.', '绑定码仅可使用一次，请勿分享。') }}</p><p v-if="bindError" class="error" role="alert">{{ bindError }}</p></form><p v-if="message && appKey === 'qr-pocket'" class="success" role="status">{{ message }}</p>
     </section>
+    <p v-if="linkedLifeApp"><RouterLink :to="`${locale.currentLocale.startsWith('zh') ? '/zh' : ''}/utilities/${linkedLifeApp}#configure`">{{ copy('Open linked app settings →', '打开已绑定应用的设置 →') }}</RouterLink></p>
     <section v-if="user.userInfo && appKey !== 'qr-pocket'" class="settings" :aria-busy="loading || busy"><div class="section-heading"><h2>{{ copy('Your linked apps', '已绑定应用') }}</h2><button :disabled="busy || loading" @click="load">{{ copy('Reload apps', '重新加载应用') }}</button></div>
       <p>{{ copy('Every installation keeps separate names and values, even on the same watch. This first version has fixed item slots; you can rename them, but cannot add or remove items.', '每次安装独立保存名称和数据，同一手表也不合并。第一版条目数量固定，可以改名，不能增删。') }}</p>
       <p v-if="loading" role="status">{{ copy('Loading your apps…', '正在加载应用…') }}</p><p v-else-if="!installations.length && !error">{{ copy('No linked apps yet. Enter a code from your watch above to get started.', '暂无绑定应用，请先输入上方手表绑定码。') }}</p>
