@@ -1,3 +1,5 @@
+import { trackPaddleEvent } from './paddleAnalytics'
+
 const normalizeEnvValue = (value: unknown) => String(value || '').trim()
 
 export const getPaddleClientToken = () => normalizeEnvValue(import.meta.env.VITE_WRISTO_PADDLE_CLIENT_TOKEN)
@@ -17,6 +19,9 @@ export const initializePaddle = (paddle: any, eventCallback: (data: any) => void
 
   paddle.Initialize({
     token,
-    eventCallback,
+    eventCallback: async (event: any) => {
+      await trackPaddleEvent(event)
+      return eventCallback(event)
+    },
   })
 }

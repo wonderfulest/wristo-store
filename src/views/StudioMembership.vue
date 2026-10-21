@@ -134,6 +134,7 @@
 </template>
 
 <script setup lang="ts">
+import { trackPaddleEvent } from '@/utils/paddleAnalytics'
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Icon } from '@iconify/vue'
@@ -532,7 +533,10 @@ const initializePaddle = (win: any, token: string) => {
   }
   win.Paddle.Initialize({
     token,
-    eventCallback: handlePaddleEvent,
+    eventCallback: async (event: any) => {
+      await trackPaddleEvent(event)
+      return handlePaddleEvent(event)
+    },
   })
   paddleInitialized = true
 }
