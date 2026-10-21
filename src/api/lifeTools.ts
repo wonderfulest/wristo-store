@@ -1,5 +1,5 @@
 import api from '@/config/axios'
-export const lifeKeys = ['days-since', 'quick-log', 'next-up', 'battery-diary', 'quiet-beat', 'park-pin'] as const
+export const lifeKeys = ['habit-tracker', 'quick-log', 'next-up', 'battery-diary', 'quiet-beat', 'park-pin'] as const
 export type LifeKey = typeof lifeKeys[number]
 export const isLifeKey = (key: string): key is LifeKey => (lifeKeys as readonly string[]).includes(key)
 export interface Appointment { id: string; title: string; startAt: number; endAt: number }
