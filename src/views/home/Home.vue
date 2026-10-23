@@ -2,6 +2,7 @@
   <main class="catalog-home">
     <HomeBanner v-if="!hasPremiumAccess" premium-only />
     <HomeIntro />
+    <StudioPromo />
     <WatchfaceDiscovery />
     <HomeProductGrid
       :products="newProducts"
@@ -28,6 +29,7 @@ import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
 import HomeBanner from '@/views/home/components/HomeBanner.vue'
 import WatchfaceDiscovery from '@/components/discovery/WatchfaceDiscovery.vue'
+import StudioPromo from '@/views/home/components/StudioPromo.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
 

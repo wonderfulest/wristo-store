@@ -70,3 +70,7 @@ export const openStudioDesignCopy = (designId: string) => {
   studioUrl.searchParams.set('from', normalizedDesignId)
   return openStudioUrl(studioUrl.toString())
 }
+
+export const getStudioCreateUrl = () => new URL('/design', getStudioUrl()).toString()
+
+export const openStudioCreate = () => openStudioUrl(getStudioCreateUrl())

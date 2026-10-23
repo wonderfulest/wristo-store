@@ -74,7 +74,7 @@
         <router-link :to="localizedPath('/games')" class="nav-link">{{ t('nav.games') }}</router-link>
         <!-- <router-link to="/support" class="nav-link">FAQ</router-link> -->
         <router-link :to="localizedPath('/code')" class="nav-link">{{ t('nav.code') }}</router-link>
-        <button v-if="canShowBundleEntries" type="button" class="nav-link nav-button" @click="openStudio">{{ t('nav.studio') }}</button>
+        <button type="button" class="nav-link nav-button" @click="openStudioCreate">{{ t('studioPromo.nav') }}</button>
         <!-- <router-link to="/top" class="nav-link">Top</router-link> -->
         <router-link :to="faqPath" class="nav-link">{{ t('nav.faq') }}</router-link>
       </nav>
@@ -189,9 +189,9 @@
                     <Icon icon="solar:arrow-right-up-line-duotone" width="18" height="18" aria-hidden="true" />
                   </el-dropdown-item>
                 </div>
-                <div v-if="canShowBundleEntries" class="user-dropdown-section">
+                <div class="user-dropdown-section">
                   <span class="user-dropdown-section-title">{{ t('nav.creatorSection') }}</span>
-                  <el-dropdown-item command="membership" class="user-dropdown-item">
+                  <el-dropdown-item v-if="canShowBundleEntries" command="membership" class="user-dropdown-item">
                     <span class="user-dropdown-icon accent">
                       <Icon icon="material-symbols:workspace-premium-outline" width="18" height="18" aria-hidden="true" />
                     </span>
@@ -296,9 +296,9 @@
             <Icon icon="solar:hashtag-circle-line-duotone" width="22" height="22" aria-hidden="true" />
             <span>{{ t('nav.code') }}</span>
           </router-link>
-          <button v-if="canShowBundleEntries" type="button" class="mobile-nav-link mobile-nav-button" @click="openStudio(); closeMobileMenu()">
-            <Icon icon="material-symbols:workspace-premium-outline" width="22" height="22" aria-hidden="true" />
-            <span>{{ t('nav.studio') }}</span>
+          <button type="button" class="mobile-nav-link mobile-nav-button" @click="openStudioCreate(); closeMobileMenu()">
+            <Icon icon="solar:pen-new-square-line-duotone" width="22" height="22" aria-hidden="true" />
+            <span>{{ t('studioPromo.nav') }}</span>
           </button>
           <router-link :to="faqPath" class="mobile-nav-link" @click="closeMobileMenu">
             <Icon icon="solar:document-text-line-duotone" width="22" height="22" aria-hidden="true" />
@@ -376,7 +376,7 @@
                 <el-icon><ShoppingCart /></el-icon>
                 <span>{{ t('nav.cart') }}</span>
               </button>
-              <button v-if="canShowBundleEntries" class="mobile-action-btn" @click="handleUserMenuCommand('studio'); closeMobileMenu()">
+              <button class="mobile-action-btn" @click="handleUserMenuCommand('studio'); closeMobileMenu()">
                 <Icon icon="solar:magic-stick-3-bold-duotone" width="18" height="18" aria-hidden="true" />
                 <span>{{ t('nav.studio') }}</span>
               </button>
@@ -419,7 +419,7 @@ import { buildFaqGuidePath } from '@/content/faq-guides';
 import { addLocaleToPath, useLocaleStore } from '@/store/locale';
 import { useI18n } from '@/i18n';
 import { buildSsoLoginUrl } from '@/utils/ssoRedirect';
-import { openStudio } from '@/utils/studio';
+import { openStudio, openStudioCreate } from '@/utils/studio';
 import { openPaddleCustomerPortal } from '@/utils/paddlePortal';
 import { isCartEnabled } from '@/config/features';
 import { useCountDisplay } from '@/composables/useCountDisplay';
