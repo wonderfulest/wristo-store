@@ -1,3 +1,4 @@
+import collections from '@/content/collections.json'
 import type { RouteLocationNormalizedLoaded } from 'vue-router'
 import type { BlogPostVO, BlogPostTranslationVO, ProductVO } from '@/types'
 import { blogUrlToFaqUrl, buildFaqGuidePath } from '@/content/faq-guides'
@@ -148,6 +149,8 @@ export function getRouteSeo(route: RouteLocationNormalizedLoaded): SeoConfig {
       noindex: !!key && !product,
     }
   }
+  const collection = collections.find(item => canonicalMatchPath === `/collections/${item.slug}`)
+  if (collection) return { title: `${collection.title} | Wristo`, description: collection.description, path: `https://www.wristo.io/collections/${collection.slug}`, image: collection.products[0].image }
   const matchedStatic = staticSeoByPath[canonicalMatchPath]
   if (matchedStatic) return localizeStaticSeo(canonicalMatchPath, matchedStatic, route)
 

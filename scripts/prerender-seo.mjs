@@ -18,7 +18,10 @@ if (process.env.VITE_WRISTO_SITE_URL === undefined && process.env.VITE_WRISTO_ST
   process.env.VITE_WRISTO_SITE_URL = process.env.VITE_WRISTO_STORE_URL
 }
 const distDir = path.join(rootDir, 'dist')
-const siteUrl = trimTrailingSlash(process.env.VITE_WRISTO_SITE_URL || 'https://wristo.io')
+const configuredSite = new URL(process.env.VITE_WRISTO_SITE_URL || 'https://www.wristo.io')
+const siteUrl = ['wristo.io', 'www.wristo.io', 'localhost', '127.0.0.1', '[::1]'].includes(configuredSite.hostname)
+  ? 'https://www.wristo.io'
+  : configuredSite.origin
 const apiBase = trimTrailingSlash(
   process.env.VITE_WRISTO_PUBLIC_API_BASE_URL ||
     process.env.VITE_WRISTO_API_BASE_URL ||
@@ -28,6 +31,9 @@ const previewPort = Number(process.env.PRERENDER_PORT || 4177)
 const previewUrl = `http://127.0.0.1:${previewPort}`
 const maxPrerenderRoutes = Number(process.env.MAX_PRERENDER_ROUTES || 80)
 const staticRoutes = [
+  '/collections/data-rich-garmin-watch-faces',
+  '/collections/analog-garmin-watch-faces',
+  '/collections/outdoor-garmin-watch-faces',
   '/',
   '/search',
   '/brands',
@@ -133,7 +139,7 @@ async function loadLocalizedStaticRoutes() {
   const locales = await loadSupportedLocales()
   const routes = []
   for (const locale of locales) {
-    for (const route of staticRoutes) {
+    for (const route of staticRoutes.filter(route => !route.startsWith('/collections/'))) {
       routes.push(route === '/' ? `/${locale}` : `/${locale}${route}`)
     }
   }
@@ -194,6 +200,7 @@ async function prerenderRoutes(routes) {
     browser = await chromium.launch({ headless: true })
   } catch (error) {
     console.warn(`[seo] Browser prerender unavailable: ${error.message}`)
+    if (routes.some(route => route.startsWith('/collections/'))) throw error
     await writeFallbackRouteHtml(routes, shellHtml)
     return
   }
@@ -245,12 +252,14 @@ async function prerenderRoutes(routes) {
       console.log(`[seo] Prerender ${index + 1}/${routes.length}: ${route}`)
       await page.goto(`${previewUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
       await page.waitForTimeout(800)
+      if (route.startsWith('/collections/')) await page.locator('.face-grid article').first().waitFor()
       let html = await page.content()
       html = html.replaceAll(previewUrl, siteUrl)
       html = applyBuildTimeFallbackSeo(route, html)
       html = ensureDoctype(html)
       await writeRouteHtml(route, html)
     } catch (error) {
+      if (route.startsWith('/collections/')) throw error
       console.warn(`[seo] Failed to prerender ${route}: ${error.message}`)
       await writeRouteHtml(route, ensureDoctype(applyBuildTimeFallbackSeo(route, shellHtml)))
     }

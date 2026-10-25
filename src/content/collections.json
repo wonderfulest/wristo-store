@@ -1,0 +1,99 @@
+[
+  {
+    "slug": "data-rich-garmin-watch-faces",
+    "title": "Data-rich Garmin watch faces",
+    "headline": "Your day, at a glance.",
+    "description": "Compare five digital and instrument-inspired Garmin watch faces, with different ways to balance time and everyday information.",
+    "guide": "Start with the information you actually use. Compare the preview at watch size, then open the product page to check supported devices and available settings. A dense layout can suit a desk glance; a simpler one may be easier to read while moving.",
+    "products": [
+      {
+        "appId": 178844,
+        "name": "Titan Grid",
+        "image": "https://cdn.wristo.io/products/178844/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/876fadac-7cde-4fb1-9094-10fda0fbcf28",
+        "reason": "A grid-inspired design for a structured dashboard look."
+      },
+      {
+        "appId": 211870,
+        "name": "Midnight Neon — Diagonal Offset",
+        "image": "https://cdn.wristo.io/products/211870/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/817f4366-338c-4176-afc2-4a7ac4e94d17",
+        "reason": "A diagonal digital-time layout with neon styling."
+      },
+      {
+        "appId": 176464,
+        "name": "Tactical Flip",
+        "image": "https://cdn.wristo.io/products/176464/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/bc769cfb-86d7-4555-a1de-39b9112b11e9",
+        "reason": "A digital layout with a tactical visual style."
+      },
+      {
+        "appId": 161347,
+        "name": "Neon Night",
+        "image": "https://cdn.wristo.io/products/161347/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/04269a75-55eb-4c78-a98a-63c4ac399ddd",
+        "reason": "A neon-styled alternative to a restrained digital dial."
+      },
+      {
+        "appId": 182694,
+        "name": "neon multi data green",
+        "image": "https://cdn.wristo.io/products/182694/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/4b8952e8-6ac3-417f-917a-33fbae12e3c3",
+        "reason": "A green-accented option for fans of multi-data layouts."
+      }
+    ]
+  },
+  {
+    "slug": "analog-garmin-watch-faces",
+    "title": "Analog Garmin watch faces",
+    "headline": "A familiar face. A different feel.",
+    "description": "Explore three hand-based Garmin watch faces, from understated charcoal to warm orange and bright yellow accents.",
+    "guide": "Choose the hands and dial contrast first. Look at how much space remains for your daily information, and check the exact watch model on the product page before installing.",
+    "products": [
+      {
+        "appId": 177460,
+        "name": "Ember Gauge",
+        "image": "https://cdn.wristo.io/products/177460/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/d2945be8-1922-4a0f-90d0-20e3607b4703",
+        "reason": "An analog pick with an ember-inspired visual identity."
+      },
+      {
+        "appId": 182680,
+        "name": "charcoal jam",
+        "image": "https://cdn.wristo.io/products/182680/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/8e7485c5-7403-457b-be39-68db82e8d187",
+        "reason": "A charcoal-toned analog option for everyday wear."
+      },
+      {
+        "appId": 169755,
+        "name": "Voltline",
+        "image": "https://cdn.wristo.io/products/169755/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/067b21f6-2d1b-4f92-b5ec-65863d05ba69",
+        "reason": "An analog design with bright yellow hands and markers."
+      }
+    ]
+  },
+  {
+    "slug": "outdoor-garmin-watch-faces",
+    "title": "Outdoor-inspired Garmin watch faces",
+    "headline": "Take the mountain with you.",
+    "description": "Compare Mountain Tactical and Pixel Outdoors: two outdoor-inspired Garmin watch faces with different approaches to landscape styling.",
+    "guide": "These are watch face designs, not navigation apps. Compare a tactical mountain look with pixel-art scenery, then check device compatibility and the available data fields. Artwork does not imply offline maps or route guidance.",
+    "products": [
+      {
+        "appId": 161195,
+        "name": "Mountain Tactical",
+        "image": "https://cdn.wristo.io/general/19e7d63c5b0a42898054a647b78b08fb/original.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/b391858c-6195-4442-8b66-6ffa87f1fcf3",
+        "reason": "A mountain-themed design with a tactical aesthetic."
+      },
+      {
+        "appId": 211829,
+        "name": "Pixel Outdoors",
+        "image": "https://cdn.wristo.io/products/211829/raw.png",
+        "garminStoreUrl": "https://apps.garmin.com/apps/21cca3ad-d53a-4e27-a28f-2803ffd1f382",
+        "reason": "A pixel-art take on an outdoor watch face."
+      }
+    ]
+  }
+]

@@ -53,6 +53,10 @@
   ],
   "rewrites": [
     {
+      "source": "/collections/:slug(data-rich-garmin-watch-faces|analog-garmin-watch-faces|outdoor-garmin-watch-faces)",
+      "destination": "/collections/:slug/index.html"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://api.wristo.io/api/$1"
     },
@@ -79,5 +83,6 @@
         }
       ]
     }
-  ]
+  ],
+  "buildCommand": "npx playwright install chromium && npm run build"
 }
