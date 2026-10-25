@@ -1,12 +1,12 @@
 <template>
-  <section id="create-your-watchface" class="studio-promo" aria-labelledby="studio-promo-title">
+  <section v-if="isDesktop" id="create-your-watchface" class="studio-promo" aria-labelledby="studio-promo-title">
     <div class="studio-promo__body">
       <div class="studio-promo__copy">
         <p class="studio-promo__eyebrow"><span></span> WRISTO STUDIO</p>
         <h2 id="studio-promo-title">{{ t('studioPromo.titleFirst') }}<br><em>{{ t('studioPromo.titleSecond') }}</em></h2>
         <p class="studio-promo__description">{{ t('studioPromo.description') }}</p>
-        <a :href="createUrl" class="studio-promo__cta" target="_blank" rel="noopener noreferrer" @click.prevent="openStudioCreate">
-          {{ t('studioPromo.cta') }} <span aria-hidden="true">↗</span>
+        <a :href="createUrl" class="studio-promo__cta" @click.prevent="openStudioGuide">
+          {{ t('studioPromo.cta') }} <span aria-hidden="true">→</span>
         </a>
         <p class="studio-promo__note">{{ t('studioPromo.note') }}</p>
       </div>
@@ -32,9 +32,13 @@
           <g transform="rotate(-7 151 217)">
             <rect x="47" y="68" width="209" height="292" rx="12" fill="#fffef7" stroke="#dddccf"/>
             <circle cx="66" cy="89" r="4" fill="#b8c8b3"/>
-            <text x="79" y="93" fill="#677262" font-size="10" font-family="sans-serif" letter-spacing="1.5">YOUR IMAGE</text>
-            <g clip-path="url(#studio-promo-photo)"><use href="#studio-promo-landscape" transform="translate(62 110) scale(.75 .9)"/></g>
-            <text x="63" y="348" fill="#52634d" font-size="10" font-family="sans-serif">weekend-escape.png</text>
+            <text x="79" y="93" fill="#677262" font-size="10" font-family="sans-serif" letter-spacing="1.5">{{ t('studioPromo.editorLabel') }}</text>
+            <rect x="62" y="110" width="179" height="223" rx="5" fill="#eef1e8"/>
+            <circle cx="151" cy="209" r="76" fill="#294c3b"/>
+            <text x="151" y="216" text-anchor="middle" fill="#fff4cf" font-size="32" font-weight="700" font-family="sans-serif">10:08</text>
+            <rect x="88" y="184" width="126" height="43" fill="none" stroke="#c7e7a3" stroke-dasharray="4 3"/>
+            <path d="M83 294h136m-136 12h88" stroke="#bbc8b0" stroke-width="6" stroke-linecap="round"/>
+            <text x="63" y="348" fill="#52634d" font-size="10" font-family="sans-serif">{{ t('studioPromo.designLabel') }}</text>
           </g>
           <path d="M234 203C276 176 281 174 306 189" stroke="#677c60" stroke-width="2" fill="none" stroke-dasharray="5 6"/>
           <path d="m297 178 10 12-15 3" stroke="#677c60" stroke-width="2" fill="none"/>
@@ -73,9 +77,15 @@
 
 <script setup lang="ts">
 import { useI18n } from '@/i18n'
-import { getStudioCreateUrl, openStudioCreate } from '@/utils/studio'
+import { onMounted, ref } from 'vue'
+import { getStudioGuideUrl, openStudioGuide, isMobileStudioClient } from '@/utils/studio'
 const { t } = useI18n()
-const createUrl = getStudioCreateUrl()
+const createUrl = ref('')
+const isDesktop = ref(false)
+onMounted(() => {
+  isDesktop.value = !isMobileStudioClient()
+  createUrl.value = getStudioGuideUrl()
+})
 const steps = [
   { title: 'studioPromo.uploadTitle', description: 'studioPromo.uploadDescription' },
   { title: 'studioPromo.arrangeTitle', description: 'studioPromo.arrangeDescription' },
@@ -105,21 +115,7 @@ h2 em { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; color:
 .studio-promo__number { flex: none; color: #7c8d6f; font-size: 12px; font-variant-numeric: tabular-nums; }
 h3 { margin: 0 0 5px; font-size: 14px; font-weight: 650; }
 .studio-promo__steps p { margin: 0; font-size: 12px; line-height: 1.6; color: #6b7565; }
-@media (max-width: 900px) {
-  .studio-promo__copy { padding: 32px 0 30px 30px; }
-  .studio-promo__steps { padding: 22px 30px; gap: 18px; }
-  .studio-promo__description { font-size: 14px; }
-}
-@media (max-width: 640px) {
-  .studio-promo { width: calc(100% - 24px); margin: 24px auto 30px; border-radius: 18px; }
-  .studio-promo__body { grid-template-columns: 1fr; }
-  .studio-promo__copy { padding: 28px 26px 0; }
-  h2 { font-size: 38px; }
-  .studio-promo__eyebrow { margin-bottom: 17px; }
-  .studio-promo__description { margin: 18px 0 20px; }
-  .studio-promo__art { padding: 6px 8px 12px; max-width: 470px; width: 100%; box-sizing: border-box; margin: auto; }
-  .studio-promo__art-label { right: 18px; bottom: 8px; }
-  .studio-promo__steps { grid-template-columns: 1fr; gap: 18px; padding: 24px 26px; }
-  .studio-promo__steps li { gap: 18px; }
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
+  .studio-promo { display: none; }
 }
 </style>

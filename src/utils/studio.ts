@@ -1,3 +1,5 @@
+import { trackConversion } from '@/utils/studioConversion'
+import { useUserStore } from '@/store/user'
 import { ElMessageBox } from 'element-plus'
 import { DEFAULT_LOCALE, getRouteLocaleParam } from '@/store/locale'
 import { translate } from '@/i18n'
@@ -12,7 +14,7 @@ const getCurrentLocale = () => {
   return pathLocale || DEFAULT_LOCALE
 }
 
-const isMobileStudioClient = () => {
+export const isMobileStudioClient = () => {
   if (typeof window === 'undefined' || typeof navigator === 'undefined') return false
   const userAgent = navigator.userAgent || ''
   const mobileUserAgent = /Android|webOS|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobi/i.test(userAgent)
@@ -41,6 +43,7 @@ const ensureStudioDesktopClient = () => {
 
 export const openStudioUrl = (url: string, target: '_blank' | '_self' = '_blank') => {
   if (!ensureStudioDesktopClient()) return false
+  trackConversion('studio_click', useUserStore().token || '')
   if (target === '_self') {
     window.location.href = url
   } else {
@@ -74,3 +77,11 @@ export const openStudioDesignCopy = (designId: string) => {
 export const getStudioCreateUrl = () => new URL('/design', getStudioUrl()).toString()
 
 export const openStudioCreate = () => openStudioUrl(getStudioCreateUrl())
+
+export const getStudioGuideUrl = () => {
+  const url = new URL('/create-watch-face', getStudioUrl())
+  url.searchParams.set('lang', getCurrentLocale())
+  return url.toString()
+}
+
+export const openStudioGuide = () => openStudioUrl(getStudioGuideUrl(), '_self')

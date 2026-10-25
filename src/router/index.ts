@@ -1,3 +1,4 @@
+import { trackConversion } from '@/utils/studioConversion'
 import { createRouter, createWebHistory } from 'vue-router'
 import routes from './routes'
 import { useUserStore } from '@/store/user'
@@ -62,7 +63,8 @@ router.beforeEach((to, from, next) => {
 })
 
 // GA page view tracking
-router.afterEach((to) => {
+router.afterEach((to, _from, failure) => {
+  if (!failure) trackConversion('website_visit', useUserStore().token || '')
   console.log('page_view', to.fullPath, document.title)
   const gtag = (window as any).gtag as undefined | ((...args: any[]) => void)
   if (gtag) {
