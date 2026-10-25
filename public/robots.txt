@@ -15,4 +15,4 @@ Disallow: /unsubscribe
 Disallow: /code
 Disallow: /unlock
 
-Sitemap: https://wristo.io/sitemap.xml
+Sitemap: https://www.wristo.io/sitemap.xml

@@ -6,7 +6,7 @@ import { translate } from '@/i18n'
 import { getProductImageUrl } from '@/utils/productImage'
 
 export const SITE_NAME = 'Wristo'
-export const DEFAULT_SITE_URL = 'https://wristo.io'
+export const DEFAULT_SITE_URL = 'https://www.wristo.io'
 export const DEFAULT_DESCRIPTION =
   'Discover premium Garmin watch faces, bundles, and setup guides from Wristo.'
 export const BRAND_LOGO_URL = 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-og-cover-1200x630.png'
@@ -70,6 +70,7 @@ const staticSeoByPath: Record<string, SeoConfig> = {
   },
   '/newsletter': {
     title: 'Wristo Newsletter',
+    noindex: true,
     description: 'Subscribe to Wristo updates about Garmin watch faces, releases, and guides.',
   },
   '/top': {
@@ -118,8 +119,15 @@ const noindexPrefixes = [
 
 export function siteUrl(): string {
   const envUrl = import.meta.env.VITE_WRISTO_SITE_URL as string | undefined
-  if (envUrl) return trimTrailingSlash(envUrl)
-  if (typeof window !== 'undefined' && window.location.origin) return window.location.origin
+  if (envUrl) {
+    const url = new URL(envUrl)
+    if (['wristo.io', 'www.wristo.io', 'localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) return DEFAULT_SITE_URL
+    return trimTrailingSlash(envUrl)
+  }
+  if (typeof window !== 'undefined' && window.location.origin) {
+    if (['wristo.io', 'www.wristo.io', 'localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) return DEFAULT_SITE_URL
+    return window.location.origin
+  }
   return DEFAULT_SITE_URL
 }
 
@@ -440,7 +448,7 @@ function setJsonLd(schemas: JsonLdObject[]): void {
     const element = document.createElement('script')
     element.type = 'application/ld+json'
     element.dataset.seoJsonld = 'true'
-    element.textContent = JSON.stringify(removeUndefined(schema))
+    element.textContent = JSON.stringify(removeUndefined(schema)).replace(/</g, '\\u003c')
     document.head.appendChild(element)
   }
 }

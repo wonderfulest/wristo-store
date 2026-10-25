@@ -1,3 +1,4 @@
+import { selectPrerenderRoutes, canonicalOrigin, assertRenderedPage, publicCategoryRoutes } from './seo-policy.mjs'
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -8,7 +9,7 @@ import { loadEnv } from 'vite'
 const rootDir = process.cwd()
 const workspaceEnvDir = path.resolve(rootDir, '..')
 const envMode = process.env.VITE_WRISTO_MODE || process.env.MODE || (process.env.NODE_ENV === 'development' ? 'development' : 'prod')
-const rootEnv = loadEnv(envMode, workspaceEnvDir, '')
+const rootEnv = { ...loadEnv(envMode, workspaceEnvDir, ''), ...loadEnv(envMode, rootDir, '') }
 for (const [key, value] of Object.entries(rootEnv)) {
   if (process.env[key] === undefined) {
     process.env[key] = value
@@ -18,7 +19,7 @@ if (process.env.VITE_WRISTO_SITE_URL === undefined && process.env.VITE_WRISTO_ST
   process.env.VITE_WRISTO_SITE_URL = process.env.VITE_WRISTO_STORE_URL
 }
 const distDir = path.join(rootDir, 'dist')
-const siteUrl = trimTrailingSlash(process.env.VITE_WRISTO_SITE_URL || 'https://wristo.io')
+const siteUrl = canonicalOrigin(process.env.VITE_WRISTO_SITE_URL || 'https://www.wristo.io')
 const apiBase = trimTrailingSlash(
   process.env.VITE_WRISTO_PUBLIC_API_BASE_URL ||
     process.env.VITE_WRISTO_API_BASE_URL ||
@@ -38,7 +39,6 @@ const staticRoutes = [
   '/contact',
   '/terms-and-conditions',
   '/privacy-policy',
-  '/newsletter',
   '/top',
   '/creators',
   '/bundle-products',
@@ -48,25 +48,17 @@ const hiddenFaqGuideRouteSlugs = new Set([
   'install-error',
   'mina-lcd',
 ])
-const productPreviewByRoute = new Map()
 
 async function main() {
   const [discoveredRoutes, localizedStaticRoutes] = await Promise.all([
     discoverRoutes(),
     loadLocalizedStaticRoutes(),
   ])
-  const localizedPurchaseOptionRoutes = localizedStaticRoutes.filter((route) =>
-    route.endsWith('/purchase-options'),
-  )
   const routes = uniqueRoutes([...staticRoutes, ...localizedStaticRoutes, ...discoveredRoutes])
-  const prerenderRouteList = orderedUniqueRoutes([
-    ...staticRoutes,
-    ...localizedPurchaseOptionRoutes,
-    ...localizedStaticRoutes,
-    ...discoveredRoutes.filter((route) => !route.startsWith('/app/')),
-    ...discoveredRoutes.filter((route) => route.startsWith('/app/')).slice(0, maxPrerenderRoutes),
-  ]).slice(0, maxPrerenderRoutes)
+  const prerenderRouteList = selectPrerenderRoutes(uniqueRoutes(staticRoutes), orderedUniqueRoutes(localizedStaticRoutes), orderedUniqueRoutes(discoveredRoutes), maxPrerenderRoutes)
 
+  const robots = await readFile(path.join(rootDir, 'public/robots.txt'), 'utf8')
+  await writeFile(path.join(distDir, 'robots.txt'), robots.replace(/^Sitemap:.*$/m, `Sitemap: ${siteUrl}/sitemap.xml`))
   await writeSitemap(routes)
   await writeLlms(routes)
 
@@ -75,7 +67,7 @@ async function main() {
     return
   }
 
-  const preview = spawn('npx', ['vite', 'preview', '--host', '127.0.0.1', '--port', String(previewPort)], {
+  const preview = spawn('npx', ['vite', 'preview', '--strictPort', '--host', '127.0.0.1', '--port', String(previewPort)], {
     cwd: rootDir,
     stdio: ['ignore', 'pipe', 'pipe'],
   })
@@ -85,7 +77,10 @@ async function main() {
 
   try {
     await waitForServer(`${previewUrl}/`)
-    await prerenderRoutes(prerenderRouteList)
+    const canonicalPaths = await prerenderRoutes(prerenderRouteList)
+    const canonicalRoutes = uniqueRoutes(routes.map(route => canonicalPaths.get(route) || route))
+    await writeSitemap(canonicalRoutes)
+    await writeLlms(canonicalRoutes)
   } finally {
     preview.kill('SIGTERM')
   }
@@ -111,16 +106,14 @@ async function discoverRoutes() {
     loadFaqGuideRoutes(),
   ])
 
-  for (const category of asList(categories)) {
-    if (category?.slug) routes.push(`/categories/${encodeURIComponent(category.slug)}`)
-  }
+  const definitions = JSON.parse(await readFile(path.join(rootDir, 'src/utils/publicSeriesDefinitions.json'), 'utf8'))
+  routes.push(...publicCategoryRoutes(asList(categories), definitions))
 
   for (const product of [...asList(hotProducts), ...asList(newProducts), ...asList(searchedProducts)]) {
     const appId = product?.appId
     if (appId !== undefined && appId !== null) {
       const route = `/app/${encodeURIComponent(String(appId))}`
       routes.push(route)
-      productPreviewByRoute.set(route, product)
     }
   }
 
@@ -189,17 +182,22 @@ function isHiddenFaqGuideRoutePost(post) {
 
 async function prerenderRoutes(routes) {
   const shellHtml = await readFile(path.join(distDir, 'index.html'), 'utf8')
-  let browser
-  try {
-    browser = await chromium.launch({ headless: true })
-  } catch (error) {
-    console.warn(`[seo] Browser prerender unavailable: ${error.message}`)
-    await writeFallbackRouteHtml(routes, shellHtml)
-    return
-  }
+  // Preserve a neutral SPA fallback for routes that have no static snapshot.
+  await writeFile(path.join(distDir, 'app.html'), shellHtml)
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.PRERENDER_BROWSER_CHANNEL ? { channel: process.env.PRERENDER_BROWSER_CHANNEL } : {}),
+  }).catch(error => {
+    throw new Error(`SEO build requires a browser. Run npx playwright install chromium, or set PRERENDER_BROWSER_CHANNEL=chrome. ${error.message}`)
+  })
+  const snapshots = new Map()
+  const canonicalPaths = new Map()
+  const pendingApi = new Set()
+  const pageErrors = []
+  let lastApiActivity = Date.now()
 
   const page = await browser.newPage({ viewport: { width: 1366, height: 900 } })
-  page.setDefaultTimeout(8000)
+  page.setDefaultTimeout(25000)
   page.setDefaultNavigationTimeout(12000)
   await page.route('**/*', async (route) => {
     const requestUrl = new URL(route.request().url())
@@ -208,12 +206,20 @@ async function prerenderRoutes(routes) {
       return
     }
     if (requestUrl.origin === previewUrl && requestUrl.pathname.startsWith('/api/')) {
+      if (!['GET', 'HEAD'].includes(route.request().method()) || requestUrl.pathname.includes('/analytics/')) {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 200, data: null }) })
+        return
+      }
+      pendingApi.add(route)
+      lastApiActivity = Date.now()
       try {
         const upstream = `${apiBase}${requestUrl.pathname.replace(/^\/api/, '')}${requestUrl.search}`
         const response = await fetch(upstream, {
+          signal: AbortSignal.timeout(15000),
           method: route.request().method(),
           headers: {
             Accept: route.request().headers().accept || 'application/json',
+            'X-Lang': route.request().headers()['x-lang'] || 'en',
             'Content-Type': route.request().headers()['content-type'] || 'application/json',
           },
           body: ['GET', 'HEAD'].includes(route.request().method()) ? undefined : route.request().postData(),
@@ -231,43 +237,52 @@ async function prerenderRoutes(routes) {
           contentType: 'application/json',
           body: JSON.stringify({ code: 500, msg: error.message, data: null }),
         })
+      } finally {
+        pendingApi.delete(route)
+        lastApiActivity = Date.now()
       }
       return
     }
     await route.continue()
   })
   page.on('pageerror', (error) => {
-    console.warn(`[seo] page error: ${error.message}`)
+    pageErrors.push(error.message)
   })
 
-  for (const [index, route] of routes.entries()) {
-    try {
+  try {
+    for (const [index, route] of routes.entries()) {
       console.log(`[seo] Prerender ${index + 1}/${routes.length}: ${route}`)
+      pageErrors.length = 0
+      // Isolate language/session state so the preceding locale cannot leak into the next page.
+      await page.goto(`${previewUrl}/app.html`, { waitUntil: 'domcontentloaded' })
+      await page.evaluate(() => { localStorage.clear(); sessionStorage.clear() })
+      await page.context().clearCookies()
       await page.goto(`${previewUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
-      await page.waitForTimeout(800)
-      let html = await page.content()
-      html = html.replaceAll(previewUrl, siteUrl)
-      html = applyBuildTimeFallbackSeo(route, html)
-      html = ensureDoctype(html)
-      await writeRouteHtml(route, html)
-    } catch (error) {
-      console.warn(`[seo] Failed to prerender ${route}: ${error.message}`)
-      await writeRouteHtml(route, ensureDoctype(applyBuildTimeFallbackSeo(route, shellHtml)))
+      await page.waitForFunction(() => Array.from(document.querySelectorAll('main h1, main h2')).some(heading => !!heading.textContent?.trim()))
+      const deadline = Date.now() + 20000
+      while (pendingApi.size || Date.now() - lastApiActivity < 400) {
+        if (Date.now() > deadline) throw new Error(`API did not settle for ${route}`)
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+      if (route.startsWith('/app/')) {
+        await page.waitForFunction(() => !!document.querySelector('h1.product-title')?.textContent?.trim())
+      }
+      if (pageErrors.length) throw new Error(`${route}: ${pageErrors.join('; ')}`)
+      const html = ensureDoctype((await page.content()).replaceAll(previewUrl, siteUrl))
+      assertRenderedPage(route, html, siteUrl)
+      const canonical = await page.locator('link[rel="canonical"]').getAttribute('href')
+      canonicalPaths.set(route, new URL(canonical).pathname)
+      snapshots.set(route, html)
     }
+  } finally {
+    await browser.close()
   }
-
-  await browser.close()
-}
-
-async function writeFallbackRouteHtml(routes, shellHtml) {
-  for (const route of routes) {
-    await writeRouteHtml(route, ensureDoctype(applyBuildTimeFallbackSeo(route, shellHtml)))
-  }
-  console.warn(`[seo] Wrote fallback SEO HTML for ${routes.length} routes.`)
+  // Write only after rendering finishes: the preview server must keep serving the original shell.
+  for (const [route, html] of snapshots) await writeRouteHtml(route, html)
+  return canonicalPaths
 }
 
 async function writeSitemap(routes) {
-  const now = new Date().toISOString()
   const body = routes
     .map((route) => {
       const priority = route === '/' ? '1.0' : route.startsWith('/app/') ? '0.8' : '0.7'
@@ -275,7 +290,6 @@ async function writeSitemap(routes) {
       return [
         '  <url>',
         `    <loc>${escapeXml(`${siteUrl}${route}`)}</loc>`,
-        `    <lastmod>${now}</lastmod>`,
         `    <changefreq>${changefreq}</changefreq>`,
         `    <priority>${priority}</priority>`,
         '  </url>',
@@ -322,6 +336,7 @@ async function safeApiGet(endpoint) {
   try {
     const response = await fetch(`${apiBase}${endpoint}`, {
       headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(15000),
     })
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
     const payload = await response.json()
@@ -383,6 +398,7 @@ function normalizeRoutePath(value) {
 
 function isNoindexRoute(route) {
   return [
+    '/categories/whole',
     '/auth',
     '/checkout',
     '/checkout-subscription',
@@ -416,124 +432,6 @@ function escapeXml(value) {
 
 function ensureDoctype(html) {
   return html.toLowerCase().startsWith('<!doctype') ? html : `<!doctype html>\n${html}`
-}
-
-function applyBuildTimeFallbackSeo(route, html) {
-  if (!route.startsWith('/app/')) return html
-  const product = productPreviewByRoute.get(route)
-  if (!product?.name) return html
-
-  const image = product.heroFile?.url || product.garminImageUrl || 'https://cdn.wristo.io/brands/wristo-logo/png/wristo-og-cover-1200x630.png'
-  const title = `${product.name} Garmin Watch Face | Wristo`
-  const description = truncate(
-    stripHtml(product.description) ||
-      `${product.name} is a Garmin Connect IQ watch face from Wristo with installation and unlock guidance.`,
-    155,
-  )
-  const url = `${siteUrl}${route}`
-  const productSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    name: product.name,
-    description,
-    image: [image],
-    sku: String(product.appId),
-    brand: { '@type': 'Brand', name: 'Wristo' },
-    category: 'Garmin Connect IQ Watch Face',
-    url,
-    offers: {
-      '@type': 'Offer',
-      price: typeof product.price === 'number' ? product.price.toFixed(2) : undefined,
-      priceCurrency: 'USD',
-      availability: 'https://schema.org/InStock',
-      url,
-    },
-  }
-
-  let nextHtml = html
-  nextHtml = replaceTagContent(nextHtml, 'title', escapeHtml(title))
-  nextHtml = setMeta(nextHtml, 'description', description)
-  nextHtml = setMeta(nextHtml, 'twitter:title', title)
-  nextHtml = setMeta(nextHtml, 'twitter:description', description)
-  nextHtml = setMeta(nextHtml, 'twitter:image', image)
-  nextHtml = setMetaProperty(nextHtml, 'og:title', title)
-  nextHtml = setMetaProperty(nextHtml, 'og:description', description)
-  nextHtml = setMetaProperty(nextHtml, 'og:url', url)
-  nextHtml = setMetaProperty(nextHtml, 'og:image', image)
-  nextHtml = setLink(nextHtml, 'canonical', url)
-  nextHtml = nextHtml.replace(/<h1([^>]*)class="product-title"([^>]*)>\s*<\/h1>/, `<h1$1class="product-title"$2>${escapeHtml(product.name)}</h1>`)
-  nextHtml = injectJsonLd(nextHtml, productSchema)
-  return nextHtml
-}
-
-function replaceTagContent(html, tagName, content) {
-  const pattern = new RegExp(`<${tagName}[^>]*>.*?</${tagName}>`, 'i')
-  return pattern.test(html)
-    ? html.replace(pattern, `<${tagName}>${content}</${tagName}>`)
-    : html.replace('</head>', `<${tagName}>${content}</${tagName}></head>`)
-}
-
-function setMeta(html, name, content) {
-  const escaped = escapeHtml(content)
-  const pattern = new RegExp(`<meta name="${escapeRegExp(name)}" content="[^"]*">`, 'i')
-  const tag = `<meta name="${name}" content="${escaped}">`
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `${tag}</head>`)
-}
-
-function setMetaProperty(html, property, content) {
-  const escaped = escapeHtml(content)
-  const pattern = new RegExp(`<meta property="${escapeRegExp(property)}" content="[^"]*">`, 'i')
-  const tag = `<meta property="${property}" content="${escaped}">`
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `${tag}</head>`)
-}
-
-function setLink(html, rel, href) {
-  const escaped = escapeHtml(href)
-  const pattern = new RegExp(`<link rel="${escapeRegExp(rel)}" href="[^"]*">`, 'i')
-  const tag = `<link rel="${rel}" href="${escaped}">`
-  return pattern.test(html) ? html.replace(pattern, tag) : html.replace('</head>', `${tag}</head>`)
-}
-
-function injectJsonLd(html, schema) {
-  return html.replace(
-    '</head>',
-    `<script type="application/ld+json" data-seo-jsonld="true">${JSON.stringify(removeUndefined(schema))}</script></head>`,
-  )
-}
-
-function stripHtml(value = '') {
-  return String(value)
-    .replace(/<script[\s\S]*?<\/script>/gi, ' ')
-    .replace(/<style[\s\S]*?<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function truncate(value, maxLength) {
-  return value.length <= maxLength ? value : `${value.slice(0, maxLength - 1).trim()}...`
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
-
-function removeUndefined(value) {
-  if (Array.isArray(value)) return value.map(removeUndefined).filter((item) => item !== undefined)
-  if (!value || typeof value !== 'object') return value
-  return Object.fromEntries(
-    Object.entries(value)
-      .filter(([, entryValue]) => entryValue !== undefined && entryValue !== null && entryValue !== '')
-      .map(([key, entryValue]) => [key, removeUndefined(entryValue)]),
-  )
 }
 
 main().catch((error) => {

@@ -1,7 +1,7 @@
 <template>
   <main class="purchase-options commerce-page">
     <!-- <Logo /> -->
-    <h2 class="title">{{ t('purchase.title') }}</h2>
+    <h1 class="title">{{ t('purchase.title') }}</h1>
     <p class="desc">{{ t('purchase.desc') }}</p>
 
     <div
