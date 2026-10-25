@@ -10,11 +10,11 @@ export interface ProductImageSource {
 
 export const getProductImageUrl = (product?: ProductImageSource | null): string => {
   return (
+    product?.rawImageUrl ||
     product?.fallbackImageUrl ||
     product?.heroFile?.previewUrl ||
     product?.heroFile?.url ||
     product?.garminImageUrl ||
-    product?.rawImageUrl ||
     product?.imageUrl ||
     ''
   )
