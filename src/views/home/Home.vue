@@ -5,7 +5,6 @@
       <HomeBanner v-if="!hasPremiumAccess" premium-only />
     </div>
     <HomeIntro />
-    <WatchfaceDiscovery />
     <HomeProductGrid
       :products="newProducts"
       :loading="loading"
@@ -30,7 +29,6 @@ import type { ProductBaseVO } from '@/types'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
 import HomeBanner from '@/views/home/components/HomeBanner.vue'
-import WatchfaceDiscovery from '@/components/discovery/WatchfaceDiscovery.vue'
 import StudioPromo from '@/views/home/components/StudioPromo.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
@@ -91,24 +89,70 @@ onMounted(loadInitialProducts)
   background: #f7f8f5;
 }
 
-/* One content edge for promotions, search, discovery and the catalog. */
+/* One content edge for promotions, search and the catalog. */
 .catalog-home :deep(.storefront-container) {
   width: min(var(--home-content-width), calc(100% - var(--home-gutter) * 2));
   padding-inline: 0;
 }
 .catalog-home :deep(.catalog-intro) { padding-top: 28px; }
 .catalog-home :deep(.catalog-intro__search) {
-  min-height: 132px;
+  min-height: 112px;
   border: 1px solid var(--color-line);
-  border-radius: 24px;
+  border-radius: 20px;
+  background: var(--color-surface);
 }
 .catalog-home :deep(.catalog-intro__search .search-bar-outer) {
   margin-block: 24px;
   padding-inline: 24px;
 }
 .catalog-home :deep(.catalog-intro__search .search-bar-inner) {
-  width: min(820px, 100%);
+  width: 100%;
+  max-width: none;
   min-width: 0;
+  min-height: 60px;
+  padding: 7px 8px 7px 18px;
+  border-radius: 12px;
+  border-color: #dce3d4;
+  background: #f7f8f5;
+  box-shadow: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.catalog-home :deep(.catalog-intro__search .search-bar-inner:focus-within) {
+  border-color: #6f8752;
+  box-shadow: 0 0 0 3px rgb(111 135 82 / 12%);
+}
+.catalog-home :deep(.catalog-intro__search .search-icon) {
+  width: 24px;
+  height: 24px;
+  color: #5f7650;
+  margin-right: 12px;
+}
+.catalog-home :deep(.catalog-intro__search .search-bar-input .el-input__inner) {
+  font-size: 16px;
+  font-weight: 400;
+}
+.catalog-home :deep(.catalog-intro__search .search-bar-input .el-input__inner::placeholder) {
+  font-size: 14px;
+  color: #677360 !important;
+}
+.catalog-home :deep(.catalog-intro__search .search-submit-btn) {
+  border-radius: 8px;
+  background: #294c3b;
+  font-size: 14px;
+  font-weight: 600;
+}
+.catalog-home :deep(.catalog-intro__search .search-submit-btn:hover:not(:disabled)) {
+  background: #183a28;
+  transform: none;
+}
+.catalog-home :deep(.catalog-intro__search .search-submit-btn:disabled) {
+  background: #e4e9df;
+  color: #66745e;
+  opacity: 1;
+}
+.catalog-home :deep(.catalog-intro__search .search-submit-btn:focus-visible) {
+  outline: 2px solid #294c3b;
+  outline-offset: 3px;
 }
 .catalog-home :deep(.discovery-entry) { padding-top: 24px; padding-bottom: 0; }
 .catalog-home :deep(.catalog-products) { padding-block: 48px; }
