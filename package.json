@@ -11,7 +11,8 @@
     "build": "vue-tsc -b && vite build --mode prod && node scripts/prerender-seo.mjs",
     "build:app": "vue-tsc -b && vite build --mode prod",
     "seo:prerender": "node scripts/prerender-seo.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seo:browser:install": "playwright install chromium"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",

@@ -1,0 +1,125 @@
+[
+  {
+    "slug": "digital",
+    "name": "Digital Utility",
+    "sort": 990,
+    "aliases": [
+      "digital",
+      "data-rich",
+      "weather"
+    ],
+    "tagline": "Best for quick reads, weather, activity stats, and daily dashboards.",
+    "chipLabel": "Data-rich"
+  },
+  {
+    "slug": "minimal",
+    "name": "Minimal & Simple",
+    "sort": 980,
+    "aliases": [
+      "minimal",
+      "simple",
+      "daily",
+      "strokes"
+    ],
+    "tagline": "Clean everyday faces for users who want time first and clutter last.",
+    "chipLabel": "Minimal"
+  },
+  {
+    "slug": "analog",
+    "name": "Analog Classic",
+    "sort": 970,
+    "aliases": [
+      "analog"
+    ],
+    "tagline": "Classic hand-based styles for a more traditional watch feel.",
+    "chipLabel": "Analog"
+  },
+  {
+    "slug": "neon",
+    "name": "Neon & Cyberpunk",
+    "sort": 960,
+    "aliases": [
+      "neon",
+      "cyberpunk",
+      "halo"
+    ],
+    "tagline": "High-contrast looks that stand out on dark screens and night runs.",
+    "chipLabel": "AMOLED"
+  },
+  {
+    "slug": "nature",
+    "name": "Nature & Landscape",
+    "sort": 950,
+    "aliases": [
+      "nature",
+      "landscape",
+      "mountain"
+    ],
+    "tagline": "Outdoor-inspired faces for hiking, travel, and calmer daily wear.",
+    "chipLabel": "Outdoor"
+  },
+  {
+    "slug": "cartoon",
+    "name": "Animals & Cartoon",
+    "sort": 940,
+    "aliases": [
+      "cartoon",
+      "animal",
+      "animals",
+      "family",
+      "fun"
+    ],
+    "tagline": "Playful character faces for families, gifts, and casual weekends.",
+    "chipLabel": "Cute"
+  },
+  {
+    "slug": "flower",
+    "name": "Floral & Mandala",
+    "sort": 930,
+    "aliases": [
+      "flower",
+      "floral",
+      "mandala",
+      "dots"
+    ],
+    "tagline": "Decorative floral patterns for softer, more personal wrist styling.",
+    "chipLabel": "Floral"
+  },
+  {
+    "slug": "galaxy",
+    "name": "Galaxy & Fantasy",
+    "sort": 920,
+    "aliases": [
+      "galaxy",
+      "fantasy"
+    ],
+    "tagline": "Space and fantasy visuals when you want the watch face to feel vivid.",
+    "chipLabel": "Fantasy"
+  },
+  {
+    "slug": "pop-retro",
+    "name": "Pop & Retro",
+    "sort": 910,
+    "aliases": [
+      "pop-retro",
+      "pop-pulse",
+      "retro",
+      "skull"
+    ],
+    "tagline": "Bold nostalgic styles for louder colors and statement looks.",
+    "chipLabel": "Retro"
+  },
+  {
+    "slug": "seasonal",
+    "name": "Seasonal",
+    "sort": 900,
+    "aliases": [
+      "seasonal",
+      "seasonal-themes",
+      "christmas"
+    ],
+    "tagline": "Holiday and campaign faces for time-limited moods and events.",
+    "chipLabel": "Seasonal",
+    "seasonal": true
+  }
+]

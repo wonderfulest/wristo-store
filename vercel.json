@@ -62,7 +62,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/app.html"
     }
   ],
   "headers": [
@@ -82,7 +82,34 @@
           "value": "X-Requested-With, Content-Type, Accept, Authorization"
         }
       ]
+    },
+    {
+      "source": "/:private(auth|checkout|checkout-subscription|payment|auto-unlock|subscription-management|subscription-cancel|activate|purchases-history|user|email|preferences|unsubscribe|code|unlock|daily|newsletter)/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/:lang(en|de|es|fr|it|pt-br|nl|pl|sv|da|cs|zh|ja|ko)/:private(auth|checkout|checkout-subscription|payment|auto-unlock|subscription-management|subscription-cancel|activate|purchases-history|user|email|preferences|unsubscribe|code|unlock|daily|newsletter)/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
+    },
+    {
+      "source": "/studio/membership",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
+        }
+      ]
     }
   ],
-  "buildCommand": "npx playwright install chromium && npm run build"
+  "buildCommand": "npm run seo:browser:install && npm run build"
 }

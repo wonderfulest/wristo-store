@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs'
+import path from 'node:path'
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'url'
@@ -34,7 +36,29 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_STORE_CART_ENABLED': JSON.stringify(env.VITE_STORE_CART_ENABLED || ''),
     },
     plugins: [
-      vue()
+      vue(),
+      {
+        name: 'store-spa-shell',
+        enforce: 'post',
+        configurePreviewServer(server) {
+          // Match filesystem-first production routing, including extensionless directory URLs.
+          server.middlewares.use((request, _response, next) => {
+            const url = new URL(request.url || '/', 'http://localhost')
+            const root = path.resolve(server.config.root, server.config.build.outDir)
+            const candidate = path.resolve(root, `.${url.pathname}`, 'index.html')
+            if (candidate.startsWith(`${root}${path.sep}`) && existsSync(candidate)) {
+              request.url = `${url.pathname.replace(/\/$/, '')}/index.html${url.search}`
+            } else if (!path.extname(url.pathname) && request.headers.accept?.includes('text/html')) {
+              request.url = `/app.html${url.search}`
+            }
+            next()
+          })
+        },
+        generateBundle(_options, bundle) {
+          const html = bundle['index.html']
+          if (html?.type === 'asset') this.emitFile({ type: 'asset', fileName: 'app.html', source: html.source })
+        },
+      }
     ],
     base: '/', // Ensure base URL is set to root
     resolve: {
