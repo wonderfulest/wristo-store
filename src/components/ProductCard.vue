@@ -57,7 +57,11 @@
           :aria-label="t('product.buyNow')"
           @click.stop="buyNow"
         >
-          <Icon icon="solar:bag-4-bold-duotone" width="22" height="22" aria-hidden="true" />
+          <svg class="buy-now-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5.5 7.5h13l1 12a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1l1-12Z" />
+            <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+            <path d="m9 14 2 2 4-4" />
+          </svg>
         </button>
       </div>
       <div v-if="isAdmin" class="product-public-metrics" :aria-label="t('product.popularityAria')">
@@ -232,19 +236,36 @@ watch(() => [props.product?.appId, props.adminMetrics, isAdmin.value], () => {
   height: 44px;
   min-height: 44px;
   padding: 0;
-  border: 1px solid var(--color-brand);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 999px;
   color: #fff;
-  background: var(--color-brand);
+  background: linear-gradient(145deg, #16877e, var(--color-brand) 58%, #075b56);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 3px 8px rgba(7, 91, 86, 0.16);
   cursor: pointer;
-  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.buy-now-icon {
+  width: 24px;
+  height: 24px;
 }
 
 .buy-now:hover,
 .buy-now:focus-visible {
   border-color: var(--color-brand-strong);
   background: var(--color-brand-strong);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 5px 12px rgba(7, 91, 86, 0.24);
+}
+
+.buy-now:active {
+  transform: scale(0.95);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buy-now {
+    transition: none;
+  }
 }
 
 .buy-now:focus-visible {

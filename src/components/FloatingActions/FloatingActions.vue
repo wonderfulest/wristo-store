@@ -19,8 +19,13 @@
         :aria-label="t('cart.floatingAria')"
         :title="t('cart.viewCart')"
       >
-        <span class="fab-count">{{ cartStore.count }}</span>
-        <Icon class="fab-icon" icon="solar:cart-3-line-duotone" aria-hidden="true" />
+        <span class="fab-count">{{ cartStore.count > 99 ? '99+' : cartStore.count }}</span>
+        <svg class="fab-cart-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 4h2l2.1 10.4a2 2 0 0 0 2 1.6h8.4a2 2 0 0 0 2-1.6L21 7H5.6" />
+          <path d="M10 10.5h6" />
+          <circle cx="9" cy="20" r="1" />
+          <circle cx="18" cy="20" r="1" />
+        </svg>
       </button>
       <button
         v-if="showPageActions && scrolled"
@@ -164,9 +169,31 @@ const handleClick = () => {
 }
 
 .fab-cart {
-  background: var(--color-brand);
-  border-color: rgba(11, 116, 109, 0.42);
+  width: 56px;
+  height: 56px;
+  align-self: center;
+  background: linear-gradient(145deg, #16877e, var(--color-brand) 58%, #075b56);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 6px 16px rgba(7, 91, 86, 0.2),
+    0 2px 4px rgba(7, 91, 86, 0.1);
+}
+
+.fab-cart-icon {
+  width: 27px;
+  height: 27px;
+}
+
+.fab-cart:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fab-cart {
+    transition: none;
+  }
 }
 
 .fab-cart:hover {
@@ -194,20 +221,23 @@ const handleClick = () => {
 
 .fab-count {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
+  top: -4px;
+  right: -4px;
+  box-sizing: border-box;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 5px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-rating);
-  color: var(--color-stage);
+  background: #f4bd59;
+  color: #49300d;
+  box-shadow: 0 2px 5px rgba(73, 48, 13, 0.14);
   border: 2px solid var(--color-surface);
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 

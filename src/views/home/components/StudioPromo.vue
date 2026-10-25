@@ -94,7 +94,7 @@ const steps = [
 </script>
 
 <style scoped>
-.studio-promo { width: min(1200px, calc(100% - 48px)); margin: 36px auto 42px; overflow: hidden; border: 1px solid #dce3d4; border-radius: 24px; background: #eef1e8; color: #243b30; }
+.studio-promo { width: min(1200px, calc(100% - 48px)); margin: 28px auto 24px; overflow: hidden; border: 1px solid #dce3d4; border-radius: 24px; background: #eef1e8; color: #243b30; }
 .studio-promo__body { display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; }
 .studio-promo__copy { padding: 44px 0 38px 48px; position: relative; z-index: 1; }
 .studio-promo__eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 22px; font-size: 11px; font-weight: 700; letter-spacing: .16em; }
