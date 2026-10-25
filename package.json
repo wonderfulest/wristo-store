@@ -28,6 +28,7 @@
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
+    "@sparticuz/chromium": "148.0.0",
     "@tailwindcss/postcss": "^4.1.10",
     "@types/node": "^22.15.21",
     "@vitejs/plugin-vue": "^5.2.3",

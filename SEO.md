@@ -10,7 +10,7 @@ npm run build
 node --test tests/prerender-route-priority.test.mjs
 ```
 
-For a local machine with Chrome installed, `PRERENDER_BROWSER_CHANNEL=chrome npm run build` uses Chrome instead. Vercel's checked-in build command installs Chromium before building. A missing browser, JavaScript error or incomplete page stops the SEO build; it must not silently publish an empty shell. `build:app` and `SKIP_PRERENDER=1` are development diagnostics, not SEO release validation.
+For a local machine with Chrome installed, `PRERENDER_BROWSER_CHANNEL=chrome npm run build` uses Chrome instead. Vercel builds use the pinned @sparticuz/chromium package (including Amazon Linux libraries); local builds use Playwright's installed browser. A missing browser, JavaScript error or incomplete page stops the SEO build; it must not silently publish an empty shell. `build:app` and `SKIP_PRERENDER=1` are development diagnostics, not SEO release validation.
 
 The default snapshot budget is 80 pages, including core pages, localized purchase pages, up to 20 product details and up to 20 category/guide pages before remaining localized pages. Increase `MAX_PRERENDER_ROUTES` when build time permits. The sitemap also lists discovered public routes beyond that snapshot budget; those still rely on JavaScript until added to the budget. Discovery currently takes the existing hot/new/search API lists, not every catalogue product.
 

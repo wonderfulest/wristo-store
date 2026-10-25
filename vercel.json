@@ -111,5 +111,5 @@
       ]
     }
   ],
-  "buildCommand": "npm run seo:browser:install && npm run build"
+  "buildCommand": "npm run build"
 }

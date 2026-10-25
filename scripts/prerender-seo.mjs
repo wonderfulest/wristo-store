@@ -187,9 +187,15 @@ async function prerenderRoutes(routes) {
   const shellHtml = await readFile(path.join(distDir, 'index.html'), 'utf8')
   // Preserve a neutral SPA fallback for routes that have no static snapshot.
   await writeFile(path.join(distDir, 'app.html'), shellHtml)
+  // Vercel's build image lacks the shared libraries required by Playwright's downloaded browser.
+  const serverlessChromium = process.env.VERCEL && process.platform === 'linux'
+    ? (await import('@sparticuz/chromium')).default
+    : null
   const browser = await chromium.launch({
     headless: true,
-    ...(process.env.PRERENDER_BROWSER_CHANNEL ? { channel: process.env.PRERENDER_BROWSER_CHANNEL } : {}),
+    ...(serverlessChromium
+      ? { executablePath: await serverlessChromium.executablePath(), args: serverlessChromium.args }
+      : process.env.PRERENDER_BROWSER_CHANNEL ? { channel: process.env.PRERENDER_BROWSER_CHANNEL } : {}),
   }).catch(error => {
     throw new Error(`SEO build requires a browser. Run npx playwright install chromium, or set PRERENDER_BROWSER_CHANNEL=chrome. ${error.message}`)
   })
