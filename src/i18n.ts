@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { useLocaleStore, type SupportedLocale } from '@/store/locale'
 
 const en = {
+  "studioPromo.neverShowAgain": "Don’t show this again",
   "studioPromo.nav": "Create",
   "studioPromo.titleFirst": "Make it yours.",
   "studioPromo.titleSecond": "Wear it proudly.",
@@ -307,7 +308,7 @@ const en = {
   'home.heroDesc': 'Explore 7,000+ apps for every style.',
   'home.heroExplore': 'Explore Watch Faces',
   'home.premiumEyebrow': 'Wristo Premium',
-  'home.premiumTitle': 'One purchase. Lifetime access.',
+  'home.premiumTitle': 'One Purchase. $9.90. 7,000+ Apps. Lifetime Access.',
   'home.premiumDesc': 'Explore 7,000+ apps. Get Premium for $9.90.',
   'home.premiumCta': 'Get Premium',
   'home.heroPremiumSlide': 'Show Wristo Premium slide',
@@ -910,6 +911,7 @@ const messages: Record<SupportedLocale, Messages> = {
   en,
   zh: {
     ...en,
+    "studioPromo.neverShowAgain": "以后不再提示",
     "studioPromo.nav": "设计表盘",
     "studioPromo.titleFirst": "亲手设计，",
     "studioPromo.titleSecond": "戴出你的风格。",

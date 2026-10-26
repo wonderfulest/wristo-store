@@ -27,7 +27,7 @@ test('Premium hero copy is defined for every supported locale', async () => {
   for (const key of ['home.premiumEyebrow', 'home.premiumTitle', 'home.premiumDesc', 'home.premiumCta', 'home.heroPremiumSlide']) {
     assert.equal(i18n.match(new RegExp(`'${key.replace('.', '\\.')}':`, 'g'))?.length, 14)
   }
-  assert.match(i18n, /'home\.premiumTitle': 'One purchase\. Lifetime access\.'/)
+  assert.match(i18n, /'home\.premiumTitle': 'One Purchase\. \$9\.90\. 7,000\+ Apps\. Lifetime Access\.'/)
   assert.match(i18n, /'home\.premiumDesc': 'Explore 7,000\+ apps\. Get Premium for \$9\.90\.'/)
 })
 

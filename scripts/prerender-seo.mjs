@@ -206,6 +206,10 @@ async function prerenderRoutes(routes) {
   let lastApiActivity = Date.now()
 
   const page = await browser.newPage({ viewport: { width: 1366, height: 900 } })
+  // Keep the desktop promotion and its scroll lock out of static HTML.
+  await page.addInitScript(() => {
+    sessionStorage.setItem('wristo:studio-promo:shown', '1')
+  })
   page.setDefaultTimeout(25000)
   page.setDefaultNavigationTimeout(12000)
   await page.route('**/*', async (route) => {

@@ -1,9 +1,7 @@
 <template>
   <main class="catalog-home">
-    <div class="home-promotions" :class="{ 'home-promotions--studio-only': hasPremiumAccess }">
-      <StudioPromo />
-      <HomeBanner v-if="!hasPremiumAccess" premium-only />
-    </div>
+    <HomeBanner v-if="!hasPremiumAccess" premium-only />
+    <StudioPromoDialog />
     <HomeIntro />
     <CuratedEntrances />
     <HomeProductGrid
@@ -31,7 +29,7 @@ import type { ProductBaseVO } from '@/types'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
 import HomeBanner from '@/views/home/components/HomeBanner.vue'
-import StudioPromo from '@/views/home/components/StudioPromo.vue'
+import StudioPromoDialog from '@/views/home/components/StudioPromoDialog.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
 
@@ -169,39 +167,6 @@ onMounted(loadInitialProducts)
   }
 }
 
-.home-promotions {
-  width: min(var(--home-content-width), calc(100% - var(--home-gutter) * 2));
-  margin: 28px auto 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 20px;
-}
-.home-promotions--studio-only { grid-template-columns: minmax(0, 1fr); }
-.home-promotions :deep(.studio-promo) { width: 100%; margin: 0; }
-.home-promotions :deep(.studio-promo__body) { height: 100%; grid-template-columns: minmax(0, 1fr) 180px; }
-.home-promotions :deep(.studio-promo__copy) { padding: 28px 0 28px 28px; }
-.home-promotions :deep(.studio-promo__eyebrow) { margin-bottom: 16px; }
-.home-promotions :deep(.studio-promo h2) { font-size: 32px; }
-.home-promotions :deep(.studio-promo__description) { margin: 16px 0 20px; font-size: 14px; line-height: 1.6; }
-.home-promotions :deep(.studio-promo__art) { padding: 0 12px 0 0; }
-.home-promotions :deep(.studio-promo__art-label),
-.home-promotions :deep(.studio-promo__steps) { display: none; }
-.home-promotions :deep(.home-banner--premium) { padding: 0; min-width: 0; }
-.home-promotions :deep(.home-banner--premium .banner-shell) { width: 100%; height: 100%; }
-.home-promotions :deep(.home-banner--premium .banner-content) { height: 100%; grid-template-columns: minmax(0, 1fr) 130px; gap: 18px; padding: 28px; }
-.home-promotions :deep(.home-banner--premium .banner-content.theme-store .banner-title) { font-size: 32px; margin: 16px 0; }
-.home-promotions :deep(.home-banner--premium .banner-desc) { font-size: 14px; line-height: 1.6; }
-.home-promotions :deep(.home-banner--premium .banner-stage--poster) { width: 130px; }
-.home-promotions :deep(.home-banner--premium .banner-primary) { gap: 12px; }
-@media (max-width: 1150px) {
-  .home-promotions :deep(.studio-promo__body) { grid-template-columns: minmax(0, 1fr); }
-  .home-promotions :deep(.studio-promo__copy) { padding: 28px; }
-  .home-promotions :deep(.studio-promo__art) { display: none; }
-}
-@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
-  .home-promotions { grid-template-columns: minmax(0, 1fr); }
-  .home-promotions--studio-only { display: none; }
-}
 @media (max-width: 600px) {
   .catalog-home { --home-gutter: 16px; }
   .catalog-home :deep(.catalog-intro) { padding-top: 20px; }
@@ -209,8 +174,5 @@ onMounted(loadInitialProducts)
   .catalog-home :deep(.catalog-intro__search .search-bar-outer) { margin-block: 20px; padding-inline: 12px; }
   .catalog-home :deep(.discovery-entry) { padding-top: 20px; }
   .catalog-home :deep(.catalog-products) { padding-block: 32px; }
-  .home-promotions { margin-top: 16px; }
-  .home-promotions :deep(.home-banner--premium .banner-content) { grid-template-columns: minmax(0, 1fr); padding: 24px; }
-  .home-promotions :deep(.home-banner--premium .banner-stage--poster) { display: none; }
 }
 </style>
