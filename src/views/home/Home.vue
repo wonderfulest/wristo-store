@@ -3,7 +3,6 @@
     <HomeBanner v-if="!hasPremiumAccess" premium-only />
     <StudioPromoDialog />
     <HomeIntro />
-    <CuratedEntrances />
     <HomeProductGrid
       :products="newProducts"
       :loading="loading"
@@ -22,7 +21,6 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import CuratedEntrances from '@/components/CuratedEntrances.vue'
 import { getNewProducts } from '@/api/product'
 import { useUserStore } from '@/store/user'
 import type { ProductBaseVO } from '@/types'
