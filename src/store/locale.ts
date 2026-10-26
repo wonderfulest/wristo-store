@@ -34,6 +34,20 @@ export function getRouteLocaleParam(value: unknown): SupportedLocale | null {
   return SUPPORTED_LOCALES.includes(locale as SupportedLocale) ? (locale as SupportedLocale) : null
 }
 
+export function getBrowserLocale(): SupportedLocale {
+  if (typeof navigator === 'undefined') return DEFAULT_LOCALE
+  const languages = navigator.languages?.length ? navigator.languages : [navigator.language]
+  for (const language of languages) {
+    const normalized = String(language || '').toLowerCase()
+    const exact = getRouteLocaleParam(normalized)
+    if (exact) return exact
+    const base = normalized.split('-')[0]
+    const match = getRouteLocaleParam(base === 'pt' ? 'pt-br' : base)
+    if (match) return match
+  }
+  return DEFAULT_LOCALE
+}
+
 function readLocaleValue(value: string | null): SupportedLocale | null {
   const direct = getRouteLocaleParam(value)
   if (direct) return direct
@@ -75,7 +89,7 @@ function setCookieLocale(locale: SupportedLocale) {
 }
 
 function getStoredLocale(): SupportedLocale {
-  if (typeof localStorage === 'undefined') return DEFAULT_LOCALE
+  if (typeof localStorage === 'undefined') return getCookieLocale() || getBrowserLocale()
   const local = readLocaleValue(localStorage.getItem(SHARED_LOCALE_KEY))
   if (local) return local
 
@@ -94,7 +108,7 @@ function getStoredLocale(): SupportedLocale {
     }
   }
 
-  return DEFAULT_LOCALE
+  return getBrowserLocale()
 }
 
 const localeStorage = {
