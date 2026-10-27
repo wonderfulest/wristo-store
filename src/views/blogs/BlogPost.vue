@@ -2,8 +2,24 @@
   <div class="blog-container">
     <div class="blog-main">
       <div class="layout">
-        <aside class="sidebar">
-          <div class="toc">
+        <aside class="sidebar" @keydown.esc="closeToc">
+          <button
+            ref="tocToggle"
+            class="toc-toggle"
+            type="button"
+            :aria-expanded="tocOpen"
+            aria-controls="support-toc"
+            @click="tocOpen = !tocOpen"
+          >
+            <span class="toc-toggle-text">
+              <span class="toc-label">{{ uiText.directory }}</span>
+              <span class="toc-current">{{ firstTr?.title || uiText.loading }}</span>
+            </span>
+            <svg :class="{ rotated: tocOpen }" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </button>
+          <nav id="support-toc" class="toc" :class="{ 'is-open': tocOpen }" :aria-label="uiText.directory">
             <TreeNode
               v-for="n in tree"
               :key="`${currentLang || 'default'}-${n.id}`"
@@ -12,7 +28,7 @@
               :active-id="activeNodeId"
               @select="handleSelect"
             />
-          </div>
+          </nav>
         </aside>
 
         <main class="content">
@@ -86,61 +102,84 @@ const post = ref<BlogPostVO | null>(null)
 // toc state
 const tree = ref<BlogPostTocItemVO[]>([])
 const activeNodeId = ref<number | undefined>(undefined)
+const tocOpen = ref(false)
+const tocToggle = ref<HTMLButtonElement | null>(null)
+
+function closeToc() {
+  if (tocOpen.value) {
+    tocOpen.value = false
+    tocToggle.value?.focus({ preventScroll: true })
+  }
+}
 
 const faqUiTextByLocale = {
   cs: {
+    directory: 'Témata nápovědy',
     loading: 'Nacitani pruvodce FAQ...',
     failedTitle: 'Nacteni se nezdarilo',
   },
   da: {
+    directory: 'Hjælpeemner',
     loading: 'Indlaeser FAQ-guide...',
     failedTitle: 'Indlaesning mislykkedes',
   },
   de: {
+    directory: 'Hilfethemen',
     loading: 'FAQ-Anleitung wird geladen...',
     failedTitle: 'Laden fehlgeschlagen',
   },
   en: {
+    directory: 'Help topics',
     loading: 'Loading FAQ guide...',
     failedTitle: 'Failed to load',
   },
   es: {
+    directory: 'Temas de ayuda',
     loading: 'Cargando guia de FAQ...',
     failedTitle: 'No se pudo cargar',
   },
   fr: {
+    directory: 'Rubriques d’aide',
     loading: 'Chargement du guide FAQ...',
     failedTitle: 'Echec du chargement',
   },
   it: {
+    directory: 'Argomenti di aiuto',
     loading: 'Caricamento guida FAQ...',
     failedTitle: 'Caricamento non riuscito',
   },
   ja: {
+    directory: 'ヘルプ目次',
     loading: 'FAQ ガイドを読み込み中...',
     failedTitle: '読み込みに失敗しました',
   },
   ko: {
+    directory: '도움말 목차',
     loading: 'FAQ 가이드를 불러오는 중...',
     failedTitle: '불러오기에 실패했습니다',
   },
   nl: {
+    directory: 'Helponderwerpen',
     loading: 'FAQ-gids laden...',
     failedTitle: 'Laden mislukt',
   },
   pl: {
+    directory: 'Tematy pomocy',
     loading: 'Ladowanie przewodnika FAQ...',
     failedTitle: 'Nie udalo sie zaladowac',
   },
   'pt-br': {
+    directory: 'Tópicos de ajuda',
     loading: 'Carregando guia de FAQ...',
     failedTitle: 'Falha ao carregar',
   },
   sv: {
+    directory: 'Hjälpämnen',
     loading: 'Laser in FAQ-guide...',
     failedTitle: 'Kunde inte lasa in',
   },
   zh: {
+    directory: '帮助目录',
     loading: '正在加载 FAQ 指南...',
     failedTitle: '加载失败',
   },
@@ -244,6 +283,7 @@ onMounted(async () => {
 })
 
 watch(() => route.fullPath, async () => {
+  tocOpen.value = false
   loading.value = true
   error.value = ''
   try {
@@ -258,9 +298,10 @@ watch(() => route.fullPath, async () => {
 })
 
 function handleSelect(n: BlogPostTocItemVO) {
-  activeNodeId.value = n.id
   const p = n.post
   if (p && (p.url || p.slug)) {
+    activeNodeId.value = n.id
+    closeToc()
     const lang = normalizeLocale(currentLang.value)
     localeStore.setLocale(lang)
     const localizedSlug = p.translations?.find(t => t.lang === lang && t.slug)?.slug
@@ -331,6 +372,14 @@ async function refreshTree(lang?: string) {
   overflow: auto;
 }
 .toc { display: block; }
+.toc-toggle { display: none; }
+.blog-article { overflow-wrap: anywhere; }
+.author-info { min-width: 0; }
+.content .author .avatar { flex: 0 0 auto; margin: 0; }
+.content .author-info .name { text-align: left; }
+.content :deep(pre) { max-width: 100%; overflow-x: auto; }
+.content :deep(img) { height: auto; }
+.content :deep(ul), .content :deep(ol) { padding-left: 1.5em; }
 
 .state-card {
   display: flex;
@@ -499,7 +548,7 @@ async function refreshTree(lang?: string) {
   background: #f8fafc;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .blog-container {
     background: #fff;
   }
@@ -507,21 +556,39 @@ async function refreshTree(lang?: string) {
 
   .layout { display: block; }
   .sidebar {
-    position: sticky;
-    top: 0;
-    z-index: 8;
-    max-height: min(52dvh, 420px);
-    overflow: auto;
-    padding: 6px 0 10px;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-    border-radius: 0;
-    margin-bottom: 12px;
-    box-shadow: none;
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin: 16px 0 24px;
+    background: #f8fafc;
   }
-  .toc { max-height: none; overflow: visible; }
-
-  .tree-node { gap: 4px; margin: 1px 0; }
+  .toc-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    width: 100%;
+    min-height: 64px;
+    padding: 12px 16px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: #0f6b68;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+  }
+  .toc-toggle:focus-visible { outline: 3px solid #0f6b68; outline-offset: 3px; }
+  .toc-toggle-text { min-width: 0; display: grid; gap: 4px; }
+  .toc-label { font-size: 14px; font-weight: 700; }
+  .toc-current { font-size: 14px; color: #475569; overflow-wrap: anywhere; }
+  .toc-toggle svg { flex-shrink: 0; }
+  .toc-toggle svg.rotated { transform: rotate(180deg); }
+  .toc { display: none; padding: 8px; border-top: 1px solid #e2e8f0; }
+  .toc.is-open { display: block; }
 
   /* Article */
   .hero {
@@ -529,22 +596,22 @@ async function refreshTree(lang?: string) {
     border-radius: 0;
     aspect-ratio: 4 / 3;
   }
-  .title {
+  .content .title {
     font-size: clamp(1.55rem, 8vw, 2.15rem);
-    line-height: 1.12;
-    padding: 18px 0 0;
+    line-height: 1.25;
+    margin: 0 0 16px;
+    padding: 0;
   }
   .meta {
     padding: 12px 0 4px;
     gap: 12px;
     align-items: flex-start;
   }
-  .author { width: 100%; }
+  .author { width: 100%; justify-content: flex-start; }
   .avatar { width: 34px; height: 34px; }
   .chips {
     width: 100%;
-    flex-wrap: nowrap;
-    overflow-x: auto;
+    flex-wrap: wrap;
     padding-bottom: 2px;
     scrollbar-width: none;
   }
@@ -586,7 +653,7 @@ async function refreshTree(lang?: string) {
 
 @media (max-width: 380px) {
   .blog-main { padding-left: 10px; padding-right: 10px; }
-  .title { font-size: 1.48rem; }
+  .content .title { font-size: 1.48rem; }
   .content-body { padding-left: 0; padding-right: 0; }
 }
 </style>

@@ -1,6 +1,6 @@
 <template>
   <div :class="['tree-node', `level-${level}`, { 'has-post': hasPost, 'no-post': !hasPost, active: isActive }]" :style="{ paddingLeft }">
-    <button v-if="hasChildren" class="toggle" @click.stop="toggle">
+    <button v-if="hasChildren" class="toggle" type="button" :aria-expanded="expanded" :aria-label="titleText" @click.stop="toggle">
       <svg v-if="!expanded" width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M9 6L15 12L9 18" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -10,7 +10,7 @@
     </button>
     <span v-else class="toggle-placeholder"></span>
 
-    <button class="node-btn" :class="{ active: isActive, 'with-post': hasPost }" @click="onClick">{{ titleText }}</button>
+    <button class="node-btn" type="button" :aria-current="isActive ? 'page' : undefined" :aria-expanded="!hasPost && hasChildren ? expanded : undefined" :class="{ active: isActive, 'with-post': hasPost }" @click="onClick">{{ titleText }}</button>
   </div>
   <div v-if="hasChildren && expanded">
     <TreeNode
@@ -45,7 +45,8 @@ const titleText = computed(() => props.node.title || props.node.post?.title || '
 const paddingLeft = computed(() => 4 + (props.level as number) * 16 + 'px')
 
 function onClick() {
-  emit('select', props.node)
+  if (!hasPost.value && hasChildren.value) toggle()
+  else emit('select', props.node)
 }
 function toggle() {
   expanded.value = !expanded.value
@@ -77,4 +78,10 @@ function toggle() {
 .node-btn:hover { color: #0f172a; border-left-color: #cbd5e1; }
 .node-btn:focus-visible { outline: 3px solid rgba(37, 99, 235, 0.24); outline-offset: 2px; }
 .node-btn.active { color: #0f6b68; border-left-color: #0f6b68; font-weight: 700; }
+@media (max-width: 900px) {
+  .tree-node { align-items: center; }
+  .toggle { min-width: 44px; min-height: 44px; }
+  .toggle-placeholder { min-width: 8px; }
+  .node-btn { min-width: 0; min-height: 44px; padding: 10px 8px; overflow-wrap: anywhere; }
+}
 </style>
