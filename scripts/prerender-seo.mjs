@@ -1,5 +1,6 @@
 import { selectPrerenderRoutes, canonicalOrigin, assertRenderedPage, publicCategoryRoutes } from './seo-policy.mjs'
 import { chromium } from 'playwright'
+import { mapConcurrent, createResponseCache } from './prerender-runtime.mjs'
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
@@ -201,95 +202,137 @@ async function prerenderRoutes(routes) {
   })
   const snapshots = new Map()
   const canonicalPaths = new Map()
-  const pendingApi = new Set()
-  const pageErrors = []
-  let lastApiActivity = Date.now()
+  const cachedResponse = createResponseCache()
+  const concurrency = Number(process.env.PRERENDER_CONCURRENCY || 3)
+  const started = Date.now()
 
-  const page = await browser.newPage({ viewport: { width: 1366, height: 900 } })
-  // Keep the desktop promotion and its scroll lock out of static HTML.
-  await page.addInitScript(() => {
-    sessionStorage.setItem('wristo:studio-promo:shown', '1')
-  })
-  page.setDefaultTimeout(25000)
-  page.setDefaultNavigationTimeout(12000)
-  await page.route('**/*', async (route) => {
-    const requestUrl = new URL(route.request().url())
-    if (requestUrl.hostname === 'www.googletagmanager.com' || requestUrl.hostname === 'www.google-analytics.com') {
-      await route.abort()
-      return
-    }
-    if (requestUrl.origin === previewUrl && requestUrl.pathname.startsWith('/api/')) {
-      if (!['GET', 'HEAD'].includes(route.request().method()) || requestUrl.pathname.includes('/analytics/')) {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 200, data: null }) })
+  async function renderRoute(routePath) {
+    const pendingApi = new Set()
+    const pageErrors = []
+    const apiErrors = []
+    let lastApiActivity = Date.now()
+
+    const page = await browser.newPage({ viewport: { width: 1366, height: 900 } })
+    // Keep the desktop promotion and its scroll lock out of static HTML.
+    await page.addInitScript(() => {
+      sessionStorage.setItem('wristo:studio-promo:shown', '1')
+    })
+    page.setDefaultTimeout(25000)
+    page.setDefaultNavigationTimeout(12000)
+    await page.route('**/*', async (route) => {
+      // Fulfill images successfully so gallery error handlers do not remove SEO image URLs.
+      if (route.request().resourceType() === 'image') {
+        await route.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="454" height="454"/>' })
         return
       }
-      pendingApi.add(route)
-      lastApiActivity = Date.now()
-      try {
-        const upstream = `${apiBase}${requestUrl.pathname.replace(/^\/api/, '')}${requestUrl.search}`
-        const response = await fetch(upstream, {
-          signal: AbortSignal.timeout(15000),
-          method: route.request().method(),
-          headers: {
-            Accept: route.request().headers().accept || 'application/json',
-            'X-Lang': route.request().headers()['x-lang'] || 'en',
-            'Content-Type': route.request().headers()['content-type'] || 'application/json',
-          },
-          body: ['GET', 'HEAD'].includes(route.request().method()) ? undefined : route.request().postData(),
-        })
-        await route.fulfill({
-          status: response.status,
-          headers: {
-            'content-type': response.headers.get('content-type') || 'application/json',
-          },
-          body: await response.text(),
-        })
-      } catch (error) {
-        await route.fulfill({
-          status: 502,
-          contentType: 'application/json',
-          body: JSON.stringify({ code: 500, msg: error.message, data: null }),
-        })
-      } finally {
-        pendingApi.delete(route)
-        lastApiActivity = Date.now()
+      if (['media', 'font'].includes(route.request().resourceType())) {
+        await route.abort()
+        return
       }
-      return
-    }
-    await route.continue()
-  })
-  page.on('pageerror', (error) => {
-    pageErrors.push(error.message)
-  })
+      const requestUrl = new URL(route.request().url())
+      if (requestUrl.hostname === 'www.googletagmanager.com' || requestUrl.hostname === 'www.google-analytics.com') {
+        await route.abort()
+        return
+      }
+      if (requestUrl.origin === previewUrl && requestUrl.pathname.startsWith('/api/')) {
+        if (!['GET', 'HEAD'].includes(route.request().method()) || requestUrl.pathname.includes('/analytics/')) {
+          await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ code: 0, data: null }) })
+          return
+        }
+        pendingApi.add(route)
+        lastApiActivity = Date.now()
+        try {
+          const upstream = `${apiBase}${requestUrl.pathname.replace(/^\/api/, '')}${requestUrl.search}`
+          const method = route.request().method()
+          const language = route.request().headers()['x-lang'] || 'en'
+          const fetchResponse = async () => {
+            const response = await fetch(upstream, {
+              signal: AbortSignal.timeout(15000),
+              method,
+              headers: {
+                Accept: 'application/json',
+                'X-Lang': language,
+                'Content-Type': 'application/json',
+              },
+            })
+            return {
+              status: response.status,
+              contentType: response.headers.get('content-type') || 'application/json',
+              body: await response.text(),
+            }
+          }
+          const response = requestUrl.pathname.startsWith('/api/public/')
+            ? await cachedResponse(`${method}:${language}:${upstream}`, fetchResponse)
+            : await fetchResponse()
+          let payload
+          try { payload = JSON.parse(response.body) } catch {}
+          if (response.status >= 400 || (payload?.code !== undefined && payload.code !== 0)) {
+            apiErrors.push(`${requestUrl.pathname}: HTTP ${response.status}, code ${payload?.code}`)
+          }
+          await route.fulfill(response)
+        } catch (error) {
+          apiErrors.push(`${requestUrl.pathname}: ${error.message}`)
+          await route.fulfill({
+            status: 502,
+            contentType: 'application/json',
+            body: JSON.stringify({ code: 500, msg: error.message, data: null }),
+          })
+        } finally {
+          pendingApi.delete(route)
+          lastApiActivity = Date.now()
+        }
+        return
+      }
+      await route.continue()
+    })
+    page.on('pageerror', (error) => {
+      pageErrors.push(error.message)
+    })
 
-  try {
-    for (const [index, route] of routes.entries()) {
-      console.log(`[seo] Prerender ${index + 1}/${routes.length}: ${route}`)
-      pageErrors.length = 0
-      // Isolate language/session state so the preceding locale cannot leak into the next page.
-      await page.goto(`${previewUrl}/app.html`, { waitUntil: 'domcontentloaded' })
-      await page.evaluate(() => { localStorage.clear(); sessionStorage.clear() })
-      await page.context().clearCookies()
-      await page.goto(`${previewUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
+    try {
+      // A new browser context starts with empty storage/cookies; no extra app navigation.
+      await page.goto(`${previewUrl}${routePath}`, { waitUntil: 'domcontentloaded', timeout: 20000 })
       await page.waitForFunction(() => Array.from(document.querySelectorAll('main h1, main h2')).some(heading => !!heading.textContent?.trim()))
       const deadline = Date.now() + 20000
       while (pendingApi.size || Date.now() - lastApiActivity < 400) {
-        if (Date.now() > deadline) throw new Error(`API did not settle for ${route}`)
+        if (Date.now() > deadline) throw new Error('API did not settle')
         await new Promise(resolve => setTimeout(resolve, 100))
       }
-      if (route.startsWith('/app/')) {
+      if (routePath.startsWith('/app/')) {
         await page.waitForFunction(() => !!document.querySelector('h1.product-title')?.textContent?.trim())
       }
-      if (pageErrors.length) throw new Error(`${route}: ${pageErrors.join('; ')}`)
+      if (pageErrors.length || apiErrors.length) throw new Error('Page or API errors')
       const html = ensureDoctype((await page.content()).replaceAll(previewUrl, siteUrl))
-      assertRenderedPage(route, html, siteUrl)
+      assertRenderedPage(routePath, html, siteUrl)
       const canonical = await page.locator('link[rel="canonical"]').getAttribute('href')
-      canonicalPaths.set(route, new URL(canonical).pathname)
-      snapshots.set(route, html)
+      canonicalPaths.set(routePath, new URL(canonical).pathname)
+      snapshots.set(routePath, html)
+    } catch (error) {
+      throw new Error(`${routePath}: ${error.message}; ${[...pageErrors, ...apiErrors].join('; ')}`)
+    } finally {
+      await page.close()
     }
+  }
+
+  try {
+    console.log(`[seo] Rendering ${routes.length} routes with ${concurrency} workers`)
+    await mapConcurrent(routes, concurrency, async (route, index) => {
+      const routeStarted = Date.now()
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          await renderRoute(route)
+          console.log(`[seo] Prerender ${index + 1}/${routes.length}: ${route} (${((Date.now() - routeStarted) / 1000).toFixed(1)}s)`)
+          return
+        } catch (error) {
+          if (attempt === 2) throw error
+          console.warn(`[seo] Retrying ${route} in a fresh context: ${error.message}`)
+        }
+      }
+    })
   } finally {
     await browser.close()
   }
+  console.log(`[seo] Prerender completed in ${((Date.now() - started) / 1000).toFixed(1)}s`)
   // Write only after rendering finishes: the preview server must keep serving the original shell.
   for (const [route, html] of snapshots) await writeRouteHtml(route, html)
   return canonicalPaths

@@ -57,6 +57,14 @@ npm run dev
 npm run build
 ```
 
+### SEO 预渲染
+
+`npm run build` 默认预渲染 80 个页面，使用 3 个并发浏览器页面；每页独立隔离语言、Cookie 和存储。构建期间按请求 URL、方法及语言复用成功的公共 API 响应，图片、字体和视频不参与下载（HTML 中的资源链接保留）。页面失败会在全新上下文重试一次，仍失败则终止构建并输出路由和接口错误。
+
+- `PRERENDER_CONCURRENCY=1`：串行排查；允许 1–8，默认 3，Vercel 内存较小时可降到 2。
+- `MAX_PRERENDER_ROUTES=80`：预渲染路由预算，默认不变。
+- `npm run build:app`：只构建应用；`npm run seo:prerender`：执行 SEO 阶段，应紧接新生成的应用构建运行。
+
 ## 支付流程
 
 1. 用户输入代码 (`/code`)
