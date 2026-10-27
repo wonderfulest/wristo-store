@@ -1,7 +1,6 @@
 <template>
   <main class="catalog-home">
     <HomeBanner v-if="!hasPremiumAccess" premium-only />
-    <StudioPromoDialog />
     <HomeIntro />
     <HomeProductGrid
       :products="newProducts"
@@ -27,7 +26,6 @@ import type { ProductBaseVO } from '@/types'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
 import HomeBanner from '@/views/home/components/HomeBanner.vue'
-import StudioPromoDialog from '@/views/home/components/StudioPromoDialog.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
 
