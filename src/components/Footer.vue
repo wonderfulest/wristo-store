@@ -7,7 +7,7 @@
             <img src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-mark.svg" alt="" width="36" height="36" />
             <span>Wristo<span class="brand-period">.</span></span>
           </a>
-          <div class="footer-social">
+          <div v-if="showFacebookLinks" class="footer-social">
             <FacebookLink />
             <a :href="FACEBOOK_GROUP_URL" target="_blank" rel="noopener noreferrer">Facebook Group <span aria-hidden="true">↗</span></a>
           </div>
@@ -39,6 +39,8 @@ import { useI18n } from '@/i18n'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+// Temporarily hide the footer Facebook links while keeping them easy to restore.
+const showFacebookLinks = false
 const currentYear = new Date().getFullYear()
 const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 </script>
