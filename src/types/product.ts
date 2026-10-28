@@ -93,6 +93,7 @@ export interface ProductTagVO {
 }
 
 export interface ProductVO {
+  bannerImageUrl?: string | null
   tags?: ProductTagVO[] | null
   appId: number
   designId: string

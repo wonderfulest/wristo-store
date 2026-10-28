@@ -23,6 +23,7 @@
       <!-- 右侧信息区 -->
       <div class="product-info-wrap">
         <aside class="product-purchase-panel">
+          <div class="product-eyebrow">GARMIN WATCH FACE <span v-if="product?.appId">#{{ product.appId }}</span></div>
           <h1 class="product-title">{{ displayProduct?.name }}</h1>
         <div v-if="hasPremiumAccess" class="product-activated-panel">
           <div class="product-activated-icon" aria-hidden="true">
@@ -41,6 +42,20 @@
             </router-link>
           </li>
         </ul>
+        <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
+          <div v-if="productUpdatedLabel" class="product-meta-item">
+            <dt>{{ t('product.lastUpdated') }}</dt>
+            <dd>{{ productUpdatedLabel }}</dd>
+          </div>
+          <div v-if="product?.devices?.length" class="product-meta-item">
+            <dt>{{ t('product.compatibility') }}</dt>
+            <dd>{{ t('product.compatibleDevices', { count: product.devices.length }) }}</dd>
+          </div>
+          <div v-if="selectedSupportedDevice" class="product-meta-item product-meta-item--supported">
+            <dt>{{ t('product.currentDevice') }}</dt>
+            <dd>{{ selectedSupportedDevice.displayName }}</dd>
+          </div>
+        </dl>
         <ProductAdminPanel
           v-if="isAdmin && adminMetrics"
           :product="product"
@@ -76,24 +91,17 @@
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
         </aside>
-        <details class="product-more-information" :open="hasPremiumAccess">
-        <summary>{{ t('product.moreInformation') }}</summary>
+        <div class="product-more-information">
         <div class="product-detail-sections">
-        <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
-          <div v-if="productUpdatedLabel" class="product-meta-item">
-            <dt>{{ t('product.lastUpdated') }}</dt>
-            <dd>{{ productUpdatedLabel }}</dd>
-          </div>
-          <div v-if="product?.devices?.length" class="product-meta-item">
-            <dt>{{ t('product.compatibility') }}</dt>
-            <dd>{{ t('product.compatibleDevices', { count: product.devices.length }) }}</dd>
-          </div>
-          <div v-if="selectedSupportedDevice" class="product-meta-item product-meta-item--supported">
-            <dt>{{ t('product.currentDevice') }}</dt>
-            <dd>{{ selectedSupportedDevice.displayName }}</dd>
-          </div>
-        </dl>
 
+
+        <img
+          v-if="product?.bannerImageUrl?.trim()"
+          class="product-banner"
+          :src="product.bannerImageUrl.trim()"
+          :alt="displayProduct?.name || t('product.previewAlt')"
+          loading="lazy"
+        />
         <section v-if="displayProduct?.description" class="product-summary" aria-labelledby="product-summary-title">
           <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
           <div
@@ -277,7 +285,7 @@
           </div>
         </section>
         </div>
-        </details>
+        </div>
       </div>
     </div>
     <SimilarProductsFeed v-if="product?.appId" :app-id="product.appId" />
@@ -1051,7 +1059,8 @@ onMounted(() => {
 .product-tag:focus-visible { outline: 2px solid #475569; outline-offset: 3px; }
 
 .product-detail-page {
-  width: 100vw;
+  width: 100%;
+  box-sizing: border-box;
   min-height: 100vh;
   background:
     linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 100%);
@@ -1068,63 +1077,72 @@ onMounted(() => {
   justify-content: center;
   width: 100%;
   max-width: var(--container);
-  gap: 64px;
+  gap: 48px;
 }
 .product-more-information {
   width: 100%;
-  margin-top: 18px;
-  border: 1px solid var(--color-line);
-  border-radius: 18px;
-  background: #fff;
-}
-.product-more-information > summary {
-  min-height: 48px;
-  padding: 14px 18px;
-  color: var(--color-ink);
-  font-weight: 850;
-  cursor: pointer;
-}
-.product-more-information[open] > summary {
-  border-bottom: 1px solid var(--color-line);
+  margin-top: 24px;
 }
 .product-more-information .product-detail-sections {
   margin-top: 0;
-  padding: 16px;
+  gap: 20px;
 }
 .product-info-wrap *,
 .product-visual-wrap * {
   box-sizing: border-box;
 }
 .product-visual-wrap {
-  width: min(42vw, 460px);
-  min-width: 320px;
+  position: sticky;
+  top: calc(var(--header-height) + 24px);
+  width: min(32vw, 360px);
+  min-width: 0;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 18px;
 }
 .product-info-wrap {
-  --detail-content-width: min(100%, 560px);
-  flex: 0 1 560px;
+  --detail-content-width: 100%;
+  flex: 1 1 0;
   width: var(--detail-content-width);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  margin-top: 12px;
-  min-width: 340px;
+  margin-top: 0;
+  min-width: 0;
 }
 .product-purchase-panel {
-  position: sticky;
-  top: calc(var(--header-height) + 20px);
-  z-index: 4;
-  width: var(--detail-content-width);
-  padding: 28px;
+  width: 100%;
+  padding: 0 0 24px;
+  border-bottom: 1px solid var(--color-line);
+}
+.product-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: var(--color-brand);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+}
+.product-eyebrow span {
+  color: var(--color-muted);
+  letter-spacing: 0;
+}
+.product-banner {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.product-summary {
+  padding: 20px;
   border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(18px);
+  border-radius: 12px;
+  background: #fff;
 }
 .product-detail-sections {
   display: grid;
@@ -1176,6 +1194,7 @@ onMounted(() => {
   margin-bottom: 12px;
   letter-spacing: 0;
   line-height: 1.08;
+  overflow-wrap: anywhere;
 }
 .product-price {
   font-size: 1.35rem;
@@ -1993,23 +2012,22 @@ onMounted(() => {
   .product-purchase-panel {
     position: static;
     width: 100%;
-    padding: 24px;
+    padding: 0 0 24px;
   }
   .product-detail-sections {
     width: 100%;
     margin-top: 24px;
   }
-  .product-purchase-panel > .product-btn-buy,
-  .product-purchase-panel > .product-btn-cart {
-    display: none;
-  }
+
   
   .product-btn {
     width: 100%;
     max-width: 100%;
   }
   .product-visual-wrap {
-    width: calc(100vw - 32px);
+    position: static;
+    width: 100%;
+    max-width: 360px;
     min-width: 0;
   }
   
@@ -2031,11 +2049,11 @@ onMounted(() => {
   
   .product-title {
     font-size: 2.2rem;
-    text-align: center;
+    text-align: left;
   }
   
   .product-price {
-    text-align: center;
+    text-align: left;
   }
   .product-rating-panel {
     width: 100%;
@@ -2074,7 +2092,7 @@ onMounted(() => {
     font-size: 1.8rem;
   }
   .product-purchase-panel {
-    padding: 20px;
+    padding: 0 0 20px;
   }
   
   .product-btn {
