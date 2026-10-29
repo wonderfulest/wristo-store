@@ -5,6 +5,10 @@
         <p class="eyebrow">{{ t('membership.subtitle') }}</p>
         <h1>{{ t('membership.title') }}</h1>
         <p class="hero-description">{{ t('membership.heroDescription') }}</p>
+        <p class="hero-description">
+          {{ t('studioPromo.description') }}
+          <a :href="getStudioUrl()" target="_blank" rel="noopener noreferrer" @click.prevent="openStudioUrl(getStudioUrl())">studio.wristo.io ↗</a>
+        </p>
         <p class="release-note">
           <Icon icon="material-symbols:rocket-launch-outline" />
           <span>{{ t('membership.releaseNote') }}</span>

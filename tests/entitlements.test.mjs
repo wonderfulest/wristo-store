@@ -1,92 +1,27 @@
 import assert from 'node:assert/strict'
-import { readFile } from 'node:fs/promises'
 import test from 'node:test'
+import { hasActiveBundle, hasBundleStoreEntryAccess, hasPremiumEntitlement } from '../src/utils/entitlements.ts'
 
-import {
-  hasActiveSubscription,
-  hasBundleStoreEntryAccess,
-  hasPremiumEntitlement,
-} from '../src/utils/entitlements.ts'
-
-const now = new Date('2026-07-18T00:00:00.000Z')
-
-test('an unexpired membership grants Store premium entitlement without a bundle purchase', () => {
-  const userInfo = {
-    subscription: {
-      endTime: '2026-08-18T00:00:00.000Z',
-    },
-    userProfile: {
-      hasBundle: 0,
-    },
+for (const lifetime of [true, false]) {
+  test(`API Premium grants access without legacy fields (lifetime=${lifetime})`, () => {
+    const user = { premium: { active: true, lifetime, expiresAt: lifetime ? null : '2026-11-30T00:00:00Z' } }
+    assert.equal(hasPremiumEntitlement(user), true)
+    assert.equal(hasActiveBundle(user), true)
+    assert.equal(hasBundleStoreEntryAccess(user), true)
+  })
+}
+test('legacy bundles and subscriptions cannot override missing or revoked Premium', () => {
+  for (const premium of [undefined, null, { active: false, lifetime: false, expiresAt: null }]) {
+    const user = { premium, userProfile: { hasBundle: 1 }, subscription: { planCode: 'lifetime', endTime: null } }
+    assert.equal(hasPremiumEntitlement(user), false)
+    assert.equal(hasBundleStoreEntryAccess(user), false)
   }
-
-  assert.equal(hasActiveSubscription(userInfo, now), true)
-  assert.equal(hasPremiumEntitlement(userInfo, now), true)
+  assert.equal(hasPremiumEntitlement(null), false)
 })
-
-test('an expired membership without a bundle does not grant Store premium entitlement', () => {
-  const userInfo = {
-    subscription: {
-      endTime: '2026-06-18T00:00:00.000Z',
-    },
-    userProfile: {
-      hasBundle: 0,
-    },
+test('administrators and merchants can enter Studio without gaining paid Store rights', () => {
+  for (const roleCode of ['ROLE_ADMIN', 'ROLE_MERCHANT']) {
+    const user = { roles: [{ roleCode }] }
+    assert.equal(hasBundleStoreEntryAccess(user), true)
+    assert.equal(hasPremiumEntitlement(user), false)
   }
-
-  assert.equal(hasActiveSubscription(userInfo, now), false)
-  assert.equal(hasPremiumEntitlement(userInfo, now), false)
-})
-
-test('an active bundle remains a Store premium entitlement without a membership', () => {
-  const userInfo = {
-    userProfile: {
-      hasBundle: 1,
-    },
-  }
-
-  assert.equal(hasPremiumEntitlement(userInfo, now), true)
-})
-
-test('Store Studio and FAQ entries require an active bundle specifically', () => {
-  assert.equal(hasBundleStoreEntryAccess({ userProfile: { hasBundle: 1 } }), true)
-  assert.equal(
-    hasBundleStoreEntryAccess({
-      subscription: { endTime: '2026-08-18T00:00:00.000Z' },
-      userProfile: { hasBundle: 0 },
-    }),
-    false,
-  )
-  assert.equal(hasBundleStoreEntryAccess({ userProfile: { hasBundle: 0 } }), false)
-  assert.equal(hasBundleStoreEntryAccess(null), false)
-})
-
-test('all Store bundle purchase surfaces use the shared premium entitlement', async () => {
-  const read = (path) => readFile(new URL(path, import.meta.url), 'utf8')
-  const [premiumCard, purchaseOptions, productCard, productDetail] = await Promise.all([
-    read('../src/components/PremiumSuiteCard.vue'),
-    read('../src/views/shop/PurchaseOptions.vue'),
-    read('../src/components/ProductCard.vue'),
-    read('../src/views/products/ProductDetail.vue'),
-  ])
-
-  assert.match(premiumCard, /hasPremiumEntitlement/)
-  assert.match(purchaseOptions, /hasPremiumEntitlement/)
-  assert.match(productCard, /hasPremiumEntitlement/)
-  assert.match(productDetail, /hasPremiumEntitlement/)
-})
-
-test('Apple lifetime grants shared Premium without a production bundle record', () => {
-  assert.equal(hasPremiumEntitlement({subscription: {planCode: 'apple_premium_lifetime', status: 'active', endTime: null}}, now), true)
-})
-
-test('Web lifetime subscription grants shared Premium without a bundle record', () => {
-  const account = {subscription: {planCode: 'lifetime', status: 'active', endTime: null}}
-  assert.equal(hasActiveSubscription(account, now), true)
-  assert.equal(hasPremiumEntitlement(account, now), true)
-})
-
-test('an incomplete subscription does not imply lifetime membership', () => {
-  assert.equal(hasPremiumEntitlement({subscription: {planCode: 'yearly'}}, now), false)
-  assert.equal(hasPremiumEntitlement({subscription: {endTime: null}}, now), false)
 })

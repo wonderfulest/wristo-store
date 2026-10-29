@@ -31,9 +31,14 @@ const pageGuard = createPageGuard()
 // Route guards
 router.beforeEach((to, from, next) => {
   // Handle page title and meta tags
-  pageGuard(to, from, () => {
+  pageGuard(to, from, async () => {
     // Handle authentication
     const userStore = useUserStore()
+    // Refresh server-owned rights on navigation, including restored legacy sessions.
+    if (userStore.token && userStore.userInfo) {
+      const refreshed = await userStore.getUserInfo()
+      if (!refreshed && userStore.userInfo) userStore.userInfo.premium = null
+    }
     const localeStore = useLocaleStore()
     const routeLang = Array.isArray(to.params.lang) ? to.params.lang[0] : to.params.lang
     const normalizedRouteLang = getRouteLocaleParam(routeLang)

@@ -23,8 +23,8 @@
         </div>
 
         <p v-if="userStore.userInfo?.subscription?.planCode === 'apple_premium'">Your membership works on the website and in the iOS app. Manage renewal in your Apple subscription settings.</p>
-        <p v-if="!userStore.userInfo?.subscription?.endTime">Lifetime Premium · No renewal</p>
-        <div v-if="userStore.userInfo?.subscription?.endTime" class="subscription-details">
+        <p v-if="userStore.userInfo?.premium?.lifetime">Lifetime Premium · No renewal</p>
+        <div v-if="!userStore.userInfo?.premium?.lifetime && userStore.userInfo?.premium?.expiresAt" class="subscription-details">
           <div class="detail-item">
             <span class="label">{{ t('subscriptionManagement.planType') }}</span>
             <span class="value">{{ formatPlanType(userStore.userInfo?.subscription?.planCode) }}</span>
@@ -35,7 +35,7 @@
           </div>
           <div class="detail-item">
             <span class="label">{{ t('subscriptionManagement.endDate') }}</span>
-            <span class="value">{{ formatDate(userStore.userInfo?.subscription?.endTime) }}</span>
+            <span class="value">{{ formatDate(userStore.userInfo?.premium?.expiresAt) }}</span>
           </div>
           <div class="detail-item">
             <span class="label">{{ t('subscriptionManagement.daysRemaining') }}</span>
@@ -92,8 +92,8 @@ const hasActiveSubscription = computed(() => {
 
 // 计算剩余天数
 const daysRemaining = computed(() => {
-  if (!userStore.userInfo?.subscription) return 0
-  const endTime = new Date(userStore.userInfo.subscription.endTime)
+  if (!userStore.userInfo?.premium?.expiresAt) return 0
+  const endTime = new Date(userStore.userInfo.premium.expiresAt)
   const now = new Date()
   const diffTime = endTime.getTime() - now.getTime()
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
@@ -116,7 +116,7 @@ const formatPlanType = (planCode?: string): string => {
 }
 
 // 格式化日期
-const formatDate = (dateString?: string): string => {
+const formatDate = (dateString?: string | null): string => {
   if (!dateString) return 'N/A'
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',

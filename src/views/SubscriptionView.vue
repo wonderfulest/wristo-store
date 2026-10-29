@@ -18,7 +18,8 @@
             </el-icon>
             <div class="subscription-info">
               <!-- 活跃状态且无计划更改 -->
-              <h3 v-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange">You have an active subscription</h3>
+              <h3 v-if="userStore.userInfo?.premium?.lifetime">Lifetime Premium</h3>
+              <h3 v-else-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange">You have an active subscription</h3>
               
               <!-- 活跃状态但有计划暂停 -->
               <h3 v-else-if="subscriptionStatus?.isActive && subscriptionStatus?.hasScheduledPause">Your subscription will pause next billing cycle</h3>
@@ -36,7 +37,8 @@
               <h3 v-else>You have a subscription</h3>
               
               <!-- 订阅详情 -->
-              <p v-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange">
+              <p v-if="userStore.userInfo?.premium?.lifetime">No renewal</p>
+              <p v-else-if="subscriptionStatus?.isActive && !subscriptionStatus?.scheduledChange">
                 {{ userStore.userInfo?.subscription?.name }} - Expires {{ formatDate(userStore.userInfo?.subscription?.endTime) }}
               </p>
               <p v-else-if="subscriptionStatus?.hasScheduledPause">
@@ -152,12 +154,7 @@ const isMobile = ref(window.innerWidth < 768);
 const selectedPlan = ref<SubscriptionPlan | null>(null);
 
 // 检查用户是否有有效订阅
-const hasActiveSubscription = computed(() => {
-  if (!userStore.userInfo?.subscription) return false;
-  const endTime = new Date(userStore.userInfo.subscription.endTime);
-  const now = new Date();
-  return endTime > now;
-});
+const hasActiveSubscription = computed(() => hasPremiumEntitlement(userStore.userInfo));
 
 // 获取订阅状态信息
 const subscriptionStatus = computed(() => {
@@ -225,6 +222,7 @@ const loadSubscriptionDetails = async () => {
       const subscriptionDetails = await getSubscriptionDetails();
       // 更新用户store中的订阅信息
       userStore.setSubscriptionInfo(subscriptionDetails);
+      await userStore.getUserInfo();
     }
   } catch (error) {
     console.error('Failed to load subscription details:', error);

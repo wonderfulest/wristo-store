@@ -3,6 +3,11 @@
     <!-- <Logo /> -->
     <h1 class="title">{{ t('purchase.title') }}</h1>
     <p class="desc">{{ t('purchase.desc') }}</p>
+    <section class="studio-intro">
+      <h2>{{ t('purchase.studioTitle') }}</h2>
+      <p>{{ t('purchase.studioDescription') }}</p>
+      <a :href="getStudioUrl()" target="_blank" rel="noopener noreferrer" @click.prevent="openStudioUrl(getStudioUrl())">studio.wristo.io ↗</a>
+    </section>
 
     <div
       v-if="activeDiscountCode"
@@ -93,6 +98,7 @@ import type { SubscriptionPlan } from '@/api/subscription'
 import { checkDiscount, getBundleProductsForPurchase, getBundlesForPurchase } from '@/api/purchase'
 import { getProductDetail } from '@/api/product'
 import { useI18n } from '@/i18n'
+import { getStudioUrl, openStudioUrl } from '@/utils/studio'
 import { getProductImageUrl } from '@/utils/productImage'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 
@@ -634,6 +640,19 @@ watch(hasPremiumAccess, (hasAccess) => {
   text-align: center;
   color: #171717;
 }
+
+.studio-intro {
+  max-width: 760px;
+  margin: 0 auto 28px;
+  padding: 20px 24px;
+  border: 1px solid #cce5df;
+  border-radius: 12px;
+  background: #eef7f4;
+  text-align: center;
+}
+.studio-intro h2 { margin: 0 0 8px; font-size: 20px; color: #164e46; }
+.studio-intro p { margin: 0 0 12px; line-height: 1.7; color: #425d57; }
+.studio-intro a { color: #0f6b68; font-weight: 700; text-decoration: underline; }
 
 .title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);

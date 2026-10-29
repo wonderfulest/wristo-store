@@ -54,7 +54,14 @@ export interface Subscription {
   paddleSubscriptionData?: PaddleSubscriptionData
 }
 
+export interface PremiumEntitlement {
+  active: boolean
+  lifetime: boolean
+  expiresAt: string | null
+}
+
 export interface UserInfo {
+  premium?: PremiumEntitlement | null
   id: number
   username: string
   nickname: string | null
