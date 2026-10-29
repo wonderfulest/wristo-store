@@ -7,10 +7,6 @@
             <img src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-mark.svg" alt="" width="36" height="36" />
             <span>Wristo<span class="brand-period">.</span></span>
           </a>
-          <div v-if="showFacebookLinks" class="footer-social">
-            <FacebookLink />
-            <a :href="FACEBOOK_GROUP_URL" target="_blank" rel="noopener noreferrer">Facebook Group <span aria-hidden="true">↗</span></a>
-          </div>
         </div>
         <nav class="footer-links" :aria-label="t('footer.quickLinks')">
           <h2>{{ t('footer.quickLinks') }}</h2>
@@ -33,14 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import FacebookLink from '@/components/FacebookLink.vue'
-import { FACEBOOK_GROUP_URL } from '@/config/social'
 import { useI18n } from '@/i18n'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 const localeStore = useLocaleStore()
 const { t } = useI18n()
-// Temporarily hide the footer Facebook links while keeping them easy to restore.
-const showFacebookLinks = false
 const currentYear = new Date().getFullYear()
 const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 </script>
@@ -57,8 +49,6 @@ const localizedPath = (path: string) => addLocaleToPath(path, localeStore.curren
 .footer-brand:hover { text-decoration: none !important; }
 .footer-brand img { display: block; }
 .brand-period { color: var(--color-brand); }
-.footer-social { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 18px; font-size: 13px; }
-.footer-social a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; }
 .footer-links { display: flex; flex-direction: column; align-items: flex-start; }
 .footer-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
 .footer-email { display: inline-flex; align-items: center; gap: 20px; min-height: 44px; font-size: 16px; color: var(--color-brand-strong) !important; }
@@ -73,7 +63,6 @@ const localizedPath = (path: string) => addLocaleToPath(path, localeStore.curren
   .footer { padding-top: 32px; }
   .footer-main { grid-template-columns: 1fr; gap: 28px; padding-bottom: 28px; }
   .footer-brand { font-size: 28px; }
-  .footer-social { margin-top: 10px; }
   .footer-links { flex-direction: row; flex-wrap: wrap; column-gap: 22px; }
   .footer-links h2 { flex-basis: 100%; margin-bottom: 4px; }
 }
