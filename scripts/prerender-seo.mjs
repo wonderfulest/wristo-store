@@ -195,7 +195,11 @@ async function prerenderRoutes(routes) {
   const browser = await chromium.launch({
     headless: true,
     ...(serverlessChromium
-      ? { executablePath: await serverlessChromium.executablePath(), args: serverlessChromium.args }
+      ? {
+          executablePath: await serverlessChromium.executablePath(),
+          // Isolated per-route contexts crash Chromium when a single-process context closes.
+          args: serverlessChromium.args.filter(arg => arg !== '--single-process'),
+        }
       : process.env.PRERENDER_BROWSER_CHANNEL ? { channel: process.env.PRERENDER_BROWSER_CHANNEL } : {}),
   }).catch(error => {
     throw new Error(`SEO build requires a browser. Run npx playwright install chromium, or set PRERENDER_BROWSER_CHANNEL=chrome. ${error.message}`)
