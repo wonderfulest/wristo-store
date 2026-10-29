@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc -b && vite build --mode prod && node scripts/prerender-seo.mjs",
+    "build": "vue-tsc -b && vite build --mode prod && SKIP_PRERENDER=1 node scripts/prerender-seo.mjs",
     "build:app": "vue-tsc -b && vite build --mode prod",
     "seo:prerender": "node scripts/prerender-seo.mjs",
     "preview": "vite preview",
