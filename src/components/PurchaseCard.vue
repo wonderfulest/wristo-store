@@ -617,7 +617,7 @@ onUnmounted(() => {
 .single-image img {
   width: 132px;
   height: 132px;
-  border-radius: 16px;
+  border-radius: 50%;
   object-fit: cover;
   border: 1px solid rgba(15, 23, 42, 0.10);
   background: rgba(255, 255, 255, 0.70);
@@ -940,7 +940,6 @@ onUnmounted(() => {
   .single-image img {
     width: 120px;
     height: 120px;
-    border-radius: 12px;
   }
   
   .bundle-image-item img {
