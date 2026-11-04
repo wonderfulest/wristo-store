@@ -10,7 +10,7 @@
         @click="handleSelectDevice"
       >
         <div class="device-avatar">
-          <img v-if="currentDevice.imageUrl" :src="currentDevice.imageUrl" :alt="currentDevice.displayName" />
+          <img v-if="deviceImageUrl" :src="deviceImageUrl" :alt="currentDevice.displayName" />
           <div v-else class="device-fallback">W</div>
         </div>
         <div class="device-name" :style="{ maxWidth: props.nameMaxWidth + 'px' }">{{ currentDevice.displayName }}</div>
@@ -38,7 +38,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useUserStore } from '@/store/user'
 import type { GarminDeviceVO } from '@/types'
 import DeviceSelector from './DeviceSelector.vue'
-import type { GarminDeviceVO as ApiGarminDeviceVO } from '@/api/device'
+import { getDeviceList, type GarminDeviceBaseVO, type GarminDeviceVO as ApiGarminDeviceVO } from '@/api/device'
 import { useI18n } from '@/i18n'
 
 interface Props {
@@ -65,6 +65,13 @@ const { t } = useI18n()
 
 const userStore = useUserStore()
 const showSelector = ref(false)
+// Resolve saved selections against the current catalog so old JPG URLs migrate.
+const artworkDevices = ref<GarminDeviceBaseVO[]>([])
+onMounted(async () => {
+  try { artworkDevices.value = await getDeviceList() } catch { /* Keep existing image when offline. */ }
+})
+const deviceImageUrl = computed(() => artworkDevices.value.find(item => item.deviceId === currentDevice.value?.deviceId)?.imageUrl || currentDevice.value?.imageUrl)
+
 const localSelectedDevice = ref<GarminDeviceVO | null>(null)
 
 // Load device from localStorage on mount
@@ -145,7 +152,7 @@ defineExpose({
   gap: 8px;
   min-height: 44px;
   padding: 6px 12px;
-  background: #fff;
+  background: var(--el-bg-color, #fff);
   border: 1px solid var(--color-line);
   border-radius: 999px;
   box-shadow: var(--shadow-sm);
@@ -175,10 +182,10 @@ defineExpose({
   width: 26px;
   height: 26px;
   aspect-ratio: 1 / 1;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid var(--color-line);
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -192,7 +199,7 @@ defineExpose({
   object-fit: contain;
   padding: 2px;
   display: block;
-  background: #fff;
+  background: transparent;
 }
 
 .device-fallback {
@@ -255,7 +262,7 @@ defineExpose({
 .device-display-container.mobile .device-avatar {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 0;
   flex: 0 0 32px;
 }
 

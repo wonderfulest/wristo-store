@@ -359,18 +359,18 @@ onBeforeUnmount(() => {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
-  background: #fff;
+  background: var(--el-bg-color, #fff);
   min-width: 0;
 }
 
 .device-item:hover {
   border-color: #3b82f6;
-  background: #f8fafc;
+  background: var(--el-fill-color-light, #f8fafc);
 }
 
 .device-item.selected {
   border-color: #3b82f6;
-  background: #eff6ff;
+  background: var(--el-fill-color-light, #f8fafc);
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
@@ -378,10 +378,10 @@ onBeforeUnmount(() => {
   width: 44px;
   height: 44px;
   aspect-ratio: 1 / 1;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  border: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -395,7 +395,7 @@ onBeforeUnmount(() => {
   object-fit: contain;
   padding: 4px;
   display: block;
-  background: #fff;
+  background: transparent;
 }
 
 .device-fallback {
