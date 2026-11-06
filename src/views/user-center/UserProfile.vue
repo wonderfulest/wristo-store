@@ -86,6 +86,8 @@
         </div>
       </div>
 
+      <GarminConnectionCard />
+
       <!-- Section: Security -->
       <div class="section">
         <div class="section-header">
@@ -196,6 +198,7 @@ import { uploadUserAvatar } from '@/api/files'
 import { getAuthMe, bindGoogle as bindGoogleApi, unbindGoogle as unbindGoogleApi } from '@/api/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import DeviceDisplay from '@/components/DeviceDisplay.vue'
+import GarminConnectionCard from '@/components/GarminConnectionCard.vue'
 import { openStudio } from '@/utils/studio'
 import { hasBundleStoreEntryAccess } from '@/utils/entitlements'
 
