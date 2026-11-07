@@ -19,13 +19,14 @@
           <div class="product-info">
             <div class="product-name">{{ localized(product).name }}</div>
             <a
+              v-if="product.garminStoreUrl?.trim()"
               :href="product.garminStoreUrl"
               class="garmin-link"
             >
               Garmin Store
             </a>
           </div>
-          <div class="qrcode">
+          <div v-if="product.garminStoreUrl?.trim()" class="qrcode">
             <qrcode-vue :value="product.garminStoreUrl" :size="72" :level="'M'" class="qrcode-img" />
           </div>
         </div>

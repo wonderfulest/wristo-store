@@ -64,7 +64,7 @@
           @changed="() => loadAdminMetrics()"
         />
         <a
-          v-if="product?.garminStoreUrl"
+          v-if="product?.garminStoreUrl?.trim()"
           :href="product.garminStoreUrl"
           class="product-btn product-btn-download product-btn-install"
         >
@@ -119,7 +119,7 @@
             {{ isProductDescriptionExpanded ? t('product.showLessDetails') : t('product.showMoreDetails') }}
           </button>
         </section>
-        <div v-if="product?.garminStoreUrl" class="install-section">
+        <div v-if="product?.garminStoreUrl?.trim()" class="install-section">
           <div class="install-title">{{ t('product.installTitle') }}</div>
           <div class="install-subtitle">{{ t('product.installSubtitle') }}</div>
           <div class="install-methods">

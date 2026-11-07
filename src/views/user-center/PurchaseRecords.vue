@@ -113,7 +113,7 @@
               <strong v-else class="record-amount">{{ formatAmount(item) }}</strong>
               <div class="record-actions" aria-label="Record actions">
                 <a
-                  v-if="item.product?.garminStoreUrl"
+                  v-if="item.product?.garminStoreUrl?.trim()"
                   :href="item.product.garminStoreUrl"
                   class="icon-action"
                   :aria-label="`Open ${getRecordTitle(item)} in Garmin store`"
