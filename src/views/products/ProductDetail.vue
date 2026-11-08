@@ -71,6 +71,7 @@
           variant="detail"
           @changed="() => loadAdminMetrics()"
         />
+        <div class="product-purchase-actions">
         <button
           v-if="product?.appId && !hasPremiumAccess"
           type="button"
@@ -90,8 +91,10 @@
           {{ isInCart ? t('cart.goToCart') : t('product.addToCart') }}
           <el-icon class="btn-icon"><ShoppingCart /></el-icon>
         </button>
+        </div>
         </aside>
         <div class="product-more-information">
+        <h2 id="product-summary-title" class="product-content-heading">{{ t('product.detailsTitle') }}</h2>
         <div class="product-detail-sections">
 
 
@@ -103,7 +106,6 @@
           loading="lazy"
         />
         <section v-if="displayProduct?.description" class="product-summary" aria-labelledby="product-summary-title">
-          <h2 id="product-summary-title" class="product-section-title">{{ t('product.detailsTitle') }}</h2>
           <div
             class="product-desc"
             :class="{ collapsed: productDescriptionNeedsToggle && !isProductDescriptionExpanded }"
@@ -119,8 +121,9 @@
             {{ isProductDescriptionExpanded ? t('product.showLessDetails') : t('product.showMoreDetails') }}
           </button>
         </section>
-        <div v-if="product?.garminStoreUrl?.trim()" class="install-section">
-          <div class="install-title">{{ t('product.installTitle') }}</div>
+        <details v-if="product?.garminStoreUrl?.trim()" class="product-disclosure install-section">
+          <summary>{{ t('product.installTitle') }}<span class="disclosure-indicator" aria-hidden="true">+</span></summary>
+          <div class="disclosure-content">
           <div class="install-subtitle">{{ t('product.installSubtitle') }}</div>
           <div class="install-methods">
             <div class="qrcode-section">
@@ -155,9 +158,15 @@
               </button>
             </div>
           </div>
-        </div>
+          </div>
+        </details>
         <!-- Supported Devices -->
-        <div v-if="product?.devices && product.devices.length" class="devices-section">
+        <details v-if="product?.devices && product.devices.length" class="product-disclosure devices-section">
+          <summary>
+            <span>{{ t('product.supportedDevices') }}<small>{{ t('product.compatibleDevices', { count: product.devices.length }) }}</small></span>
+            <span class="disclosure-indicator" aria-hidden="true">+</span>
+          </summary>
+          <div class="disclosure-content">
           <div v-if="selectedSupportedDevice" class="current-device-support" role="status">
             <div class="current-device-icon" aria-hidden="true">
               <el-icon><Check /></el-icon>
@@ -195,8 +204,9 @@
           >
             {{ t('product.selectYourDevice') }}
           </button>
-          <DeviceSelector v-model="showDeviceSelector" @device-selected="onDeviceSelected" />
-        </div>
+          </div>
+        </details>
+        <DeviceSelector v-model="showDeviceSelector" @device-selected="onDeviceSelected" />
         <div class="unlock-section">
           <button class="product-btn product-btn-unlock" @click="handleUnlock">
             {{ t('product.unlockTrial') }} <el-icon class="btn-icon"><Lock /></el-icon>
@@ -821,7 +831,7 @@ onMounted(() => {
 
 <style scoped>
 .product-tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 0 0 24px; }
-.product-tag { display: inline-block; max-width: 100%; overflow-wrap: anywhere; border-radius: 999px; padding: 5px 12px; background: #f1f3f5; color: #475569; font-size: 13px; line-height: 1.5; text-decoration: none; }
+.product-tag { display: inline-block; max-width: 100%; overflow-wrap: anywhere; border-radius: 999px; padding: 7px 16px; background: #f1f3f5; color: #475569; font-size: 15px; line-height: 1.5; text-decoration: none; }
 .product-tag:hover { background: #e2e8f0; color: #0f172a; }
 .product-tag:focus-visible { outline: 2px solid #475569; outline-offset: 3px; }
 
@@ -830,12 +840,12 @@ onMounted(() => {
   box-sizing: border-box;
   min-height: 100vh;
   background:
-    linear-gradient(180deg, #fbfdfc 0%, #f4f7f6 100%);
+    #fbfcfb;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 64px 20px 96px;
+  padding: 40px 32px 96px;
 }
 .product-detail-main {
   display: flex;
@@ -843,7 +853,7 @@ onMounted(() => {
   align-items: flex-start;
   justify-content: center;
   width: 100%;
-  max-width: var(--container);
+  max-width: 1200px;
   gap: 48px;
 }
 .product-more-information {
@@ -859,9 +869,8 @@ onMounted(() => {
   box-sizing: border-box;
 }
 .product-visual-wrap {
-  position: sticky;
-  top: calc(var(--header-height) + 24px);
-  width: min(32vw, 360px);
+  position: relative;
+  width: 320px;
   min-width: 0;
   flex-shrink: 0;
   display: flex;
@@ -918,38 +927,37 @@ onMounted(() => {
   margin-top: 28px;
 }
 .product-meta-list {
-  display: grid;
-  width: 100%;
-  gap: 0;
-  margin: 0 0 20px;
-  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 28px;
+  margin: 22px 0;
+  padding: 20px 0;
   border-top: 1px solid var(--color-line);
   border-bottom: 1px solid var(--color-line);
 }
 .product-meta-item {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 11px 0;
+  flex: 1 1 150px;
+  min-width: 0;
 }
 .product-meta-item + .product-meta-item {
-  border-top: 1px solid var(--color-line);
+  border-left: 1px solid var(--color-line);
+  padding-left: 28px;
 }
 .product-meta-item dt,
 .product-meta-item dd {
   margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 .product-meta-item dt {
-  flex: 0 0 auto;
+  margin-bottom: 6px;
   color: var(--color-muted);
+  font-size: 0.75rem;
 }
 .product-meta-item dd {
   color: var(--color-ink);
-  font-weight: 750;
-  text-align: right;
+  font-size: 0.95rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
 }
 .product-meta-item--supported dd {
   color: var(--color-brand-strong);
@@ -1012,9 +1020,9 @@ onMounted(() => {
 .product-btn {
   width: var(--detail-content-width);
   max-width: 100%;
-  min-height: 56px;
-  border-radius: 999px;
-  font-size: 1.25rem;
+  min-height: 48px;
+  border-radius: 10px;
+  font-size: 0.95rem;
   font-weight: 600;
   margin-bottom: 18px;
   display: flex;
@@ -1569,18 +1577,104 @@ onMounted(() => {
   margin-top: 18px;
 }
 
+
+/* Studio-inspired preview rail and quiet content sections. */
+.product-visual-wrap :deep(.product-gallery__stage) {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'image';
+  padding: 22px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: #f0f3f1;
+}
+.product-visual-wrap :deep(.product-gallery__carousel-button) {
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  transform: translateY(-50%);
+  box-shadow: none;
+}
+.product-visual-wrap :deep(.product-gallery__carousel-button--previous) { left: 8px; }
+.product-visual-wrap :deep(.product-gallery__carousel-button--next) { right: 8px; }
+.product-visual-wrap :deep(.product-gallery__thumbnails) {
+  padding: 2px 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 8px;
+}
+.product-visual-wrap :deep(.product-gallery__thumbnail-item) { flex-basis: 56px; width: 56px; }
+.product-visual-wrap :deep(.product-gallery__thumbnail) { width: 56px; height: 56px; border-radius: 9px; }
+.product-visual-wrap .product-btn-install {
+  color: var(--color-brand-strong);
+  background: transparent;
+  border: 1px solid var(--color-line);
+  box-shadow: none;
+}
+.product-visual-wrap .product-btn-install:hover { background: var(--color-brand-soft); }
+.product-title { margin-top: 0; letter-spacing: -0.035em; }
+.product-price { font-size: 1.6rem; color: var(--color-ink); }
+.product-purchase-panel { border-bottom: 0; padding-bottom: 0; }
+.product-purchase-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.product-purchase-actions .product-btn { flex: 1 1 180px; width: auto; height: 48px; margin: 0; box-shadow: none; }
+.product-content-heading {
+  padding: 12px 0 16px;
+  margin: 0 0 20px;
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-brand-strong);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.product-summary { padding: 0; margin: 4px 0 8px; border: 0; background: transparent; }
+.product-section-title { font-size: 1rem; margin-bottom: 12px; }
+.product-tags { margin: 16px 0 0; gap: 8px; }
+.product-disclosure {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+.product-disclosure summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--color-ink);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+.product-disclosure summary::-webkit-details-marker { display: none; }
+.product-disclosure summary small { display: block; margin-top: 4px; color: var(--color-muted); font-size: 0.8rem; font-weight: 400; }
+.disclosure-indicator { color: var(--color-brand); font-size: 1.4rem; font-weight: 400; }
+.product-disclosure[open] .disclosure-indicator { transform: rotate(45deg); }
+.disclosure-content { padding: 0 20px 20px; }
+.install-subtitle { font-size: 0.9rem; text-align: left; }
+.unlock-section { flex-direction: row; gap: 12px; margin-top: 0; }
+.unlock-section .product-btn { min-height: 44px; height: auto; margin: 0; padding: 12px; border-radius: 10px; font-size: 0.85rem; box-shadow: none; }
+.unlock-section .product-btn-unlock { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+.product-btn:focus-visible, .product-disclosure summary:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 4px; }
+
 @media (max-width: 900px) {
   .product-detail-page {
     --mobile-product-action-reserve: 84px;
-    padding: 40px 16px;
+    padding: 24px 20px;
     padding-bottom: calc(40px + var(--mobile-product-action-reserve) + env(safe-area-inset-bottom));
   }
   
   .product-detail-main {
     flex-direction: column;
     align-items: center;
-    gap: 40px;
-    max-width: 100%;
+    gap: 24px;
+    max-width: 620px;
   }
   
   .product-info-wrap {
@@ -1588,7 +1682,7 @@ onMounted(() => {
     align-items: center;
     min-width: 0;
     width: 100%;
-    max-width: 560px;
+    max-width: 620px;
   }
   .product-purchase-panel {
     position: static;
@@ -1608,7 +1702,7 @@ onMounted(() => {
   .product-visual-wrap {
     position: static;
     width: 100%;
-    max-width: 360px;
+    max-width: 300px;
     min-width: 0;
   }
   
@@ -1655,18 +1749,24 @@ onMounted(() => {
 
 @media (max-width: 480px) {
   .product-detail-page {
-    padding: 32px 12px;
+    padding: 20px 16px;
     padding-bottom: calc(32px + var(--mobile-product-action-reserve) + env(safe-area-inset-bottom));
   }
   
   .product-detail-main {
-    gap: 32px;
+    gap: 24px;
   }
   
   .product-visual-wrap {
-    width: calc(100vw - 24px);
+    width: 100%;
+    max-width: 280px;
   }
   
+  .product-meta-list { gap: 16px; }
+  .product-meta-item { flex-basis: 110px; }
+  .product-meta-item + .product-meta-item { padding-left: 16px; }
+  .product-purchase-actions { flex-wrap: nowrap; }
+  .product-purchase-actions .product-btn { flex: 1 1 0; font-size: 0.85rem; }
   .product-title {
     font-size: 1.8rem;
   }
@@ -1735,7 +1835,7 @@ onMounted(() => {
   }
   
   .product-visual-wrap {
-    width: calc(100vw - 16px);
+    width: 100%;
   }
   
   .product-title {
