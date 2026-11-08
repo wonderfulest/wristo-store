@@ -10,8 +10,16 @@
           :fallback-image-url="productHeroImageUrl"
           :product-name="displayProduct?.name || t('product.previewAlt')"
         />
+        <a
+          v-if="product?.garminStoreUrl?.trim()"
+          :href="product.garminStoreUrl"
+          class="product-btn product-btn-download product-btn-install"
+        >
+          {{ t('product.install') }}
+          <el-icon class="btn-icon"><Download /></el-icon>
+        </a>
         <button
-          v-if="product?.designId && canShowBundleEntries"
+          v-if="product?.appId && canShowBundleEntries"
           type="button"
           class="product-btn product-btn-studio"
           @click="handleCustomizeInStudio"
@@ -63,14 +71,6 @@
           variant="detail"
           @changed="() => loadAdminMetrics()"
         />
-        <a
-          v-if="product?.garminStoreUrl?.trim()"
-          :href="product.garminStoreUrl"
-          class="product-btn product-btn-download product-btn-install"
-        >
-          {{ t('product.install') }}
-          <el-icon class="btn-icon"><Download /></el-icon>
-        </a>
         <button
           v-if="product?.appId && !hasPremiumAccess"
           type="button"
@@ -198,7 +198,6 @@
           <DeviceSelector v-model="showDeviceSelector" @device-selected="onDeviceSelected" />
         </div>
         <div class="unlock-section">
-          <div class="unlock-tip">{{ t('product.unlockTip') }}</div>
           <button class="product-btn product-btn-unlock" @click="handleUnlock">
             {{ t('product.unlockTrial') }} <el-icon class="btn-icon"><Lock /></el-icon>
           </button>
@@ -206,84 +205,6 @@
             {{ t('product.alreadyPurchased') }}
           </button>
         </div>
-        <section v-if="product && isAdmin" class="product-rating-panel" aria-label="Product rating">
-          <div class="product-rating-stats">
-            <div>
-              <strong>{{ formatDisplayDownloadCount(product.download) }}</strong>
-              <span>{{ t('product.downloads') }}</span>
-            </div>
-            <div>
-              <strong>{{ formatDisplayRating(displayRating) }}</strong>
-              <span>{{ t('product.rating') }}</span>
-            </div>
-            <div>
-              <strong>{{ formatNumber(product.ratingCount || 0) }}</strong>
-              <span>{{ t('product.ratings') }}</span>
-            </div>
-          </div>
-          <div class="product-rate-row">
-            <span class="product-rate-label">{{ product.myRating ? t('product.yourRating') : t('product.rateThis') }}</span>
-            <div class="product-rate-actions">
-              <button
-                v-for="star in ratingStars"
-                :key="star"
-                type="button"
-                class="product-rate-star"
-                :class="{ active: star <= reviewRating }"
-                :disabled="ratingSubmitting"
-                :aria-label="t('product.rateValue', { count: star })"
-                @click="reviewRating = star"
-              >
-                <el-icon><StarFilled /></el-icon>
-              </button>
-            </div>
-          </div>
-          <textarea
-            v-model="reviewComment"
-            class="product-review-input"
-            :placeholder="t('product.reviewPlaceholder')"
-            :disabled="ratingSubmitting"
-            maxlength="2000"
-          ></textarea>
-          <button
-            type="button"
-            class="product-review-submit"
-            :disabled="ratingSubmitting || !reviewRating"
-            @click="submitRating"
-          >
-            {{ ratingSubmitting ? t('product.savingReview') : t('product.submitReview') }}
-          </button>
-        </section>
-        <section v-if="product && isAdmin" class="product-reviews-section" aria-labelledby="product-reviews-title">
-          <div class="product-reviews-header">
-            <h2 id="product-reviews-title" class="product-section-title">{{ t('product.reviewsTitle') }}</h2>
-            <span>{{ t('product.reviewsCount', { count: productReviews.length }) }}</span>
-          </div>
-          <div v-if="reviewsLoading" class="product-reviews-empty">{{ t('product.loadingReviews') }}</div>
-          <div v-else-if="!productReviews.length" class="product-reviews-empty">{{ t('product.noReviews') }}</div>
-          <div v-else class="product-reviews-list">
-            <article v-for="review in productReviews" :key="review.id" class="product-review-item">
-              <div class="product-review-meta">
-                <strong>{{ review.userNickname || review.userName || t('product.anonymousUser') }}</strong>
-                <span>{{ formatDate(review.updatedAt || review.createdAt) }}</span>
-              </div>
-              <div class="product-review-stars" :aria-label="t('product.rateValue', { count: review.rating })">
-                <el-icon
-                  v-for="star in ratingStars"
-                  :key="star"
-                  :class="{ active: star <= review.rating }"
-                >
-                  <StarFilled />
-                </el-icon>
-              </div>
-              <p v-if="review.comment" class="product-review-comment">{{ review.comment }}</p>
-              <div v-if="review.adminReply" class="product-review-reply">
-                <strong>{{ t('product.adminReply') }}</strong>
-                <p>{{ review.adminReply }}</p>
-              </div>
-            </article>
-          </div>
-        </section>
         </div>
         </div>
       </div>
@@ -323,7 +244,6 @@ import { useUserStore } from '@/store/user'
 import { recordDownloadReward } from '@/api/userRewards'
 import type {
   GarminDeviceBaseVO,
-  ProductReviewVO,
   ProductStoreMetricsVO,
   ProductVO,
 } from '@/types'
@@ -331,17 +251,9 @@ import QrcodeVue from 'qrcode.vue'
 import { applySeo, productSeo } from '@/seo'
 import { isAllowedGarminStoreUrl } from '@/utils/garminStore'
 import { addLocaleToPath, getRouteLocaleParam, useLocaleStore } from '@/store/locale'
-import { resolveProductDisplayRating } from '@/utils/productRating'
 import { useCountDisplay } from '@/composables/useCountDisplay'
-import {
-  fetchAdminStoreMetrics,
-  getMyProductRating,
-  getProductRating,
-  getProductReviews,
-  updateProductRating,
-} from '@/api/product'
-import { openStudioDesignCopy } from '@/utils/studio'
-import { redirectToSsoLogin } from '@/utils/ssoRedirect'
+import { fetchAdminStoreMetrics } from '@/api/product'
+import { getStudioUrl, openStudioUrl } from '@/utils/studio'
 import { useI18n } from '@/i18n'
 import { showAddedToCartMessage } from '@/utils/cartFeedback'
 import { isCartEnabled } from '@/config/features'
@@ -365,19 +277,13 @@ const cartStore = useCartStore()
 const userStore = useUserStore()
 const localeStore = useLocaleStore()
 const { t } = useI18n()
-const { isAdmin, formatDisplayDownloadCount } = useCountDisplay()
+const { isAdmin } = useCountDisplay()
 const product = ref<ProductVO | null>(null)
 const displayProduct = computed(() => product.value ? localized(product.value) : null)
 const adminMetrics = ref<ProductStoreMetricsVO | null>(null)
 const localSelectedDevice = ref<GarminDeviceBaseVO | null>(null)
 const showDeviceSelector = ref(false)
-const ratingSubmitting = ref(false)
-const reviewsLoading = ref(false)
-const productReviews = ref<ProductReviewVO[]>([])
-const reviewRating = ref(0)
-const reviewComment = ref('')
 const isProductDescriptionExpanded = ref(false)
-const ratingStars = [1, 2, 3, 4, 5]
 // const templateText = ref('your heart beat is {{hr}}, today walk {{steps}} steps.')
 
 const productHeroImageUrl = computed(() => {
@@ -387,10 +293,6 @@ const productHeroImageUrl = computed(() => {
     || product.value?.garminImageUrl
     || ''
   )
-})
-
-const displayRating = computed(() => {
-  return resolveProductDisplayRating(product.value?.averageRating, product.value?.score)
 })
 
 const isInCart = computed(() => cartStore.hasItem(product.value?.appId))
@@ -494,30 +396,10 @@ const handleAlreadyPurchased = () => {
 }
 
 const handleCustomizeInStudio = () => {
-  const designId = product.value?.designId?.trim()
-  if (!designId) {
-    ElMessage.error('Studio design is not available')
-    return
-  }
+  const appId = product.value?.appId
+  if (!appId) return
 
-  openStudioDesignCopy(designId)
-}
-
-const formatNumber = (value?: number | null) => {
-  if (value == null) return '0'
-  return new Intl.NumberFormat('en-US').format(value)
-}
-
-const formatDisplayRating = (value?: number | null) => {
-  if (value == null) return '-'
-  return Number(value).toFixed(1)
-}
-
-const formatDate = (value?: string | null) => {
-  if (!value) return '未上线'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '未上线'
-  return date.toLocaleString()
+  openStudioUrl(new URL(`/faces/${appId}`, getStudioUrl()).toString())
 }
 
 const loadAdminMetricsFor = async (guard: LatestProductLoadGuard) => {
@@ -544,112 +426,6 @@ const loadAdminMetrics = async () => {
   const appId = product.value?.appId
   if (!appId) return
   await loadAdminMetricsFor(captureCurrentProductGuard(appId))
-}
-
-const loadRatingState = async (guard: LatestProductLoadGuard) => {
-  if (!guard.isCurrent()) return
-  if (!isAdmin.value) {
-    guard.commit(() => {
-      reviewRating.value = 0
-      reviewComment.value = ''
-    })
-    return
-  }
-  try {
-    const stats = userStore.token
-      ? await getMyProductRating(guard.appId)
-      : await getProductRating(guard.appId)
-    guard.commit(() => {
-      if (!product.value) return
-      product.value = {
-        ...product.value,
-        averageRating: stats.averageRating ?? product.value.averageRating,
-        ratingCount: stats.ratingCount ?? product.value.ratingCount,
-        myRating: stats.myRating ?? product.value.myRating,
-        myComment: stats.myComment ?? product.value.myComment,
-      }
-      reviewRating.value = product.value.myRating || 0
-      reviewComment.value = product.value.myComment || ''
-    })
-  } catch (error) {
-    guard.commit(() => {
-      reviewRating.value = product.value?.myRating || 0
-      reviewComment.value = product.value?.myComment || ''
-    })
-  }
-}
-
-const loadProductReviews = async (guard: LatestProductLoadGuard) => {
-  if (!isAdmin.value) {
-    guard.commit(() => {
-      productReviews.value = []
-      reviewsLoading.value = false
-    })
-    return
-  }
-  if (!guard.commit(() => {
-    reviewsLoading.value = true
-  })) return
-  try {
-    const reviews = await getProductReviews(guard.appId)
-    guard.commit(() => {
-      productReviews.value = reviews
-    })
-  } catch (error) {
-    guard.commit(() => {
-      productReviews.value = []
-    })
-  } finally {
-    guard.commit(() => {
-      reviewsLoading.value = false
-    })
-  }
-}
-
-const submitRating = async () => {
-  const appId = product.value?.appId
-  if (!isAdmin.value || !appId || ratingSubmitting.value) return
-  if (!userStore.userInfo?.id) {
-    ElMessage.info(t('product.loginToRate'))
-    redirectToSsoLogin('store', 500)
-    return
-  }
-  if (!reviewRating.value) {
-    ElMessage.info(t('product.selectRating'))
-    return
-  }
-  const guard = captureCurrentProductGuard(appId)
-  const submittedRating = reviewRating.value
-  const submittedComment = reviewComment.value
-  if (!guard.commit(() => {
-    ratingSubmitting.value = true
-  })) return
-  try {
-    const stats = await updateProductRating(appId, submittedRating, submittedComment)
-    const committed = guard.commit(() => {
-      if (!product.value) return
-      product.value = {
-        ...product.value,
-        averageRating: stats.averageRating ?? product.value.averageRating,
-        ratingCount: stats.ratingCount ?? product.value.ratingCount,
-        myRating: stats.myRating ?? submittedRating,
-        myComment: stats.myComment ?? submittedComment,
-      }
-      reviewComment.value = product.value.myComment || ''
-    })
-    if (committed) {
-      ElMessage.success(t('product.reviewSaved'))
-      await loadProductReviews(guard)
-    }
-  } catch (error: any) {
-    if (guard.isCurrent() && (error?.code === 401 || error?.response?.status === 401)) {
-      redirectToSsoLogin('store', 500)
-    }
-  } finally {
-    guard.commit(() => {
-      ratingSubmitting.value = false
-    })
-  }
 }
 
 // QR Code functionality
@@ -969,11 +745,6 @@ const resetProductDetailState = () => {
   product.value = null
   adminMetrics.value = null
   showDeviceSelector.value = false
-  ratingSubmitting.value = false
-  reviewsLoading.value = false
-  productReviews.value = []
-  reviewRating.value = 0
-  reviewComment.value = ''
   isProductDescriptionExpanded.value = false
 }
 
@@ -1015,14 +786,10 @@ const {
   fetchProduct: (productId) => productStore.getProductDetail(productId),
   commitProduct: (productDetail) => {
     product.value = productDetail
-    reviewRating.value = productDetail.myRating || 0
-    reviewComment.value = productDetail.myComment || ''
   },
   getCurrentAppId: () => product.value?.appId ?? null,
   loadDownstream: async (context) => {
     await Promise.all([
-      loadRatingState(context),
-      loadProductReviews(context),
       loadAdminMetricsFor(context),
     ])
     context.commit(() => {
@@ -1242,187 +1009,6 @@ onMounted(() => {
   font-size: 0.9rem;
   line-height: 1.35;
 }
-.product-rating-panel {
-  width: var(--detail-content-width);
-  display: grid;
-  gap: 12px;
-  margin: 18px 0 0;
-}
-.product-review-input {
-  width: 100%;
-  min-height: 92px;
-  resize: vertical;
-  padding: 10px 12px;
-  border: 1px solid rgba(15, 107, 104, 0.18);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--color-ink);
-  font: inherit;
-  line-height: 1.45;
-  outline: none;
-}
-.product-review-input:focus {
-  border-color: rgba(15, 107, 104, 0.48);
-  box-shadow: 0 0 0 3px rgba(15, 107, 104, 0.08);
-}
-.product-review-submit {
-  width: 100%;
-  min-height: 40px;
-  border: 0;
-  border-radius: 10px;
-  background: var(--color-brand);
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-.product-review-submit:disabled {
-  cursor: not-allowed;
-  opacity: 0.62;
-}
-.product-reviews-section {
-  width: var(--detail-content-width);
-  margin: 18px 0 0;
-  padding: 24px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: var(--shadow-sm);
-}
-.product-reviews-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.product-reviews-header .product-section-title {
-  margin-bottom: 0;
-}
-.product-reviews-header span,
-.product-reviews-empty {
-  color: var(--color-muted);
-  font-size: 0.9rem;
-}
-.product-reviews-list {
-  display: grid;
-  gap: 14px;
-}
-.product-review-item {
-  display: grid;
-  gap: 8px;
-  padding: 14px 0;
-  border-top: 1px solid var(--color-line);
-}
-.product-review-item:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-.product-review-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--color-ink);
-  font-size: 0.92rem;
-}
-.product-review-meta span {
-  color: var(--color-muted);
-  font-size: 0.8rem;
-}
-.product-review-stars {
-  display: inline-flex;
-  color: rgba(15, 23, 42, 0.22);
-}
-.product-review-stars .active {
-  color: #f59e0b;
-}
-.product-review-comment,
-.product-review-reply p {
-  margin: 0;
-  color: var(--color-muted);
-  line-height: 1.55;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-.product-review-reply {
-  display: grid;
-  gap: 4px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: var(--color-brand-soft);
-}
-.product-review-reply strong {
-  color: var(--color-brand-strong);
-  font-size: 0.86rem;
-}
-.product-rating-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-.product-rating-stats div {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-  padding: 10px 8px;
-  border: 1px solid rgba(15, 107, 104, 0.14);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.86);
-  text-align: center;
-}
-.product-rating-stats strong {
-  color: var(--color-ink);
-  font-size: 1rem;
-  line-height: 1;
-}
-.product-rating-stats span {
-  color: var(--color-muted);
-  font-size: 0.76rem;
-  line-height: 1.15;
-}
-.product-rate-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 38px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  background: var(--color-brand-soft);
-}
-.product-rate-label {
-  color: var(--color-brand-strong);
-  font-size: 0.88rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-.product-rate-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-.product-rate-star {
-  width: 30px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: rgba(15, 23, 42, 0.24);
-  cursor: pointer;
-  transition: color 160ms ease, background 160ms ease;
-}
-.product-rate-star:hover,
-.product-rate-star.active {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.1);
-}
-.product-rate-star:disabled {
-  cursor: wait;
-  opacity: 0.7;
-}
 .product-btn {
   width: var(--detail-content-width);
   max-width: 100%;
@@ -1445,6 +1031,8 @@ onMounted(() => {
   font-size: 1.15em;
 }
 .product-btn-install {
+  width: 100%;
+  margin-bottom: 0;
   text-decoration: none;
 }
 .product-btn-install:focus-visible {
@@ -1980,14 +1568,7 @@ onMounted(() => {
   align-items: center;
   margin-top: 18px;
 }
-.unlock-tip {
-  font-size: 1.02rem;
-  color: var(--color-muted);
-  margin-bottom: 12px;
-  letter-spacing: 0.2px;
-  text-align: center;
-  max-width: 320px;
-}
+
 @media (max-width: 900px) {
   .product-detail-page {
     --mobile-product-action-reserve: 84px;
@@ -2055,9 +1636,7 @@ onMounted(() => {
   .product-price {
     text-align: left;
   }
-  .product-rating-panel {
-    width: 100%;
-  }
+
   
   .product-desc {
     text-align: left;
@@ -2109,13 +1688,8 @@ onMounted(() => {
     height: 48px;
     font-size: 1rem;
   }
-  .product-rating-stats {
-    grid-template-columns: 1fr;
-  }
-  .product-rate-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+
+
   
   .install-title {
     font-size: 1.25rem;
