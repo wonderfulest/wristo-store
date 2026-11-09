@@ -22,6 +22,7 @@ let activeCheckout:
   | null = null
 
 interface CartCheckoutOptions {
+  emailSession?: string
   displayMode?: 'overlay' | 'inline'
   frameTarget?: string
   frameInitialHeight?: number
@@ -124,7 +125,7 @@ export function useCartCheckout() {
     loading.value = true
     try {
       await loadPaddle()
-      const checkoutData = await createCartCheckout({ items, email: checkoutEmail })
+      const checkoutData = await createCartCheckout({ items, email: checkoutEmail, emailSession: options.emailSession })
       activeCheckout = {
         transactionId: checkoutData.transactionId,
         onSuccess,
@@ -134,7 +135,7 @@ export function useCartCheckout() {
       }
       const checkoutOptions: Record<string, any> = {
         transactionId: checkoutData.transactionId,
-        settings: buildCheckoutSettings(options),
+        settings: { ...buildCheckoutSettings(options), allowLogout: false },
       }
       if (checkoutEmail) {
         checkoutOptions.customer = {

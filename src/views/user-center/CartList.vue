@@ -97,7 +97,7 @@
         </div>
         <div v-if="checkoutEmailVisible" class="email-lock">
           <label for="cart-checkout-email">{{ t('cart.checkoutEmail') }}</label>
-          <strong v-if="userStore.userInfo?.email">{{ checkoutEmail }}</strong>
+          <strong v-if="checkoutEmail">{{ checkoutEmail }}</strong>
           <input
             v-else
             id="cart-checkout-email"
@@ -107,6 +107,7 @@
             :placeholder="t('cart.emailPlaceholder')"
             :aria-invalid="Boolean(checkoutEmailError)"
           />
+          <CheckoutEmailConfirmation v-if="!checkoutEmail" :key="normalizeEmail(checkoutEmailInput)" ref="receipt" :email="normalizeEmail(checkoutEmailInput)" @continue="handleCheckout" />
           <p v-if="!userStore.token" class="cart-email-note">
             {{ t('cart.guestEmailNote') }}
             <button type="button" class="cart-email-login" @click="goSsoLogin">{{ t('cart.emailLoginLink') }}</button>
@@ -137,6 +138,7 @@ import { CreditCard, Delete, Search, ShoppingCart, StarFilled } from '@element-p
 import { useCartStore } from '@/store/cart'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 import { useUserStore } from '@/store/user'
+import CheckoutEmailConfirmation from '@/components/CheckoutEmailConfirmation.vue'
 import { useCartCheckout } from '@/composables/useCartCheckout'
 import { checkCartPurchases } from '@/api/purchase'
 import type { CartPurchaseCheckItemVO } from '@/api/purchase'
@@ -151,6 +153,7 @@ const localeStore = useLocaleStore()
 const userStore = useUserStore()
 const { t } = useI18n()
 const { loading, checkout, closeCheckout } = useCartCheckout()
+const receipt = ref<InstanceType<typeof CheckoutEmailConfirmation>>()
 const checking = ref(false)
 const refreshingCart = ref(false)
 const inlineCheckoutVisible = ref(false)
@@ -219,9 +222,7 @@ const normalizeEmail = (email: string) => email.trim().toLowerCase()
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 
 const resolveCheckoutEmail = () => {
-  const email = userStore.token
-    ? normalizeEmail(userStore.userInfo?.email || '')
-    : normalizeEmail(checkoutEmailInput.value)
+  const email = checkoutEmail.value || normalizeEmail(checkoutEmailInput.value)
   checkoutEmailInput.value = email
   if (!email) {
     checkoutEmailError.value = t('cart.error.emailRequired')
@@ -311,6 +312,8 @@ const openInlineCheckout = async () => {
   rebuildingInlineCheckout = true
 
   try {
+    const confirmation = checkoutEmail.value ? undefined : await receipt.value?.confirm()
+    if (!checkoutEmail.value && !confirmation) return
     await refreshCartItems()
     const items = cartCheckoutItems()
     if (!items.length) {
@@ -337,11 +340,12 @@ const openInlineCheckout = async () => {
       checking.value = false
     }
 
+    if (email !== (checkoutEmail.value || normalizeEmail(checkoutEmailInput.value))) return
     closeCheckout()
     inlineCheckoutVisible.value = paddleCheckoutDisplayMode === 'inline'
     inlineCheckoutKey.value += 1
     await nextTick()
-    await checkout(items, email, () => cartStore.clear(), cartCheckoutOptions.value)
+    await checkout(items, email, () => cartStore.clear(), { ...cartCheckoutOptions.value, emailSession: confirmation?.session })
   } finally {
     rebuildingInlineCheckout = false
   }

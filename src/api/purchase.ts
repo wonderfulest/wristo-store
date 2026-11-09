@@ -1,3 +1,4 @@
+import { useUserStore } from '@/store/user'
 import instance from '@/config/axios'
 import type { Bundle, AppSalesSummaryVO, SalesQueryDTO } from '@/types/product'
 import type { PurchaseCallbackRequest, PurchaseRecordVO, PurchaseSuccessResponseVO } from '@/types/purchase-check'
@@ -21,6 +22,7 @@ export interface CartCheckoutItemRequest {
 }
 
 export interface CartCheckoutRequest {
+  emailSession?: string
   email?: string
   items: CartCheckoutItemRequest[]
 }
@@ -85,7 +87,8 @@ export const checkDiscount = (data: CheckDiscountRequest): Promise<CheckDiscount
 }
 
 export const createCartCheckout = (data: CartCheckoutRequest): Promise<CartCheckoutResponseVO> => {
-  return instance.post('/public/purchase/cart/checkout', data)
+  const path = useUserStore().token ? '/purchase/cart/checkout' : '/public/purchase/cart/checkout'
+  return instance.post(path, data)
 }
 
 export const checkCartPurchases = (data: CartCheckoutRequest): Promise<CartPurchaseCheckResponseVO> => {

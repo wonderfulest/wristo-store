@@ -2,6 +2,13 @@ import { computed } from 'vue'
 import { useLocaleStore, type SupportedLocale } from '@/store/locale'
 
 const en = {
+    'receipt.code': "Receipt email confirmation code",
+    'receipt.resend': "Resend code",
+    'receipt.skip': "Skip verification and send my receipt to {email}",
+    'receipt.sent': "Enter the code sent to {email}, then continue to payment.",
+    'receipt.failed': "Could not send the code to {email}. Check the address and resend.",
+    'receipt.retry': "Please wait a minute, check the email address and resend.",
+    'receipt.invalid': "Could not confirm this code. Check it or request another.",
   "studioPromo.neverShowAgain": "Don’t show this again",
   "studioPromo.nav": "Create",
   "studioPromo.titleFirst": "Make it yours.",
@@ -913,6 +920,13 @@ const messages: Record<SupportedLocale, Messages> = {
   en,
   zh: {
     ...en,
+    'receipt.code': "收据邮箱验证码",
+    'receipt.resend': "重新发送验证码",
+    'receipt.skip': "跳过验证，将收据发至 {email}",
+    'receipt.sent': "请输入发送到 {email} 的验证码，然后继续付款。",
+    'receipt.failed': "未能发送到 {email}，请核对地址后重发。",
+    'receipt.retry': "请稍等一分钟，核对邮箱后重新发送。",
+    'receipt.invalid': "验证码未通过，请检查或重新发送。",
     "studioPromo.neverShowAgain": "以后不再提示",
     "studioPromo.nav": "设计表盘",
     "studioPromo.titleFirst": "亲手设计，",
@@ -1813,6 +1827,13 @@ const messages: Record<SupportedLocale, Messages> = {
   },
   de: {
     ...en,
+    'receipt.code': "Bestätigungscode für die E-Mail-Adresse",
+    'receipt.resend': "Code erneut senden",
+    'receipt.skip': "Prüfung überspringen und Beleg an {email} senden",
+    'receipt.sent': "Gib den Code ein, der an {email} gesendet wurde, und fahre mit der Zahlung fort.",
+    'receipt.failed': "Der Code konnte nicht an {email} gesendet werden. Prüfe die Adresse.",
+    'receipt.retry': "Bitte warte eine Minute, prüfe die Adresse und fordere den Code erneut an.",
+    'receipt.invalid': "Code konnte nicht bestätigt werden. Prüfe ihn oder fordere einen neuen an.",
     'nav.home': 'Startseite',
     'nav.categories': 'Kategorien',
     'nav.code': 'Code',

@@ -53,7 +53,7 @@
                     v-model="email"
                     :class="['input', { 'email-input-highlight': shouldHighlightEmail }]"
                     :placeholder="t('cart.emailPlaceholder')"
-                    :disabled="isEmailLocked"
+                    :disabled="isEmailLocked || checkoutOpening || loading"
                     type="email"
                     autocomplete="email"
                     :aria-invalid="Boolean(emailError)"
@@ -64,6 +64,7 @@
                 </div>
                 <div v-else id="checkout-email-help" class="input-desc">{{ t('checkout.emailHelp') }}</div>
                 <div v-if="emailError" id="checkout-email-error" class="input-error-text" role="alert">{{ emailError }}</div>
+                <CheckoutEmailConfirmation v-if="!isEmailLocked" :key="normalizeEmail(email)" ref="receipt" :email="normalizeEmail(email)" @continue="handlePayment()" />
                 <div class="payment-method-card">
                     <div class="payment-method-copy">
                         <div class="pay-method-title">{{ t('checkout.paymentMethod') }}</div>
@@ -115,6 +116,7 @@ import type { PaddleCheckoutCompletedEvent, Bundle, ProductBaseVO, ProductVO, Pu
 import { checkPurchase } from '@/api/pay'
 import type { CheckPurchaseRequest, CheckPurchaseResponse } from '@/types/purchase-check'
 import { PurchaseOrigin } from '@/constant/purchaseOrigin'
+import CheckoutEmailConfirmation from '@/components/CheckoutEmailConfirmation.vue'
 import { requireCheckoutAdmission, checkBundleByEmail, purchaseCallback } from '@/api/purchase'
 import type { PurchaseCallbackRequest, PurchaseRecordVO } from '@/types/purchase-check'
 import { useUserStore } from '@/store/user'
@@ -146,7 +148,8 @@ const emailError = ref('')
 const maxQuantity = ref(1)
 const userSelectedQuantity = ref(1);
 let paddleScriptPromise: Promise<void> | null = null
-let checkoutOpening = false
+const receipt = ref<InstanceType<typeof CheckoutEmailConfirmation>>()
+const checkoutOpening = ref(false)
 
 const isBundle = computed(() => {
   return product.value && 'bundleId' in product.value
@@ -405,7 +408,7 @@ function loadPaddle() {
 }
 
 const handlePayment = async (isRetry = false) => {
-    if (checkoutOpening) return
+    if (checkoutOpening.value) return
     if (isWristoPremiumBundle.value && hasPremiumEntitlement(userStore.userInfo)) {
         await ElMessageBox.alert('Your Premium membership is already active on the website and in the iOS app.', 'Wristo Premium')
         return
@@ -418,9 +421,11 @@ const handlePayment = async (isRetry = false) => {
         emailError.value = checkoutEmail ? t('cart.error.emailInvalid') : t('cart.error.emailRequired')
         return
     }
-    checkoutOpening = true
-    email.value = checkoutEmail
+    checkoutOpening.value = true
     emailError.value = ''
+    const confirmation = accountEmail.value ? { status: 'account' } : await receipt.value?.confirm()
+    if (!confirmation || checkoutEmail !== (accountEmail.value || normalizeEmail(email.value))) return
+    email.value = checkoutEmail
     if (isBundleTokenFlow.value && email.value) {
         const bundleId = (product.value as Bundle).bundleId
 
@@ -482,7 +487,7 @@ const handlePayment = async (isRetry = false) => {
     
     if (typeof window !== "undefined" && window.Paddle) {
         const checkoutOptions: Record<string, any> = {
-            settings: { displayMode: 'overlay' },
+            settings: { displayMode: 'overlay', allowLogout: false },
             items: [
                 {
                     priceId: (product.value as ProductVO).payment?.paddlePriceId || (product.value as Bundle)?.paddlePriceId,
@@ -492,6 +497,7 @@ const handlePayment = async (isRetry = false) => {
             discountCode: discountInfo.value?.valid ? (discountInfo.value.discountCode || (store as any).discountCode || '') : '',
             customData: {
                 isSubscription: false,
+                emailConfirmation: confirmation.status,
                 source: (discountInfo.value?.valid || (store as any).discountCode)
                     ? PurchaseOrigin.PROMOTION
                     : (isBundleTokenFlow.value ? PurchaseOrigin.STORE : PurchaseOrigin.CODE),
@@ -525,7 +531,7 @@ const handlePayment = async (isRetry = false) => {
         ElMessageBox.alert(t('checkout.paddleLoadFailed'), t('checkout.errorTitle'))
         loading.value = false
     } finally {
-        checkoutOpening = false
+        checkoutOpening.value = false
     }
 }
 
