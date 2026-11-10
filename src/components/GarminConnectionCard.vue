@@ -7,9 +7,9 @@
     <p>授权同步运动记录与日常健康摘要，在同一个 Wristo 账号中查看。</p>
     <template v-if="status?.connected">
       <div class="identity">
-        <span>Garmin 用户 UUID（userId）</span>
-        <code>{{ status.garminUserId || '暂不可用' }}</code>
-        <button v-if="status.garminUserId" type="button" @click="copyId">复制 UUID</button>
+        <span>Garmin 用户 ID</span>
+        <code>{{ maskedGarminUserId }}</code>
+        <button v-if="status.garminUserId" type="button" @click="copyId">复制 ID</button>
       </div>
       <p>已接收运动记录：{{ status.activities }} · 健康摘要：{{ status.health }}</p>
       <p>授权范围：{{ status.permissions.join('、') || '无' }}</p>
@@ -27,7 +27,7 @@
   </section>
 </template>
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { ElMessageBox } from 'element-plus'
 import { disconnectGarmin, getGarminStatus, type GarminStatus } from '@/api/garmin'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
@@ -36,6 +36,11 @@ defineProps<{ hideDataLink?: boolean }>()
 const emit = defineEmits<{ status: [value: GarminStatus | null] }>()
 const locale = useLocaleStore()
 const status = ref<GarminStatus | null>(null)
+const maskedGarminUserId = computed(() => {
+  const id = status.value?.garminUserId
+  if (!id) return '暂不可用'
+  return id.length > 8 ? `${id.slice(0, 4)}****${id.slice(-4)}` : '****'
+})
 const loading = ref(false)
 const disconnecting = ref(false)
 const error = ref('')
@@ -50,8 +55,8 @@ async function refresh() {
 }
 async function copyId() {
   if (!status.value?.garminUserId) return
-  try { await navigator.clipboard.writeText(status.value.garminUserId); notice.value = 'UUID 已复制。' }
-  catch { notice.value = '复制失败，请手动选择并复制 UUID。' }
+  try { await navigator.clipboard.writeText(status.value.garminUserId); notice.value = 'Garmin 用户 ID 已复制。' }
+  catch { notice.value = '复制失败，请重试或检查浏览器剪贴板权限。' }
 }
 async function disconnect() {
   if (disconnecting.value || loading.value) return

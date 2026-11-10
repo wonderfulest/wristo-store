@@ -62,13 +62,14 @@
         </button>
       </div>
       <div
-        v-if="connected && !loading && !hasRecords && !failed.length"
+        v-if="connected"
         class="status-banner"
+        role="status"
       >
         {{
           t(
-            "No records received yet. Sync your device with Garmin Connect and check back after Garmin sends the data.",
-            "尚未收到记录。请先将设备同步到 Garmin Connect，待 Garmin 推送数据后再查看。",
+            "If no data appears after connecting, open the Garmin Connect app on your phone and sync your watch. Once syncing is complete, return here and refresh. Data may take a little time to appear.",
+            "绑定成功后，如果这里暂无数据，请打开手机上的 Garmin Connect App，同步手表数据。同步完成后返回本页刷新，数据可能需要稍等片刻才会显示。",
           )
         }}
       </div>
@@ -551,9 +552,6 @@ const progress = computed(() =>
   metrics.value.steps !== null && metrics.value.goal
     ? (metrics.value.steps / metrics.value.goal) * 100
     : null,
-);
-const hasRecords = computed(() =>
-  healthTypes.some((type) => records.value[type].length),
 );
 function format(value: number | null, digits = 0) {
   return value === null
