@@ -8,18 +8,6 @@
         <p class="desc">{{ t('activation.description') }}</p>
       </div>
 
-      <GarminInstallationSteps compact @installed="focusActivationCode" @trouble="goToInstallHelp" />
-      
-      <div class="tip-card">
-        <div class="tip-icon" aria-hidden="true">
-          <el-icon><QuartzWatch /></el-icon>
-        </div>
-        <div class="tip-content">
-          <strong>{{ t('activation.tipTitle') }}</strong>
-          <span>{{ t('activation.tipDescription') }}</span>
-        </div>
-      </div>
-      
       <form class="activation-form" @submit.prevent="handleActivation">
         <div class="input-group">
           <label class="input-label" for="purchase-email">{{ t('activation.emailLabel') }}</label>
@@ -84,6 +72,21 @@
         <el-icon class="message-icon" aria-hidden="true"><CircleCheckFilled /></el-icon>
         <div class="message-text">{{ successMessage }}</div>
       </div>
+
+      <details class="activation-help">
+        <summary>{{ t('activation.setupHelp') }}</summary>
+        <GarminInstallationSteps compact @installed="focusActivationCode" @trouble="goToInstallHelp" />
+
+        <div class="tip-card">
+          <div class="tip-icon" aria-hidden="true">
+            <el-icon><QuartzWatch /></el-icon>
+          </div>
+          <div class="tip-content">
+            <strong>{{ t('activation.tipTitle') }}</strong>
+            <span>{{ t('activation.tipDescription') }}</span>
+          </div>
+        </div>
+      </details>
     </div>
     <SmartwatchCodeHelpModal v-model="showCodeHelpModal" />
   </main>
@@ -300,6 +303,17 @@ function handleResendCode() {
   font-size: 1rem;
   line-height: 1.6;
   margin: 4px auto 0;
+}
+
+.activation-help > summary {
+  cursor: pointer;
+  color: #096d69;
+  font-weight: 600;
+}
+
+.activation-help[open] > summary,
+.activation-help .tip-card {
+  margin-block: 1rem;
 }
 
 .tip-card {
