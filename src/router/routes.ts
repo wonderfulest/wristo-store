@@ -320,6 +320,12 @@ const baseRoutes: RouteRecordRaw[] = [
   //   }
   // },
   {
+    path: '/user/garmin',
+    name: 'GarminData',
+    component: () => import('@/views/user-center/GarminData.vue'),
+    meta: { requiresAuth: true, title: 'Garmin 数据' }
+  },
+  {
     path: '/user/profile',
     name: 'UserProfile',
     component: () => import('@/views/user-center/UserProfile.vue')
