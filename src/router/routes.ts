@@ -32,6 +32,7 @@ const redirectLegacyPremium = (to: RouteLocationGeneric) => {
 }
 
 const baseRoutes: RouteRecordRaw[] = [
+  { path: '/custom-watchface', name: 'CustomWatchface', component: () => import('@/views/custom/CustomWatchface.vue'), meta: { title: 'Custom Garmin Watch Face | Wristo', description: 'Your own Garmin watch face: installation package $9.90 or store publication $19.90.' } },
   { path: '/collections/:slug(data-rich-garmin-watch-faces|analog-garmin-watch-faces|outdoor-garmin-watch-faces)', name: 'CuratedCollection', component: () => import('@/views/collections/CuratedCollection.vue') },
   { path: '/utilities/next-shot', name: 'NextShot', component: () => import('@/views/utilities/NextShotView.vue'), meta: { title: 'Next Shot | Wristo', description: 'Wedge distance practice, training history and repeatable retests for Garmin.' } },
   { path: '/utilities', name: 'Utilities', component: () => import('@/views/utilities/UtilityProductView.vue'), meta: { title: 'Daily Utilities | Wristo', description: 'Personalize Last Time, Quick Counter, Ready to Go, and QR Pocket for your Garmin watch.' } },

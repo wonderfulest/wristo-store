@@ -12,16 +12,17 @@ export const initializePaddle = (paddle: any, eventCallback: (data: any) => void
     throw new Error('Paddle client token is missing')
   }
 
+  const trackedCallback = async (event: any) => {
+    await trackPaddleEvent(event)
+    return eventCallback(event)
+  }
+  if (paddle?.Initialized) {
+    paddle.Update({ eventCallback: trackedCallback })
+    return
+  }
   const environment = getPaddleEnvironment()
   if (environment && paddle?.Environment?.set) {
     paddle.Environment.set(environment)
   }
-
-  paddle.Initialize({
-    token,
-    eventCallback: async (event: any) => {
-      await trackPaddleEvent(event)
-      return eventCallback(event)
-    },
-  })
+  paddle.Initialize({ token, eventCallback: trackedCallback })
 }
