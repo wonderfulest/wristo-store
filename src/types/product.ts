@@ -63,6 +63,7 @@ export interface GarminDeviceBaseVO {
 }
 
 export interface ProductBaseVO {
+  appLanguage?: string | null
   appId: number
   name: string
   names?: Record<string, string> | null
@@ -93,6 +94,7 @@ export interface ProductTagVO {
 }
 
 export interface ProductVO {
+  appLanguage?: string | null
   bannerImageUrl?: string | null
   tags?: ProductTagVO[] | null
   appId: number
