@@ -2,7 +2,6 @@
   <main class="catalog-home">
     <HomeBanner v-if="!hasPremiumAccess" premium-only />
     <HomeIntro />
-    <CustomWatchfaceCard />
     <HomeProductGrid
       :products="newProducts"
       :loading="loading"
@@ -26,7 +25,6 @@ import { useUserStore } from '@/store/user'
 import type { ProductBaseVO } from '@/types'
 import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
-import CustomWatchfaceCard from '@/components/CustomWatchfaceCard.vue'
 import HomeBanner from '@/views/home/components/HomeBanner.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'

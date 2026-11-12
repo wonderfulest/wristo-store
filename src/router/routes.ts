@@ -298,19 +298,13 @@ const baseRoutes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/template-editor',
-    name: 'TemplateEditorPage',
-    component: { render: () => null },
-    beforeEnter: () => {
-      window.location.replace('https://studio.wristo.io/tokens')
-      return false
-    },
-    meta: { noindex: true },
+    path: '/tokens',
+    name: 'Tokens',
+    component: () => import('@/features/tokens/views/Tokens.vue'),
+    meta: { requiresAuth: false, title: 'Template Tokens | Wristo' },
   },
-  {
-    path: '/tpl',
-    redirect: '/template-editor',
-  },
+  { path: '/template-editor', redirect: to => ({ path: '/tokens', query: to.query, hash: to.hash }) },
+  { path: '/tpl', redirect: to => ({ path: '/tokens', query: to.query, hash: to.hash }) },
   // {
   //   path: '/subscription',
   //   name: 'Subscription',
