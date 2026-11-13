@@ -1,20 +1,19 @@
 <template>
-  <section v-if="showPremium || downloads.hasLinks" class="home-promotions storefront-container"
+  <section v-if="showPremium || downloads.hasLinks" class="home-promotions storefront-container" :class="{ 'has-controls': slides.length > 1 }"
     :aria-label="t('home.heroCarouselAria')" aria-roledescription="carousel"
     @mouseenter="hovered = true; stop()" @mouseleave="hovered = false; start()" @focusin="focused = true; stop()" @focusout="onFocusOut">
     <div v-if="slides.length > 1" class="home-promotions__controls" role="group" :aria-label="t('home.heroCarouselAria')">
       <button class="home-promotions__arrow" type="button" :aria-label="t('creators.previous')" @click="step(-1)">
-        <span aria-hidden="true">←</span>
+        <span aria-hidden="true">‹</span>
       </button>
       <div class="home-promotions__choices">
-        <button v-for="(slide, index) in slides" :key="slide" class="home-promotions__choice" type="button"
+        <button v-for="slide in slides" :key="slide" class="home-promotions__choice" type="button"
           :aria-pressed="active === slide" :aria-controls="`home-promotion-${slide}`" @click="select(slide)">
-          <span class="home-promotions__number" aria-hidden="true">{{ index + 1 }}</span>
           <span>{{ slide === 'premium' ? 'Wristo Premium' : 'Wristo App' }}</span>
         </button>
       </div>
       <button class="home-promotions__arrow" type="button" :aria-label="t('creators.next')" @click="step(1)">
-        <span aria-hidden="true">→</span>
+        <span aria-hidden="true">›</span>
       </button>
     </div>
     <div class="home-promotions__slides">
@@ -113,16 +112,16 @@ onBeforeUnmount(stop)
 .promotion__phone-stage { position: relative; min-width: 0; }
 .promotion__phone { position: absolute; top: 24px; left: 8%; width: 268px; padding: 5px; border: 2px solid #797d75; border-radius: 37px; background: #171b17; box-shadow: 10px 8px 0 #5a5c54, 20px 24px 32px #1d311a40; transform: rotate(12deg); }
 .promotion__phone img { width: 100%; height: auto; display: block; border-radius: 30px; }
-.home-promotions__controls { position: relative; z-index: 3; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: #fffdf9; border-bottom: 1px solid #d8dfd2; }
-.home-promotions__choices { display: flex; flex: 1; justify-content: center; gap: 10px; min-width: 0; }
-.home-promotions__controls button { min-width: 0; min-height: 48px; border: 1px solid #a6b5a5; border-radius: 12px; cursor: pointer; color: #164c3b; background: #edf2e8; font-weight: 700; }
-.home-promotions__choice { display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1; max-width: 260px; padding: 10px 16px; font-size: 15px; }
-.home-promotions__number { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #dce6d6; font-size: 12px; }
-.home-promotions__controls button[aria-pressed="true"] { color: white; background: #00594f; border-color: #00594f; box-shadow: 0 2px 6px #00594f26; }
-.home-promotions__choice[aria-pressed="true"] .home-promotions__number { background: #ffffff26; }
-.home-promotions__controls button:hover { border-color: #00594f; box-shadow: 0 0 0 2px #00594f26; }
-.home-promotions__arrow { padding: 0; flex: 0 0 48px; font-size: 26px; line-height: 1; }
-.home-promotions__controls button:focus-visible { outline: 3px solid #a77a30; outline-offset: 2px; }
+.home-promotions__controls { position: absolute; top: 16px; right: 20px; z-index: 3; display: flex; align-items: center; gap: 2px; padding: 0 4px; border: 1px solid #ffffff66; border-radius: 999px; background: #fffdf9ed; backdrop-filter: blur(12px); }
+.home-promotions__choices { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.home-promotions__controls button { min-width: 0; min-height: 44px; border: 0; border-radius: 0; cursor: pointer; color: #66736b; background: transparent; box-shadow: none; font-weight: 500; }
+.home-promotions__choice { position: relative; display: inline-flex; align-items: center; justify-content: center; padding: 0 2px; font-size: 12px; white-space: nowrap; }
+.home-promotions__choice::after { content: ''; position: absolute; bottom: 7px; left: 2px; right: 2px; height: 2px; border-radius: 2px; background: transparent; }
+.home-promotions__controls button[aria-pressed="true"] { color: #123e33; }
+.home-promotions__choice[aria-pressed="true"]::after { background: #537264; }
+.home-promotions__controls button:hover { color: #123e33; background: transparent; box-shadow: none; transform: none; }
+.home-promotions__arrow { width: 40px; padding: 0; flex: 0 0 40px; font-size: 24px; line-height: 1; }
+.home-promotions__controls button:focus-visible { outline: 2px solid #537264; outline-offset: -3px; border-radius: 6px; }
 @media (max-width: 900px) {
   .promotion { min-height: 330px; }
   .promotion__copy { padding-left: 28px; }
@@ -148,12 +147,11 @@ onBeforeUnmount(stop)
   .promotion--app :deep(.app-download-link) { flex: 1; min-width: 0; gap: 6px; padding: 8px; }
   .promotion--app :deep(.app-download-link strong) { font-size: 14px; }
   .promotion--app :deep(.app-download-link img) { width: 20px; flex-basis: 20px; }
-  .home-promotions__controls { gap: 6px; padding: 10px 8px; }
-  .home-promotions__choices { gap: 6px; }
-  .home-promotions__choice { padding: 8px 4px; font-size: 12px; gap: 0; }
-  .home-promotions__number { display: none; }
-  .home-promotions__arrow { flex-basis: 44px; }
-  .home-promotions__controls button { border-radius: 8px; }
+  .home-promotions__controls { top: 12px; right: 16px; gap: 0; }
+  .home-promotions__choices { gap: 12px; }
+  .home-promotions__arrow { width: 36px; flex-basis: 36px; }
+  .home-promotions.has-controls .promotion__copy { padding-top: 76px; }
+
 }
 @media (prefers-reduced-motion: reduce) { .home-promotions__slide { transition: none; } }
 </style>
