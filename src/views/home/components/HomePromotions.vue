@@ -61,7 +61,7 @@ function stop() { if (timer) clearInterval(timer); timer = undefined }
 function start() {
   stop()
   if (hovered.value || focused.value || slides.value.length < 2 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-  timer = setInterval(() => { active.value = slides.value[(slides.value.indexOf(active.value) + 1) % slides.value.length] }, 6500)
+  timer = setInterval(() => { active.value = slides.value[(slides.value.indexOf(active.value) + 1) % slides.value.length] }, 2000)
 }
 function select(slide: Slide) { active.value = slide; start() }
 function onFocusOut(event: FocusEvent) {
