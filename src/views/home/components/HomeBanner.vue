@@ -227,7 +227,7 @@ const allSlides: HeroSlide[] = [
     metricThreeLabelKey: 'home.heroMetricGarminLabel',
     compactActions: true,
     hideMetrics: true,
-    imageSrc: '/home-hero-premium-lifetime-access-en.png',
+    imageSrc: '/home-premium-member.png',
     isPosterImage: true,
     hideArtCaption: true,
     artTopIcon: 'solar:crown-star-bold-duotone',
@@ -745,5 +745,25 @@ onBeforeUnmount(pauseCarousel)
   .banner-stage img {
     transition: none;
   }
+}
+/* Keep the homepage membership promotion compact; other hero slides retain their layout. */
+.home-banner--premium { padding: 24px 0 0; }
+.home-banner--premium .banner-shell { width: min(var(--home-content-width, 1200px), calc(100% - var(--home-gutter, 24px) * 2)); min-height: 0; box-shadow: none; }
+.home-banner--premium .banner-content.theme-store { min-height: 0; grid-template-columns: minmax(0, 1fr) 280px; gap: 36px; padding: 28px 36px; }
+.home-banner--premium .banner-content.theme-store .banner-copy { max-width: 760px; }
+.home-banner--premium .banner-content.theme-store .banner-title { max-width: 680px; margin: 14px 0 12px; font-size: clamp(28px, 3vw, 40px); line-height: 1.12; }
+.home-banner--premium .banner-desc { max-width: 680px; font-size: 16px; }
+.home-banner--premium .banner-content.theme-store .banner-actions { margin-top: 20px; }
+.home-banner--premium .banner-stage.banner-stage--poster { width: 280px; height: 240px; aspect-ratio: auto; min-height: 0; border-radius: 16px; box-shadow: none; justify-self: end; }
+.home-banner--premium .banner-eyebrow { font-size: 11px; min-height: 28px; }
+.home-banner--premium .banner-stage img.banner-stage__image--poster { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; object-position: center 76%; }
+@media (max-width: 640px) {
+  .home-banner--premium { padding-top: 16px; }
+  .home-banner--premium .banner-content.theme-store { grid-template-columns: 1fr; padding: 24px; gap: 0; }
+  .home-banner--premium .banner-content.theme-store .banner-title { font-size: 28px; }
+  .home-banner--premium .banner-stage.banner-stage--poster { display: block; width: 140px; height: 90px; position: absolute; top: 18px; right: 18px; border-radius: 10px; }
+  .home-banner--premium .banner-eyebrow { max-width: calc(100% - 140px); padding-inline: 6px; font-size: 9px; }
+  .home-banner--premium .banner-content.theme-store .banner-title { margin-top: 70px; }
+  .home-banner--premium .banner-desc { font-size: 14px; }
 }
 </style>

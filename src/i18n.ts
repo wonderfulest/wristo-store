@@ -2,8 +2,13 @@ import { computed } from 'vue'
 import { useLocaleStore, type SupportedLocale } from '@/store/locale'
 
 const en = {
-  'appDownload.title': 'Wristo, wherever you go.',
-  'appDownload.description': 'Find your next Garmin watch face on your phone.',
+  'home.promoPremiumTitle': 'One purchase.\nLifetime access.',
+  'home.promoPremiumValue': '7,000+ apps · $9.90',
+  'appDownload.title': 'Wristo in your pocket.',
+  'appDownload.description': 'Browse and unlock the full Wristo app collection, and install your own designs on your watch.',
+  'appDownload.browse': 'Browse apps',
+  'appDownload.unlock': 'Unlock watch faces',
+  'appDownload.install': 'Install your designs',
   'appDownload.footerTitle': 'Get the Wristo app',
   'appDownload.downloadOn': 'Download on the',
   'appDownload.getItOn': 'GET IT ON',
@@ -987,8 +992,13 @@ const messages: Record<SupportedLocale, Messages> = {
   en,
   zh: {
     ...en,
-    'appDownload.title': 'Wristo，随时随地。',
-    'appDownload.description': '在手机上，发现你的下一款 Garmin 表盘。',
+    'home.promoPremiumTitle': '一次购买，\n终身畅享。',
+    'home.promoPremiumValue': '7,000+ 款应用 · $9.90',
+    'appDownload.title': '把 Wristo 装进口袋',
+    'appDownload.description': '轻松浏览和解锁 Wristo 的全部应用，将自己的设计安装到手表。',
+    'appDownload.browse': '浏览应用',
+    'appDownload.unlock': '解锁喜欢的表盘',
+    'appDownload.install': '安装自己的设计',
     'appDownload.footerTitle': '下载 Wristo App',
     'appDownload.downloadOn': '下载于',
     'appDownload.getItOn': '立即获取',

@@ -1,8 +1,7 @@
 <template>
   <main class="catalog-home">
-    <HomeBanner v-if="!hasPremiumAccess" premium-only />
+    <HomePromotions />
     <HomeIntro />
-    <HomeAppDownload />
     <HomeProductGrid
       :products="newProducts"
       :loading="loading"
@@ -20,20 +19,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getNewProducts } from '@/api/product'
-import { useUserStore } from '@/store/user'
 import type { ProductBaseVO } from '@/types'
-import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
-import HomeBanner from '@/views/home/components/HomeBanner.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
-import HomeAppDownload from '@/views/home/components/HomeAppDownload.vue'
+import HomePromotions from '@/views/home/components/HomePromotions.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
 
 const pageSize = 24
-const userStore = useUserStore()
-const hasPremiumAccess = computed(() => hasPremiumEntitlement(userStore.userInfo))
 const newProducts = ref<ProductBaseVO[]>([])
 const loading = ref(true)
 const loadingMore = ref(false)
