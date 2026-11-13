@@ -1,11 +1,11 @@
 <template>
   <div v-if="downloads.hasLinks" class="app-download-links" :class="{ 'app-download-links--compact': compact }">
     <a v-if="downloads.apps.ios" class="app-download-link" :href="downloads.apps.ios" target="_blank" rel="noopener noreferrer" :aria-label="t('appDownload.iosLabel')">
-      <img src="/images/app-downloads/apple.svg" alt="" width="26" height="30" />
+      <img src="https://cdn.wristo.io/store/home/apple-1ce2200a9f324cbf.svg" alt="" width="26" height="30" />
       <span><small>{{ t('appDownload.downloadOn') }}</small><strong>App Store</strong></span>
     </a>
     <a v-if="downloads.apps.android" class="app-download-link" :href="downloads.apps.android" target="_blank" rel="noopener noreferrer" :aria-label="t('appDownload.androidLabel')">
-      <img src="/images/app-downloads/google-play.svg" alt="" width="26" height="30" />
+      <img src="https://cdn.wristo.io/store/home/google-play-42a0194c0898498d.svg" alt="" width="26" height="30" />
       <span><small>{{ t('appDownload.getItOn') }}</small><strong>Google Play</strong></span>
     </a>
   </div>

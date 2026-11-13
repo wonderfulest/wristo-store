@@ -11,7 +11,7 @@
             <p class="promotion__price">{{ t('home.promoPremiumValue') }}</p>
             <RouterLink class="promotion__cta" :to="premiumUrl">{{ t('home.premiumCta') }} <span aria-hidden="true">↗</span></RouterLink>
           </div>
-          <div class="promotion__art" aria-hidden="true"><img src="/home-premium-art.png" alt="" width="1536" height="1024" fetchpriority="high" /></div>
+          <div class="promotion__art" aria-hidden="true"><img src="https://cdn.wristo.io/store/home/home-premium-art-450f93619da55c16.png" alt="" width="1536" height="1024" fetchpriority="high" /></div>
         </div>
       </div>
       <div v-if="downloads.hasLinks" :class="{ 'is-active': active === 'app' }" :inert="active !== 'app'" :aria-hidden="active !== 'app'" class="home-promotions__slide">
@@ -23,7 +23,7 @@
             <AppDownloadLinks />
           </div>
           <div class="promotion__phone-stage" aria-hidden="true">
-            <div class="promotion__phone"><img src="/home-app-screen.jpg" alt="" width="442" height="960" /></div>
+            <div class="promotion__phone"><img src="https://cdn.wristo.io/store/home/home-app-screen-55bd9d46c92e3fb2.jpg" alt="" width="442" height="960" /></div>
           </div>
         </div>
       </div>
@@ -53,7 +53,7 @@ const user = useUserStore()
 const showPremium = computed(() => !hasPremiumEntitlement(user.userInfo))
 type Slide = 'premium' | 'app'
 const slides = computed<Slide[]>(() => [ ...(showPremium.value ? ['premium' as const] : []), ...(downloads.hasLinks ? ['app' as const] : []) ])
-const active = ref<Slide>('premium')
+const active = ref<Slide>(slides.value[0] ?? 'premium')
 let timer: ReturnType<typeof setInterval> | undefined
 const hovered = ref(false)
 const focused = ref(false)
