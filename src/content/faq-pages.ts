@@ -432,7 +432,7 @@ const curatedFaqGuidePosts = [
     publishedAt: '2026-11-13T03:40:00.000Z',
     createdAt: '2026-11-13T03:40:00.000Z',
     updatedAt: '2026-11-13T03:40:00.000Z',
-    coverImageUrl: '/images/guides/bluetooth-online-data/watch-disconnected.jpg',
+    coverImageUrl: '/images/guides/bluetooth-online-data/cover.png',
   },
 ] satisfies BlogPostVO[]
 
