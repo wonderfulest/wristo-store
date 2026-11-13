@@ -398,6 +398,42 @@ const curatedFaqGuidePosts = [
 <p>把 Garmin 手表连接电脑，进入 <code>/Garmin/Apps/Logs/</code>，查找 <code>CIQ_LOG.bak</code> 或其它 <code>.log</code> / <code>.bak</code> 文件。发送邮件到 <a href="mailto:support@wristo.io">support@wristo.io</a>，并附上手表型号、系统版本、表盘名称、问题截图和日志文件。</p>`,
     ),
   ])),
+  {
+    ...post(1010, 'bluetooth-online-data-sync', withSupportedFaqLocales([
+      tr('zh', 'bluetooth-online-data-sync',
+        '佳明表盘联网数据不显示？看懂蓝牙状态与「最多 5 分钟同步」',
+        '农历、干支年、生肖年等数据为什么需要联网？结合实拍与设置截图，了解蓝牙断开后的影响和同步排查方法。',
+        `<p>设置里已经选了农历日期，表盘上却迟迟没有显示？先看看手表与手机是否保持连接，以及这个数据项是否标注了「🌐 联网请求」。</p>
+<p>Wristo 的部分数据项需要通过手机获取网络数据。设置中的「最多 5 分钟同步」说的是这些数据项的同步等待时间，不是只展示 5 分钟，也不是蓝牙断开后等 5 分钟就会自动恢复。</p>
+<h2>先看手表上的蓝牙状态</h2>
+<figure><a href="/images/guides/bluetooth-online-data/watch-disconnected.jpg" target="_blank" rel="noopener noreferrer"><img src="/images/guides/bluetooth-online-data/watch-disconnected.jpg" alt="佳明手表实拍：11:25 时间左侧的蓝牙图标带斜线，表示连接已断开" width="810" height="1440" loading="lazy" style="width:100%;max-width:405px;height:auto" /></a><figcaption>实拍中，时间左侧带斜线的蓝牙图标表示连接已断开。点击图片可查看原图。</figcaption></figure>
+<p>对于依赖手机联网的表盘功能，蓝牙断开意味着联网通道暂时中断。手机即使正在使用 Wi-Fi 或移动网络，也无法通过已经断开的连接把新数据传回手表。</p>
+<p>图片中的「--」需要结合具体字段判断，不能仅凭占位符认定某项数据的故障原因。蓝牙状态是排查连接的线索。</p>
+<h2>手表怎样通过手机联网？</h2>
+<p><strong>手表发起请求 → 通过蓝牙传给手机 → 手机访问网络服务 → 数据经手机返回手表。</strong></p>
+<p>在这种使用场景中，手机承担了手表与互联网之间的桥梁作用。Garmin Connect IQ 的 <a href="https://developer.garmin.com/connect-iq/api-docs/Toybox/Communications.html" target="_blank" rel="noopener noreferrer">官方通信文档</a>也说明了通过低功耗蓝牙连接手机、由手机连接互联网的机制。</p>
+<p>因此，这里说的「设备离线」，具体指依赖手机的联网功能暂时不可用。手表计时、步数和本地传感器数据通常仍可继续工作。本文不把这种情况推广为所有佳明机型、所有联网方式的统一限制。</p>
+<h2>哪些数据项需要联网？看设置里的标注</h2>
+<figure><a href="/images/guides/bluetooth-online-data/online-data-settings.jpg" target="_blank" rel="noopener noreferrer"><img src="/images/guides/bluetooth-online-data/online-data-settings.jpg" alt="Wristo 应用设置截图：农历日期、干支年、生肖年、节日节气、黄历宜忌和黄历不宜均标注联网请求，最多 5 分钟同步" width="1206" height="2622" loading="lazy" style="width:100%;max-width:480px;height:auto" /></a><figcaption>应用设置中的「🌐 联网请求，最多 5 分钟同步」提示。点击图片可放大查看。</figcaption></figure>
+<p>以这张设置截图为例，标注需要联网的数据项包括：</p>
+<ul><li>农历日期，例如五月十五、七月初六。</li><li>干支年，例如甲子年、乙丑年。</li><li>生肖年，例如鼠年、牛年。</li><li>节日节气，例如春节、清明节。</li><li>黄历宜忌、黄历不宜等内容。</li></ul>
+<p>这些内容在当前应用中通过联网请求取得。判断某个选项是否需要联网，应以该应用设置里的标注为准；并不是所有日期信息都需要网络。</p>
+<h2>「最多 5 分钟同步」应该怎样理解？</h2>
+<p>选择并保存这些联网数据项后，需要给数据同步留出时间。<strong>在手机与手表连接正常、手机网络可用的前提下，按设置提示等待最多约 5 分钟，再查看表盘。</strong></p>
+<p>这个提示不是断网情况下的成功保证，也不表示所有数据都每 5 分钟刷新一次。若蓝牙断开、手机没有网络，或后台通信受到限制，单纯等待 5 分钟不能解决连接问题。</p>
+<p>恢复连接后，数据也不一定立刻出现，需要等后续请求成功。获取失败时，不同表盘可能显示空白、「--」，或保留上一次取得的内容。有数值不代表刚刚更新过。</p>
+<h2>数据没有出现，按这个顺序检查</h2>
+<ol><li><strong>确认选项并保存：</strong>在应用设置中查看该字段是否标注「联网请求」，选择需要的数据项后点击保存。</li><li><strong>确认设备连接：</strong>将手机放在手表附近，打开 Garmin Connect，检查设备是否显示已连接。仅打开手机蓝牙开关不等于设备已连接。</li><li><strong>确认手机网络：</strong>检查手机的 Wi-Fi 或移动网络能否正常访问互联网。</li><li><strong>检查后台限制：</strong>确认 Garmin Connect 没有被强制关闭或受到后台、省电设置限制。</li><li><strong>连接正常后再等待：</strong>按照设置中的同步提示留出约 5 分钟，随后检查表盘中的相应字段。</li></ol>
+<p>Garmin 官方的<a href="https://support.garmin.com/en-US/?faq=Mxs4eRXzRdAYJ0h7yyWaj9" target="_blank" rel="noopener noreferrer">天气数据排查说明</a>也建议先确认 Garmin Connect 中的设备连接状态。该资料说明通用的连接排查方法；本文中的 5 分钟提示来自 Wristo 应用设置。</p>
+<h2>仍未恢复时，反馈哪些信息？</h2>
+<p>如果连接和网络都正常，等待后仍没有数据，请提供表盘名称、手表型号、选中的数据项、表盘照片及应用设置截图，并说明 Garmin Connect 是否显示已连接。可以通过 <a href="mailto:support@wristo.io">support@wristo.io</a> 联系我们。</p>
+<p>排查时先区分两件事：设置是否已保存到设备，以及联网数据是否已成功获取。这样更容易找到问题发生在哪一步。</p>`),
+    ])),
+    publishedAt: '2026-11-13T03:40:00.000Z',
+    createdAt: '2026-11-13T03:40:00.000Z',
+    updatedAt: '2026-11-13T03:40:00.000Z',
+    coverImageUrl: '/images/guides/bluetooth-online-data/watch-disconnected.jpg',
+  },
 ] satisfies BlogPostVO[]
 
 export const faqGuidePosts = [
@@ -441,6 +477,7 @@ const faqFunctionalGroups = [
     title: 'Sync and troubleshooting',
     anchor: 'sync-and-troubleshooting',
     slugs: [
+      'bluetooth-online-data-sync',
       'how-to-keep-garmin-watch-connected-to-connect-iq',
       'keep-garmin-connect-running-in-background-iphone',
       'iq-error-troubleshooting',
