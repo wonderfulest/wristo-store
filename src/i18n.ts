@@ -2,6 +2,13 @@ import { computed } from 'vue'
 import { useLocaleStore, type SupportedLocale } from '@/store/locale'
 
 const en = {
+  'appDownload.title': 'Wristo, wherever you go.',
+  'appDownload.description': 'Find your next Garmin watch face on your phone.',
+  'appDownload.footerTitle': 'Get the Wristo app',
+  'appDownload.downloadOn': 'Download on the',
+  'appDownload.getItOn': 'GET IT ON',
+  'appDownload.iosLabel': 'Download Wristo on the App Store',
+  'appDownload.androidLabel': 'Get Wristo on Google Play',
     'custom.signinFirst': 'Sign in before filling out your brief and choosing files, so your materials stay with your order.',
     "custom.eyebrow": "MADE FOR YOUR WRIST",
     "custom.title": "Your idea. Your watch face.",
@@ -980,6 +987,13 @@ const messages: Record<SupportedLocale, Messages> = {
   en,
   zh: {
     ...en,
+    'appDownload.title': 'Wristo，随时随地。',
+    'appDownload.description': '在手机上，发现你的下一款 Garmin 表盘。',
+    'appDownload.footerTitle': '下载 Wristo App',
+    'appDownload.downloadOn': '下载于',
+    'appDownload.getItOn': '立即获取',
+    'appDownload.iosLabel': '在 App Store 下载 Wristo',
+    'appDownload.androidLabel': '在 Google Play 下载 Wristo',
     'custom.signinFirst': '请先登录，再填写需求和选择文件，确保素材与订单保存在你的账号下。',
     "custom.eyebrow": "专属于你的表盘",
     "custom.title": "把你的想法，戴在手腕上。",

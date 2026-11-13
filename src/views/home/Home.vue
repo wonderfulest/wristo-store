@@ -2,6 +2,7 @@
   <main class="catalog-home">
     <HomeBanner v-if="!hasPremiumAccess" premium-only />
     <HomeIntro />
+    <HomeAppDownload />
     <HomeProductGrid
       :products="newProducts"
       :loading="loading"
@@ -27,6 +28,7 @@ import { hasPremiumEntitlement } from '@/utils/entitlements'
 import PremiumSuiteCard from '@/components/PremiumSuiteCard.vue'
 import HomeBanner from '@/views/home/components/HomeBanner.vue'
 import HomeIntro from '@/views/home/components/HomeIntro.vue'
+import HomeAppDownload from '@/views/home/components/HomeAppDownload.vue'
 import HomeProductGrid from '@/views/home/components/HomeProductGrid.vue'
 
 const pageSize = 24

@@ -7,6 +7,10 @@
             <img src="https://cdn.wristo.io/brands/wristo-logo/svg/wristo-mark.svg" alt="" width="36" height="36" />
             <span>Wristo<span class="brand-period">.</span></span>
           </a>
+          <div v-if="downloads.hasLinks" class="footer-downloads">
+            <h2>{{ t('appDownload.footerTitle') }}</h2>
+            <AppDownloadLinks compact />
+          </div>
         </div>
         <nav class="footer-links" :aria-label="t('footer.quickLinks')">
           <h2>{{ t('footer.quickLinks') }}</h2>
@@ -29,10 +33,15 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import AppDownloadLinks from '@/components/AppDownloadLinks.vue'
+import { useCompanionAppsStore } from '@/store/companionApps'
 import { useI18n } from '@/i18n'
 import { addLocaleToPath, useLocaleStore } from '@/store/locale'
 const localeStore = useLocaleStore()
 const { t } = useI18n()
+const downloads = useCompanionAppsStore()
+onMounted(() => { void downloads.load() })
 const currentYear = new Date().getFullYear()
 const localizedPath = (path: string) => addLocaleToPath(path, localeStore.currentLocale)
 </script>
@@ -48,6 +57,7 @@ const localizedPath = (path: string) => addLocaleToPath(path, localeStore.curren
 .footer-brand { display: inline-flex; align-items: center; gap: 12px; color: var(--color-ink) !important; font-size: 32px; font-weight: 750; line-height: 1.4; }
 .footer-brand:hover { text-decoration: none !important; }
 .footer-brand img { display: block; }
+.footer-downloads { margin-top: 22px; }
 .brand-period { color: var(--color-brand); }
 .footer-links { display: flex; flex-direction: column; align-items: flex-start; }
 .footer-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
