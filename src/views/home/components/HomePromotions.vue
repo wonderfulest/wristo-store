@@ -2,8 +2,23 @@
   <section v-if="showPremium || downloads.hasLinks" class="home-promotions storefront-container"
     :aria-label="t('home.heroCarouselAria')" aria-roledescription="carousel"
     @mouseenter="hovered = true; stop()" @mouseleave="hovered = false; start()" @focusin="focused = true; stop()" @focusout="onFocusOut">
+    <div v-if="slides.length > 1" class="home-promotions__controls" role="group" :aria-label="t('home.heroCarouselAria')">
+      <button class="home-promotions__arrow" type="button" :aria-label="t('creators.previous')" @click="step(-1)">
+        <span aria-hidden="true">←</span>
+      </button>
+      <div class="home-promotions__choices">
+        <button v-for="(slide, index) in slides" :key="slide" class="home-promotions__choice" type="button"
+          :aria-pressed="active === slide" :aria-controls="`home-promotion-${slide}`" @click="select(slide)">
+          <span class="home-promotions__number" aria-hidden="true">{{ index + 1 }}</span>
+          <span>{{ slide === 'premium' ? 'Wristo Premium' : 'Wristo App' }}</span>
+        </button>
+      </div>
+      <button class="home-promotions__arrow" type="button" :aria-label="t('creators.next')" @click="step(1)">
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
     <div class="home-promotions__slides">
-      <div v-if="showPremium" :class="{ 'is-active': active === 'premium' }" :inert="active !== 'premium'" :aria-hidden="active !== 'premium'" class="home-promotions__slide">
+      <div id="home-promotion-premium" v-if="showPremium" :class="{ 'is-active': active === 'premium' }" :inert="active !== 'premium'" :aria-hidden="active !== 'premium'" class="home-promotions__slide">
         <div class="promotion promotion--premium">
           <div class="promotion__copy">
             <span class="promotion__eyebrow">WRISTO PREMIUM</span>
@@ -14,7 +29,7 @@
           <div class="promotion__art" aria-hidden="true"><img src="https://cdn.wristo.io/store/home/home-premium-art-450f93619da55c16.png" alt="" width="1536" height="1024" fetchpriority="high" /></div>
         </div>
       </div>
-      <div v-if="downloads.hasLinks" :class="{ 'is-active': active === 'app' }" :inert="active !== 'app'" :aria-hidden="active !== 'app'" class="home-promotions__slide">
+      <div id="home-promotion-app" v-if="downloads.hasLinks" :class="{ 'is-active': active === 'app' }" :inert="active !== 'app'" :aria-hidden="active !== 'app'" class="home-promotions__slide">
         <div class="promotion promotion--app">
           <div class="promotion__copy">
             <span class="promotion__eyebrow">WRISTO APP</span>
@@ -28,11 +43,7 @@
         </div>
       </div>
     </div>
-    <div v-if="slides.length > 1" class="home-promotions__controls">
-      <button v-for="slide in slides" :key="slide" type="button" :aria-pressed="active === slide" :aria-label="slide === 'premium' ? t('home.premiumEyebrow') : 'Wristo App'" @click="select(slide)">
-        <span class="home-promotions__dot" aria-hidden="true"></span>
-      </button>
-    </div>
+
   </section>
 </template>
 
@@ -64,6 +75,10 @@ function start() {
   timer = setInterval(() => { active.value = slides.value[(slides.value.indexOf(active.value) + 1) % slides.value.length] }, 2000)
 }
 function select(slide: Slide) { active.value = slide; start() }
+function step(direction: number) {
+  if (slides.value.length < 2) return
+  select(slides.value[(slides.value.indexOf(active.value) + direction + slides.value.length) % slides.value.length])
+}
 function onFocusOut(event: FocusEvent) {
   if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) { focused.value = false; start() }
 }
@@ -98,11 +113,16 @@ onBeforeUnmount(stop)
 .promotion__phone-stage { position: relative; min-width: 0; }
 .promotion__phone { position: absolute; top: 24px; left: 8%; width: 268px; padding: 5px; border: 2px solid #797d75; border-radius: 37px; background: #171b17; box-shadow: 10px 8px 0 #5a5c54, 20px 24px 32px #1d311a40; transform: rotate(12deg); }
 .promotion__phone img { width: 100%; height: auto; display: block; border-radius: 30px; }
-.home-promotions__controls { position: absolute; z-index: 3; bottom: 0; left: 50%; transform: translateX(-50%); display: flex; }
-.home-promotions__controls button { width: 44px; height: 40px; border: 0; background: transparent; display: grid; place-items: center; cursor: pointer; }
-.home-promotions__dot { width: 9px; height: 9px; border-radius: 50%; background: #819184; box-shadow: 0 0 0 1px #ffffff50; }
-button[aria-pressed="true"] .home-promotions__dot { background: #064d40; box-shadow: 0 0 0 2px #fff9; }
-.home-promotions__controls button:focus-visible { outline: 2px solid #007568; outline-offset: -4px; border-radius: 8px; }
+.home-promotions__controls { position: relative; z-index: 3; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: #fffdf9; border-bottom: 1px solid #d8dfd2; }
+.home-promotions__choices { display: flex; flex: 1; justify-content: center; gap: 10px; min-width: 0; }
+.home-promotions__controls button { min-width: 0; min-height: 48px; border: 1px solid #a6b5a5; border-radius: 12px; cursor: pointer; color: #164c3b; background: #edf2e8; font-weight: 700; }
+.home-promotions__choice { display: inline-flex; align-items: center; justify-content: center; gap: 10px; flex: 1; max-width: 260px; padding: 10px 16px; font-size: 15px; }
+.home-promotions__number { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #dce6d6; font-size: 12px; }
+.home-promotions__controls button[aria-pressed="true"] { color: white; background: #00594f; border-color: #00594f; box-shadow: 0 2px 6px #00594f26; }
+.home-promotions__choice[aria-pressed="true"] .home-promotions__number { background: #ffffff26; }
+.home-promotions__controls button:hover { border-color: #00594f; box-shadow: 0 0 0 2px #00594f26; }
+.home-promotions__arrow { padding: 0; flex: 0 0 48px; font-size: 26px; line-height: 1; }
+.home-promotions__controls button:focus-visible { outline: 3px solid #a77a30; outline-offset: 2px; }
 @media (max-width: 900px) {
   .promotion { min-height: 330px; }
   .promotion__copy { padding-left: 28px; }
@@ -128,8 +148,12 @@ button[aria-pressed="true"] .home-promotions__dot { background: #064d40; box-sha
   .promotion--app :deep(.app-download-link) { flex: 1; min-width: 0; gap: 6px; padding: 8px; }
   .promotion--app :deep(.app-download-link strong) { font-size: 14px; }
   .promotion--app :deep(.app-download-link img) { width: 20px; flex-basis: 20px; }
-  .home-promotions__controls { background: #fffdf9dd; border-radius: 18px; bottom: 6px; }
-  .home-promotions__controls button { height: 32px; }
+  .home-promotions__controls { gap: 6px; padding: 10px 8px; }
+  .home-promotions__choices { gap: 6px; }
+  .home-promotions__choice { padding: 8px 4px; font-size: 12px; gap: 0; }
+  .home-promotions__number { display: none; }
+  .home-promotions__arrow { flex-basis: 44px; }
+  .home-promotions__controls button { border-radius: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .home-promotions__slide { transition: none; } }
 </style>
