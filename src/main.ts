@@ -1,3 +1,4 @@
+import { installUserActivity } from './utils/userActivity'
 import { createApp } from 'vue'
 import 'element-plus/dist/index.css'
 import './style.css'
@@ -20,3 +21,5 @@ app.component('Icon', Icon)
 useGA(app)
 app.mount('#app')
 
+
+installUserActivity()
