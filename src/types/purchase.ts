@@ -8,6 +8,7 @@ export interface PurchaseRequest {
 }
 
 export interface PurchaseData {
+  activated?: boolean
   product: ProductBaseVO
   bundles: Bundle[]
   request: PurchaseRequest

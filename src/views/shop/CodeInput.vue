@@ -186,6 +186,10 @@ const handleContinue = async () => {
     
     // 正常流程：获取产品信息并跳转到购买页面
     const purchaseData: PurchaseData = await purchaseByCode(code.value)
+    if (purchaseData.activated) {
+      success.value = t('code.successDefault')
+      return
+    }
     store.setData(purchaseData)
     if (coupon.value.trim()) {
       // 将口令码保存到全局 discountCode，后续 PurchaseOptions / Checkout 统一使用
