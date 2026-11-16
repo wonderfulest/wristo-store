@@ -2,8 +2,135 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["Y6H95LLU4B.io.wristo.garmin"],
-        "components": [{ "/": "/looks/*", "comment": "Open a shared Wristo Look" }]
+        "appIDs": [
+          "Y6H95LLU4B.io.wristo.garmin"
+        ],
+        "components": [
+          {
+            "/": "/looks/*",
+            "comment": "Open a shared Wristo Look"
+          },
+          {
+            "/": "/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/en/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/en/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/de/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/de/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/es/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/es/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/fr/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/fr/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/it/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/it/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/pt-br/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/pt-br/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/nl/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/nl/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/pl/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/pl/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/sv/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/sv/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/da/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/da/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/cs/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/cs/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/zh/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/zh/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/ja/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/ja/product/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/ko/app/*",
+            "comment": "Open a shared Wristo watch face"
+          },
+          {
+            "/": "/ko/product/*",
+            "comment": "Open a shared Wristo watch face"
+          }
+        ]
       }
     ]
   }
