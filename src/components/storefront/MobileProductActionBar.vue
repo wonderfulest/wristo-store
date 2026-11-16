@@ -3,12 +3,14 @@ withDefaults(
   defineProps<{
     visible: boolean
     priceLabel: string
+    showPrice?: boolean
     primaryLabel: string
     primaryDisabled?: boolean
     secondaryLabel?: string
   }>(),
   {
     primaryDisabled: false,
+    showPrice: true,
     secondaryLabel: '',
   },
 )
@@ -23,10 +25,11 @@ defineEmits<{
   <div
     v-if="visible"
     class="mobile-product-action-bar"
+    :class="{ 'mobile-product-action-bar--compact': !showPrice }"
     role="region"
     :aria-label="primaryLabel"
   >
-    <div class="mobile-product-action-bar__price">{{ priceLabel }}</div>
+    <div v-if="showPrice" class="mobile-product-action-bar__price">{{ priceLabel }}</div>
     <button
       v-if="secondaryLabel"
       type="button"
@@ -137,5 +140,10 @@ defineEmits<{
     padding-left: 9px;
     font-size: 0.82rem;
   }
+}
+@media (max-width: 900px) {
+  .mobile-product-action-bar--compact { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 10px; padding-inline: 16px; box-shadow: none; }
+  .mobile-product-action-bar--compact .mobile-product-action-bar__primary { box-shadow: none; }
+  .mobile-product-action-bar--compact .mobile-product-action-bar__primary--wide { grid-column: 1 / -1; }
 }
 </style>

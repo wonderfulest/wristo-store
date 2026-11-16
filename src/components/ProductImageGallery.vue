@@ -1,5 +1,5 @@
 <template>
-  <section class="product-gallery" :aria-label="`${productName} image gallery`">
+  <section class="product-gallery" :class="{ 'product-gallery--mobile-refined': mobileRefined }" :aria-label="`${productName} image gallery`">
     <div
       class="product-gallery__stage"
       tabindex="0"
@@ -46,6 +46,10 @@
       >
         <span aria-hidden="true">W</span>
       </div>
+      <button v-if="mobileRefined && selectedItem" type="button" class="product-gallery__expand" aria-label="View image fullscreen" @click.stop="showPreview">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6" /></svg>
+      </button>
+      <span v-if="mobileRefined && selectedItem" class="product-gallery__counter" aria-live="polite">{{ selectedIndex + 1 }} / {{ availableItems.length }}</span>
       <template v-if="availableItems.length > 1">
         <button
           type="button"
@@ -66,6 +70,9 @@
       </template>
     </div>
 
+    <div v-if="mobileRefined && availableItems.length > 1" class="product-gallery__pagination" aria-hidden="true">
+      <span v-for="item in availableItems" :key="item.key" :class="{ active: item.url === selectedUrl }"></span>
+    </div>
     <div
       v-if="editable || availableItems.length > 1"
       class="product-gallery__thumbnails"
@@ -191,6 +198,7 @@ const props = withDefaults(
     images: ProductShareImageSource[]
     fallbackImageUrl?: string | null
     productName: string
+    mobileRefined?: boolean
     editable?: boolean
     canAddImages?: boolean
     uploading?: boolean
@@ -199,6 +207,7 @@ const props = withDefaults(
   }>(),
   {
     fallbackImageUrl: null,
+    mobileRefined: false,
     editable: false,
     canAddImages: true,
     uploading: false,
@@ -793,6 +802,30 @@ watch(
   .product-gallery__carousel-button,
   .product-gallery__thumbnail {
     transition: none;
+  }
+}
+/* Opt-in mobile gallery; desktop and management surfaces retain their layout. */
+.product-gallery__expand, .product-gallery__counter, .product-gallery__pagination { display: none; }
+@media (max-width: 900px) {
+  .product-gallery--mobile-refined { gap: 12px; }
+  .product-gallery--mobile-refined .product-gallery__carousel-button { display: none; }
+  .product-gallery--mobile-refined .product-gallery__expand {
+    position: absolute; top: 8px; right: 8px; z-index: 3; display: grid; place-items: center;
+    width: 44px; height: 44px; border: 0; border-radius: 12px; color: #25312e;
+    background: transparent; cursor: zoom-in;
+  }
+  .product-gallery--mobile-refined .product-gallery__counter {
+    position: absolute; right: 12px; bottom: 12px; z-index: 3; display: block;
+    padding: 4px 12px; border-radius: 999px; background: rgb(255 255 255 / 88%);
+    color: #29312e; font-size: 12px; font-variant-numeric: tabular-nums;
+  }
+  .product-gallery--mobile-refined .product-gallery__pagination {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 7px; padding: 2px 0;
+  }
+  .product-gallery__pagination span { width: 5px; height: 5px; border-radius: 999px; background: #d1d2cf; }
+  .product-gallery__pagination span.active { width: 20px; background: #087f75; }
+  .product-gallery--mobile-refined .product-gallery__thumbnail--active {
+    border-color: #087f75; box-shadow: inset 0 0 0 1px #087f75; background: #fff;
   }
 }
 </style>

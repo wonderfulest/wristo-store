@@ -5,7 +5,7 @@
   >
     <div class="product-detail-main">
       <div class="product-visual-wrap">
-        <ProductImageGallery
+        <ProductImageGallery mobile-refined
           :images="product?.productImages || []"
           :fallback-image-url="productHeroImageUrl"
           :product-name="displayProduct?.name || t('product.previewAlt')"
@@ -13,7 +13,7 @@
         <a
           v-if="product?.garminStoreUrl?.trim()"
           :href="product.garminStoreUrl"
-          class="product-btn product-btn-download product-btn-install"
+          class="product-btn product-btn-download product-btn-install product-btn-install--desktop"
         >
           {{ t('product.install') }}
           <el-icon class="btn-icon"><Download /></el-icon>
@@ -50,6 +50,9 @@
             </router-link>
           </li>
         </ul>
+        <a v-if="product?.garminStoreUrl?.trim()" :href="product.garminStoreUrl" class="product-btn product-btn-install product-btn-install--mobile">
+          <el-icon class="btn-icon"><Download /></el-icon>{{ t('product.install') }}
+        </a>
         <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
           <div v-if="productUpdatedLabel" class="product-meta-item">
             <dt>{{ t('product.lastUpdated') }}</dt>
@@ -222,6 +225,7 @@
     <SimilarProductsFeed v-if="product?.appId" :app-id="product.appId" />
     <MobileProductActionBar
       :visible="Boolean(product?.appId)"
+      :show-price="false"
       :price-label="mobilePriceLabel"
       :primary-label="mobilePrimaryLabel"
       :primary-disabled="false"
@@ -1856,5 +1860,33 @@ onMounted(() => {
     height: 44px;
     font-size: 0.95rem;
   }
+}
+/* Approved mobile gallery layout. */
+.product-btn-install--mobile { display: none; }
+@media (max-width: 900px) {
+  .product-detail-page { padding: 20px 16px calc(32px + var(--mobile-product-action-reserve) + env(safe-area-inset-bottom)); background: #fdfcf9; }
+  .product-detail-main { gap: 24px; }
+  .product-visual-wrap { max-width: 100%; }
+  .product-visual-wrap :deep(.product-gallery__stage) {
+    aspect-ratio: 1; padding: 30px; border: 0; border-radius: 20px; background: #eeede9;
+  }
+  .product-visual-wrap :deep(.product-gallery__watchface) { border: 0; background: transparent; box-shadow: 0 12px 22px rgb(30 35 30 / 12%); }
+  .product-visual-wrap :deep(.product-gallery__watchface::after) { display: none; }
+  .product-visual-wrap :deep(.product-gallery__main-image .el-image__inner) { filter: none; }
+  .product-visual-wrap :deep(.product-gallery__thumbnails) { padding: 4px 0; gap: 10px; scrollbar-width: none; }
+  .product-visual-wrap :deep(.product-gallery__thumbnail-item) { flex: 0 0 calc((100% - 40px) / 5); width: auto; }
+  .product-visual-wrap :deep(.product-gallery__thumbnail) { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; }
+  .product-btn-install--desktop { display: none; }
+  .product-purchase-panel { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; padding-bottom: 0; }
+  .product-purchase-panel > * { grid-column: 1 / -1; }
+  .product-purchase-panel > .product-title { grid-column: 1; grid-row: 2; margin: 0; font-size: clamp(1.35rem, 6vw, 1.8rem); line-height: 1.2; align-self: center; }
+  .product-purchase-panel > .product-price { grid-column: 2; grid-row: 2; margin: 0; font-size: 1.5rem; line-height: 1.2; align-self: center; white-space: nowrap; }
+  .product-eyebrow { font-size: 10px; letter-spacing: 1.3px; margin-bottom: 12px; }
+  .product-tags { margin-top: 18px; gap: 8px; }
+  .product-tag { padding: 5px 12px; background: #efeeeb; font-size: 13px; }
+  .product-btn-install--mobile { display: flex; gap: 10px; height: 48px; margin: 20px 0 0; border: 1px solid var(--color-brand); border-radius: 12px; color: var(--color-brand); background: transparent; font-size: 1rem; box-shadow: none; }
+  .product-btn-install--mobile .btn-icon { margin: 0; }
+  .product-purchase-actions { display: none; }
+  .product-activated-panel { margin-top: 16px; }
 }
 </style> 
