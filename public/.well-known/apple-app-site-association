@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["Y6H95LLU4B.io.wristo.garmin"],
+        "components": [{ "/": "/looks/*", "comment": "Open a shared Wristo Look" }]
+      }
+    ]
+  }
+}

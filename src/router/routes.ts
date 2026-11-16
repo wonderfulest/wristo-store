@@ -32,6 +32,7 @@ const redirectLegacyPremium = (to: RouteLocationGeneric) => {
 }
 
 const baseRoutes: RouteRecordRaw[] = [
+  { path: '/looks/:id', name: 'SharedLook', component: () => import('@/views/looks/SharedLookView.vue'), meta: { title: 'Looks | Wristo', description: 'Watch faces worn in everyday life.' } },
   { path: '/custom-watchface', name: 'CustomWatchface', component: () => import('@/views/custom/CustomWatchface.vue'), meta: { title: 'Custom Garmin Watch Face | Wristo', description: 'Your own Garmin watch face: installation package $9.90 or store publication $19.90.' } },
   { path: '/collections/:slug(data-rich-garmin-watch-faces|analog-garmin-watch-faces|outdoor-garmin-watch-faces)', name: 'CuratedCollection', component: () => import('@/views/collections/CuratedCollection.vue') },
   { path: '/utilities/next-shot', name: 'NextShot', component: () => import('@/views/utilities/NextShotView.vue'), meta: { title: 'Next Shot | Wristo', description: 'Wedge distance practice, training history and repeatable retests for Garmin.' } },
@@ -413,7 +414,7 @@ function withLanguagePrefix(route: RouteRecordRaw): RouteRecordRaw | null {
   if (route.path === '/:pathMatch(.*)*') return null
   if (route.path.startsWith('/:lang')) return null
   if (route.path === '/support' || route.path === '/support/:slug') return null
-  if (route.path === '/unlock') return null
+  if (route.path === '/unlock' || route.path.startsWith('/looks/')) return null
   if (route.path.startsWith('/blog')) return null
 
   const childPath = route.path === '/' ? '' : route.path.replace(/^\//, '')
