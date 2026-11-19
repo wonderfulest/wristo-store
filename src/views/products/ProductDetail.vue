@@ -12,7 +12,7 @@
         />
         <a
           v-if="product?.garminStoreUrl?.trim()"
-          :href="product.garminStoreUrl"
+          :href="product.garminStoreUrl" @click="recordDownloadClick(product.appId).catch(() => {})"
           class="product-btn product-btn-download product-btn-install product-btn-install--desktop"
         >
           {{ t('product.install') }}
@@ -50,7 +50,7 @@
             </router-link>
           </li>
         </ul>
-        <a v-if="product?.garminStoreUrl?.trim()" :href="product.garminStoreUrl" class="product-btn product-btn-install product-btn-install--mobile">
+        <a v-if="product?.garminStoreUrl?.trim()" :href="product.garminStoreUrl" @click="recordDownloadClick(product.appId).catch(() => {})" class="product-btn product-btn-install product-btn-install--mobile">
           <el-icon class="btn-icon"><Download /></el-icon>{{ t('product.install') }}
         </a>
         <dl v-if="productUpdatedLabel || product?.devices?.length" class="product-meta-list">
@@ -237,6 +237,7 @@
 </template>
 
 <script setup lang="ts">
+import { recordDownloadClick } from '@/api/download-clicks'
 import { useProductLocalization } from '@/composables/useProductLocalization'
 const localized = useProductLocalization()
 import { ref, onMounted, nextTick, computed, watch } from 'vue'
@@ -362,6 +363,7 @@ const handleBuyNow = () => {
 
 const handleDownload = () => {
   if (product.value && product.value.garminStoreUrl) {
+    void recordDownloadClick(product.value.appId).catch(() => {})
     if (userStore.token && userStore.userInfo?.id) {
       const rewardUserId = userStore.userInfo.id
       void recordDownloadReward(product.value.appId, userStore.token).then(result => {
