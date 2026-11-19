@@ -99,8 +99,8 @@ const en = {
   "studioPromo.previewTitle": "Wear your creation",
   "studioPromo.previewDescription": "Follow the guide to install it on your Garmin.",
 
-  'rewards.downloadEarned': '+{credits} Studio credits for your first download click.',
-  'rewards.downloadUnconfirmed': 'Download opened. Reward could not be confirmed; check your Studio credit history.',
+  'rewards.downloadEarned': '+{credits} points for your first download click.',
+  'rewards.downloadUnconfirmed': 'Download opened. Reward could not be confirmed; check your points history.',
   'activation.errorCodeUsed': 'This watch code is already activated with a different purchase email. Use the original purchase email to manage its activation.',
   "activations.title": "Activation records",
   "activations.subtitle": "Manage the watches linked to your purchases. Remove a binding to free a device slot.",
@@ -1089,8 +1089,8 @@ const messages: Record<SupportedLocale, Messages> = {
     "studioPromo.previewTitle": "戴上专属表盘",
     "studioPromo.previewDescription": "按照引导，将表盘安装到 Garmin 手表。",
 
-    'rewards.downloadEarned': '首次点击下载获得 {credits} Studio 积分。',
-    'rewards.downloadUnconfirmed': '下载已打开，但暂未确认积分奖励，请查看 Studio 积分明细。',
+    'rewards.downloadEarned': '首次点击下载获得 {credits} 积分。',
+    'rewards.downloadUnconfirmed': '下载已打开，但暂未确认积分奖励，请查看积分明细。',
     'activation.errorCodeUsed': '这个手表代码已通过其他购买邮箱激活，请使用原购买邮箱管理对应激活记录。',
     "activations.title": "激活记录",
     "activations.subtitle": "管理购买权益已绑定的手表，删除绑定即可释放设备名额。",
