@@ -253,7 +253,7 @@ onUnmounted(() => {
 const features = [
   {
     icon: Timer,
-    title: '2000+ Watch Faces',
+    title: '8,000+ Watch Faces',
     description: 'Unlock access to our entire collection of premium watch faces.'
   },
   {
@@ -287,7 +287,7 @@ const features = [
 const faqs = [
   {
     question: 'What\'s included in the premium access?',
-    answer: 'Get lifetime access to 2000+ premium watch faces, all future updates, and exclusive features for a one-time payment of $9.99.'
+    answer: 'Get lifetime access to 8,000+ premium watch faces, all future updates, and exclusive features for a one-time payment of $9.99.'
   },
   {
     question: 'Is this a one-time payment or a subscription?',
